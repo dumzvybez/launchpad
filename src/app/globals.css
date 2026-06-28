@@ -1,0 +1,655 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 16px);
+
+  /* Liquid Glass system tokens */
+  --color-glass-tint: var(--glass-tint);
+  --color-glass-border: var(--glass-border);
+  --color-glass-highlight: var(--glass-highlight);
+  --color-glass-shadow: var(--glass-shadow);
+  --color-aurora-1: var(--aurora-1);
+  --color-aurora-2: var(--aurora-2);
+  --color-aurora-3: var(--aurora-3);
+  --color-aurora-4: var(--aurora-4);
+}
+
+/* ============== LIGHT MODE — soft daylight glass ============== */
+:root {
+  --radius: 0.875rem;
+
+  --background: oklch(0.985 0.005 240);
+  --foreground: oklch(0.18 0.01 250);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.01 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.01 250);
+
+  /* Brand: aurora teal — NOT blue/indigo */
+  --primary: oklch(0.55 0.18 195);
+  --primary-foreground: oklch(0.99 0 0);
+
+  --secondary: oklch(0.96 0.005 240);
+  --secondary-foreground: oklch(0.25 0.01 250);
+
+  --muted: oklch(0.96 0.005 240);
+  --muted-foreground: oklch(0.5 0.01 250);
+
+  --accent: oklch(0.55 0.18 195);
+  --accent-foreground: oklch(0.99 0 0);
+
+  --destructive: oklch(0.62 0.24 27);
+  --border: oklch(0.9 0.005 240);
+  --input: oklch(0.94 0.005 240);
+  --ring: oklch(0.55 0.18 195);
+
+  /* Chart palette — aurora spectrum */
+  --chart-1: oklch(0.65 0.18 195); /* teal */
+  --chart-2: oklch(0.7 0.18 155);  /* green */
+  --chart-3: oklch(0.72 0.16 80);  /* amber */
+  --chart-4: oklch(0.62 0.22 320); /* magenta */
+  --chart-5: oklch(0.6 0.18 25);   /* coral */
+
+  /* Glass tokens — light: 3-layer depth system */
+  --glass-tint: oklch(1 0 0 / 0.65);
+  --glass-tint-strong: oklch(1 0 0 / 0.85);
+  --glass-border: oklch(1 0 0 / 0.75);
+  --glass-border-subtle: oklch(0.2 0.02 250 / 0.06);
+  --glass-highlight: oklch(1 0 0 / 0.95);
+  --glass-shadow: oklch(0.2 0.02 250 / 0.10);
+  --glass-shadow-deep: oklch(0.2 0.02 250 / 0.18);
+
+  /* Aurora background blobs */
+  --aurora-1: oklch(0.7 0.18 195 / 0.4);
+  --aurora-2: oklch(0.72 0.16 320 / 0.32);
+  --aurora-3: oklch(0.75 0.16 80 / 0.28);
+  --aurora-4: oklch(0.72 0.18 155 / 0.3);
+
+  --sidebar: oklch(0.97 0.005 240);
+  --sidebar-foreground: oklch(0.18 0.01 250);
+  --sidebar-primary: oklch(0.55 0.18 195);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.93 0.008 240);
+  --sidebar-accent-foreground: oklch(0.2 0.01 250);
+  --sidebar-border: oklch(0.9 0.005 240);
+  --sidebar-ring: oklch(0.55 0.18 195);
+}
+
+/* ============== DARK MODE — deep aurora glass ============== */
+.dark {
+  --background: oklch(0.11 0.012 250);
+  --foreground: oklch(0.98 0.003 240);
+
+  --card: oklch(0.16 0.014 250);
+  --card-foreground: oklch(0.98 0.003 240);
+  --popover: oklch(0.14 0.014 250);
+  --popover-foreground: oklch(0.98 0.003 240);
+
+  --primary: oklch(0.80 0.16 195);
+  --primary-foreground: oklch(0.11 0.012 250);
+
+  --secondary: oklch(0.20 0.014 250);
+  --secondary-foreground: oklch(0.98 0.003 240);
+
+  --muted: oklch(0.20 0.014 250);
+  --muted-foreground: oklch(0.78 0.008 250);
+
+  --accent: oklch(0.80 0.16 195);
+  --accent-foreground: oklch(0.11 0.012 250);
+
+  --destructive: oklch(0.7 0.2 22);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.80 0.16 195);
+
+  --chart-1: oklch(0.80 0.16 195);
+  --chart-2: oklch(0.80 0.16 155);
+  --chart-3: oklch(0.84 0.16 80);
+  --chart-4: oklch(0.76 0.2 320);
+  --chart-5: oklch(0.74 0.18 25);
+
+  /* Glass tokens — dark: 3-layer depth system with stronger highlights */
+  --glass-tint: oklch(0.18 0.014 250 / 0.62);
+  --glass-tint-strong: oklch(0.22 0.014 250 / 0.85);
+  --glass-border: oklch(1 0 0 / 0.12);
+  --glass-border-subtle: oklch(1 0 0 / 0.06);
+  --glass-highlight: oklch(1 0 0 / 0.18);
+  --glass-shadow: oklch(0 0 0 / 0.55);
+  --glass-shadow-deep: oklch(0 0 0 / 0.75);
+
+  /* Aurora — brighter in dark */
+  --aurora-1: oklch(0.80 0.18 195 / 0.34);
+  --aurora-2: oklch(0.76 0.2 320 / 0.28);
+  --aurora-3: oklch(0.84 0.18 80 / 0.24);
+  --aurora-4: oklch(0.80 0.18 155 / 0.26);
+
+  --sidebar: oklch(0.14 0.012 250);
+  --sidebar-foreground: oklch(0.98 0.003 240);
+  --sidebar-primary: oklch(0.80 0.16 195);
+  --sidebar-primary-foreground: oklch(0.11 0.012 250);
+  --sidebar-accent: oklch(0.20 0.014 250);
+  --sidebar-accent-foreground: oklch(0.98 0.003 240);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.80 0.16 195);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01", "ss03", "cv02", "cv03";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+    letter-spacing: -0.011em;
+  }
+
+  /* Headings — tighter, more confident */
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.025em;
+    font-weight: 600;
+  }
+
+  /* Scrollbar — refined thin glass */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.5 0.02 250 / 0.25);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.5 0.02 250 / 0.45);
+    background-clip: content-box;
+  }
+
+  ::selection {
+    background: oklch(0.80 0.16 195 / 0.28);
+    color: inherit;
+  }
+}
+
+/* ============================================================
+   LIQUID GLASS DESIGN SYSTEM v2 — 10/10 polish
+   Multi-layer depth, consistent blur, premium specular highlights
+   Inspired by iOS 26, visionOS, Linear, and Arc Browser
+   ============================================================ */
+
+@layer components {
+  /*
+   * Base glass surface — 3-layer composition:
+   *   1. Tint (translucent background)
+   *   2. Specular highlight (top-left light refraction)
+   *   3. Depth shadow (bottom-right darkness)
+   * This creates the "real glass" look — not just blur.
+   */
+  .glass {
+    position: relative;
+    background: var(--glass-tint);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow:
+      /* Layer 1: inner top highlight (specular) — STRONG */
+      0 1px 0 0 var(--glass-highlight) inset,
+      0 2px 3px 0 oklch(1 0 0 / 0.10) inset,
+      /* Layer 2: inner bottom shadow (depth) */
+      0 -1px 2px 0 oklch(0 0 0 / 0.08) inset,
+      /* Layer 3: outer ambient shadow — DEEPER */
+      0 1px 3px 0 oklch(0 0 0 / 0.06),
+      0 12px 32px -8px var(--glass-shadow),
+      0 4px 12px -2px oklch(0 0 0 / 0.10);
+    transition:
+      border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      backdrop-filter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Specular sheen — diagonal light refraction — STRONGER */
+  .glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      oklch(1 0 0 / 0.30) 0%,
+      oklch(1 0 0 / 0.08) 20%,
+      transparent 45%,
+      transparent 75%,
+      oklch(1 0 0 / 0.06) 100%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .dark .glass::before {
+    background: linear-gradient(
+      135deg,
+      oklch(1 0 0 / 0.20) 0%,
+      oklch(1 0 0 / 0.05) 20%,
+      transparent 45%,
+      transparent 75%,
+      oklch(1 0 0 / 0.04) 100%
+    );
+  }
+
+  /* Inner content always sits above the sheen */
+  .glass > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Hover lift — premium, smooth, with stronger depth */
+  .glass-hover {
+    transition:
+      border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      backdrop-filter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .glass-hover:hover {
+    border-color: oklch(0.80 0.16 195 / 0.45);
+    backdrop-filter: blur(36px) saturate(200%);
+    -webkit-backdrop-filter: blur(36px) saturate(200%);
+    box-shadow:
+      0 1px 0 0 var(--glass-highlight) inset,
+      0 -1px 1px 0 oklch(0 0 0 / 0.06) inset,
+      0 1px 2px 0 oklch(0 0 0 / 0.06),
+      0 16px 40px -8px var(--glass-shadow-deep),
+      0 4px 12px -2px oklch(0 0 0 / 0.10),
+      0 0 0 1px oklch(0.80 0.16 195 / 0.12);
+    transform: translateY(-2px);
+  }
+
+  /* Glass variants by elevation */
+  .glass-elevated {
+    background: var(--glass-tint-strong);
+    backdrop-filter: blur(40px) saturate(200%);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    border-color: var(--glass-border);
+    box-shadow:
+      0 1px 0 0 var(--glass-highlight) inset,
+      0 2px 4px 0 oklch(1 0 0 / 0.14) inset,
+      0 -1px 2px 0 oklch(0 0 0 / 0.10) inset,
+      0 1px 3px 0 oklch(0 0 0 / 0.08),
+      0 28px 70px -16px var(--glass-shadow-deep),
+      0 8px 20px -4px oklch(0 0 0 / 0.16);
+  }
+  .dark .glass-elevated {
+    background: oklch(0.20 0.014 250 / 0.82);
+  }
+
+  .glass-flat {
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    background: oklch(1 0 0 / 0.4);
+    border: 1px solid var(--glass-border-subtle);
+    box-shadow: none;
+  }
+  .dark .glass-flat {
+    background: oklch(1 0 0 / 0.04);
+    border-color: oklch(1 0 0 / 0.06);
+  }
+
+  /* Locked / disabled glass — grayscale, dimmed */
+  .glass-locked {
+    background: oklch(0.5 0.005 250 / 0.08);
+    backdrop-filter: blur(20px) saturate(80%);
+    -webkit-backdrop-filter: blur(20px) saturate(80%);
+    border-color: oklch(0.5 0.005 250 / 0.12);
+    filter: saturate(0.4);
+    opacity: 0.55;
+  }
+  .glass-locked::before {
+    background: none;
+  }
+
+  /* Aurora ambient background — never competes with content */
+  .aurora-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    background: var(--background);
+  }
+
+  .aurora-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    mix-blend-mode: normal;
+    will-change: transform;
+  }
+
+  .dark .aurora-blob {
+    mix-blend-mode: screen;
+  }
+
+  /* Specular cursor light — follows mouse, refracts the glass */
+  .specular-light {
+    position: fixed;
+    pointer-events: none;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      oklch(0.80 0.16 195 / 0.10) 0%,
+      transparent 60%
+    );
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    transition: opacity 0.4s ease;
+    will-change: transform;
+  }
+
+  /* Pill — used for badges, tags, mini stats */
+  .glass-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    background: oklch(1 0 0 / 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid oklch(1 0 0 / 0.7);
+    color: var(--foreground);
+  }
+  .dark .glass-pill {
+    background: oklch(1 0 0 / 0.06);
+    border-color: oklch(1 0 0 / 0.12);
+  }
+
+  /* Gradient text — for hero numbers */
+  .text-aurora-gradient {
+    background: linear-gradient(
+      135deg,
+      oklch(0.80 0.16 195) 0%,
+      oklch(0.76 0.2 320) 50%,
+      oklch(0.84 0.18 80) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  /* Animated gradient border for focused elements */
+  .border-aurora {
+    position: relative;
+  }
+  .border-aurora::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      oklch(0.80 0.16 195 / 0.7),
+      oklch(0.76 0.2 320 / 0.5),
+      oklch(0.84 0.18 80 / 0.5)
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Progress ring SVG stroke */
+  .progress-ring {
+    transform: rotate(-90deg);
+  }
+
+  /* Heatmap cell base */
+  .heat-cell {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    background: oklch(0.5 0.02 250 / 0.08);
+    transition: transform 0.15s ease, background 0.2s ease;
+  }
+  .heat-cell:hover {
+    transform: scale(1.3);
+    z-index: 10;
+    position: relative;
+  }
+
+  /* Sidebar item active state */
+  .nav-item-active {
+    background: oklch(0.80 0.16 195 / 0.14);
+    border-color: oklch(0.80 0.16 195 / 0.32);
+    color: var(--primary);
+  }
+  .dark .nav-item-active {
+    background: oklch(0.80 0.16 195 / 0.16);
+  }
+
+  /* Premium typography helpers */
+  .text-display {
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+  }
+  .text-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: oklch(0.6 0.02 250 / 0.85);
+  }
+  .dark .text-eyebrow {
+    color: oklch(0.82 0.01 250 / 0.9);
+  }
+
+  /* Number — tabular for stats */
+  .text-stat {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum", "lnum";
+    letter-spacing: -0.03em;
+  }
+}
+
+@layer utilities {
+  /* Smooth view transitions */
+  .view-enter {
+    animation: viewEnter 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes viewEnter {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.99);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .stagger-in {
+    animation: staggerIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes staggerIn {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Aurora drift */
+  .aurora-drift-1 {
+    animation: auroraDrift1 28s ease-in-out infinite alternate;
+  }
+  .aurora-drift-2 {
+    animation: auroraDrift2 32s ease-in-out infinite alternate;
+  }
+  .aurora-drift-3 {
+    animation: auroraDrift3 24s ease-in-out infinite alternate;
+  }
+  .aurora-drift-4 {
+    animation: auroraDrift4 36s ease-in-out infinite alternate;
+  }
+
+  @keyframes auroraDrift1 {
+    0% { transform: translate(-10%, -5%) scale(1); }
+    100% { transform: translate(15%, 10%) scale(1.2); }
+  }
+  @keyframes auroraDrift2 {
+    0% { transform: translate(10%, 15%) scale(1.1); }
+    100% { transform: translate(-15%, -5%) scale(0.9); }
+  }
+  @keyframes auroraDrift3 {
+    0% { transform: translate(-5%, 20%) scale(0.9); }
+    100% { transform: translate(20%, -10%) scale(1.15); }
+  }
+  @keyframes auroraDrift4 {
+    0% { transform: translate(20%, -10%) scale(1); }
+    100% { transform: translate(-10%, 15%) scale(1.1); }
+  }
+
+  /* Pulse for live indicators */
+  .pulse-dot {
+    position: relative;
+  }
+  .pulse-dot::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    opacity: 0.5;
+    animation: pulseDot 1.6s ease-out infinite;
+  }
+  @keyframes pulseDot {
+    0% { transform: scale(0.8); opacity: 0.7; }
+    100% { transform: scale(2); opacity: 0; }
+  }
+
+  /* Shimmer for skeleton loading */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      oklch(1 0 0 / 0.1) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.6s infinite;
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* No-scrollbar utility */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Safe area for mobile */
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* Reduce motion — applied when user enables it in Settings */
+  .reduce-motion *,
+  .reduce-motion *::before,
+  .reduce-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .reduce-motion .aurora-blob,
+  .reduce-motion .specular-light {
+    display: none !important;
+  }
+
+  /* Compact density — applied when user selects it in Settings */
+  .density-compact .glass {
+    border-radius: 0.875rem;
+  }
+  .density-compact p,
+  .density-compact span {
+    letter-spacing: -0.005em;
+  }
+}
