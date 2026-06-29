@@ -147,10 +147,7 @@ export function TopBar() {
                     <strong className="text-foreground">On-device storage:</strong> All your progress, settings, roadmap, chat history, and badges are saved 100% locally in your browser. Nothing is sent to any server. We don&apos;t have accounts, we don&apos;t sync, and we don&apos;t sell your data.
                   </p>
                   <p>
-                    <strong className="text-foreground">AI processing:</strong> Messages you send to the AI Tutor are processed by AI servers (Z.ai by default) to generate responses. Don&apos;t share sensitive personal information.
-                  </p>
-                  <p>
-                    <strong className="text-foreground">Rate limits:</strong> The free AI Tutor is rate-limited to 15 messages per 2-hour window. Add your own API key in AI Tutor settings to bypass limits and use your own provider.
+                    <strong className="text-foreground">AI processing:</strong> Messages you send to the AI Tutor are processed by the AI provider you configure (Gemini, Groq, OpenRouter, OpenAI, Anthropic, or a custom endpoint). Launchpad is BYOK — you provide your own API key. Don&apos;t share sensitive personal information.
                   </p>
                 </div>
               </div>

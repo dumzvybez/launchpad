@@ -1,7 +1,7 @@
 {
-  "name": "Launchpad — Coding Education Platform",
+  "name": "Launchpad — Free Personalized Coding Education Platform",
   "short_name": "Launchpad",
-  "description": "A free, privacy-first coding education platform with a personalized learning engine, built-in lessons, code playground, and AI tutor. 8 careers, 24+ languages, 30+ lessons, all on-device.",
+  "description": "A free, privacy-first coding education platform. 630 lessons across 30 languages, personalized AI roadmap, BYOK AI tutor, code playground, daily challenges, and certificates. 100% on-device.",
   "id": "/",
   "start_url": "/",
   "scope": "/",
@@ -9,7 +9,7 @@
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "orientation": "any",
   "background_color": "#0d1117",
-  "theme_color": "#0d1117",
+  "theme_color": "#2DD4BF",
   "categories": ["education", "productivity", "developer"],
   "lang": "en",
   "dir": "ltr",

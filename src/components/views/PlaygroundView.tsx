@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Play, Trash2, Copy, Code2, Info } from "lucide-react";
+import { Play, Trash2, Copy, Code2, Info, ExternalLink } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { GlassCard, GlassButton } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
@@ -180,6 +180,30 @@ export function PlaygroundView() {
               <a href="https://colab.research.google.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google Colab</a>, or{" "}
               <a href="https://www.onlinegdb.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">OnlineGDB</a>.
               We do not pretend to run Python here — Pyodide is not integrated.
+            </p>
+          </div>
+        </div>
+      </GlassCard>
+
+      {/* Section 12 — Frameworks & databases playgrounds */}
+      <GlassCard className="p-3 border-sky-500/30 bg-sky-500/5">
+        <div className="flex items-start gap-2">
+          <ExternalLink className="h-4 w-4 text-sky-500 shrink-0 mt-0.5" />
+          <div className="text-xs text-muted-foreground">
+            <p className="mb-2 font-medium text-foreground">Frameworks & databases — use official playgrounds</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              <a href="https://svelte.dev/playground" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Svelte REPL →</a>
+              <a href="https://play.vuejs.org/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Vue SFC Playground →</a>
+              <a href="https://stackblitz.com/edit/angular" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">StackBlitz Angular →</a>
+              <a href="https://stackblitz.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Node.js on StackBlitz →</a>
+              <a href="https://runkit.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Node.js on RunKit →</a>
+              <a href="https://www.db-fiddle.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">PostgreSQL on DB Fiddle →</a>
+              <a href="https://www.pgplay.dev/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">PostgreSQL on pgplay →</a>
+              <a href="https://mongoplayground.net/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">MongoDB Playground →</a>
+            </div>
+            <p className="mt-2 text-[10px] italic">
+              Svelte/Vue/Angular compile to JavaScript — their official REPLs run the framework code.
+              Node.js runs server-side. PostgreSQL/MongoDB need a database server.
             </p>
           </div>
         </div>

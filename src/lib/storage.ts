@@ -36,13 +36,14 @@ export const DEFAULT_STATE: AppState = {
     backgroundTheme: "aurora",
     tourCompleted: false,
     mobileBannerDismissed: false,
+    hideVideoSupplements: false,
   },
   lessonProgress: {},
   chatConversations: [],
   aiSettings: {
-    provider: "zai",
+    provider: "gemini",
     apiKey: "",
-    model: "glm-4.6",
+    model: "gemini-2.5-flash",
     temperature: 0.7,
   },
   rateLimitTimestamps: [],
@@ -50,6 +51,14 @@ export const DEFAULT_STATE: AppState = {
     currentStreak: 0,
     completedToday: false,
   },
+  learnTabState: {
+    selectedTrack: null,
+    selectedLessonId: null,
+    tab: "tracks",
+  },
+  certificates: {},
+  projectSubmissions: [],
+  activeNotifications: [],
 };
 
 /** Safely load state from localStorage, with schema migration */
@@ -82,6 +91,13 @@ export function loadState(): AppState {
       rateLimitTimestamps: parsed.rateLimitTimestamps ?? [],
       dailyChallenge: { ...DEFAULT_STATE.dailyChallenge, ...parsed.dailyChallenge },
       badges: parsed.badges ?? [],
+      learnTabState: { ...DEFAULT_STATE.learnTabState, ...(parsed as Partial<AppState>).learnTabState },
+      certificates: (parsed as Partial<AppState>).certificates ?? {},
+      careerCertificate: (parsed as Partial<AppState>).careerCertificate,
+      dailyChallengePool: (parsed as Partial<AppState>).dailyChallengePool,
+      dailyChallengeWeekIndex: (parsed as Partial<AppState>).dailyChallengeWeekIndex,
+      projectSubmissions: (parsed as Partial<AppState>).projectSubmissions ?? [],
+      activeNotifications: (parsed as Partial<AppState>).activeNotifications ?? [],
     };
   } catch (e) {
     console.warn("[launchpad] failed to load state, resetting:", e);

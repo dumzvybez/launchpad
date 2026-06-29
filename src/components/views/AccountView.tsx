@@ -197,9 +197,41 @@ export function AccountView() {
           <h2 className="text-sm font-semibold flex items-center gap-2">
             <Trophy className="h-4 w-4" /> Achievements
           </h2>
-          <span className="text-xs text-muted-foreground font-mono">
-            {earnedBadges.length} / {ACHIEVEMENTS.length}
-          </span>
+          <div className="flex items-center gap-2">
+            {/* Section 8.2 — Share My Achievements button */}
+            <button
+              onClick={() => {
+                const html = `<!DOCTYPE html><html><head><title>My Launchpad Achievements</title><style>
+                body { font-family: -apple-system, sans-serif; background: linear-gradient(135deg, #0F172A 0%, #312E81 100%); color: white; padding: 40px; min-height: 100vh; }
+                .card { max-width: 600px; margin: 0 auto; }
+                h1 { background: linear-gradient(135deg, #2DD4BF, #E879F9, #FCD34D); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 32px; }
+                .stat { font-size: 14px; opacity: 0.9; margin: 8px 0; }
+                .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+                .badge { padding: 6px 12px; border-radius: 20px; background: rgba(255,255,255,0.1); font-size: 13px; }
+                .footer { margin-top: 32px; opacity: 0.6; font-size: 11px; text-align: center; }
+                </style></head><body><div class="card">
+                <h1>🏆 ${state.profile.name || "Learner"}'s Achievements</h1>
+                <p class="stat">🚀 ${state.badges.filter((b) => b.unlockedAt).length} badges earned on Launchpad</p>
+                <p class="stat">🔥 ${state.streak.current}-day streak · 📚 ${Object.values(state.lessonProgress).filter((p) => p.status === "complete").length} lessons completed · 📦 ${state.projects.filter((p) => p.status === "shipped").length} projects shipped</p>
+                <div class="badges">${state.badges.filter((b) => b.unlockedAt).map((b) => `<span class="badge">${b.icon} ${b.title}</span>`).join("")}</div>
+                <div class="footer">Learning. Building. Growing. · launchpad--pi.vercel.app</div>
+                </div>
+                <script>window.onload = () => setTimeout(() => window.print(), 300);</script>
+                </body></html>`;
+                if (typeof window !== "undefined") {
+                  window.localStorage.setItem("launchpad:progress-shared", "1");
+                }
+                const w = window.open("", "_blank");
+                if (w) { w.document.write(html); w.document.close(); }
+              }}
+              className="text-[11px] px-2.5 py-1 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+            >
+              📤 Share Achievements
+            </button>
+            <span className="text-xs text-muted-foreground font-mono">
+              {earnedBadges.length} / {ACHIEVEMENTS.length}
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-3 mb-4 text-[10px]">

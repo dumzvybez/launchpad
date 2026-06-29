@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
   Search,
@@ -178,8 +179,17 @@ function NotesTab() {
             )}
           </GlassCard>
         ) : (
-          filtered.map((note) => (
-            <GlassCard key={note.id} hover className="p-4 group">
+          <AnimatePresence>
+          {filtered.map((note) => (
+            <motion.div
+              key={note.id}
+              layout
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+            >
+            <GlassCard hover className="p-4 group">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -216,7 +226,9 @@ function NotesTab() {
                 </div>
               </div>
             </GlassCard>
-          ))
+            </motion.div>
+          ))}
+          </AnimatePresence>
         )}
       </div>
     </div>

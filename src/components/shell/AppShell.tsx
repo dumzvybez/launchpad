@@ -22,12 +22,16 @@ import { AnalyticsView } from "@/components/views/AnalyticsView";
 import { CareerView } from "@/components/views/CareerView";
 import { CalendarView } from "@/components/views/CalendarView";
 import { AITutorView } from "@/components/views/AITutorView";
+import { CommunityView } from "@/components/views/CommunityView";
 import { AccountView } from "@/components/views/AccountView";
 import { SettingsView } from "@/components/views/SettingsView";
 import { AITutorFloating } from "@/components/ai/AITutorFloating";
 import { BadgeToastContainer } from "@/components/achievements/BadgeToastContainer";
 import { FirstTimeTour } from "@/components/tour/FirstTimeTour";
 import { MobileBanner } from "@/components/shell/MobileBanner";
+import { MobileBottomNav } from "@/components/shell/MobileBottomNav";
+import { OfflineBanner } from "@/components/pwa/OfflineBanner";
+import { Footer } from "@/components/shell/Footer";
 import { X } from "lucide-react";
 
 export function AppShell() {
@@ -115,10 +119,13 @@ export function AppShell() {
       <div className="flex-1 min-w-0 flex flex-col">
         {!focusMode && <TopBar />}
 
+        {/* Offline banner (Section 14.2) */}
+        {!focusMode && <OfflineBanner />}
+
         {/* Mobile banner */}
         {!focusMode && <MobileBanner />}
 
-        <main className={focusMode ? "flex-1 p-3 sm:p-6" : "flex-1 p-3 sm:p-6 pt-4"}>
+        <main className={focusMode ? "flex-1 p-3 sm:p-6" : "flex-1 p-3 sm:p-6 pt-4 pb-24 lg:pb-6"}>
           <div className="max-w-6xl mx-auto">
             {currentView === "dashboard" && <DashboardView />}
             {currentView === "roadmap" && <RoadmapView />}
@@ -133,57 +140,17 @@ export function AppShell() {
             {currentView === "analytics" && <AnalyticsView />}
             {currentView === "career" && <CareerView />}
             {currentView === "ai-tutor" && <AITutorView />}
+            {currentView === "community" && <CommunityView />}
             {currentView === "account" && <AccountView />}
             {currentView === "settings" && <SettingsView />}
           </div>
         </main>
 
-        {!focusMode && (
-          <footer className="px-4 sm:px-6 py-3 mt-auto border-t border-border/40">
-            <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] text-muted-foreground font-mono">
-              {/* Founder info — desktop shows full, mobile shows copyright only */}
-              <div className="flex items-center gap-2">
-                <div className="h-5 w-5 rounded-full bg-gradient-to-br from-teal-400 via-fuchsia-400 to-amber-300 flex items-center justify-center text-[8px] font-bold text-white shrink-0">
-                  D
-                </div>
-                <span className="hidden sm:inline">
-                  Built by <span className="text-foreground font-medium">Dumindu Dulara Wanasinghe</span> · Launchpad © 2025
-                </span>
-                <span className="sm:hidden">Launchpad © 2025</span>
-              </div>
-
-              {/* Links */}
-              <div className="hidden sm:flex items-center gap-3">
-                <button
-                  onClick={() => useStore.getState().setView("settings")}
-                  className="hover:text-foreground transition-colors"
-                >
-                  Privacy Policy
-                </button>
-                <span>·</span>
-                <button
-                  onClick={() => useStore.getState().setView("settings")}
-                  className="hover:text-foreground transition-colors"
-                >
-                  Help Centre
-                </button>
-                <span>·</span>
-                <a
-                  href="https://github.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-foreground transition-colors"
-                >
-                  GitHub
-                </a>
-                <span>·</span>
-                <kbd className="px-1.5 py-0.5 rounded bg-foreground/8 border border-border/40">⌘K</kbd>
-                <span>command palette</span>
-              </div>
-            </div>
-          </footer>
-        )}
+        {!focusMode && <Footer />}
       </div>
+
+      {/* Mobile bottom navigation (Section 14.3) */}
+      {!focusMode && <MobileBottomNav />}
 
       <CommandPalette />
 

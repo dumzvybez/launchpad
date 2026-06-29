@@ -9,9 +9,11 @@ import { useEffect, useState } from "react";
  * User can disable it permanently in Settings → Appearance.
  */
 const SUBTITLES = [
-  "Learning reimagined",
-  "Your journey, your pace",
-  "Privacy-first · On-device",
+  "Learn to code. For real this time.",
+  "AI-personalized. Completely free. 100% private.",
+  "From zero to job-ready — without leaving this app.",
+  "The only platform built around YOUR goal.",
+  "Open-source. No accounts. No tracking. Ever.",
 ];
 
 export function SplashScreen({ onDone }: { onDone: () => void }) {
@@ -21,14 +23,16 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
   useEffect(() => {
     // Draw phase: logo animates in (1.4s)
     const t1 = setTimeout(() => setPhase("hold"), 1400);
-    // Hold phase: ~4.5s — long enough to read subtitles cycling
-    const t2 = setTimeout(() => setPhase("fade"), 5900);
+    // Hold phase: ~6.5s — long enough to read all subtitles cycling
+    const t2 = setTimeout(() => setPhase("fade"), 7900);
     // Fade phase: 0.9s
-    const t3 = setTimeout(() => onDone(), 6800);
+    const t3 = setTimeout(() => onDone(), 8800);
 
-    // Cycle subtitles every 1.8s during hold
-    const sub1 = setTimeout(() => setSubtitleIdx(1), 2200);
-    const sub2 = setTimeout(() => setSubtitleIdx(2), 4000);
+    // Cycle subtitles every ~1.4s during hold
+    const sub1 = setTimeout(() => setSubtitleIdx(1), 2000);
+    const sub2 = setTimeout(() => setSubtitleIdx(2), 3400);
+    const sub3 = setTimeout(() => setSubtitleIdx(3), 4800);
+    const sub4 = setTimeout(() => setSubtitleIdx(4), 6200);
 
     return () => {
       clearTimeout(t1);
@@ -36,6 +40,8 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
       clearTimeout(t3);
       clearTimeout(sub1);
       clearTimeout(sub2);
+      clearTimeout(sub3);
+      clearTimeout(sub4);
     };
   }, [onDone]);
 
@@ -182,7 +188,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
             style={{
               background: "linear-gradient(90deg, #2DD4BF, #E879F9, #FCD34D)",
               width: phase === "fade" ? "100%" : phase === "hold" ? "100%" : "20%",
-              transition: "width 5500ms cubic-bezier(0.65, 0, 0.35, 1)",
+              transition: "width 7500ms cubic-bezier(0.65, 0, 0.35, 1)",
             }}
           />
         </div>

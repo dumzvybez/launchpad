@@ -17,6 +17,7 @@ import {
   User,
   Settings,
   Bot,
+  Users,
 } from "lucide-react";
 import { useStore, selectLevel, selectEarnedXP } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,7 @@ const ALL_NAV: NavItem[] = [
   { id: "focus", label: "Focus", icon: Timer, hint: "Pomodoro & habits", group: "productivity" },
   { id: "analytics", label: "Analytics", icon: BarChart3, hint: "Heatmaps & insights", group: "productivity" },
   { id: "career", label: "Career", icon: Rocket, hint: "Resume & interview prep", group: "productivity" },
+  { id: "community", label: "Community", icon: Users, hint: "GitHub Discussions (Q&A, showcase, ideas)", group: "productivity" },
   { id: "account", label: "Account", icon: User, hint: "Profile & achievements", group: "system" },
   { id: "settings", label: "Settings", icon: Settings, hint: "Preferences & data", group: "system" },
 ];

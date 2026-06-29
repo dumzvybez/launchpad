@@ -32,6 +32,8 @@ import {
 } from "@/lib/career-data";
 import { getLastAutoBackupTime } from "@/lib/storage";
 import { HelpCentre } from "@/components/help/HelpCentre";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function SettingsView() {
   const state = useStore((s) => s.state);
@@ -242,6 +244,17 @@ export function SettingsView() {
             />
           </SettingRow>
 
+          {/* Video supplements toggle — Section 2.4 */}
+          <SettingRow
+            label="Show video supplements in lessons"
+            description="YouTube tutorials embedded in lessons via youtube-nocookie.com (privacy-enhanced)."
+          >
+            <Toggle
+              checked={!(state.preferences.hideVideoSupplements ?? false)}
+              onChange={(v) => setPreference("hideVideoSupplements", !v)}
+            />
+          </SettingRow>
+
           {/* Week starts on */}
           <SettingRow
             label="Week starts on"
@@ -366,7 +379,103 @@ export function SettingsView() {
 
       {/* Help Centre */}
       <HelpCentre />
+
+      {/* About Developer — low-emphasis card at the very bottom */}
+      <AboutDeveloperCard />
     </div>
+  );
+}
+
+// ============================================================
+// About Developer card
+// ============================================================
+function AboutDeveloperCard() {
+  const [moreOpen, setMoreOpen] = useState(false);
+  return (
+    <>
+      <div className="rounded-lg border border-border/40 bg-card/20 p-3">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-teal-400 via-fuchsia-400 to-amber-300 flex items-center justify-center text-white font-bold text-xs shrink-0">
+            D
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs text-muted-foreground">Built by <span className="text-foreground font-medium">Dumindu Dulara Wanasinghe</span></div>
+            <div className="text-[10px] text-muted-foreground/80 mt-0.5">Developer · Founder · Open-source creator</div>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={() => setMoreOpen(true)}
+              className="text-[11px] px-2.5 py-1 rounded-md border border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors"
+            >
+              More about developer
+            </button>
+            <a
+              href="https://duminduwanasinghe-dev.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] px-2.5 py-1 rounded-md border border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors"
+            >
+              Visit portfolio →
+            </a>
+          </div>
+        </div>
+        {/* Social links row */}
+        <div className="flex flex-wrap items-center gap-2 mt-2.5 pt-2.5 border-t border-border/30">
+          <a href="https://duminduwanasinghe-dev.vercel.app/" target="_blank" rel="noopener noreferrer"
+             className="text-[10px] text-muted-foreground hover:text-foreground transition-colors">Portfolio</a>
+          <span className="text-[10px] text-muted-foreground/40">·</span>
+          <a href="https://github.com/dumzvybez" target="_blank" rel="noopener noreferrer"
+             className="text-[10px] text-muted-foreground hover:text-foreground transition-colors">GitHub</a>
+          <span className="text-[10px] text-muted-foreground/40">·</span>
+          <a href="https://www.linkedin.com/in/dumindu-wanasinghe-974a52266/" target="_blank" rel="noopener noreferrer"
+             className="text-[10px] text-muted-foreground hover:text-foreground transition-colors">LinkedIn</a>
+          <span className="text-[10px] text-muted-foreground/40">·</span>
+          <a href="https://www.youtube.com/@DuminduWanasinghe" target="_blank" rel="noopener noreferrer"
+             className="text-[10px] text-muted-foreground hover:text-foreground transition-colors">YouTube</a>
+          <span className="text-[10px] text-muted-foreground/40">·</span>
+          <a href="https://www.instagram.com/dumz_vybez/" target="_blank" rel="noopener noreferrer"
+             className="text-[10px] text-muted-foreground hover:text-foreground transition-colors">Instagram</a>
+        </div>
+      </div>
+
+      {/* Developer message modal */}
+      <Dialog open={moreOpen} onOpenChange={setMoreOpen}>
+        <DialogContent className="max-w-xl max-h-[85vh]">
+          <DialogHeader>
+            <DialogTitle>A message from the developer</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="h-[60vh] pr-4">
+            <div className="space-y-3 text-sm leading-relaxed">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-teal-400 via-fuchsia-400 to-amber-300 flex items-center justify-center text-white font-bold">
+                  D
+                </div>
+                <div>
+                  <div className="font-semibold">Dumindu Dulara Wanasinghe</div>
+                  <div className="text-xs text-muted-foreground">Founder & Developer</div>
+                </div>
+              </div>
+              <p>
+                Hey, I&apos;m Dumindu. I built Launchpad because I believe everyone interested in
+                coding — no matter their age, background, or budget — deserves a clear,
+                personalized path to mastery. Most platforms either cost a fortune, hoard your
+                data, or push generic roadmaps that don&apos;t fit you. Launchpad is the opposite:
+                free, private, and built around <span className="italic">your</span> goals.
+              </p>
+              <p>
+                The entire source code is open on GitHub. Your data never leaves your device.
+                The curriculum spans 30 languages and frameworks — from Python and JavaScript
+                to Rust, Go, and Flutter — so you can go from absolute beginner to job-ready
+                in whatever field excites you.
+              </p>
+              <p className="text-muted-foreground italic">
+                I hope Launchpad helps you ship your first — or next — great thing. — Dumindu
+              </p>
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

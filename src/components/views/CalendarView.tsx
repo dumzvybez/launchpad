@@ -51,6 +51,9 @@ export function CalendarView() {
     duration: 60,
     type: "study" as CalendarEvent["type"],
     notes: "",
+    frequency: "one-time" as CalendarEvent["frequency"],
+    weekdays: [] as number[],
+    dayOfMonth: 1,
   });
 
   // Build calendar grid (6 weeks = 42 cells)
@@ -115,8 +118,11 @@ export function CalendarView() {
       duration: draft.duration,
       type: draft.type,
       notes: draft.notes,
+      frequency: draft.frequency,
+      weekdays: draft.frequency === "weekly" ? draft.weekdays : undefined,
+      dayOfMonth: draft.frequency === "monthly" ? draft.dayOfMonth : undefined,
     });
-    setDraft({ title: "", time: "09:00", duration: 60, type: "study", notes: "" });
+    setDraft({ title: "", time: "09:00", duration: 60, type: "study", notes: "", frequency: "one-time", weekdays: [], dayOfMonth: 1 });
     setShowAdd(false);
   };
 
@@ -270,6 +276,66 @@ export function CalendarView() {
                     <option value="break">Break</option>
                   </select>
                 </div>
+                {/* Frequency (Section 8) */}
+                <div>
+                  <label className="text-[10px] uppercase text-muted-foreground block mb-1">Repeat</label>
+                  <select
+                    value={draft.frequency}
+                    onChange={(e) => setDraft({ ...draft, frequency: e.target.value as CalendarEvent["frequency"] })}
+                    className="w-full bg-foreground/4 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-primary/30"
+                  >
+                    <option value="one-time">One-time (on selected date)</option>
+                    <option value="daily">Daily (every day)</option>
+                    <option value="weekly">Weekly (on selected weekdays)</option>
+                    <option value="monthly">Monthly (on a day of month)</option>
+                  </select>
+                </div>
+                {draft.frequency === "weekly" && (
+                  <div>
+                    <label className="text-[10px] uppercase text-muted-foreground block mb-1">Repeat on</label>
+                    <div className="flex gap-1">
+                      {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => {
+                            const wd = draft.weekdays.includes(i)
+                              ? draft.weekdays.filter((x) => x !== i)
+                              : [...draft.weekdays, i];
+                            setDraft({ ...draft, weekdays: wd });
+                          }}
+                          className={cn(
+                            "h-7 w-7 rounded-full text-[10px] font-mono",
+                            draft.weekdays.includes(i)
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-foreground/5 text-muted-foreground hover:bg-foreground/10",
+                          )}
+                        >
+                          {d}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {draft.frequency === "monthly" && (
+                  <div>
+                    <label className="text-[10px] uppercase text-muted-foreground block mb-1">Day of month</label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={31}
+                      value={draft.dayOfMonth}
+                      onChange={(e) => setDraft({ ...draft, dayOfMonth: parseInt(e.target.value) || 1 })}
+                      className="w-full bg-foreground/4 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                  </div>
+                )}
+                <input
+                  value={draft.notes}
+                  onChange={(e) => setDraft({ ...draft, notes: e.target.value })}
+                  placeholder="Notes (optional)…"
+                  className="w-full bg-foreground/4 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-primary/30"
+                />
                 <div className="flex items-center gap-1.5">
                   <GlassButton size="sm" onClick={handleAdd}>
                     <Check className="h-3 w-3" /> Add
@@ -286,7 +352,8 @@ export function CalendarView() {
               {selectedEvents.length === 0 ? (
                 <div className="text-center py-8">
                   <CalendarIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
-                  <p className="text-xs text-muted-foreground">No events scheduled.</p>
+                  <p className="text-xs text-muted-foreground mb-2">No events scheduled for this day.</p>
+                  <p className="text-[10px] text-muted-foreground/70">Click "+ Add event" to create a study session, deadline, or break.</p>
                 </div>
               ) : (
                 selectedEvents.map((e) => {

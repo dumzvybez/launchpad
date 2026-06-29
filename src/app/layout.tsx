@@ -22,35 +22,36 @@ const jetbrains = JetBrains_Mono({
 
 const APP_NAME = "Launchpad";
 const APP_DESCRIPTION =
-  "Launchpad is a free, privacy-first coding education platform with a personalized learning engine, 30+ built-in lessons, a code playground, and an AI tutor. All data stays on your device.";
+  "Build a personalized coding roadmap based on your career, skill level, and availability. 630 built-in lessons across 30 languages, AI tutor, daily challenges, and certificates — 100% free and private.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://launchpad.app/"),
+  metadataBase: new URL("https://launchpad--pi.vercel.app"),
   applicationName: APP_NAME,
   title: {
-    default: `${APP_NAME} — Coding Education Platform`,
+    default: `${APP_NAME} — Free Personalized Coding Education Platform`,
     template: `%s · ${APP_NAME}`,
   },
   description: APP_DESCRIPTION,
   keywords: [
     "learn to code",
     "coding education",
-    "programming roadmap",
-    "Python lessons",
-    "JavaScript lessons",
-    "coding tutor",
+    "programming",
+    "personalized learning",
+    "Python",
+    "JavaScript",
+    "free coding course",
+    "open source",
+    "coding roadmap",
     "AI tutor",
     "software engineering",
     "web development",
     "data science",
-    "personalized learning",
     "code playground",
-    "free coding course",
     "privacy-first",
   ],
-  authors: [{ name: "Launchpad" }],
-  creator: "Launchpad",
-  publisher: "Launchpad",
+  authors: [{ name: "Dumindu Dulara Wanasinghe", url: "https://duminduwanasinghe-dev.vercel.app/" }],
+  creator: "Dumindu Dulara Wanasinghe",
+  publisher: "Dumindu Dulara Wanasinghe",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -74,25 +75,29 @@ export const metadata: Metadata = {
     shortcut: ["/favicon.ico"],
   },
   openGraph: {
-    title: `${APP_NAME} — Coding Education Platform`,
-    description: APP_DESCRIPTION,
+    title: `${APP_NAME} — Free Personalized Coding Education Platform`,
+    description: "Your personalized coding journey. 630 lessons, 30 languages, AI tutor. Free. Private. Open-source.",
     type: "website",
     siteName: APP_NAME,
-    url: "https://launchpad.app/",
+    url: "https://launchpad--pi.vercel.app",
     images: [
       {
-        url: "/icons/logo-1024.png",
-        width: 1024,
-        height: 1024,
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
         alt: APP_NAME,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${APP_NAME} — Coding Education Platform`,
-    description: APP_DESCRIPTION,
-    images: ["/icons/logo-1024.png"],
+    title: `${APP_NAME} — Free Personalized Coding Education`,
+    description: "Your personalized coding journey. Free. Private. Open-source.",
+    images: ["/og-image.png"],
+    creator: "@DuminduW",
+  },
+  verification: {
+    google: "53e23fb6a2391241",
   },
   robots: {
     index: true,
@@ -105,7 +110,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://launchpad.app/",
+    canonical: "https://launchpad--pi.vercel.app",
   },
   category: "education",
 };

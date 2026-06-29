@@ -31,7 +31,12 @@ import {
   Search,
   Calendar,
   User,
+  Users,
+  Bot,
   Settings,
+  GraduationCap,
+  Code2,
+  Target,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { useTheme } from "next-themes";
@@ -48,20 +53,30 @@ const VIEW_ICONS: Record<ViewId, typeof LayoutDashboard> = {
   analytics: BarChart3,
   career: Rocket,
   calendar: Calendar,
+  community: Users,
   account: User,
   settings: Settings,
+  learn: GraduationCap,
+  playground: Code2,
+  "daily-challenge": Target,
+  "ai-tutor": Bot,
 };
 
 const VIEWS: { id: ViewId; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
   { id: "roadmap", label: "Roadmap" },
+  { id: "learn", label: "Learn" },
+  { id: "playground", label: "Playground" },
+  { id: "daily-challenge", label: "Daily Challenge" },
   { id: "skill-tree", label: "Skill Tree" },
+  { id: "ai-tutor", label: "AI Tutor" },
   { id: "calendar", label: "Calendar" },
   { id: "notes", label: "Notes" },
   { id: "projects", label: "Projects" },
   { id: "focus", label: "Focus Timer" },
   { id: "analytics", label: "Analytics" },
   { id: "career", label: "Career" },
+  { id: "community", label: "Community" },
   { id: "account", label: "Account" },
   { id: "settings", label: "Settings" },
 ];

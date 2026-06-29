@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import {
   ChevronRight,
   ChevronLeft,
@@ -18,6 +18,9 @@ import { useStore, selectPhaseProgress } from "@/lib/store";
 import { GlassCard, ProgressBar, GlassButton } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
 import type { GeneratedPhase } from "@/lib/types";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { toast } from "sonner";
 
 const PHASE_COLOR_MAP: Record<string, { bg: string; border: string; text: string; gradient: string }> = {
   teal: { bg: "bg-teal-500/10", border: "border-teal-500/40", text: "text-teal-500", gradient: "from-teal-500 to-cyan-500" },
@@ -126,36 +129,56 @@ export function RoadmapView() {
             const progress = selectPhaseProgress(useStore.getState().state, phase.id);
             const colors = PHASE_COLOR_MAP[phase.color] ?? PHASE_COLOR_MAP.teal;
             const totalTasks = phase.modules.flatMap((m) => m.tasks).length;
+            const isUnlocked = useStore.getState().isPhaseUnlocked(phase.number);
+            const isLocked = !isUnlocked && phase.number > 1;
             return (
               <button
                 key={phase.id}
                 onClick={() => selectPhase(phase.id)}
                 className={cn(
-                  "text-left rounded-2xl border-2 p-5 transition-all hover:scale-[1.02] hover:shadow-xl",
+                  "relative text-left rounded-2xl border-2 p-5 transition-all hover:shadow-xl group",
                   colors.bg,
                   colors.border,
+                  isLocked && "opacity-60",
+                  // Gradient border on hover
+                  "hover:border-transparent hover:bg-gradient-to-br hover:from-teal-500/10 hover:via-fuchsia-500/10 hover:to-amber-500/10",
                 )}
               >
+                {isLocked && (
+                  <div className="absolute top-3 right-3 flex items-center gap-1 text-[10px] text-muted-foreground font-mono">
+                    <Lock className="h-3 w-3" /> Locked
+                  </div>
+                )}
                 <div className="flex items-start justify-between mb-3">
                   <div className={cn("h-12 w-12 rounded-xl bg-gradient-to-br flex items-center justify-center text-2xl", colors.gradient)}>
                     {phase.icon}
                   </div>
-                  <span className={cn("text-[10px] font-mono px-2 py-0.5 rounded-full", colors.bg, colors.text)}>
-                    Phase {phase.number}
-                  </span>
+                  {!isLocked && (
+                    <span className={cn("text-[10px] font-mono px-2 py-0.5 rounded-full", colors.bg, colors.text)}>
+                      Phase {phase.number}
+                    </span>
+                  )}
                 </div>
                 <h3 className="font-semibold text-base mb-1">{phase.title}</h3>
                 <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{phase.subtitle}</p>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground">
-                    <span>{progress.completed}/{totalTasks} tasks</span>
-                    <span>{progress.pct}%</span>
-                  </div>
-                  <ProgressBar value={progress.pct} className="h-1.5" />
-                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono">
-                    <Clock className="h-3 w-3" /> {phase.estWeeks}w
-                  </div>
-                </div>
+                {isLocked ? (
+                  <p className="text-[10px] text-muted-foreground italic">
+                    Complete Phase {phase.number - 1} to unlock
+                  </p>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground">
+                        <span>{progress.completed}/{totalTasks} tasks</span>
+                        <span>{progress.pct}%</span>
+                      </div>
+                      <ProgressBar value={progress.pct} className="h-1.5" />
+                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono">
+                        <Clock className="h-3 w-3" /> {phase.estWeeks}w
+                      </div>
+                    </div>
+                  </>
+                )}
               </button>
             );
           })}
@@ -185,7 +208,7 @@ export function RoadmapView() {
           task={selectedTask}
           onBack={() => selectTask(null)}
           onTryInPlayground={(code, language) => {
-            setPlaygroundCode(code, language);
+            setPlaygroundCode(code, language === "typescript" ? "typescript" : "javascript");
             setView("playground");
           }}
         />
@@ -461,9 +484,16 @@ function TaskDetailView({
                 </button>
               )}
             </div>
-            <pre className="rounded-lg bg-zinc-900 dark:bg-black/60 text-zinc-100 p-3 overflow-x-auto text-xs font-mono">
-              <code>{task.codeExample.code}</code>
-            </pre>
+            <div className="rounded-lg overflow-hidden text-xs">
+              <SyntaxHighlighter
+                language={task.codeExample.language === "typescript" ? "typescript" : task.codeExample.language === "python" ? "python" : "javascript"}
+                style={vscDarkPlus}
+                customStyle={{ margin: 0, fontSize: "12px", padding: "12px" }}
+                codeTagProps={{ style: { fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" } }}
+              >
+                {task.codeExample.code}
+              </SyntaxHighlighter>
+            </div>
             {task.codeExample.language === "python" && (
               <p className="text-[10px] text-muted-foreground mt-1 italic">
                 Playground supports JavaScript. For Python, use an external environment.

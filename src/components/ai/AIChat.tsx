@@ -13,11 +13,20 @@ import {
   Bot,
   Loader2,
   AlertTriangle,
+  Target,
+  ChevronDown,
 } from "lucide-react";
-import { useStore, getRateLimitInfo, canSendMessage, PROVIDER_MODELS } from "@/lib/store";
+import { useStore, PROVIDER_MODELS, PROVIDER_INFO } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { MarkdownRenderer } from "./MarkdownRenderer";
-import type { ChatMessage } from "@/lib/types";
+import type { ChatMessage, AIProviderKey } from "@/lib/types";
+import {
+  pickInterviewQuestions,
+  buildInterviewSystemPrompt,
+  type QuestionDifficulty,
+} from "@/lib/interview-questions";
+import { CAREER_MAP } from "@/lib/career-data";
+import { ALL_LANGUAGE_INFO } from "@/lib/lessons-data";
 
 interface AIChatProps {
   /** When true, render as a full-page tab (no floating chrome). */
@@ -37,8 +46,6 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
   const addMessage = useStore((s) => s.addChatMessage);
   const aiSettings = useStore((s) => s.state.aiSettings);
   const setAISettings = useStore((s) => s.setAISettings);
-  const rateLimitTimestamps = useStore((s) => s.state.rateLimitTimestamps);
-  const recordRateLimitHit = useStore((s) => s.recordRateLimitHit);
   const aiWarningAcknowledged = useStore((s) => s.state.aiWarningAcknowledged);
   const acknowledgeWarning = useStore((s) => s.acknowledgeAIWarning);
   const clearAllChats = useStore((s) => s.clearAllChats);
@@ -49,15 +56,20 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
   const [showSettings, setShowSettings] = useState(false);
   const [showHistory, setShowHistory] = useState(fullTab);
   const [showWarning, setShowWarning] = useState(!aiWarningAcknowledged);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
+  // Interview Mode state (Section 4.2)
+  const [interviewMode, setInterviewMode] = useState(false);
+  const [interviewSystemPrompt, setInterviewSystemPrompt] = useState<string | null>(null);
+  const [interviewDifficulty, setInterviewDifficulty] = useState<QuestionDifficulty>("intermediate");
+  const [interviewQuestionCount, setInterviewQuestionCount] = useState(10);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Get or create active conversation
   const activeConversation = conversations.find((c) => c.id === activeChatId) ?? null;
   const hasUserKey = !!aiSettings.apiKey;
-
-  // Rate limit info — recompute on every render
-  const rateInfo = getRateLimitInfo({ ...useStore.getState().state, rateLimitTimestamps });
+  const needsSetup = !hasUserKey;
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -76,9 +88,10 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
   const handleSend = async () => {
     if (!input.trim() || sending) return;
 
-    // Check rate limit
-    if (!canSendMessage(useStore.getState().state, hasUserKey)) {
-      return; // UI shows the limit
+    // BYOK: require API key
+    if (!hasUserKey) {
+      setShowSettings(true);
+      return;
     }
 
     // Create a conversation if none active
@@ -97,11 +110,6 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
     setInput("");
     setSending(true);
 
-    // Record rate limit hit for Z.ai (no user key)
-    if (!hasUserKey) {
-      recordRateLimitHit();
-    }
-
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -111,10 +119,13 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
             role: m.role,
             content: m.content,
           })),
-          apiKey: aiSettings.apiKey || undefined,
+          apiKey: aiSettings.apiKey,
           provider: aiSettings.provider,
           model: aiSettings.model,
           temperature: aiSettings.temperature,
+          customEndpoint: aiSettings.customEndpoint,
+          // Pass the interview system prompt when in Interview Mode
+          ...(interviewSystemPrompt ? { systemPrompt: interviewSystemPrompt } : {}),
         }),
       });
 
@@ -135,7 +146,7 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
       const errorMessage: ChatMessage = {
         id: `msg-${Date.now()}-err`,
         role: "assistant",
-        content: `⚠️ Error: ${(err as Error).message}\n\nTry again, or add your own API key in settings to use a different provider.`,
+        content: `⚠️ Error: ${(err as Error).message}\n\nCheck your API key and provider settings.`,
         timestamp: new Date().toISOString(),
       };
       addMessage(chatId, errorMessage);
@@ -145,10 +156,127 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
     }
   };
 
+  // Test Connection — sends "Hi" to verify the API key works
+  const handleTestConnection = async () => {
+    if (!aiSettings.apiKey || !aiSettings.model) {
+      setTestResult({ ok: false, msg: "Enter an API key and select a model first." });
+      return;
+    }
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const url = `/api/chat?test=1&provider=${encodeURIComponent(aiSettings.provider)}&apiKey=${encodeURIComponent(aiSettings.apiKey)}&model=${encodeURIComponent(aiSettings.model)}${aiSettings.customEndpoint ? `&customEndpoint=${encodeURIComponent(aiSettings.customEndpoint)}` : ""}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.ok) {
+        setTestResult({ ok: true, msg: "✅ Connected!" });
+      } else {
+        setTestResult({ ok: false, msg: `❌ Failed — ${data.error ?? "check your key"}` });
+      }
+    } catch (err) {
+      setTestResult({ ok: false, msg: `❌ Failed — ${(err as Error).message}` });
+    } finally {
+      setTesting(false);
+    }
+  };
+
   const handleNewChat = () => {
     createChat();
     setInput("");
+    // Reset interview mode when starting a new chat
+    setInterviewMode(false);
+    setInterviewSystemPrompt(null);
     inputRef.current?.focus();
+  };
+
+  // ============================================================
+  // Interview Mode (Section 4.2)
+  // ============================================================
+  const profile = useStore((s) => s.state.profile);
+  const roadmap = useStore((s) => s.state.roadmap);
+
+  const handleStartInterview = () => {
+    if (!hasUserKey) {
+      setShowSettings(true);
+      return;
+    }
+    const careerId = profile.careerId ?? "software-engineering";
+    const careerLabel = CAREER_MAP[careerId]?.label ?? "Software Engineering";
+    const languages = roadmap?.languageIds ?? [];
+    if (languages.length === 0) {
+      alert("Please complete onboarding first so we know which languages to interview you on.");
+      return;
+    }
+    const skillLevel = profile.skillLevel ?? "intermediate";
+    // Pick seed questions
+    const seedQuestions = pickInterviewQuestions({
+      career: careerId,
+      languages,
+      count: interviewQuestionCount,
+      difficulty: interviewDifficulty,
+    });
+    // Build system prompt
+    const sysPrompt = buildInterviewSystemPrompt({
+      career: careerLabel,
+      languages: languages.map((id) => ALL_LANGUAGE_INFO[id]?.name ?? id),
+      skillLevel,
+      count: interviewQuestionCount,
+      seedQuestions,
+    });
+    // Create a fresh chat for the interview
+    const chatId = createChat();
+    // Set the interview system prompt — will be sent with every message
+    setInterviewSystemPrompt(sysPrompt);
+    setInterviewMode(false); // close setup screen
+    // First user message triggers the AI to introduce itself + ask Q1
+    const kickOffMessage: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      role: "user",
+      content: `Hi! I'm ready to start my mock interview. Please introduce yourself and ask the first question. (Difficulty: ${interviewDifficulty}, ${interviewQuestionCount} questions total.)`,
+      timestamp: new Date().toISOString(),
+    };
+    addMessage(chatId, kickOffMessage);
+    setInput("");
+    setSending(true);
+    // Fire the first AI call
+    (async () => {
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [kickOffMessage].map((m) => ({ role: m.role, content: m.content })),
+            apiKey: aiSettings.apiKey,
+            provider: aiSettings.provider,
+            model: aiSettings.model,
+            temperature: aiSettings.temperature,
+            customEndpoint: aiSettings.customEndpoint,
+            systemPrompt: sysPrompt,
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+        const assistantMessage: ChatMessage = {
+          id: `msg-${Date.now()}-ai`,
+          role: "assistant",
+          content: data.content || "(no response)",
+          timestamp: new Date().toISOString(),
+          provider: data.provider,
+        };
+        addMessage(chatId, assistantMessage);
+      } catch (err) {
+        const errorMessage: ChatMessage = {
+          id: `msg-${Date.now()}-err`,
+          role: "assistant",
+          content: `⚠️ Error: ${(err as Error).message}\n\nCheck your API key and provider settings.`,
+          timestamp: new Date().toISOString(),
+        };
+        addMessage(chatId, errorMessage);
+      } finally {
+        setSending(false);
+        inputRef.current?.focus();
+      }
+    })();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -253,49 +381,96 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
           <div className="flex-1 min-w-0">
             <div className="text-sm font-semibold">AI Tutor</div>
             <div className="text-[10px] text-muted-foreground">
-              {hasUserKey ? `${aiSettings.provider} · ${aiSettings.model}` : `Z.ai · ${rateInfo.remaining}/${15} left`}
+              {hasUserKey ? `${PROVIDER_INFO[aiSettings.provider]?.label ?? aiSettings.provider} · ${aiSettings.model}` : "No API key set — click Settings to add one"}
             </div>
           </div>
+          {/* Section 2.3: Settings + History + New Chat accessible in BOTH views */}
+          <button
+            onClick={handleNewChat}
+            className="p-1.5 rounded hover:bg-foreground/10"
+            title="New chat"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </button>
+          {/* Interview Mode button (Section 4.2) */}
+          <button
+            onClick={() => setInterviewMode(true)}
+            className="p-1.5 rounded hover:bg-foreground/10 text-violet-500"
+            title="🎯 Interview Mode"
+          >
+            <Target className="h-3.5 w-3.5" />
+          </button>
           {!fullTab && (
-            <>
-              <button
-                onClick={() => setShowHistory(!showHistory)}
-                className="p-1.5 rounded hover:bg-foreground/10"
-                title="History"
-              >
-                <MessageSquare className="h-3.5 w-3.5" />
-              </button>
-              <button
-                onClick={() => setShowSettings(!showSettings)}
-                className="p-1.5 rounded hover:bg-foreground/10"
-                title="Settings"
-              >
-                <Settings className="h-3.5 w-3.5" />
-              </button>
-              {onMaximize && (
-                <button
-                  onClick={onMaximize}
-                  className="p-1.5 rounded hover:bg-foreground/10"
-                  title="Open as tab"
-                >
-                  <Maximize2 className="h-3.5 w-3.5" />
-                </button>
-              )}
-              {onClose && (
-                <button
-                  onClick={onClose}
-                  className="p-1.5 rounded hover:bg-foreground/10"
-                  title="Close"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </>
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className="p-1.5 rounded hover:bg-foreground/10"
+              title="History"
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+            </button>
+          )}
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className="p-1.5 rounded hover:bg-foreground/10"
+            title="Settings"
+          >
+            <Settings className="h-3.5 w-3.5" />
+          </button>
+          {!fullTab && onMaximize && (
+            <button
+              onClick={onMaximize}
+              className="p-1.5 rounded hover:bg-foreground/10"
+              title="Open as tab"
+            >
+              <Maximize2 className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {!fullTab && onClose && (
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded hover:bg-foreground/10"
+              title="Close"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
           )}
         </div>
 
         {/* Settings panel */}
         {showSettings && <AISettingsPanel onClose={() => setShowSettings(false)} />}
+
+        {/* Interview Mode setup screen (Section 4.2) */}
+        {interviewMode && (
+          <InterviewSetupScreen
+            careerId={profile.careerId}
+            languages={roadmap?.languageIds ?? []}
+            skillLevel={profile.skillLevel}
+            difficulty={interviewDifficulty}
+            questionCount={interviewQuestionCount}
+            onDifficultyChange={setInterviewDifficulty}
+            onQuestionCountChange={setInterviewQuestionCount}
+            onStart={handleStartInterview}
+            onCancel={() => setInterviewMode(false)}
+          />
+        )}
+
+        {/* Interview Mode banner — shown when an interview is in progress */}
+        {interviewSystemPrompt && !interviewMode && (
+          <div className="rounded-md bg-violet-500/10 border border-violet-500/30 px-3 py-1.5 text-xs text-violet-600 dark:text-violet-300 flex items-center gap-2">
+            <Target className="h-3 w-3" />
+            <span className="font-medium">Interview Mode active</span>
+            <span className="text-muted-foreground">· AI is acting as a senior interviewer</span>
+            <button
+              onClick={() => {
+                setInterviewSystemPrompt(null);
+                handleNewChat();
+              }}
+              className="ml-auto text-[10px] hover:underline"
+            >
+              End interview →
+            </button>
+          </div>
+        )}
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto py-3 space-y-3 min-h-0">
@@ -318,12 +493,12 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Rate limit warning */}
-        {!hasUserKey && rateInfo.remaining === 0 && (
+        {/* BYOK setup prompt — shown when no API key is set */}
+        {!hasUserKey && (
           <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-2 mb-2 text-xs">
-            <div className="font-semibold text-amber-700 dark:text-amber-300 mb-1">Rate limit reached</div>
+            <div className="font-semibold text-amber-700 dark:text-amber-300 mb-1">Set up your AI Tutor</div>
             <p className="text-[10px] text-muted-foreground">
-              Resets in {rateInfo.resetsAt ? formatTimeUntil(rateInfo.resetsAt) : "soon"}. Add your own API key in settings to bypass limits.
+              Bring your own API key (Gemini, Groq, OpenRouter, OpenAI, Anthropic, or custom). Click Settings → enter your key → click Test Connection.
             </p>
           </div>
         )}
@@ -343,10 +518,10 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
             />
             <button
               onClick={handleSend}
-              disabled={!input.trim() || sending || (!hasUserKey && rateInfo.remaining === 0)}
+              disabled={!input.trim() || sending || !hasUserKey}
               className={cn(
                 "p-2 rounded-lg shrink-0 transition-colors",
-                input.trim() && !sending && (hasUserKey || rateInfo.remaining > 0)
+                input.trim() && !sending && hasUserKey
                   ? "bg-primary text-primary-foreground hover:bg-primary/90"
                   : "bg-foreground/5 text-muted-foreground cursor-not-allowed",
               )}
@@ -359,6 +534,129 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
           </p>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ============================================================
+// InterviewSetupScreen — Section 4.2 setup UI
+// ============================================================
+function InterviewSetupScreen({
+  careerId,
+  languages,
+  skillLevel,
+  difficulty,
+  questionCount,
+  onDifficultyChange,
+  onQuestionCountChange,
+  onStart,
+  onCancel,
+}: {
+  careerId?: string;
+  languages: string[];
+  skillLevel?: string;
+  difficulty: QuestionDifficulty;
+  questionCount: number;
+  onDifficultyChange: (d: QuestionDifficulty) => void;
+  onQuestionCountChange: (n: number) => void;
+  onStart: () => void;
+  onCancel: () => void;
+}) {
+  const careerLabel = careerId ? (CAREER_MAP[careerId]?.label ?? "Software Engineering") : "Software Engineering";
+  const languageNames = languages.map((id) => ALL_LANGUAGE_INFO[id]?.name ?? id);
+
+  return (
+    <div className="rounded-xl border border-violet-500/40 bg-violet-500/5 p-4 space-y-3 my-2">
+      <div className="flex items-start gap-3">
+        <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shrink-0">
+          <Target className="h-4 w-4 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-semibold">🎯 Technical Interview Simulator</h3>
+          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+            I&apos;ll ask you real interview questions for your career and languages. Answer them like you&apos;re in a real interview. I&apos;ll give you honest feedback on each answer.
+          </p>
+        </div>
+        <button
+          onClick={onCancel}
+          className="p-1 rounded hover:bg-foreground/10 shrink-0"
+          aria-label="Close"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div className="rounded-lg bg-foreground/5 p-2">
+          <div className="text-[10px] uppercase text-muted-foreground">Career</div>
+          <div className="font-medium truncate">{careerLabel}</div>
+        </div>
+        <div className="rounded-lg bg-foreground/5 p-2">
+          <div className="text-[10px] uppercase text-muted-foreground">Skill level</div>
+          <div className="font-medium capitalize">{skillLevel ?? "intermediate"}</div>
+        </div>
+      </div>
+
+      <div className="rounded-lg bg-foreground/5 p-2">
+        <div className="text-[10px] uppercase text-muted-foreground mb-1">Languages</div>
+        <div className="flex flex-wrap gap-1">
+          {languageNames.length > 0 ? languageNames.map((l) => (
+            <span key={l} className="text-[10px] px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-600 dark:text-violet-300">{l}</span>
+          )) : <span className="text-[10px] text-muted-foreground italic">No languages selected</span>}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div>
+          <div className="text-[10px] uppercase text-muted-foreground mb-1">Difficulty</div>
+          <div className="grid grid-cols-3 gap-1.5">
+            {(["beginner", "intermediate", "advanced"] as QuestionDifficulty[]).map((d) => (
+              <button
+                key={d}
+                onClick={() => onDifficultyChange(d)}
+                className={cn(
+                  "px-2 py-1.5 rounded-md text-xs font-medium capitalize transition-colors",
+                  difficulty === d
+                    ? "bg-violet-500 text-white"
+                    : "bg-foreground/5 text-muted-foreground hover:bg-foreground/10",
+                )}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div className="text-[10px] uppercase text-muted-foreground mb-1">Number of questions</div>
+          <div className="grid grid-cols-3 gap-1.5">
+            {[5, 10, 15].map((n) => (
+              <button
+                key={n}
+                onClick={() => onQuestionCountChange(n)}
+                className={cn(
+                  "px-2 py-1.5 rounded-md text-xs font-medium transition-colors",
+                  questionCount === n
+                    ? "bg-violet-500 text-white"
+                    : "bg-foreground/5 text-muted-foreground hover:bg-foreground/10",
+                )}
+              >
+                {n} Qs
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <button
+        onClick={onStart}
+        className="w-full py-2 rounded-lg bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white text-sm font-semibold hover:brightness-110 transition-all"
+      >
+        🎯 Start mock interview
+      </button>
+      <p className="text-[10px] text-muted-foreground text-center">
+        The AI will ask one question at a time and give feedback after each answer.
+      </p>
     </div>
   );
 }
@@ -399,6 +697,44 @@ function AISettingsPanel({ onClose }: { onClose: () => void }) {
   const aiSettings = useStore((s) => s.state.aiSettings);
   const setAISettings = useStore((s) => s.setAISettings);
   const clearAllChats = useStore((s) => s.clearAllChats);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
+  const handleProviderChange = (provider: AIProviderKey) => {
+    const models = PROVIDER_MODELS[provider] ?? [];
+    setAISettings({
+      provider,
+      model: models[0] ?? "",
+      apiKey: aiSettings.apiKey, // preserve key
+      customEndpoint: provider === "custom" ? aiSettings.customEndpoint : undefined,
+    });
+    setTestResult(null);
+  };
+
+  const handleTestConnection = async () => {
+    if (!aiSettings.apiKey || !aiSettings.model) {
+      setTestResult({ ok: false, msg: "Enter an API key and select a model first." });
+      return;
+    }
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const url = `/api/chat?test=1&provider=${encodeURIComponent(aiSettings.provider)}&apiKey=${encodeURIComponent(aiSettings.apiKey)}&model=${encodeURIComponent(aiSettings.model)}${aiSettings.customEndpoint ? `&customEndpoint=${encodeURIComponent(aiSettings.customEndpoint)}` : ""}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.ok) {
+        setTestResult({ ok: true, msg: "✅ Connected!" });
+      } else {
+        setTestResult({ ok: false, msg: `❌ Failed — ${data.error ?? "check your key"}` });
+      }
+    } catch (err) {
+      setTestResult({ ok: false, msg: `❌ Failed — ${(err as Error).message}` });
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const currentProviderInfo = PROVIDER_INFO[aiSettings.provider];
 
   return (
     <div className="rounded-lg border border-border/60 bg-card/40 p-3 my-2 space-y-3 max-h-[60vh] overflow-y-auto">
@@ -413,31 +749,58 @@ function AISettingsPanel({ onClose }: { onClose: () => void }) {
         <label className="text-[10px] uppercase text-muted-foreground block mb-1">Provider</label>
         <select
           value={aiSettings.provider}
-          onChange={(e) => setAISettings({ provider: e.target.value as never })}
+          onChange={(e) => handleProviderChange(e.target.value as AIProviderKey)}
           className="w-full px-2 py-1.5 rounded-md bg-background border border-border text-xs"
         >
-          <option value="zai">Z.ai (default, rate-limited)</option>
-          <option value="openai">OpenAI (bring your own key)</option>
-          <option value="groq">Groq (bring your own key)</option>
-          <option value="custom">Custom endpoint</option>
+          {(Object.keys(PROVIDER_INFO) as AIProviderKey[]).map((p) => (
+            <option key={p} value={p}>
+              {PROVIDER_INFO[p].icon} {PROVIDER_INFO[p].label}
+              {PROVIDER_INFO[p].recommended ? " ⭐" : ""}
+              {PROVIDER_INFO[p].freeModels.length > 0 ? " (free tier)" : ""}
+            </option>
+          ))}
         </select>
       </div>
 
-      {aiSettings.provider !== "zai" && (
+      {aiSettings.provider === "custom" && (
         <div>
-          <label className="text-[10px] uppercase text-muted-foreground block mb-1">
-            API key {aiSettings.provider === "custom" && "(format: endpoint|key)"}
-          </label>
+          <label className="text-[10px] uppercase text-muted-foreground block mb-1">Endpoint URL</label>
           <input
-            type="password"
-            value={aiSettings.apiKey}
-            onChange={(e) => setAISettings({ apiKey: e.target.value })}
-            placeholder="sk-..."
+            type="text"
+            value={aiSettings.customEndpoint ?? ""}
+            onChange={(e) => setAISettings({ customEndpoint: e.target.value })}
+            placeholder="https://your-endpoint.com/v1/chat/completions"
             className="w-full px-2 py-1.5 rounded-md bg-background border border-border text-xs font-mono"
           />
-          <p className="text-[10px] text-muted-foreground mt-1">
-            Your key is stored only on this device and sent directly to the provider. It bypasses our rate limits.
-          </p>
+        </div>
+      )}
+
+      <div>
+        <label className="text-[10px] uppercase text-muted-foreground block mb-1">API key</label>
+        <input
+          type="password"
+          value={aiSettings.apiKey}
+          onChange={(e) => setAISettings({ apiKey: e.target.value })}
+          placeholder="paste your API key here"
+          className="w-full px-2 py-1.5 rounded-md bg-background border border-border text-xs font-mono"
+        />
+        <p className="text-[10px] text-muted-foreground mt-1">
+          Your key is stored only on this device (localStorage) and sent directly to {currentProviderInfo?.label}. We never see it.
+        </p>
+      </div>
+
+      {/* Get free key links */}
+      {currentProviderInfo?.getFreeKeyUrl && (
+        <div className="flex flex-wrap items-center gap-2 text-[10px]">
+          <span className="text-muted-foreground">Get a free key:</span>
+          <a
+            href={currentProviderInfo.getFreeKeyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-2 py-1 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+          >
+            {currentProviderInfo.getFreeKeyUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")} →
+          </a>
         </div>
       )}
 
@@ -448,11 +811,15 @@ function AISettingsPanel({ onClose }: { onClose: () => void }) {
           onChange={(e) => setAISettings({ model: e.target.value })}
           className="w-full px-2 py-1.5 rounded-md bg-background border border-border text-xs font-mono"
         >
-          {(PROVIDER_MODELS[aiSettings.provider] || []).map((m) => (
-            <option key={m} value={m}>{m}</option>
-          ))}
-          {/* Allow custom model entry */}
-          {!PROVIDER_MODELS[aiSettings.provider]?.includes(aiSettings.model) && (
+          {(PROVIDER_MODELS[aiSettings.provider] || []).map((m) => {
+            const isFree = currentProviderInfo?.freeModels.includes(m);
+            return (
+              <option key={m} value={m}>
+                {m}{isFree ? " ✅ free" : ""}
+              </option>
+            );
+          })}
+          {!PROVIDER_MODELS[aiSettings.provider]?.includes(aiSettings.model) && aiSettings.model && (
             <option value={aiSettings.model}>{aiSettings.model}</option>
           )}
         </select>
@@ -460,7 +827,7 @@ function AISettingsPanel({ onClose }: { onClose: () => void }) {
           type="text"
           value={aiSettings.model}
           onChange={(e) => setAISettings({ model: e.target.value })}
-          placeholder="custom-model-name"
+          placeholder="or type a custom model name"
           className="w-full mt-1 px-2 py-1 rounded-md bg-background border border-border text-[10px] font-mono"
         />
       </div>
@@ -484,6 +851,25 @@ function AISettingsPanel({ onClose }: { onClose: () => void }) {
         </div>
       </div>
 
+      {/* Test Connection button */}
+      <div className="pt-2 border-t border-border/60">
+        <button
+          onClick={handleTestConnection}
+          disabled={testing}
+          className="w-full py-1.5 rounded-md text-xs bg-primary/15 text-primary hover:bg-primary/25 transition-colors disabled:opacity-50"
+        >
+          {testing ? "Testing…" : "Test Connection"}
+        </button>
+        {testResult && (
+          <div className={cn(
+            "mt-2 px-2 py-1.5 rounded-md text-[11px] font-medium",
+            testResult.ok ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" : "bg-rose-500/15 text-rose-600 dark:text-rose-400",
+          )}>
+            {testResult.msg}
+          </div>
+        )}
+      </div>
+
       <div className="pt-2 border-t border-border/60">
         <button
           onClick={() => {
@@ -498,17 +884,8 @@ function AISettingsPanel({ onClose }: { onClose: () => void }) {
       </div>
 
       <div className="pt-2 border-t border-border/60 text-[10px] text-muted-foreground">
-        <strong>Privacy:</strong> Your conversations are stored only on this device. Messages are sent to {aiSettings.provider === "zai" ? "Z.ai servers" : `the ${aiSettings.provider} API`} for processing. Don&apos;t share sensitive info.
+        <strong>Privacy:</strong> Your conversations are stored only on this device. Messages are sent to {currentProviderInfo?.label ?? "the provider"} for processing. Don&apos;t share sensitive info.
       </div>
     </div>
   );
-}
-
-function formatTimeUntil(timestamp: number): string {
-  const ms = timestamp - Date.now();
-  const minutes = Math.ceil(ms / 60000);
-  if (minutes < 60) return `${minutes} min`;
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  return `${hours}h ${mins}m`;
 }

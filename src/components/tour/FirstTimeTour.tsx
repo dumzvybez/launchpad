@@ -6,12 +6,14 @@ import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 const TOUR_STEPS = [
-  { view: "dashboard", title: "Dashboard", body: "This is your home base — see today's tasks, streak, XP, and quick stats at a glance.", targetSelector: "nav" },
+  { view: "dashboard", title: "Dashboard", body: "Your home base — see today's tasks, streak, XP, Career Readiness Score, shareable progress cards, and a 'How do others learn?' benchmark card.", targetSelector: "nav" },
   { view: "roadmap", title: "Roadmap", body: "Your personalized multi-phase roadmap. Click a phase to expand it into modules, then tasks.", targetSelector: "main" },
-  { view: "learn", title: "Learn", body: "100+ built-in lessons across 9 languages (Python, JavaScript, TypeScript, Java, C, C++, C#, Go, Rust) with code examples, quizzes, and certificates.", targetSelector: "main" },
-  { view: "ai-tutor", title: "AI Tutor", body: "Ask coding questions 24/7. The floating bubble in the corner opens it from any page.", targetSelector: "main" },
+  { view: "learn", title: "Learn", body: "630 lessons across 30 languages with inline code editor (Edit & Run), YouTube supplements (optional, collapsible), 10-question quizzes with spaced repetition, and capstone project guides.", targetSelector: "main" },
+  { view: "ai-tutor", title: "AI Tutor", body: "Ask coding questions 24/7 (BYOK — bring your own API key). Includes 🎯 Interview Mode for mock technical interviews with personalized feedback.", targetSelector: "main" },
+  { view: "projects", title: "Projects", body: "207 personalized projects. Mark one as shipped to unlock 'Get AI Code Review' — get senior-dev-level feedback on your code.", targetSelector: "main" },
+  { view: "career", title: "Career", body: "Career Readiness Score (5 dimensions: roadmap, quizzes, projects, challenges, interviews), Build My Resume button, and Career Master Certificate at 100%.", targetSelector: "main" },
   { view: "playground", title: "Playground", body: "Write and run JavaScript directly in your browser — no setup needed.", targetSelector: "main", condition: (langIds: string[]) => langIds.some((id) => ["javascript", "typescript", "react", "nextjs"].includes(id)) },
-  { view: "settings", title: "Settings", body: "Customize themes, density, motion, backup your data, and more.", targetSelector: "main" },
+  { view: "settings", title: "Settings", body: "Customize themes, density, motion, hide video supplements, backup your data, and more.", targetSelector: "main" },
 ];
 
 export function FirstTimeTour() {

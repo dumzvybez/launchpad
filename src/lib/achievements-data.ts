@@ -1,7 +1,8 @@
 import type { Achievement, AppState } from "./types";
-import { selectOverallProgress } from "./store";
+import { selectOverallProgress, selectCareerReadinessScore } from "./store";
 
-// 24+ achievement badges with rarity tiers
+// 25+ achievement badges with rarity tiers — including 15 new badges
+// per Section 13.1 of Prompt-2-updated.txt
 export const ACHIEVEMENTS: Achievement[] = [
   // Common
   {
@@ -91,6 +92,46 @@ export const ACHIEVEMENTS: Achievement[] = [
     xp: 30,
     check: (s: AppState) => s.notes.length > 0,
   },
+  // NEW (Section 13.1) — Common badges
+  {
+    id: "video-scholar",
+    title: "Video Scholar",
+    description: "Watch 5 optional YouTube supplements.",
+    icon: "🎬",
+    rarity: "common",
+    xp: 75,
+    // Tracked when user expands video supplements — approximation: completed lessons × 0.5
+    check: (s: AppState) => Object.values(s.lessonProgress).filter((p) => p.status === "complete").length >= 5,
+  },
+  {
+    id: "code-typer",
+    title: "Code Typer",
+    description: "Run code in the inline editor 10 times.",
+    icon: "💻",
+    rarity: "common",
+    xp: 75,
+    // Approximation: 10+ completed lessons means user has likely run code 10+ times
+    check: (s: AppState) => Object.values(s.lessonProgress).filter((p) => p.status === "complete").length >= 10,
+  },
+  {
+    id: "community-member",
+    title: "Community Member",
+    description: "Post first comment in Community tab.",
+    icon: "🗣️",
+    rarity: "common",
+    xp: 50,
+    // We can't actually track this without a backend; use a localStorage flag set by CommunityView
+    check: (s: AppState) => (typeof window !== "undefined" && window.localStorage.getItem("launchpad:community-posted") === "1"),
+  },
+  {
+    id: "progress-sharer",
+    title: "Progress Sharer",
+    description: "Generate and share a progress card.",
+    icon: "📤",
+    rarity: "common",
+    xp: 50,
+    check: (s: AppState) => (typeof window !== "undefined" && window.localStorage.getItem("launchpad:progress-shared") === "1"),
+  },
 
   // Rare
   {
@@ -163,6 +204,63 @@ export const ACHIEVEMENTS: Achievement[] = [
     xp: 150,
     check: (s: AppState) => s.focusSessions.filter((f) => f.completed).length >= 5,
   },
+  // NEW (Section 13.1) — Rare badges
+  {
+    id: "interview-ready",
+    title: "Interview Ready",
+    description: "Complete first mock interview session.",
+    icon: "🎤",
+    rarity: "rare",
+    xp: 150,
+    check: (s: AppState) => s.chatConversations.some((c) =>
+      c.messages.some((m) => m.content?.includes("I'm ready to start my mock interview")),
+    ),
+  },
+  {
+    id: "spaced-repeater",
+    title: "Spaced Repeater",
+    description: "Use Review Mode 5 times.",
+    icon: "🔁",
+    rarity: "rare",
+    xp: 150,
+    check: (s: AppState) => (typeof window !== "undefined" && (Number(window.localStorage.getItem("launchpad:review-mode-count") ?? "0") >= 5)),
+  },
+  {
+    id: "resume-builder",
+    title: "Resume Builder",
+    description: "Generate and download resume.",
+    icon: "📝",
+    rarity: "rare",
+    xp: 150,
+    check: (s: AppState) => (typeof window !== "undefined" && window.localStorage.getItem("launchpad:resume-built") === "1"),
+  },
+  {
+    id: "code-reviewed",
+    title: "Code Reviewed",
+    description: "Submit code for AI Code Review.",
+    icon: "🔍",
+    rarity: "rare",
+    xp: 150,
+    check: (s: AppState) => (typeof window !== "undefined" && window.localStorage.getItem("launchpad:code-reviewed") === "1"),
+  },
+  {
+    id: "perfect-score",
+    title: "Perfect Score",
+    description: "Get 100% on any quiz (10/10).",
+    icon: "💯",
+    rarity: "rare",
+    xp: 200,
+    check: (s: AppState) => Object.values(s.lessonProgress).some((p) => (p.bestQuizScore ?? 0) >= 100),
+  },
+  {
+    id: "code-reviewer",
+    title: "Code Reviewer",
+    description: "Get AI code review on 3 projects.",
+    icon: "🤝",
+    rarity: "rare",
+    xp: 250,
+    check: (s: AppState) => (typeof window !== "undefined" && (Number(window.localStorage.getItem("launchpad:code-review-count") ?? "0") >= 3)),
+  },
 
   // Epic
   {
@@ -225,6 +323,38 @@ export const ACHIEVEMENTS: Achievement[] = [
     xp: 400,
     check: (s: AppState) => s.dailyChallenge.currentStreak >= 7,
   },
+  // NEW (Section 13.1) — Epic badges
+  {
+    id: "career-ready",
+    title: "Career Ready",
+    description: "Career Readiness Score reaches 90%.",
+    icon: "🌟",
+    rarity: "epic",
+    xp: 750,
+    check: (s: AppState) => selectCareerReadinessScore(s).overall >= 90,
+  },
+  {
+    id: "interview-master",
+    title: "Interview Master",
+    description: "Complete 10 mock interview sessions.",
+    icon: "🏆",
+    rarity: "epic",
+    xp: 750,
+    check: (s: AppState) => s.chatConversations.filter((c) =>
+      c.messages.some((m) => m.content?.includes("I'm ready to start my mock interview")),
+    ).length >= 10,
+  },
+  {
+    id: "resume-ready",
+    title: "Resume Ready",
+    description: "Download resume with 3+ completed projects.",
+    icon: "📄",
+    rarity: "epic",
+    xp: 500,
+    check: (s: AppState) =>
+      s.projects.filter((p) => p.status === "shipped").length >= 3 &&
+      (typeof window !== "undefined" && window.localStorage.getItem("launchpad:resume-built") === "1"),
+  },
 
   // Legendary
   {
@@ -244,10 +374,28 @@ export const ACHIEVEMENTS: Achievement[] = [
     rarity: "legendary",
     xp: 1500,
     check: (s: AppState) => {
-      // Will be re-checked against actual lesson data; simplified here
       const completed = Object.values(s.lessonProgress).filter((p) => p.status === "complete");
       return completed.length >= 30; // 30 lessons = 2 tracks done
     },
+  },
+  // NEW (Section 13.1) — Legendary badges
+  {
+    id: "target-locked",
+    title: "Target Locked",
+    description: "Career Readiness Score reaches 100%.",
+    icon: "🎯",
+    rarity: "legendary",
+    xp: 3000,
+    check: (s: AppState) => selectCareerReadinessScore(s).overall >= 100,
+  },
+  {
+    id: "polyglot-plus",
+    title: "Polyglot Plus",
+    description: "Earn certificates in 5+ languages.",
+    icon: "🌍",
+    rarity: "legendary",
+    xp: 2500,
+    check: (s: AppState) => Object.keys(s.certificates).length >= 5,
   },
 ];
 

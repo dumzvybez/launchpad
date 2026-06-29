@@ -11,7 +11,7 @@ import {
   Zap,
   Trophy,
 } from "lucide-react";
-import { useStore, selectEarnedXP, selectOverallProgress, selectPhaseProgress } from "@/lib/store";
+import { useStore, selectEarnedXP, selectOverallProgress, selectPhaseProgress, selectCareerProgress } from "@/lib/store";
 import { dateKey } from "@/lib/storage";
 import { GlassCard, ProgressBar } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,7 @@ export function AnalyticsView() {
   const roadmap = state.roadmap;
   const earnedXP = selectEarnedXP(state);
   const overall = selectOverallProgress(state);
+  const careerProgress = selectCareerProgress(state);
 
   // 12 weeks heatmap
   const heatmap = useMemo(() => {
@@ -98,6 +99,36 @@ export function AnalyticsView() {
         <StatCard icon={<Flame className="h-4 w-4" />} label="Current streak" value={`${state.streak.current}d`} color="text-orange-500" />
         <StatCard icon={<Award className="h-4 w-4" />} label="Badges" value={state.badges.filter((b) => b.unlockedAt).length.toString()} color="text-violet-500" />
       </div>
+
+      {/* Career progress (Section 11 — uses centralized selectCareerProgress, same formula as Dashboard + Career) */}
+      <GlassCard className="p-5">
+        <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
+          <Target className="h-4 w-4 text-primary" /> Career progress · {career?.label ?? "—"}
+        </h2>
+        <div className="flex items-center gap-4 mb-3">
+          <div className="text-3xl font-bold font-mono">{careerProgress.overall}%</div>
+          <div className="flex-1">
+            <ProgressBar value={careerProgress.overall} className="h-2.5" />
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-3 text-xs">
+          <div>
+            <div className="text-[10px] uppercase text-muted-foreground">Roadmap (40%)</div>
+            <div className="font-mono font-semibold">{careerProgress.roadmapPct}%</div>
+            <ProgressBar value={careerProgress.roadmapPct} className="h-1 mt-1" />
+          </div>
+          <div>
+            <div className="text-[10px] uppercase text-muted-foreground">Lessons (40%)</div>
+            <div className="font-mono font-semibold">{careerProgress.lessonsPct}%</div>
+            <ProgressBar value={careerProgress.lessonsPct} className="h-1 mt-1" />
+          </div>
+          <div>
+            <div className="text-[10px] uppercase text-muted-foreground">Projects (20%)</div>
+            <div className="font-mono font-semibold">{careerProgress.projectsPct}%</div>
+            <ProgressBar value={careerProgress.projectsPct} className="h-1 mt-1" />
+          </div>
+        </div>
+      </GlassCard>
 
       {/* Activity heatmap */}
       <GlassCard className="p-5">
