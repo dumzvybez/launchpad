@@ -1,5 +1,6 @@
 # Launchpad — Free Personalized Coding Education Platform
 
+![Launchpad](public/icons/logo-1024.png)
 
 A free, privacy-first coding education platform with AI-powered personalized roadmaps, **630 lessons across 30 languages**, **6,000 quiz questions**, **207 projects**, **1,860+ daily challenges**, an inline code editor, AI tutor with mock interview mode, AI code review, a resume auto-builder, GitHub Discussions community, shareable progress cards, spaced repetition quizzes, and a code playground. 100% on-device — no accounts, no tracking.
 

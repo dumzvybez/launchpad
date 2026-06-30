@@ -133,14 +133,14 @@ export function DashboardView() {
         />
       </div>
 
-      {/* Career progress box (Section 5.2) — primary progress indicator */}
+      {/* Career Readiness box — Section 5.2: now uses 5-dimension score (matches Career tab) */}
       {career && (() => {
-        const cp = selectCareerProgress(state);
+        const cr = selectCareerReadinessScore(state);
         return (
           <GlassCard className="p-5">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-semibold flex items-center gap-2">
-                <Target className="h-4 w-4 text-primary" /> Career progress · {career.label}
+                <Target className="h-4 w-4 text-primary" /> Career Readiness · {career.label}
               </h2>
               <button
                 onClick={() => setView("career")}
@@ -150,37 +150,48 @@ export function DashboardView() {
               </button>
             </div>
             <div className="flex items-center gap-4 mb-4">
-              <div className="text-4xl font-bold font-mono">{cp.overall}%</div>
+              <div className="text-4xl font-bold font-mono">{cr.overall}%</div>
               <div className="flex-1">
-                <ProgressBar value={cp.overall} className="h-3" />
+                <ProgressBar value={cr.overall} className="h-3" />
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  {cp.overall >= 100
-                    ? "🎉 Career Master — claim your certificate!"
-                    : cp.overall >= 75
-                      ? "Almost job-ready — push to the end"
-                      : cp.overall >= 50
-                        ? "Past the midpoint — you're doing great"
-                        : cp.overall >= 25
-                          ? "Making solid progress"
-                          : "Just getting started — keep going!"}
+                  {cr.overall >= 100
+                    ? "🏆 Career Master — claim your certificate!"
+                    : cr.overall >= 90
+                      ? "🎉 Interview-ready — consider applying!"
+                      : cr.overall >= 71
+                        ? "Almost job-ready — push to the end"
+                        : cr.overall >= 41
+                          ? "Making progress — keep going"
+                          : "Just getting started — every lesson counts"}
                 </p>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3 text-xs">
+            {/* 5-dimension breakdown — matches Career tab */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
               <div>
-                <div className="text-[10px] uppercase text-muted-foreground">Roadmap (40%)</div>
-                <div className="font-mono font-semibold">{cp.roadmapPct}%</div>
-                <ProgressBar value={cp.roadmapPct} className="h-1 mt-1" />
+                <div className="text-[10px] uppercase text-muted-foreground">Roadmap</div>
+                <div className="font-mono font-semibold">{cr.roadmapProgress}%</div>
+                <ProgressBar value={cr.roadmapProgress} className="h-1 mt-0.5" />
               </div>
               <div>
-                <div className="text-[10px] uppercase text-muted-foreground">Lessons (40%)</div>
-                <div className="font-mono font-semibold">{cp.lessonsPct}%</div>
-                <ProgressBar value={cp.lessonsPct} className="h-1 mt-1" />
+                <div className="text-[10px] uppercase text-muted-foreground">Knowledge 📚</div>
+                <div className="font-mono font-semibold">{cr.quizAverage}%</div>
+                <ProgressBar value={cr.quizAverage} className="h-1 mt-0.5" />
               </div>
               <div>
-                <div className="text-[10px] uppercase text-muted-foreground">Projects (20%)</div>
-                <div className="font-mono font-semibold">{cp.projectsPct}%</div>
-                <ProgressBar value={cp.projectsPct} className="h-1 mt-1" />
+                <div className="text-[10px] uppercase text-muted-foreground">Projects 🔨</div>
+                <div className="font-mono font-semibold">{cr.projectsCompleted}%</div>
+                <ProgressBar value={cr.projectsCompleted} className="h-1 mt-0.5" />
+              </div>
+              <div>
+                <div className="text-[10px] uppercase text-muted-foreground">Challenges 🎯</div>
+                <div className="font-mono font-semibold">{cr.challengeScore}%</div>
+                <ProgressBar value={cr.challengeScore} className="h-1 mt-0.5" />
+              </div>
+              <div>
+                <div className="text-[10px] uppercase text-muted-foreground">Interviews 🎤</div>
+                <div className="font-mono font-semibold">{cr.interviewScore === null ? "—" : `${cr.interviewScore}%`}</div>
+                <ProgressBar value={cr.interviewScore ?? 0} className="h-1 mt-0.5" />
               </div>
             </div>
           </GlassCard>
@@ -585,85 +596,201 @@ function ShareProgressCardModal({ onClose }: { onClose: () => void }) {
   }).join(" · ");
 
   const handleDownloadPNG = () => {
-    // Open a new window with the card HTML and trigger print-to-PDF
+    // Open a new window with the share card HTML, centered and print-optimized.
+    // Card is sized 1200x675 (16:9, perfect for social media).
     const html = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8" />
   <title>Launchpad Progress — ${profile.name || "Learner"}</title>
   <style>
-    @page { size: 600px 360px; margin: 0; }
+    /* Print: card fills the page */
+    @page { size: 1200px 675px; margin: 0; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+    html, body {
+      width: 100%; min-height: 100vh;
+      background: #0a0a0a;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
     .card {
-      width: 600px; height: 360px;
-      background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #312E81 100%);
+      width: 1200px; height: 675px;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(45, 212, 191, 0.18) 0%, transparent 40%),
+        radial-gradient(circle at 85% 75%, rgba(232, 121, 249, 0.15) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(252, 211, 77, 0.06) 0%, transparent 60%),
+        linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #312E81 100%);
       color: white;
-      padding: 28px 32px;
+      padding: 56px 64px;
       position: relative;
       overflow: hidden;
+      border-radius: 16px;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column;
     }
+    /* Decorative grid pattern overlay */
     .card::before {
-      content: ""; position: absolute; top: -50px; right: -50px;
-      width: 200px; height: 200px;
-      background: radial-gradient(circle, rgba(45, 212, 191, 0.15) 0%, transparent 70%);
+      content: ""; position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
     }
-    .card::after {
-      content: ""; position: absolute; bottom: -80px; left: -80px;
-      width: 250px; height: 250px;
-      background: radial-gradient(circle, rgba(232, 121, 249, 0.12) 0%, transparent 70%);
+    .header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 28px;
+      position: relative; z-index: 1;
     }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; position: relative; z-index: 1; }
-    .brand { display: flex; align-items: center; gap: 8px; }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand-logo {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, #2DD4BF 0%, #E879F9 50%, #FCD34D 100%);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      box-shadow: 0 8px 24px rgba(45, 212, 191, 0.3);
+    }
     .brand-text {
-      font-size: 22px; font-weight: 700; letter-spacing: -0.5px;
+      font-size: 32px; font-weight: 800; letter-spacing: -1px;
       background: linear-gradient(135deg, #2DD4BF 0%, #E879F9 50%, #FCD34D 100%);
       -webkit-background-clip: text; background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-    .user { font-size: 11px; opacity: 0.8; }
-    .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); margin: 8px 0 14px; }
-    .row { font-size: 13px; margin: 6px 0; position: relative; z-index: 1; }
-    .row .label { opacity: 0.7; }
-    .row .value { font-weight: 600; }
-    .progress-bar { display: inline-block; width: 220px; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; vertical-align: middle; margin: 0 8px; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, #2DD4BF, #E879F9); border-radius: 4px; }
-    .tagline { font-size: 12px; opacity: 0.6; text-align: center; margin-top: 14px; position: relative; z-index: 1; }
-    .url { font-size: 11px; opacity: 0.5; text-align: center; font-family: monospace; }
+    .user-block { text-align: right; }
+    .user-name { font-size: 18px; font-weight: 600; opacity: 0.95; }
+    .user-meta { font-size: 12px; opacity: 0.6; margin-top: 2px; }
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+      margin: 0 0 28px;
+      position: relative; z-index: 1;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px 32px;
+      position: relative; z-index: 1;
+      flex: 1;
+    }
+    .stat { display: flex; flex-direction: column; gap: 6px; }
+    .stat-label {
+      font-size: 11px; opacity: 0.55;
+      text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;
+    }
+    .stat-value { font-size: 22px; font-weight: 700; line-height: 1.1; }
+    .stat-value .accent { color: #2DD4BF; }
+    .stat-value .accent-2 { color: #E879F9; }
+    .stat-value .accent-3 { color: #FCD34D; }
+    .progress-row { display: flex; align-items: center; gap: 12px; }
+    .progress-bar {
+      flex: 1; height: 10px; background: rgba(255,255,255,0.08);
+      border-radius: 5px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #2DD4BF 0%, #E879F9 100%);
+      border-radius: 5px;
+      box-shadow: 0 0 16px rgba(45, 212, 191, 0.5);
+    }
+    .progress-pct { font-size: 22px; font-weight: 700; min-width: 70px; }
+    .lang-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+    .lang-chip {
+      font-size: 12px; padding: 4px 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      font-weight: 500;
+    }
+    .footer {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      position: relative; z-index: 1;
+    }
+    .tagline {
+      font-size: 14px; opacity: 0.7;
+      font-style: italic;
+    }
+    .url {
+      font-size: 12px; opacity: 0.5;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.5px;
+    }
+    /* On screen, hide everything except the card */
+    @media screen {
+      body { background: #0a0a0a; }
+    }
+    /* On print, only the card shows */
+    @media print {
+      body { background: white; padding: 0; }
+      .card { box-shadow: none; border-radius: 0; }
+    }
   </style>
 </head>
 <body>
   <div class="card">
     <div class="header">
       <div class="brand">
-        <span style="font-size: 22px;">🚀</span>
-        <span class="brand-text">Launchpad</span>
+        <div class="brand-logo">🚀</div>
+        <div class="brand-text">Launchpad</div>
       </div>
-      <div class="user">${profile.name || "Learner"}</div>
+      <div class="user-block">
+        <div class="user-name">${profile.name || "Learner"}</div>
+        <div class="user-meta">${careerLabel}</div>
+      </div>
     </div>
     <div class="divider"></div>
-    <div class="row"><span class="label">Career:</span> <span class="value">${careerLabel}</span></div>
-    <div class="row">
-      <span class="label">Roadmap:</span>
-      <span class="progress-bar"><span class="progress-fill" style="width: ${overall.pct}%"></span></span>
-      <span class="value">${overall.pct}% complete</span>
+    <div class="stats-grid">
+      <div class="stat">
+        <div class="stat-label">Roadmap Progress</div>
+        <div class="progress-row">
+          <div class="progress-bar"><div class="progress-fill" style="width: ${overall.pct}%"></div></div>
+          <div class="progress-pct"><span class="accent">${overall.pct}%</span></div>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Daily Streak</div>
+        <div class="stat-value">🔥 <span class="accent-2">${streak}</span> days</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Badges Earned</div>
+        <div class="stat-value">🏆 <span class="accent-3">${badgesCount}</span></div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Tasks Completed</div>
+        <div class="stat-value">✅ <span class="accent">${overall.completed}</span> <span style="opacity:0.5; font-size:14px;">/ ${overall.total}</span></div>
+      </div>
+      <div class="stat" style="grid-column: 1 / -1;">
+        <div class="stat-label">Languages in Plan</div>
+        <div class="lang-chips">
+          ${(roadmap?.languageIds ?? []).slice(0, 6).map(id => {
+            const lang = LANGUAGE_MAP[id];
+            return `<span class="lang-chip">${lang?.icon ?? "📘"} ${lang?.name ?? id}</span>`;
+          }).join("")}
+        </div>
+      </div>
     </div>
-    <div class="row"><span class="label">Languages:</span> <span class="value">${langChips || "—"}</span></div>
-    <div class="row"><span class="label">Current streak:</span> <span class="value">🔥 ${streak} days</span></div>
-    <div class="row"><span class="label">Badges earned:</span> <span class="value">${badgesCount}</span></div>
-    <div class="divider"></div>
-    <div class="tagline">Learning. Building. Growing.</div>
-    <div class="url">launchpad--pi.vercel.app</div>
+    <div class="footer">
+      <div class="tagline">Learning. Building. Growing.</div>
+      <div class="url">launchpad--pi.vercel.app</div>
+    </div>
   </div>
   <script>
-    window.onload = () => { setTimeout(() => window.print(), 300); };
+    window.onload = () => { setTimeout(() => window.print(), 400); };
   </script>
 </body>
 </html>`;
-    const w = window.open("", "_blank");
+    const w = window.open("", "_blank", "width=1280,height=800");
     if (w) {
       w.document.write(html);
       w.document.close();
+    }
+    // Track for badge
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("launchpad:progress-shared", "1");
     }
   };
 

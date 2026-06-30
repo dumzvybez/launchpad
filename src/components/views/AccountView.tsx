@@ -198,30 +198,139 @@ export function AccountView() {
             <Trophy className="h-4 w-4" /> Achievements
           </h2>
           <div className="flex items-center gap-2">
-            {/* Section 8.2 — Share My Achievements button */}
+            {/* Section 8.2 — Share My Achievements button — redesigned card */}
             <button
               onClick={() => {
-                const html = `<!DOCTYPE html><html><head><title>My Launchpad Achievements</title><style>
-                body { font-family: -apple-system, sans-serif; background: linear-gradient(135deg, #0F172A 0%, #312E81 100%); color: white; padding: 40px; min-height: 100vh; }
-                .card { max-width: 600px; margin: 0 auto; }
-                h1 { background: linear-gradient(135deg, #2DD4BF, #E879F9, #FCD34D); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 32px; }
-                .stat { font-size: 14px; opacity: 0.9; margin: 8px 0; }
-                .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-                .badge { padding: 6px 12px; border-radius: 20px; background: rgba(255,255,255,0.1); font-size: 13px; }
-                .footer { margin-top: 32px; opacity: 0.6; font-size: 11px; text-align: center; }
-                </style></head><body><div class="card">
-                <h1>🏆 ${state.profile.name || "Learner"}'s Achievements</h1>
-                <p class="stat">🚀 ${state.badges.filter((b) => b.unlockedAt).length} badges earned on Launchpad</p>
-                <p class="stat">🔥 ${state.streak.current}-day streak · 📚 ${Object.values(state.lessonProgress).filter((p) => p.status === "complete").length} lessons completed · 📦 ${state.projects.filter((p) => p.status === "shipped").length} projects shipped</p>
-                <div class="badges">${state.badges.filter((b) => b.unlockedAt).map((b) => `<span class="badge">${b.icon} ${b.title}</span>`).join("")}</div>
-                <div class="footer">Learning. Building. Growing. · launchpad--pi.vercel.app</div>
-                </div>
-                <script>window.onload = () => setTimeout(() => window.print(), 300);</script>
-                </body></html>`;
+                const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Launchpad Achievements — ${state.profile.name || "Learner"}</title>
+  <style>
+    @page { size: 1200px 675px; margin: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; min-height: 100vh;
+      background: #0a0a0a;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      width: 1200px; height: 675px;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(45, 212, 191, 0.18) 0%, transparent 40%),
+        radial-gradient(circle at 85% 75%, rgba(232, 121, 249, 0.15) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(252, 211, 77, 0.06) 0%, transparent 60%),
+        linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #312E81 100%);
+      color: white;
+      padding: 48px 56px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column;
+    }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-logo {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, #2DD4BF, #E879F9, #FCD34D);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+    }
+    .brand-text {
+      font-size: 28px; font-weight: 800; letter-spacing: -1px;
+      background: linear-gradient(135deg, #2DD4BF, #E879F9, #FCD34D);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .user-name { font-size: 16px; font-weight: 600; opacity: 0.9; }
+    .title {
+      font-size: 36px; font-weight: 800; margin: 12px 0 4px;
+    }
+    .subtitle { font-size: 14px; opacity: 0.7; margin-bottom: 24px; }
+    .stats-row {
+      display: flex; gap: 32px; margin-bottom: 28px;
+      padding: 16px 0; border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .stat { display: flex; flex-direction: column; gap: 2px; }
+    .stat-value { font-size: 28px; font-weight: 800; }
+    .stat-value .accent { color: #2DD4BF; }
+    .stat-value .accent-2 { color: #E879F9; }
+    .stat-value .accent-3 { color: #FCD34D; }
+    .stat-label { font-size: 10px; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+    .badges-title { font-size: 12px; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: 600; }
+    .badges { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; align-content: flex-start; }
+    .badge {
+      padding: 8px 14px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      font-size: 13px; font-weight: 500;
+    }
+    .footer {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 20px; padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .tagline { font-size: 13px; opacity: 0.7; font-style: italic; }
+    .url { font-size: 11px; opacity: 0.5; font-family: monospace; }
+    @media print {
+      body { background: white; padding: 0; }
+      .card { box-shadow: none; border-radius: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <div class="brand">
+        <div class="brand-logo">🏆</div>
+        <div class="brand-text">Launchpad</div>
+      </div>
+      <div class="user-name">${state.profile.name || "Learner"}</div>
+    </div>
+    <div class="title">Achievements Unlocked</div>
+    <div class="subtitle">Coding journey milestones — earned through dedication and practice</div>
+
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-value">🏅 <span class="accent">${state.badges.filter((b) => b.unlockedAt).length}</span></div>
+        <div class="stat-label">Badges Earned</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">🔥 <span class="accent-2">${state.streak.current}</span></div>
+        <div class="stat-label">Day Streak</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">📚 <span class="accent-3">${Object.values(state.lessonProgress).filter((p) => p.status === "complete").length}</span></div>
+        <div class="stat-label">Lessons Done</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">📦 <span class="accent">${state.projects.filter((p) => p.status === "shipped").length}</span></div>
+        <div class="stat-label">Projects Shipped</div>
+      </div>
+    </div>
+
+    <div class="badges-title">Badge Collection</div>
+    <div class="badges">
+      ${state.badges.filter((b) => b.unlockedAt).map((b) => `<span class="badge">${b.icon} ${b.title}</span>`).join("") || '<span style="opacity:0.5;font-size:14px;">No badges earned yet — start learning to unlock your first badge!</span>'}
+    </div>
+
+    <div class="footer">
+      <div class="tagline">Learning. Building. Growing.</div>
+      <div class="url">launchpad--pi.vercel.app</div>
+    </div>
+  </div>
+  <script>window.onload = () => setTimeout(() => window.print(), 400);</script>
+</body>
+</html>`;
                 if (typeof window !== "undefined") {
                   window.localStorage.setItem("launchpad:progress-shared", "1");
                 }
-                const w = window.open("", "_blank");
+                const w = window.open("", "_blank", "width=1280,height=800");
                 if (w) { w.document.write(html); w.document.close(); }
               }}
               className="text-[11px] px-2.5 py-1 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors"

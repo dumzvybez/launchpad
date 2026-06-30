@@ -93,126 +93,96 @@ export function LearnView() {
           </p>
         </div>
 
-        {/* Language chips — user's plan languages first */}
-        {planLanguageIds.length > 0 && (
+        {/* Section 1: Your Languages (from roadmap) — track cards, no chip buttons */}
+        {planTracks.length > 0 && (
           <div>
-            <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-2 font-mono">Your languages (from your roadmap)</div>
-            <div className="flex flex-wrap gap-2">
+            <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-3 font-mono">📚 Your languages · {planTracks.length} in your roadmap</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {planTracks.map((t) => {
-                const completed = ALL_LESSONS.filter((l) => l.track === t.id && lessonProgress[l.id]?.status === "complete").length;
-                const isFiltered = filterLang === t.id;
+                const trackLessons = ALL_LESSONS.filter((l) => l.track === t.id).sort((a, b) => a.order - b.order);
+                const completed = trackLessons.filter((l) => lessonProgress[l.id]?.status === "complete").length;
+                const pct = trackLessons.length ? Math.round((completed / trackLessons.length) * 100) : 0;
                 return (
-                  <button
-                    key={t.id}
-                    onClick={() => setFilterLang(isFiltered ? null : t.id)}
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all",
-                      isFiltered
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border/60 hover:border-primary/40 bg-card/40"
-                    )}
-                  >
-                    <span className="text-base">{t.icon}</span>
-                    <span className="font-medium">{t.name}</span>
-                    <span className="text-[10px] text-muted-foreground font-mono">{completed}/{t.lessonCount}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Explore more — all other languages */}
-        {exploreTracks.length > 0 && (
-          <div>
-            <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-2 font-mono">Explore more languages</div>
-            <div className="flex flex-wrap gap-2">
-              {exploreTracks.map((t) => {
-                const completed = ALL_LESSONS.filter((l) => l.track === t.id && lessonProgress[l.id]?.status === "complete").length;
-                const isFiltered = filterLang === t.id;
-                return (
-                  <button
-                    key={t.id}
-                    onClick={() => setFilterLang(isFiltered ? null : t.id)}
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all",
-                      isFiltered
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border/60 hover:border-primary/40 bg-card/40 opacity-80"
-                    )}
-                  >
-                    <span className="text-base">{t.icon}</span>
-                    <span className="font-medium">{t.name}</span>
-                    <span className="text-[10px] text-muted-foreground font-mono">{completed}/{t.lessonCount}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Track cards (filtered or all) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {visibleTracks.map((t) => {
-            const trackLessons = ALL_LESSONS.filter((l) => l.track === t.id).sort((a, b) => a.order - b.order);
-            const completed = trackLessons.filter((l) => lessonProgress[l.id]?.status === "complete").length;
-            const pct = trackLessons.length ? Math.round((completed / trackLessons.length) * 100) : 0;
-            const inPlan = planLanguageIds.includes(t.id);
-            return (
-              <GlassCard key={t.id} className="p-4 hover:scale-[1.01] transition-transform">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{t.icon}</span>
-                    <div>
-                      <h3 className="font-bold text-sm">{t.name}</h3>
-                      <div className="text-[10px] text-muted-foreground font-mono">{t.lessonCount} lessons</div>
-                    </div>
-                  </div>
-                  {inPlan && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 font-semibold uppercase">
-                      In Plan
-                    </span>
-                  )}
-                </div>
-                <div className="space-y-2 mb-3">
-                  <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
-                    <span>{completed}/{t.lessonCount}</span>
-                    <span>{pct}%</span>
-                  </div>
-                  <ProgressBar value={pct} className="h-1.5" />
-                </div>
-                <GlassButton
-                  variant="primary"
-                  size="sm"
-                  className="w-full"
-                  onClick={() => {
+                  <GlassCard key={t.id} className="p-4 hover:scale-[1.01] transition-transform cursor-pointer" onClick={() => {
                     setSelectedTrack(t.id);
-                    // Resume at next incomplete lesson (not always lesson 0)
                     const nextIncomplete = trackLessons.find((l) => lessonProgress[l.id]?.status !== "complete");
                     setSelectedLessonId(nextIncomplete?.id ?? trackLessons[0]?.id ?? null);
                     setTab("lesson");
                     window.scrollTo(0, 0);
-                  }}
-                >
-                  <Play className="h-3.5 w-3.5" /> {completed > 0 ? "Continue" : "Start track"}
-                </GlassButton>
-              </GlassCard>
-            );
-          })}
-        </div>
-
-        {/* Achievement: certificate eligibility */}
-        <GlassCard className="p-4">
-          <div className="flex items-start gap-3">
-            <Award className="h-6 w-6 text-amber-500 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <h3 className="text-sm font-semibold mb-1">Complete a track to earn a certificate</h3>
-              <p className="text-xs text-muted-foreground">
-                Finish all lessons in any track (including quizzes) to generate a downloadable PDF certificate with your name.
-              </p>
+                  }}>
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{t.icon}</span>
+                        <div>
+                          <h3 className="font-bold text-sm">{t.name}</h3>
+                          <div className="text-[10px] text-muted-foreground font-mono">{t.lessonCount} lessons</div>
+                        </div>
+                      </div>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 font-semibold uppercase">
+                        In Plan
+                      </span>
+                    </div>
+                    <div className="space-y-2 mb-3">
+                      <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
+                        <span>{completed}/{t.lessonCount}</span>
+                        <span>{pct}%</span>
+                      </div>
+                      <ProgressBar value={pct} className="h-1.5" />
+                    </div>
+                    <div className="text-[11px] text-primary text-center font-medium">
+                      {completed > 0 ? "Continue learning →" : "Start track →"}
+                    </div>
+                  </GlassCard>
+                );
+              })}
             </div>
           </div>
-        </GlassCard>
+        )}
+
+        {/* Section 2: Explore More — all other languages, collapsible */}
+        {exploreTracks.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-mono">🔍 Explore more · {exploreTracks.length} other languages</div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {exploreTracks.map((t) => {
+                const trackLessons = ALL_LESSONS.filter((l) => l.track === t.id).sort((a, b) => a.order - b.order);
+                const completed = trackLessons.filter((l) => lessonProgress[l.id]?.status === "complete").length;
+                const pct = trackLessons.length ? Math.round((completed / trackLessons.length) * 100) : 0;
+                return (
+                  <GlassCard key={t.id} className="p-4 hover:scale-[1.01] transition-transform cursor-pointer opacity-90 hover:opacity-100" onClick={() => {
+                    setSelectedTrack(t.id);
+                    const nextIncomplete = trackLessons.find((l) => lessonProgress[l.id]?.status !== "complete");
+                    setSelectedLessonId(nextIncomplete?.id ?? trackLessons[0]?.id ?? null);
+                    setTab("lesson");
+                    window.scrollTo(0, 0);
+                  }}>
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{t.icon}</span>
+                        <div>
+                          <h3 className="font-bold text-sm">{t.name}</h3>
+                          <div className="text-[10px] text-muted-foreground font-mono">{t.lessonCount} lessons</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-2 mb-3">
+                      <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
+                        <span>{completed}/{t.lessonCount}</span>
+                        <span>{pct}%</span>
+                      </div>
+                      <ProgressBar value={pct} className="h-1.5" />
+                    </div>
+                    <div className="text-[11px] text-muted-foreground text-center font-medium">
+                      {completed > 0 ? "Continue →" : "Explore →"}
+                    </div>
+                  </GlassCard>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -944,11 +914,30 @@ function LessonBlockView({
     );
   }
   if (block.kind === "exercises") {
+    // Filter out quiz content that was accidentally included in the exercises block
+    // during the database → lessons-data.ts conversion. The quiz is rendered separately
+    // via the dedicated "Take the quiz" button — these raw quiz lines should NOT appear
+    // as exercises in the lesson body.
+    const cleanedItems = block.items.filter(item => {
+      const trimmed = item.trim();
+      // Skip lines that are clearly quiz markers/structure, not exercises
+      if (/^>>>\s*QUIZ/i.test(trimmed)) return false;
+      if (/^Z AI: render this as/i.test(trimmed)) return false;
+      if (/^Q\d+\s*[:.]/i.test(trimmed)) return false;  // "Q1: ..." or "Q1. ..."
+      if (/^[A-D]\)\s/.test(trimmed)) return false;     // "A) ...", "B) ...", etc.
+      if (/^\([A-D]\)\s/.test(trimmed)) return false;   // "(A) ..."
+      if (/^Explanation\s*:/i.test(trimmed)) return false;
+      if (/^Answer\s*:/i.test(trimmed)) return false;
+      if (/^\(\*\)$/.test(trimmed)) return false;        // "(*)" correct answer marker
+      if (/^\(Z AI/.test(trimmed)) return false;
+      return true;
+    });
+    if (cleanedItems.length === 0) return null;
     return (
       <div>
         <div className="text-[10px] font-semibold uppercase text-muted-foreground mb-2">Exercises</div>
         <ol className="space-y-1.5">
-          {block.items.map((it, i) => (
+          {cleanedItems.map((it, i) => (
             <li key={i} className="text-xs text-foreground/80 flex gap-2">
               <span className="h-4 w-4 rounded-full border border-muted-foreground/40 flex items-center justify-center text-[9px] font-mono shrink-0 mt-0.5">{i + 1}</span>
               <span>{it}</span>
@@ -1047,7 +1036,9 @@ function QuizView({
         recordQuizAnswer(lesson.id, q.id, sel, sel === q.correctIndex);
       }
     }
-    setTimeout(() => onComplete(score), 2000);
+    // NOTE: Do NOT auto-advance. Let the user review their answers and the
+    // explanations, then they click "See results" manually when ready.
+    // Previous behavior: setTimeout(() => onComplete(score), 2000); — too fast.
   };
 
   return (
@@ -1114,10 +1105,10 @@ function QuizView({
       <div className="flex items-center justify-between gap-3 pt-2">
         {submitted ? (
           <div className={cn(
-            "text-sm font-semibold flex items-center gap-2",
-            passed ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400",
+            "text-xs font-semibold px-3 py-1.5 rounded-md flex items-center gap-1.5",
+            passed ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-amber-500/10 text-amber-600 dark:text-amber-400",
           )}>
-            <Trophy className="h-4 w-4" />
+            <Trophy className="h-4 w-4 inline mr-1" />
             {passed
               ? `Passed! ${correctCount}/${lesson.quiz.length} correct (${score}%)`
               : `Not yet — ${correctCount}/${lesson.quiz.length} correct (need ${passMark})`}
@@ -1127,14 +1118,32 @@ function QuizView({
             {Object.keys(answers).length}/{lesson.quiz.length} answered
           </div>
         )}
-        <GlassButton
-          variant="primary"
-          onClick={handleSubmit}
-          disabled={submitted || Object.keys(answers).length < lesson.quiz.length}
-        >
-          {submitted ? "Submitting..." : "Submit quiz"}
-        </GlassButton>
+        {!submitted ? (
+          <GlassButton
+            variant="primary"
+            onClick={handleSubmit}
+            disabled={Object.keys(answers).length < lesson.quiz.length}
+          >
+            Submit quiz
+          </GlassButton>
+        ) : (
+          <GlassButton
+            variant="primary"
+            onClick={() => onComplete(score)}
+          >
+            See results &amp; review →
+          </GlassButton>
+        )}
       </div>
+
+      {/* Post-submit hint — tell user they can review answers above before continuing */}
+      {submitted && (
+        <div className="rounded-lg bg-sky-500/10 border border-sky-500/30 p-3 text-xs text-sky-700 dark:text-sky-300">
+          📋 <strong>Review your answers above.</strong> Each question shows whether you got it right
+          (✓/✗), the correct answer highlighted in green, and an explanation. When you&apos;re ready,
+          click <strong>“See results &amp; review →”</strong> to continue.
+        </div>
+      )}
     </div>
   );
 }

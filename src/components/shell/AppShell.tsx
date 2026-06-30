@@ -23,6 +23,7 @@ import { CareerView } from "@/components/views/CareerView";
 import { CalendarView } from "@/components/views/CalendarView";
 import { AITutorView } from "@/components/views/AITutorView";
 import { CommunityView } from "@/components/views/CommunityView";
+import { ToolsView } from "@/components/views/ToolsView";
 import { AccountView } from "@/components/views/AccountView";
 import { SettingsView } from "@/components/views/SettingsView";
 import { AITutorFloating } from "@/components/ai/AITutorFloating";
@@ -141,6 +142,7 @@ export function AppShell() {
             {currentView === "career" && <CareerView />}
             {currentView === "ai-tutor" && <AITutorView />}
             {currentView === "community" && <CommunityView />}
+            {currentView === "tools" && <ToolsView />}
             {currentView === "account" && <AccountView />}
             {currentView === "settings" && <SettingsView />}
           </div>

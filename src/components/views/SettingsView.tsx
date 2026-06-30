@@ -47,6 +47,7 @@ export function SettingsView() {
   const [confirmReset, setConfirmReset] = useState(false);
   const [customColor, setCustomColor] = useState(state.preferences.customBackground ?? "#6366F1");
   const [lastBackup, setLastBackup] = useState<string | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   useEffect(() => {
     setLastBackup(getLastAutoBackupTime());
@@ -95,11 +96,20 @@ export function SettingsView() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Everything here actually works — and your data stays on this device.
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Everything here actually works — and your data stays on this device.
+          </p>
+        </div>
+        {/* Help Centre button — opens same modal as footer */}
+        <button
+          onClick={() => setHelpOpen(true)}
+          className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md border border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors shrink-0"
+        >
+          <HelpCircle className="h-3.5 w-3.5" /> Help Centre
+        </button>
       </div>
 
       {/* Appearance */}
@@ -316,7 +326,7 @@ export function SettingsView() {
                   Reset all data
                 </div>
                 <p className="text-[11px] text-muted-foreground mb-2">
-                  Erases everything: profile, progress, lessons, chats, badges, settings. Cannot be undone. To change career/languages without losing progress, use "Restart Onboarding" below instead.
+                  Erases everything from your device: profile, progress, lessons, chats, badges, settings, all localStorage. You will be returned to onboarding. This cannot be undone.
                 </p>
                 {!confirmReset ? (
                   <button
@@ -329,10 +339,28 @@ export function SettingsView() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => {
+                        // 1. Clear all localStorage (Launchpad data + backups + flags)
+                        try {
+                          // Remove all launchpad:* keys
+                          const keysToRemove: string[] = [];
+                          for (let i = 0; i < localStorage.length; i++) {
+                            const key = localStorage.key(i);
+                            if (key && (key.startsWith("launchpad") || key.startsWith("lp-"))) {
+                              keysToRemove.push(key);
+                            }
+                          }
+                          keysToRemove.forEach(k => localStorage.removeItem(k));
+                          // Nuclear option: clear everything
+                          localStorage.clear();
+                        } catch (e) {
+                          // ignore
+                        }
+                        // 2. Reset the in-memory store state too
                         resetAll();
                         setConfirmReset(false);
-                        toast.success("All data reset");
-                        setTimeout(() => window.location.reload(), 500);
+                        toast.success("All data wiped. Returning to onboarding...");
+                        // 3. Force a full reload to onboarding
+                        setTimeout(() => window.location.reload(), 600);
                       }}
                       className="text-xs px-3 py-1.5 rounded-md bg-rose-500 text-white hover:bg-rose-600"
                     >
@@ -348,40 +376,24 @@ export function SettingsView() {
                 )}
               </div>
             </div>
-
-            {/* Restart Onboarding (Regenerate Plan) — preserves progress */}
-            <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
-              <div className="flex items-start gap-2">
-                <RotateCcw className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <div className="text-xs font-semibold text-amber-600 dark:text-amber-400 mb-1">
-                    Restart Onboarding (Regenerate Plan)
-                  </div>
-                  <p className="text-[11px] text-muted-foreground mb-2">
-                    Restarts onboarding so you can change your career, languages, or availability. Your lesson progress and badges are preserved — only your roadmap gets regenerated.
-                  </p>
-                  <button
-                    onClick={() => {
-                      useStore.getState().startOnboardingAgain();
-                      toast.success("Restarting onboarding...");
-                      setTimeout(() => window.location.reload(), 500);
-                    }}
-                    className="text-xs px-3 py-1.5 rounded-md border border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition-colors"
-                  >
-                    <RotateCcw className="h-3 w-3 inline mr-1" /> Restart Onboarding
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </GlassCard>
 
-      {/* Help Centre */}
-      <HelpCentre />
-
       {/* About Developer — low-emphasis card at the very bottom */}
       <AboutDeveloperCard />
+
+      {/* Help Centre modal — same as footer */}
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh]">
+          <DialogHeader>
+            <DialogTitle>Help Centre</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="h-[65vh] pr-4">
+            <HelpCentre />
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

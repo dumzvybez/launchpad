@@ -489,6 +489,7 @@ export type ViewId =
   | "calendar"
   | "ai-tutor"
   | "community"
+  | "tools"
   | "account"
   | "settings";
 

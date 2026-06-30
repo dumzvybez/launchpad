@@ -37,6 +37,7 @@ import {
   GraduationCap,
   Code2,
   Target,
+  Wrench,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { useTheme } from "next-themes";
@@ -60,6 +61,7 @@ const VIEW_ICONS: Record<ViewId, typeof LayoutDashboard> = {
   playground: Code2,
   "daily-challenge": Target,
   "ai-tutor": Bot,
+  tools: Wrench,
 };
 
 const VIEWS: { id: ViewId; label: string }[] = [
@@ -70,10 +72,8 @@ const VIEWS: { id: ViewId; label: string }[] = [
   { id: "daily-challenge", label: "Daily Challenge" },
   { id: "skill-tree", label: "Skill Tree" },
   { id: "ai-tutor", label: "AI Tutor" },
-  { id: "calendar", label: "Calendar" },
-  { id: "notes", label: "Notes" },
+  { id: "tools", label: "Tools (Calendar/Notes/Focus)" },
   { id: "projects", label: "Projects" },
-  { id: "focus", label: "Focus Timer" },
   { id: "analytics", label: "Analytics" },
   { id: "career", label: "Career" },
   { id: "community", label: "Community" },

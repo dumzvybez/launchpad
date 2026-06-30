@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   Target,
   ChevronDown,
+  Search,
 } from "lucide-react";
 import { useStore, PROVIDER_MODELS, PROVIDER_INFO } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -63,6 +64,8 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
   const [interviewSystemPrompt, setInterviewSystemPrompt] = useState<string | null>(null);
   const [interviewDifficulty, setInterviewDifficulty] = useState<QuestionDifficulty>("intermediate");
   const [interviewQuestionCount, setInterviewQuestionCount] = useState(10);
+  // Code Review Mode state (in-AI-Tutor Code Review)
+  const [codeReviewMode, setCodeReviewMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -392,14 +395,29 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
           >
             <Plus className="h-3.5 w-3.5" />
           </button>
-          {/* Interview Mode button (Section 4.2) */}
+          {/* Interview Mode button — icon-only in floating bubble, icon+label in full-screen tab */}
           <button
             onClick={() => setInterviewMode(true)}
-            className="p-1.5 rounded hover:bg-foreground/10 text-violet-500"
+            className={cn(
+              "rounded hover:bg-foreground/10 text-violet-500 transition-colors flex items-center gap-1.5",
+              fullTab ? "px-2.5 py-1.5 text-xs font-medium border border-violet-500/30 hover:border-violet-500/50" : "p-1.5",
+            )}
             title="🎯 Interview Mode"
           >
             <Target className="h-3.5 w-3.5" />
+            {fullTab && <span>Interview Mode</span>}
           </button>
+          {/* AI Code Review button — only in full-screen tab (icon+label) */}
+          {fullTab && (
+            <button
+              onClick={() => setCodeReviewMode(true)}
+              className="px-2.5 py-1.5 text-xs font-medium rounded hover:bg-foreground/10 text-fuchsia-500 border border-fuchsia-500/30 hover:border-fuchsia-500/50 transition-colors flex items-center gap-1.5"
+              title="🔍 AI Code Review"
+            >
+              <Search className="h-3.5 w-3.5" />
+              Code Review
+            </button>
+          )}
           {!fullTab && (
             <button
               onClick={() => setShowHistory(!showHistory)}
@@ -451,6 +469,13 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
             onQuestionCountChange={setInterviewQuestionCount}
             onStart={handleStartInterview}
             onCancel={() => setInterviewMode(false)}
+          />
+        )}
+
+        {/* AI Code Review panel — only in full-screen tab */}
+        {codeReviewMode && fullTab && (
+          <CodeReviewPanel
+            onClose={() => setCodeReviewMode(false)}
           />
         )}
 
@@ -885,6 +910,199 @@ function AISettingsPanel({ onClose }: { onClose: () => void }) {
 
       <div className="pt-2 border-t border-border/60 text-[10px] text-muted-foreground">
         <strong>Privacy:</strong> Your conversations are stored only on this device. Messages are sent to {currentProviderInfo?.label ?? "the provider"} for processing. Don&apos;t share sensitive info.
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// CodeReviewPanel — in-AI-Tutor Code Review
+// Lets the user paste code (no project context needed) and get an AI review.
+// ============================================================
+function CodeReviewPanel({ onClose }: { onClose: () => void }) {
+  const aiSettings = useStore((s) => s.state.aiSettings);
+  const addChatMessage = useStore((s) => s.addChatMessage);
+  const createChat = useStore((s) => s.createChat);
+  const setActiveChat = useStore((s) => s.setActiveChat);
+
+  const [code, setCode] = useState("");
+  const [language, setLanguage] = useState("javascript");
+  const [context, setContext] = useState("");
+  const [review, setReview] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const hasKey = !!aiSettings.apiKey;
+
+  const handleSubmit = async () => {
+    if (!code.trim()) return;
+    if (!hasKey) {
+      setError("No API key configured. Click Settings to add one.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setReview(null);
+
+    const systemPrompt = `You are a senior software engineer performing a code review. The user has shared some code${context ? ` and noted: "${context}"` : ""}.
+
+Review their code for:
+1. **Correctness** — Does it work as intended? Are there bugs?
+2. **Code Quality** — Is it readable, well-named, properly indented?
+3. **Best Practices** — Does it follow ${language} conventions and idioms?
+4. **Efficiency** — Any unnecessary complexity or performance issues?
+5. **Improvements** — 3 specific, actionable things they could add or improve
+
+Format your response with these exact headings:
+## Overall Impression
+## What Works Well (list 3-5 specific things)
+## Issues Found (list each issue with explanation and fix)
+## Suggested Improvements (list 3 with code examples)
+## Score: X/10
+## Encouragement (one genuine, specific sentence)
+
+Be honest but encouraging. This is a learning context. Use code blocks for all code examples.`;
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [{
+            role: "user" as const,
+            content: `Please review this ${language} code${context ? ` (Context: ${context})` : ""}:\n\n\`\`\`${language}\n${code}\n\`\`\``,
+          }],
+          apiKey: aiSettings.apiKey,
+          provider: aiSettings.provider,
+          model: aiSettings.model,
+          temperature: aiSettings.temperature,
+          customEndpoint: aiSettings.customEndpoint,
+          systemPrompt,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+      setReview(data.content || "(no response)");
+      // Set badge-tracking flags
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("launchpad:code-reviewed", "1");
+        const current = Number(window.localStorage.getItem("launchpad:code-review-count") ?? "0");
+        window.localStorage.setItem("launchpad:code-review-count", String(current + 1));
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveToChat = () => {
+    if (!review) return;
+    const chatId = createChat();
+    addChatMessage(chatId, {
+      id: `msg-${Date.now()}`,
+      role: "user",
+      content: `**Code Review** (${language})${context ? `\n\nContext: ${context}` : ""}\n\n\`\`\`${language}\n${code}\n\`\`\``,
+      timestamp: new Date().toISOString(),
+    });
+    addChatMessage(chatId, {
+      id: `msg-${Date.now()}-review`,
+      role: "assistant",
+      content: review,
+      timestamp: new Date().toISOString(),
+      provider: aiSettings.provider,
+    });
+    setActiveChat(chatId);
+    onClose();
+  };
+
+  return (
+    <div className="rounded-xl border border-fuchsia-500/40 bg-fuchsia-500/5 p-4 space-y-3 my-2">
+      <div className="flex items-start gap-3">
+        <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center shrink-0">
+          <Search className="h-4 w-4 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-semibold">🔍 AI Code Review</h3>
+          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+            Paste your code and get a structured review: correctness, quality, best practices, efficiency, and 3 specific improvements.
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className="p-1 rounded hover:bg-foreground/10 shrink-0"
+          aria-label="Close"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <label className="text-[11px] font-medium shrink-0">Language:</label>
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className="text-xs bg-foreground/5 rounded-md px-2 py-1 border border-border/60"
+          >
+            {["javascript", "typescript", "python", "html", "css", "sql", "bash", "java", "c", "cpp", "csharp", "go", "rust", "swift", "kotlin", "php", "ruby", "r", "dart", "react", "nextjs", "svelte", "vue", "angular", "nodejs"].map(l => (
+              <option key={l} value={l}>{l}</option>
+            ))}
+          </select>
+        </div>
+        <textarea
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          rows={8}
+          placeholder={`// Paste your ${language} code here...`}
+          className="w-full px-3 py-2 rounded-md bg-foreground/5 border border-border/60 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-fuchsia-500/40"
+        />
+        <input
+          type="text"
+          value={context}
+          onChange={(e) => setContext(e.target.value)}
+          placeholder="Optional: what does this code do? What are you trying to achieve?"
+          className="w-full px-3 py-1.5 rounded-md bg-foreground/5 border border-border/60 text-xs"
+        />
+      </div>
+
+      {error && (
+        <div className="rounded-md border border-rose-500/40 bg-rose-500/10 p-2 text-xs text-rose-600 dark:text-rose-300">
+          ⚠️ {error}
+        </div>
+      )}
+
+      {review && (
+        <div className="rounded-md border border-border/60 bg-foreground/5 p-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xs font-semibold">AI Review</div>
+            <div className="flex gap-2">
+              <button onClick={() => navigator.clipboard.writeText(review)} className="text-[10px] px-2 py-1 rounded-md bg-foreground/5 hover:bg-foreground/10">Copy</button>
+              <button onClick={handleSaveToChat} className="text-[10px] px-2 py-1 rounded-md bg-primary/10 text-primary hover:bg-primary/20">Save to Chat</button>
+            </div>
+          </div>
+          <div className="prose prose-sm dark:prose-invert max-w-none text-xs">
+            <pre className="whitespace-pre-wrap font-sans">{review}</pre>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center gap-2">
+        <button
+          onClick={handleSubmit}
+          disabled={!code.trim() || loading || !hasKey}
+          className={cn(
+            "flex-1 px-3 py-2 rounded-md text-xs font-medium transition-colors",
+            code.trim() && !loading && hasKey
+              ? "bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white hover:brightness-110"
+              : "bg-foreground/5 text-muted-foreground cursor-not-allowed",
+          )}
+        >
+          {loading ? "Reviewing..." : "🔍 Submit for Review"}
+        </button>
+        <button onClick={onClose} className="px-3 py-2 rounded-md border border-border/60 text-xs hover:bg-foreground/5">
+          Cancel
+        </button>
       </div>
     </div>
   );

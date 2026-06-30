@@ -20,7 +20,7 @@ import {
 import { useStore } from "@/lib/store";
 import { GlassCard, GlassButton, GlassPill, ProgressBar } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
-import { selectProjectsForRoadmap, type SelectedProject } from "@/lib/projects-data";
+import { selectProjectsForRoadmap, PROJECTS, type SelectedProject, type Project } from "@/lib/projects-data";
 import { LANGUAGE_MAP } from "@/lib/career-data";
 import type { ProjectTracker } from "@/lib/types";
 
@@ -50,6 +50,11 @@ export function ProjectsView() {
   const [filter, setFilter] = useState<"all" | "shipped" | "in_progress" | "planned">("all");
   const [instructionsProjectId, setInstructionsProjectId] = useState<string | null>(null);
   const [reviewProjectId, setReviewProjectId] = useState<string | null>(null);
+  const [showExploreMore, setShowExploreMore] = useState(false);
+
+  // All projects for the "Explore More" view
+  const ALL_PROJECTS: SelectedProject[] = PROJECTS.map(p => ({ ...p, matchReason: "From full catalog" }));
+  const ALL_PROJECTS_COUNT = PROJECTS.length;
 
   // Get projects selected for THIS user's roadmap
   const selectedProjects = useMemo<SelectedProject[]>(() => {
@@ -298,16 +303,21 @@ export function ProjectsView() {
                     )}
                   </div>
 
-                  {/* AI Code Review button — shown only when project is shipped (Section 7.2) */}
+                  {/* AI Code Review explanation — always visible to teach users about the feature */}
+                  {status === "shipped" ? (
+                    <div className="rounded-lg bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 border border-violet-500/30 p-2.5 text-[10px] text-muted-foreground leading-relaxed">
+                      <strong className="text-violet-600 dark:text-violet-300">🎉 Project shipped!</strong> Click below to get a senior-dev-level AI review of your code — bugs, improvements, score, and suggestions.
+                    </div>
+                  ) : null}
+
+                  {/* AI Code Review button — highly visible, full width, gradient when shipped */}
                   {status === "shipped" && (
-                    <GlassButton
-                      size="sm"
-                      variant="primary"
+                    <button
                       onClick={() => setReviewProjectId(proj.id)}
-                      className="w-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-transparent hover:brightness-110"
+                      className="w-full px-3 py-2.5 rounded-lg bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white text-xs font-semibold hover:brightness-110 transition-all flex items-center justify-center gap-1.5 shadow-md shadow-violet-500/20"
                     >
                       <Target className="h-3.5 w-3.5" /> Get AI Code Review
-                    </GlassButton>
+                    </button>
                   )}
                 </div>
               </GlassCard>
@@ -316,7 +326,7 @@ export function ProjectsView() {
         </div>
       )}
 
-      {/* AI Code Review modal — Section 7 */}
+      {/* AI Code Review modal — Section 7 — nearly full-screen for focus */}
       {reviewProjectId && (() => {
         const proj = selectedProjects.find((p) => p.id === reviewProjectId);
         if (!proj) return null;
@@ -330,13 +340,35 @@ export function ProjectsView() {
         );
       })()}
 
-      {/* Hint about how projects are selected */}
+      {/* Hint about how projects are selected + Explore More button */}
       <GlassCard className="p-4">
         <div className="flex items-start gap-2 text-xs text-muted-foreground">
           <Star className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-          <div>
-            <strong>How projects are selected:</strong> These projects are chosen from our database of 55+ projects based on your career ({state.roadmap.careerLabel}) and selected languages. They scale in complexity: 2-3 beginner projects early, 2-3 intermediate midway, and 1-2 advanced capstone projects.
+          <div className="flex-1">
+            <strong>How projects are selected:</strong> These projects are chosen from our database of 207 projects based on your career ({state.roadmap.careerLabel}) and selected languages. They scale in complexity: 2-3 beginner projects early, 2-3 intermediate midway, and 1-2 advanced capstone projects.
           </div>
+        </div>
+
+        {/* Explore More Projects — toggle button */}
+        <div className="mt-3 pt-3 border-t border-border/30">
+          <button
+            onClick={() => setShowExploreMore(!showExploreMore)}
+            className="w-full inline-flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-2 rounded-md border border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors"
+          >
+            {showExploreMore ? (
+              <>Hide extra projects ▲</>
+            ) : (
+              <>Explore more projects ({ALL_PROJECTS_COUNT - selectedProjects.length} more available) ▼</>
+            )}
+          </button>
+
+          {showExploreMore && (
+            <ExploreMoreProjects
+              allProjects={ALL_PROJECTS}
+              selectedProjectIds={new Set(selectedProjects.map(p => p.id))}
+              languageMap={LANGUAGE_MAP}
+            />
+          )}
         </div>
       </GlassCard>
     </div>
@@ -642,19 +674,32 @@ Use code blocks for all code examples.`;
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
-      <div className="max-w-3xl w-full max-h-[90vh] bg-card rounded-xl shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between p-4 border-b border-border/60">
-          <div>
-            <h3 className="text-sm font-semibold">🔍 AI Code Review — {project.title}</h3>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              Language: <span className="font-mono">{primaryLang}</span> · Project level: {project.difficulty}
-            </p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-5xl h-[92vh] bg-card rounded-xl shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
+        {/* Header — sticky with clear close button */}
+        <div className="flex items-center justify-between p-4 border-b border-border/60 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shrink-0">
+              <Target className="h-4 w-4 text-white" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold truncate">🔍 AI Code Review — {project.title}</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Language: <span className="font-mono">{primaryLang}</span> · Project level: {project.difficulty}
+              </p>
+            </div>
           </div>
-          <button onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground">✕</button>
+          <button
+            onClick={onClose}
+            className="shrink-0 h-8 w-8 rounded-lg hover:bg-foreground/10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Close"
+            title="Close (Esc)"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
           {!hasKey ? (
             <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs">
               <div className="font-semibold text-amber-700 dark:text-amber-300 mb-1">Set up your AI Tutor first</div>
@@ -761,4 +806,77 @@ function generateProjectSteps(project: SelectedProject): { title: string; detail
       detail: `Run through all deliverables one more time. Fix any bugs. Push to GitHub with a clean commit history. If applicable, deploy to a free host (Vercel, Render, Fly.io, GitHub Pages). Submit the repo URL above.`,
     },
   ];
+}
+
+// ============================================================
+// ExploreMoreProjects — shows all projects grouped by language
+// ============================================================
+function ExploreMoreProjects({
+  allProjects,
+  selectedProjectIds,
+  languageMap,
+}: {
+  allProjects: SelectedProject[];
+  selectedProjectIds: Set<string>;
+  languageMap: typeof LANGUAGE_MAP;
+}) {
+  // Group projects by primary language
+  const byLanguage = new Map<string, SelectedProject[]>();
+  for (const p of allProjects) {
+    const lang = p.languages[0] ?? "other";
+    if (!byLanguage.has(lang)) byLanguage.set(lang, []);
+    byLanguage.get(lang)!.push(p);
+  }
+  // Sort languages alphabetically
+  const sortedLangs = [...byLanguage.keys()].sort();
+
+  return (
+    <div className="mt-4 space-y-4 max-h-[600px] overflow-y-auto pr-1">
+      <p className="text-[11px] text-muted-foreground italic">
+        Showing all {allProjects.length} projects from the catalog, grouped by primary language. Projects already in your plan are marked with ✓.
+      </p>
+      {sortedLangs.map((langId) => {
+        const projects = byLanguage.get(langId)!;
+        const lang = languageMap[langId];
+        return (
+          <div key={langId} className="space-y-2">
+            <div className="flex items-center gap-2 sticky top-0 bg-card/80 backdrop-blur-sm py-1.5 z-10">
+              <span className="text-base">{lang?.icon ?? "📘"}</span>
+              <span className="text-xs font-semibold">{lang?.name ?? langId}</span>
+              <span className="text-[10px] text-muted-foreground">· {projects.length} projects</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {projects.map((p) => {
+                const isInPlan = selectedProjectIds.has(p.id);
+                return (
+                  <div
+                    key={p.id}
+                    className={cn(
+                      "rounded-lg border p-2.5 text-xs",
+                      isInPlan ? "border-emerald-500/30 bg-emerald-500/5" : "border-border/40 bg-foreground/3",
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="font-medium leading-tight">{p.title}</div>
+                      {isInPlan && <span className="text-[9px] text-emerald-600 dark:text-emerald-400 shrink-0">✓ in plan</span>}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{p.description}</div>
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <span className={cn(
+                        "text-[9px] px-1.5 py-0.5 rounded",
+                        p.difficulty === "beginner" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" :
+                        p.difficulty === "intermediate" ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" :
+                        "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                      )}>{p.difficulty}</span>
+                      <span className="text-[9px] text-muted-foreground">· {p.estHours}h</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }

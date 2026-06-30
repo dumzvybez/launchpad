@@ -394,11 +394,41 @@ function TaskDetailView({
   const toggleTask = useStore((s) => s.toggleTask);
   const setView = useStore((s) => s.setView);
 
+  // Check if this phase is locked — if so, prevent task completion.
+  // Phase 1 is always unlocked. Phase N requires the previous phase to be complete.
+  // The user can still VIEW locked phases (read-only), but cannot mark tasks complete.
+  const isPhaseUnlocked = useStore((s) => s.isPhaseUnlocked);
+  const phaseLocked = phase.number > 1 && !isPhaseUnlocked(phase.number);
+
+  const handleToggleTask = () => {
+    if (phaseLocked) {
+      // Show a friendly message instead of silently failing
+      alert(
+        `🔒 This phase is locked.\n\n` +
+        `Phase ${phase.number} unlocks when you complete Phase ${phase.number - 1}.\n\n` +
+        `You can still preview the tasks in this phase, but you'll need to complete the previous phase first to mark them as done.`
+      );
+      return;
+    }
+    toggleTask(task.id);
+  };
+
   return (
     <div className="space-y-4">
       <BackButton onClick={onBack} label={moduleName} />
 
-      <GlassCard className={cn("p-5 border-2", colors.border)}>
+      {/* Phase locked banner — shown at top of task view when phase is locked */}
+      {phaseLocked && (
+        <div className="rounded-lg bg-amber-500/10 border border-amber-500/40 p-3 flex items-start gap-2">
+          <Lock className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+          <div className="text-xs text-amber-700 dark:text-amber-300">
+            <strong>Phase {phase.number} is locked.</strong> Complete Phase {phase.number - 1} first to unlock this phase.
+            You can preview the tasks below but cannot mark them complete yet.
+          </div>
+        </div>
+      )}
+
+      <GlassCard className={cn("p-5 border-2", colors.border, phaseLocked && "opacity-90")}>
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
             <div className="text-[10px] font-mono uppercase text-muted-foreground mb-1">
@@ -419,11 +449,13 @@ function TaskDetailView({
             )}
             <GlassButton
               variant={isComplete ? "primary" : "ghost"}
-              onClick={() => toggleTask(task.id)}
+              onClick={handleToggleTask}
               size="sm"
+              disabled={phaseLocked}
+              className={phaseLocked ? "opacity-50 cursor-not-allowed" : ""}
             >
-              {isComplete ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
-              {isComplete ? "Completed" : "Mark complete"}
+              {phaseLocked ? <Lock className="h-4 w-4" /> : isComplete ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
+              {phaseLocked ? "Locked" : isComplete ? "Completed" : "Mark complete"}
             </GlassButton>
           </div>
         </div>

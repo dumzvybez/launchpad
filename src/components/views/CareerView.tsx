@@ -578,79 +578,268 @@ function generateResumePDF(opts: {
   <meta charset="utf-8" />
   <title>Resume — ${escapeHtml(opts.name)}</title>
   <style>
-    @page { size: A4; margin: 18mm; }
-    * { box-sizing: border-box; }
-    body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1a1a1a; line-height: 1.5; font-size: 11pt; }
-    h1 { font-size: 22pt; margin: 0 0 2px 0; letter-spacing: -0.5px; }
-    h2 { font-size: 11pt; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1.5px solid #1a1a1a; padding-bottom: 2px; margin: 18px 0 8px; }
-    .contact { color: #555; font-size: 9pt; margin: 4px 0 0; }
-    .contact a { color: #2DD4BF; text-decoration: none; }
-    .summary { margin: 12px 0; color: #333; }
-    .section { margin: 8px 0; }
-    .section ul { margin: 4px 0; padding-left: 18px; }
-    .section li { margin: 3px 0; font-size: 10pt; }
-    table { width: 100%; border-collapse: collapse; font-size: 10pt; margin: 6px 0; }
-    th, td { text-align: left; padding: 4px 6px; border-bottom: 1px solid #ddd; }
-    th { background: #f5f5f5; font-weight: 600; }
-    .badge { display: inline-block; padding: 2px 8px; margin: 2px; background: #f0f0f0; border-radius: 10px; font-size: 9pt; }
-    .badges-row { margin-top: 4px; }
-    .footer { margin-top: 20px; padding-top: 8px; border-top: 1px solid #ddd; text-align: center; font-size: 8pt; color: #888; }
-    .objective { font-style: italic; color: #444; }
-    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+    @page { size: A4; margin: 12mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #1f2937;
+      line-height: 1.5;
+      font-size: 10.5pt;
+      background: white;
+    }
+    .resume {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+    }
+    /* Header — gradient banner with name + contact */
+    .header {
+      background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #312E81 100%);
+      color: white;
+      padding: 28px 32px;
+      border-radius: 12px 12px 0 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: ""; position: absolute; top: -30px; right: -30px;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, rgba(45, 212, 191, 0.2) 0%, transparent 70%);
+    }
+    .header h1 {
+      font-size: 26pt; font-weight: 800; letter-spacing: -0.5px;
+      margin-bottom: 4px;
+      position: relative; z-index: 1;
+    }
+    .header .career {
+      font-size: 12pt; opacity: 0.85; font-weight: 500;
+      position: relative; z-index: 1;
+    }
+    .header .contact {
+      margin-top: 12px; font-size: 9pt; opacity: 0.75;
+      display: flex; flex-wrap: wrap; gap: 12px;
+      position: relative; z-index: 1;
+    }
+    .header .contact a { color: #5EEAD4; text-decoration: none; }
+    .header .contact span { display: inline-flex; align-items: center; gap: 4px; }
+
+    /* Body — two-column layout */
+    .body {
+      display: grid;
+      grid-template-columns: 1fr 240px;
+      gap: 24px;
+      padding: 24px 32px;
+      border: 1px solid #e5e7eb;
+      border-top: none;
+      border-radius: 0 0 12px 12px;
+    }
+    .main-col { min-width: 0; }
+    .side-col { min-width: 0; }
+
+    h2 {
+      font-size: 11pt;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #0F172A;
+      font-weight: 700;
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+      border-bottom: 2px solid #2DD4BF;
+      display: flex; align-items: center; gap: 6px;
+    }
+    h2 .icon { color: #2DD4BF; }
+    h3 { font-size: 10pt; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+    .section { margin-bottom: 18px; }
+    .section:last-child { margin-bottom: 0; }
+    .section ul { list-style: none; padding: 0; }
+    .section li {
+      font-size: 9.5pt; margin-bottom: 6px; padding-left: 14px;
+      position: relative; color: #374151;
+    }
+    .section li::before {
+      content: "▸"; position: absolute; left: 0; color: #2DD4BF; font-weight: bold;
+    }
+    .section li a { color: #0F172A; text-decoration: underline; }
+
+    /* Sidebar */
+    .sidebar-section {
+      background: #F9FAFB;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .sidebar-section h3 {
+      font-size: 9pt; text-transform: uppercase; letter-spacing: 1px;
+      color: #6B7280; margin-bottom: 8px; font-weight: 700;
+    }
+    .skill-bar {
+      margin-bottom: 8px;
+    }
+    .skill-bar .skill-name {
+      font-size: 9pt; font-weight: 600; color: #1f2937;
+      display: flex; justify-content: space-between;
+    }
+    .skill-bar .bar {
+      height: 4px; background: #E5E7EB; border-radius: 2px;
+      margin-top: 3px; overflow: hidden;
+    }
+    .skill-bar .bar-fill {
+      height: 100%; background: linear-gradient(90deg, #2DD4BF, #6366F1);
+      border-radius: 2px;
+    }
+    .stat-row {
+      display: flex; justify-content: space-between;
+      font-size: 9pt; padding: 3px 0;
+      border-bottom: 1px solid #E5E7EB;
+    }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-row .label { color: #6B7280; }
+    .stat-row .value { font-weight: 600; color: #1f2937; }
+
+    .badge {
+      display: inline-block; padding: 3px 8px; margin: 2px;
+      background: #ECFDF5; border: 1px solid #A7F3D0;
+      color: #065F46; border-radius: 12px; font-size: 8.5pt; font-weight: 500;
+    }
+
+    .objective {
+      font-size: 10pt; color: #374151; font-style: italic;
+      line-height: 1.6; margin-bottom: 4px;
+    }
+
+    .footer {
+      text-align: center; padding: 12px;
+      font-size: 8pt; color: #9CA3AF;
+      border-top: 1px solid #E5E7EB;
+      margin-top: 16px;
+    }
+    .footer strong { color: #6B7280; }
+
+    /* Table for proficiency */
+    table { width: 100%; border-collapse: collapse; font-size: 9pt; margin-top: 6px; }
+    th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid #E5E7EB; }
+    th { background: #F3F4F6; color: #374151; font-weight: 600; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.5px; }
+    td { color: #1f2937; }
+
+    /* Print: ensure colors show */
+    @media print {
+      body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .header { border-radius: 0; }
+      .resume { max-width: none; }
+    }
+    @media screen {
+      body { background: #f3f4f6; padding: 20px; }
+      .resume { box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+    }
   </style>
 </head>
 <body>
-  <h1>${escapeHtml(opts.name)}</h1>
-  <p class="contact">
-    ${escapeHtml(opts.objective)}
-    ${opts.email ? ` · <a href="mailto:${escapeHtml(opts.email)}">${escapeHtml(opts.email)}</a>` : ""}
-    ${opts.github ? ` · GitHub: <a href="${escapeHtml(opts.github)}">${escapeHtml(opts.github)}</a>` : ""}
-    ${opts.linkedin ? ` · LinkedIn: <a href="${escapeHtml(opts.linkedin)}">${escapeHtml(opts.linkedin)}</a>` : ""}
-  </p>
+  <div class="resume">
+    <!-- Header banner -->
+    <div class="header">
+      <h1>${escapeHtml(opts.name)}</h1>
+      <div class="career">${escapeHtml(roadmap?.careerLabel ?? "Developer")}</div>
+      <div class="contact">
+        ${opts.email ? `<span>✉ <a href="mailto:${escapeHtml(opts.email)}">${escapeHtml(opts.email)}</a></span>` : ""}
+        ${opts.github ? `<span>🔗 <a href="${escapeHtml(opts.github)}" target="_blank">GitHub</a></span>` : ""}
+        ${opts.linkedin ? `<span>in <a href="${escapeHtml(opts.linkedin)}" target="_blank">LinkedIn</a></span>` : ""}
+        <span>📅 ${date}</span>
+      </div>
+    </div>
 
-  <h2>Objective</h2>
-  <p class="objective">${escapeHtml(opts.objective)}</p>
+    <!-- Two-column body -->
+    <div class="body">
+      <!-- Main column -->
+      <div class="main-col">
+        <!-- Objective -->
+        <div class="section">
+          <h2><span class="icon">🎯</span> Objective</h2>
+          <p class="objective">${escapeHtml(opts.objective)}</p>
+        </div>
 
-  <h2>Technical Skills</h2>
-  <p>${skillsHtml}</p>
-  ${opts.includeQuizScores && quizScoresHtml ? `
-  <h2>Proficiency by Language</h2>
-  <table>
-    <thead><tr><th>Language</th><th>Level</th><th>Quiz Avg</th><th>Lessons</th></tr></thead>
-    <tbody>${quizScoresHtml}</tbody>
-  </table>` : ""}
+        <!-- Projects -->
+        <div class="section">
+          <h2><span class="icon">🚀</span> Projects</h2>
+          <ul>${projectsHtml}</ul>
+        </div>
 
-  <h2>Projects</h2>
-  <div class="section">
-    <ul>${projectsHtml}</ul>
+        <!-- Certifications -->
+        <div class="section">
+          <h2><span class="icon">🎓</span> Certifications</h2>
+          <ul>${certsList.length > 0 ? certsList.join("") : "<li><em>No certificates earned yet.</em></li>"}</ul>
+        </div>
+
+        <!-- Education -->
+        <div class="section">
+          <h2><span class="icon">📚</span> Education</h2>
+          <ul>
+            <li>
+              <strong>Self-taught via Launchpad Coding Education Platform</strong><br/>
+              <span style="font-size: 9pt; color: #6B7280;">
+                ${escapeHtml(roadmap?.careerLabel ?? "Developer")} Learning Path · ${startDate} to ${date}<br/>
+                ${completedLessons} structured lessons · ${langs.length} languages · ${Math.round(roadmap?.totalHours ?? 0)} hours invested
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Sidebar column -->
+      <div class="side-col">
+        <!-- Skills with proficiency bars -->
+        <div class="sidebar-section">
+          <h3>🛠️ Skills</h3>
+          ${langProficiency.map(lp => `
+            <div class="skill-bar">
+              <div class="skill-name">
+                <span>${escapeHtml(lp.name)}</span>
+                <span style="color: #6B7280; font-size: 8pt;">${lp.level}</span>
+              </div>
+              <div class="bar"><div class="bar-fill" style="width: ${lp.avg}%"></div></div>
+            </div>
+          `).join("")}
+        </div>
+
+        <!-- Stats -->
+        <div class="sidebar-section">
+          <h3>📊 Stats</h3>
+          <div class="stat-row"><span class="label">Lessons completed</span><span class="value">${completedLessons}</span></div>
+          <div class="stat-row"><span class="label">Languages</span><span class="value">${langs.length}</span></div>
+          <div class="stat-row"><span class="label">Projects shipped</span><span class="value">${projects.length}</span></div>
+          <div class="stat-row"><span class="label">Certificates</span><span class="value">${Object.keys(certificates).length + (careerCert ? 1 : 0)}</span></div>
+          <div class="stat-row"><span class="label">Current streak</span><span class="value">${streak.current}d 🔥</span></div>
+          <div class="stat-row"><span class="label">Hours invested</span><span class="value">${Math.round(roadmap?.totalHours ?? 0)}h</span></div>
+        </div>
+
+        <!-- Badges (optional) -->
+        ${opts.includeBadges && badges.length > 0 ? `
+        <div class="sidebar-section">
+          <h3>🏆 Badges (${badges.length})</h3>
+          <div>${badges.map(b => `<span class="badge">${b.icon} ${escapeHtml(b.title)}</span>`).join("")}</div>
+        </div>` : ""}
+
+        <!-- Quiz scores table (optional) -->
+        ${opts.includeQuizScores && langProficiency.length > 0 ? `
+        <div class="sidebar-section">
+          <h3>📝 Quiz Scores</h3>
+          <table>
+            <thead><tr><th>Lang</th><th>Score</th><th>Lessons</th></tr></thead>
+            <tbody>
+              ${langProficiency.map(lp => `<tr><td>${escapeHtml(lp.name)}</td><td>${lp.avg}%</td><td>${lp.completed}</td></tr>`).join("")}
+            </tbody>
+          </table>
+        </div>` : ""}
+      </div>
+    </div>
+
+    ${opts.includeBranding ? `
+    <div class="footer">
+      Generated by <strong>Launchpad</strong> — Free AI-personalized coding education · launchpad--pi.vercel.app
+    </div>` : ""}
   </div>
-
-  <h2>Certifications</h2>
-  <div class="section">
-    <ul>${certsList.length > 0 ? certsList.join("") : "<li><em>No certificates earned yet.</em></li>"}</ul>
-  </div>
-
-  <h2>Education</h2>
-  <div class="section">
-    <p><strong>Self-taught via Launchpad Coding Education Platform</strong></p>
-    <p style="font-size: 10pt; color: #555; margin: 2px 0;">
-      ${escapeHtml(roadmap?.careerLabel ?? "Developer")} Learning Path — ${startDate} to ${date}<br/>
-      Completed ${completedLessons} structured lessons across ${langs.length} languages · ${Math.round(roadmap?.totalHours ?? 0)} hours invested
-    </p>
-  </div>
-
-  ${opts.includeBadges && badgesHtml ? `
-  <h2>Achievements</h2>
-  <div class="badges-row">${badgesHtml}</div>
-  <p style="font-size: 9pt; color: #555; margin-top: 4px;">${badges.length} badges earned · ${streak.current}-day coding streak (best: ${streak.longest} days)</p>` : ""}
-
-  ${opts.includeBranding ? `
-  <div class="footer">
-    Generated by <strong>Launchpad</strong> — Free AI-personalized coding education · launchpad--pi.vercel.app
-  </div>` : ""}
 
   <script>
-    window.onload = () => { setTimeout(() => window.print(), 300); };
+    window.onload = () => { setTimeout(() => window.print(), 400); };
   </script>
 </body>
 </html>`;

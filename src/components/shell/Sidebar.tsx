@@ -18,6 +18,7 @@ import {
   Settings,
   Bot,
   Users,
+  Wrench,
 } from "lucide-react";
 import { useStore, selectLevel, selectEarnedXP } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -32,12 +33,10 @@ const ALL_NAV: NavItem[] = [
   { id: "learn", label: "Learn", icon: GraduationCap, hint: "Lessons & quizzes", group: "learn" },
   { id: "playground", label: "JS Playground", icon: Code2, hint: "Run JavaScript in your browser", group: "learn" },
   { id: "daily-challenge", label: "Daily Challenge", icon: Target, hint: "Rotating coding challenges", group: "learn" },
-  { id: "skill-tree", label: "Skill Tree", icon: Workflow, hint: "Dependency graph", group: "main" },
+  { id: "projects", label: "Projects", icon: FolderGit2, hint: "Build & track portfolio", group: "learn" },
   { id: "ai-tutor", label: "AI Tutor", icon: Bot, hint: "Ask the AI tutor", group: "learn" },
-  { id: "calendar", label: "Calendar", icon: Calendar, hint: "Study planner", group: "productivity" },
-  { id: "notes", label: "Notes", icon: StickyNote, hint: "Knowledge base & journal", group: "productivity" },
-  { id: "projects", label: "Projects", icon: FolderGit2, hint: "Build & track portfolio", group: "productivity" },
-  { id: "focus", label: "Focus", icon: Timer, hint: "Pomodoro & habits", group: "productivity" },
+  { id: "skill-tree", label: "Skill Tree", icon: Workflow, hint: "Dependency graph", group: "main" },
+  { id: "tools", label: "Tools", icon: Wrench, hint: "Calendar, notes, focus timer", group: "productivity" },
   { id: "analytics", label: "Analytics", icon: BarChart3, hint: "Heatmaps & insights", group: "productivity" },
   { id: "career", label: "Career", icon: Rocket, hint: "Resume & interview prep", group: "productivity" },
   { id: "community", label: "Community", icon: Users, hint: "GitHub Discussions (Q&A, showcase, ideas)", group: "productivity" },
