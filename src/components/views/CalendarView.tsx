@@ -39,7 +39,7 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
 // Fixes the v2.67 bug where recurring events were stored but only
 // ever appeared on their original `date`, never on future occurrences.
 // ============================================================
-function eventOccursOn(e: CalendarEvent, dateStr: string): boolean {
+export function eventOccursOn(e: CalendarEvent, dateStr: string): boolean {
   // Always include the original date regardless of frequency
   if (e.date === dateStr) return true;
   if (!e.frequency || e.frequency === "one-time") return false;

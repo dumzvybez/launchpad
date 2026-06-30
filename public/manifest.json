@@ -36,14 +36,14 @@
     {
       "name": "Roadmap",
       "short_name": "Roadmap",
-      "description": "View your personalized 6-phase roadmap",
+      "description": "View your personalized multi-phase roadmap",
       "url": "/?view=roadmap",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Learn",
       "short_name": "Learn",
-      "description": "30 built-in Python & JavaScript lessons",
+      "description": "Browse 630 lessons across 30 languages",
       "url": "/?view=learn",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     },
@@ -57,7 +57,7 @@
     {
       "name": "Playground",
       "short_name": "Code",
-      "description": "Run JavaScript in your browser",
+      "description": "Run code in 7+ languages in your browser",
       "url": "/?view=playground",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }

@@ -12,14 +12,14 @@ import { useStore } from "@/lib/store";
  * Dismissible per session.
  */
 export function OfflineBanner() {
-  const [isOnline, setIsOnline] = useState(true);
+  // Lazy initialiser so we never call setState synchronously inside an effect.
+  const [isOnline, setIsOnline] = useState<boolean>(() =>
+    typeof navigator === "undefined" ? true : navigator.onLine,
+  );
   const [dismissed, setDismissed] = useState(false);
   const setView = useStore((s) => s.setView);
 
   useEffect(() => {
-    // Initial state
-    setIsOnline(navigator.onLine);
-
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => {
       setIsOnline(false);

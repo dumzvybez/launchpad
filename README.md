@@ -8,10 +8,10 @@
 
 [![Status](https://img.shields.io/badge/status-actively%20developing-orange?style=for-the-badge)](https://github.com/dumzvybez/Launchpad/discussions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](#-license)
-[![Live Demo](https://img.shields.io/badge/demo-live-success?style=for-the-badge)](https://launchpad--dev.vercel.app)
+[![Live Demo](https://img.shields.io/badge/demo-live-success?style=for-the-badge)](https://launchpad--pi.vercel.app)
 [![Privacy](https://img.shields.io/badge/privacy-100%25%20on--device-9cf?style=for-the-badge)](#-100-on-device-privacy)
 
-**[🌐 Live App](https://launchpad--dev.vercel.app)** · **[💬 Discussions](https://github.com/dumzvybez/Launchpad/discussions)** · **[👨‍💻 Developer Portfolio](https://duminduwanasinghe-dev.vercel.app/)**
+**[🌐 Live App](https://launchpad--pi.vercel.app)** · **[💬 Discussions](https://github.com/dumzvybez/Launchpad/discussions)** · **[👨‍💻 Developer Portfolio](https://duminduwanasinghe-dev.vercel.app/)**
 
 </div>
 

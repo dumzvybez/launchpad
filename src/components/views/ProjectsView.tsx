@@ -633,11 +633,15 @@ Use code blocks for all code examples.`;
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
       setReview(data.content || "(no response)");
-      // Set badge-tracking flags per Section 13.1
+      // Set badge-tracking flags per Section 13.1. Wrapped in try/catch —
+      // localStorage.setItem can throw in Safari private mode or when quota
+      // is exceeded, and we don't want that to mask the successful review.
       if (typeof window !== "undefined") {
-        window.localStorage.setItem("launchpad:code-reviewed", "1");
-        const current = Number(window.localStorage.getItem("launchpad:code-review-count") ?? "0");
-        window.localStorage.setItem("launchpad:code-review-count", String(current + 1));
+        try {
+          window.localStorage.setItem("launchpad:code-reviewed", "1");
+          const current = Number(window.localStorage.getItem("launchpad:code-review-count") ?? "0");
+          window.localStorage.setItem("launchpad:code-review-count", String(current + 1));
+        } catch { /* ignore storage errors */ }
       }
     } catch (err) {
       setError((err as Error).message);

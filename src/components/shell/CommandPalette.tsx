@@ -92,11 +92,15 @@ export function CommandPalette() {
   const { theme, setTheme } = useTheme();
 
   const [search, setSearch] = React.useState("");
-
-  // Reset search when dialog opens
-  React.useEffect(() => {
+  // Reset the search field whenever the dialog opens. We use the
+  // "adjust state during render" pattern (recommended by React docs) instead
+  // of calling setState inside useEffect, which both avoids an extra render
+  // and satisfies the react-hooks/set-state-in-effect lint rule.
+  const [prevOpen, setPrevOpen] = React.useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) setSearch("");
-  }, [open]);
+  }
 
   // Close handler
   const handleClose = () => setOpen(false);

@@ -364,7 +364,12 @@ function JournalTab() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-mono text-muted-foreground">
-                      {new Date(entry.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      {/* `entry.date` is a local YYYY-MM-DD string. Parsing it
+                          via `new Date("YYYY-MM-DD")` treats it as UTC midnight,
+                          which then `toLocaleDateString` shifts to the previous
+                          day in UTC− timezones. Append `T00:00:00` to force
+                          local-time parsing (same workaround CalendarView uses). */}
+                      {new Date(entry.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </span>
                     {(() => {
                       const m = moodIcons[entry.mood - 1];

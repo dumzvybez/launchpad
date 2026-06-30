@@ -53,10 +53,14 @@ function computeTimeline(input: PersonalizationInput): {
   totalHours: number;
 } {
   const weeklyHours = input.hoursPerDay * input.daysPerWeek;
+  // Guard against zero weekly hours. The previous Math.max(weeklyHours, 1)
+  // only protected the divisor — the totalHours calc still used raw
+  // weeklyHours, producing 728-week roadmaps with 0 hours.
+  const safeWeeklyHours = Math.max(weeklyHours, 1);
   // Standard baseline: 14 hr/week (2 hr/day × 7 days)
   const baselineWeekly = 14;
   // Timeline shrinks as weekly hours grow (more time = faster completion)
-  const availabilityMultiplier = baselineWeekly / Math.max(weeklyHours, 1);
+  const availabilityMultiplier = baselineWeekly / safeWeeklyHours;
 
   const skillMultiplier = SKILL_LEVEL_MULTIPLIER[input.skillLevel];
   const occupation = OCCUPATION_MAP[input.occupationId];
@@ -67,22 +71,26 @@ function computeTimeline(input: PersonalizationInput): {
   // Base roadmap = 52 weeks (1 year) at 14 hr/week
   const baseWeeks = 52;
   const totalWeeks = Math.max(8, Math.round(baseWeeks * timelineMultiplier));
-  const totalHours = Math.round(totalWeeks * weeklyHours);
+  const totalHours = Math.round(totalWeeks * safeWeeklyHours);
 
-  return { weeklyHours, timelineMultiplier, totalWeeks, totalHours };
+  return { weeklyHours: safeWeeklyHours, timelineMultiplier, totalWeeks, totalHours };
 }
 
 // Adjust phase weighting based on skill level — beginners spend more on phases 1-2,
-// advanced learners skip ahead to phases 4-5
+// advanced learners skip ahead to phases 4-5. The arrays cover up to 9 phases
+// (the modern roadmap layout adds a VS Code Setup phase at the start and an
+// AI bonus phase at the end, so the old 6-element arrays misaligned weights).
 function phaseWeight(phaseNumber: number, skillLevel: SkillLevel): number {
   if (skillLevel === "beginner") {
-    return [1.3, 1.3, 1.0, 1.0, 1.0, 0.8][phaseNumber - 1] ?? 1.0;
+    // phase 1 = VS Code setup (very light), 2 = foundations, 3-7 = core,
+    // 8 = specialization, 9 = AI bonus
+    return [0.1, 1.3, 1.3, 1.0, 1.0, 1.0, 1.0, 0.8, 1.0][phaseNumber - 1] ?? 1.0;
   }
   if (skillLevel === "intermediate") {
-    return [0.7, 0.8, 1.0, 1.1, 1.1, 1.0][phaseNumber - 1] ?? 1.0;
+    return [0.1, 0.7, 0.8, 1.0, 1.1, 1.1, 1.0, 1.0, 1.0][phaseNumber - 1] ?? 1.0;
   }
   // advanced
-  return [0.3, 0.4, 0.7, 1.3, 1.3, 1.1][phaseNumber - 1] ?? 1.0;
+  return [0.05, 0.3, 0.4, 0.7, 1.3, 1.3, 1.0, 1.0, 1.1][phaseNumber - 1] ?? 1.0;
 }
 
 // ============================================================
@@ -625,7 +633,7 @@ function genPhase4(input: PersonalizationInput): GeneratedPhase {
   // Career-specific modules
   let careerModules: GeneratedPhase["modules"] = [];
 
-  if (input.careerId === "web-dev" || (input.careerId === "software-engineering" && input.subPath === "frontend") || input.subPath === "fullstack") {
+  if (input.careerId === "web-dev" || (input.careerId === "software-engineering" && (input.subPath === "frontend" || input.subPath === "fullstack"))) {
     careerModules = [
       {
         id: `${tpl.id}-m-web`,
@@ -683,7 +691,7 @@ function genPhase4(input: PersonalizationInput): GeneratedPhase {
         ],
       },
     ];
-  } else if (input.careerId === "cloud-devops" || input.subPath === "devops") {
+  } else if (input.careerId === "cloud-devops" || (input.careerId === "software-engineering" && input.subPath === "devops")) {
     careerModules = [
       {
         id: `${tpl.id}-m-devops`,
@@ -1297,15 +1305,31 @@ function linkTasksToLessons(phases: GeneratedPhase[], languageIds: string[]): Ge
   const langWithLessons = languageIds.find((id) => LESSON_TOPIC_MAP[id]) ?? "python";
   const topicMap = LESSON_TOPIC_MAP[langWithLessons] ?? LESSON_TOPIC_MAP.python;
 
+  // Pre-compile keyword regexes with word boundaries so that short keywords
+  // like "if", "for", "type", "match" don't match substrings of unrelated
+  // words (e.g. "significant", "notification", "formula", "typeof").
+  const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const compiled = topicMap.map((entry) => ({
+    lessonId: entry.lessonId,
+    patterns: entry.keywords.map((kw) => {
+      // Multi-word keywords (e.g. "hello world") match as substrings — fine.
+      // Single-word keywords must match on word boundaries.
+      if (/\s/.test(kw)) {
+        return new RegExp(escapeRegex(kw), "i");
+      }
+      return new RegExp(`\\b${escapeRegex(kw)}\\b`, "i");
+    }),
+  }));
+
   return phases.map((phase) => ({
     ...phase,
     modules: phase.modules.map((mod) => ({
       ...mod,
       tasks: mod.tasks.map((task) => {
         if (task.lessonId) return task; // already linked
-        const text = (task.title + " " + task.brief + " " + task.why).toLowerCase();
-        for (const entry of topicMap) {
-          if (entry.keywords.some((kw) => text.includes(kw))) {
+        const text = `${task.title} ${task.brief} ${task.why}`;
+        for (const entry of compiled) {
+          if (entry.patterns.some((p) => p.test(text))) {
             return { ...task, lessonId: entry.lessonId };
           }
         }
@@ -1461,7 +1485,7 @@ function genAIBonusPhase(input: PersonalizationInput, phaseNumber: number): Gene
   ];
   let modules: GeneratedPhase["modules"] = [];
 
-  if (careerId === "software-engineering" || input.subPath === "backend" || input.subPath === "fullstack") {
+  if (careerId === "software-engineering") {
     title = "AI in Software Engineering — Bonus Track";
     subtitle = "LLM APIs, AI-assisted coding, copilots";
     objectives = [
@@ -1513,7 +1537,7 @@ function genAIBonusPhase(input: PersonalizationInput, phaseNumber: number): Gene
         ],
       },
     ];
-  } else if (careerId === "cloud-devops" || input.subPath === "devops") {
+  } else if (careerId === "cloud-devops") {
     title = "AI in Cloud/DevOps — Bonus Track";
     subtitle = "MLOps, AI-assisted monitoring, intelligent automation";
     objectives = [

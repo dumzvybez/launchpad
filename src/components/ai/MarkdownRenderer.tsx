@@ -89,11 +89,16 @@ function renderInline(text: string): React.ReactNode[] {
       remaining = remaining.slice(italicMatch[0].length);
       continue;
     }
-    // Link: [text](url)
+    // Link: [text](url). Sanitize the URL — only allow http(s), mailto,
+    // relative, and anchor URLs. The AI's output can include user-influenced
+    // content (interview answers, code-review inputs), so an unescaped
+    // `javascript:` URL would be an XSS vector.
     const linkMatch = remaining.match(/^\[([^\]]+)\]\(([^)]+)\)/);
     if (linkMatch) {
+      const rawUrl = linkMatch[2];
+      const safeUrl = /^(https?:|mailto:|\/|#|\.\/|\.\.\/)/i.test(rawUrl) ? rawUrl : "#";
       tokens.push(
-        <a key={key++} href={linkMatch[2]} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+        <a key={key++} href={safeUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
           {linkMatch[1]}
         </a>,
       );

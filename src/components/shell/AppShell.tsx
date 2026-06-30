@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -70,8 +70,22 @@ export function AppShell() {
 
   useCommandPaletteShortcut();
 
+  // Auto-close the mobile drawer whenever the user navigates to a new view.
+  // Without this, tapping any nav item in the mobile drawer leaves the
+  // drawer covering the screen — the user has to manually tap the backdrop
+  // to see the new view.
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [currentView, setMobileNavOpen]);
+
+  // Stable callback so SplashScreen's effect doesn't re-run on every AppShell
+  // re-render. Previously the inline arrow broke SplashScreen's effect deps,
+  // causing its timers to reset (and the splash to extend) whenever any
+  // subscribed store value changed mid-splash.
+  const onSplashDone = useCallback(() => setSplashDone(true), []);
+
   if (hydrated && showSplash && !splashDone) {
-    return <SplashScreen onDone={() => setSplashDone(true)} />;
+    return <SplashScreen onDone={onSplashDone} />;
   }
 
   if (!hydrated) {

@@ -25,7 +25,6 @@ export function TopBar() {
   const profile = useStore((s) => s.state.profile);
   const roadmap = useStore((s) => s.state.roadmap);
   const setMobileNavOpen = useStore((s) => s.setMobileNavOpen);
-  const aiTutorOpen = useStore((s) => s.setAiTutorOpen);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showPrivacyPopup, setShowPrivacyPopup] = useState(false);

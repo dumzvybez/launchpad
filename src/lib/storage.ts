@@ -50,6 +50,7 @@ export const DEFAULT_STATE: AppState = {
   dailyChallenge: {
     currentStreak: 0,
     completedToday: false,
+    totalCompleted: 0,
   },
   learnTabState: {
     selectedTrack: null,
@@ -85,12 +86,25 @@ export function loadState(): AppState {
         backgroundTheme: parsed.preferences?.backgroundTheme ?? "aurora",
       },
       streak: { ...DEFAULT_STATE.streak, ...parsed.streak },
+      // Defensively null-guard every collection field — if a corrupted
+      // localStorage entry has `null` for one of these, falling back to the
+      // default collection prevents "Cannot read properties of null" crashes
+      // later (e.g. `state.tasks[taskId]` when `tasks` is null).
+      tasks: parsed.tasks ?? {},
+      notes: parsed.notes ?? [],
+      journal: parsed.journal ?? [],
+      projects: parsed.projects ?? [],
+      focusSessions: parsed.focusSessions ?? [],
+      habits: parsed.habits ?? [],
+      badges: parsed.badges ?? [],
+      bookmarks: parsed.bookmarks ?? [],
+      calendarEvents: parsed.calendarEvents ?? [],
+      activity: parsed.activity ?? {},
       lessonProgress: parsed.lessonProgress ?? {},
       chatConversations: parsed.chatConversations ?? [],
       aiSettings: { ...DEFAULT_STATE.aiSettings, ...parsed.aiSettings },
       rateLimitTimestamps: parsed.rateLimitTimestamps ?? [],
       dailyChallenge: { ...DEFAULT_STATE.dailyChallenge, ...parsed.dailyChallenge },
-      badges: parsed.badges ?? [],
       learnTabState: { ...DEFAULT_STATE.learnTabState, ...(parsed as Partial<AppState>).learnTabState },
       certificates: (parsed as Partial<AppState>).certificates ?? {},
       careerCertificate: (parsed as Partial<AppState>).careerCertificate,

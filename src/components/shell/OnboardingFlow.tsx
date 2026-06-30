@@ -294,11 +294,17 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
               size="lg"
               className="w-full justify-start"
               onClick={async () => {
-                // Option B: try the AI chain one more time
+                // Option B: try the AI chain one more time. Jump to step 7
+                // (PlanPreviewStep) FIRST so the user sees the full 11-stage
+                // "Building your roadmap…" UI while we wait — otherwise the
+                // fallback clears `aiFallbackChoice` and the component falls
+                // through to the Availability step which only shows a small
+                // spinner on the next button.
+                const input = aiFallbackChoice.input;
                 setAiFallbackChoice(null);
+                setStep(7);
                 setIsGenerating(true);
                 setGenStage(3);
-                const input = aiFallbackChoice.input;
                 let roadmap: GeneratedRoadmap | null = null;
                 try {
                   const aiResult = await generateRoadmapWithAI(input);
@@ -312,7 +318,6 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
                 }
                 setGeneratedRoadmap(roadmap);
                 setIsGenerating(false);
-                setStep(7);
               }}
             >
               <span className="flex flex-col items-start text-left">

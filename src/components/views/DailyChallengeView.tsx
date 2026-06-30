@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Flame, Lightbulb, Eye, EyeOff, Clock, Trophy, CheckCircle2, Calendar } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { GlassCard, GlassButton } from "@/components/glass/GlassPrimitives";
@@ -53,37 +53,58 @@ export function DailyChallengeView() {
 
   const [showHint, setShowHint] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
-  const [completed, setCompleted] = useState(false);
   const [userSolution, setUserSolution] = useState(todayTask?.starterCode ?? "");
   const [output, setOutput] = useState<string[]>([]);
 
-  useEffect(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    if (dailyChallenge.lastChallengeDate === today && dailyChallenge.completedToday) {
-      setCompleted(true);
-    }
-  }, [dailyChallenge]);
+  // Derive "completed" directly from the store — no need to mirror it in
+  // local state (which required a setState-in-effect to stay in sync).
+  const today = new Date().toISOString().slice(0, 10);
+  const completed =
+    dailyChallenge.lastChallengeDate === today &&
+    !!dailyChallenge.completedToday;
 
-  useEffect(() => {
+  // Reset the user solution when today's task changes (e.g. new day or new
+  // weekly pool). Uses the "adjust state during render" pattern recommended
+  // by the React docs instead of setState-in-useEffect.
+  const [prevTaskId, setPrevTaskId] = useState<string | undefined>(todayTask?.id);
+  if (todayTask?.id !== prevTaskId) {
+    setPrevTaskId(todayTask?.id);
     if (todayTask) setUserSolution(todayTask.starterCode ?? "");
-  }, [todayTask]);
+  }
 
   const handleComplete = () => {
     completeDailyChallenge();
-    setCompleted(true);
   };
 
   const handleTryInPlayground = () => {
-    setPlaygroundCode(userSolution, "javascript");
+    // Pass the actual task language through so the Playground opens in the
+    // right mode. Previously this hard-coded "javascript" and broke for any
+    // non-JS daily challenge.
+    setPlaygroundCode(userSolution, todayTask?.language === "python" ? "python" : "javascript");
     setView("playground");
   };
 
   const handleRun = () => {
+    // Only JavaScript tasks can run in-browser. For Python (and any other
+    // language), nudge the user to the Playground which has the proper
+    // runner (Pyodide for Python, etc.). Previously this always ran the
+    // code through `new Function`, producing opaque SyntaxErrors for any
+    // non-JS task.
+    if (todayTask?.language && todayTask.language !== "javascript") {
+      setOutput([
+        `This daily challenge is in ${todayTask.language}. ` +
+        `Click "Try in Playground" to run it with the proper runtime.`,
+      ]);
+      return;
+    }
     setOutput([]);
     const logs: string[] = [];
     const origLog = console.log;
     console.log = (...args: unknown[]) => {
-      logs.push(args.map(a => typeof a === "string" ? a : JSON.stringify(a, null, 2)).join(" "));
+      logs.push(args.map(a => {
+        if (typeof a === "string") return a;
+        try { return JSON.stringify(a, null, 2); } catch { return String(a); }
+      }).join(" "));
     };
     try {
       const fn = new Function(userSolution);

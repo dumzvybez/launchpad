@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
 import { ACHIEVEMENT_MAP, RARITY_META } from "@/lib/achievements-data";
 
@@ -8,6 +8,11 @@ export function BadgeToastContainer() {
   const pendingToasts = useStore((s) => s.pendingBadgeToasts);
   const dismissBadgeToast = useStore((s) => s.dismissBadgeToast);
   const [visibleToasts, setVisibleToasts] = useState<string[]>([]);
+  // Per-toast dismiss timers, keyed by badge id. Previously a single
+  // useEffect with `[visibleToasts]` deps reset ALL timers whenever a new
+  // toast arrived — so a sequence of badges A, B, C earned 1s apart kept
+  // toast A visible for ~5.5s after C arrived, not 5.5s after A arrived.
+  const dismissTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   // Delay showing new toasts by 0.5s so they don't clash with ongoing actions
   useEffect(() => {
@@ -25,17 +30,37 @@ export function BadgeToastContainer() {
     return () => timers.forEach(clearTimeout);
   }, [pendingToasts, visibleToasts]);
 
-  // Auto-dismiss after 5.5s (visible time)
+  // Auto-dismiss after 5.5s (visible time). Per-toast timers — each toast
+  // gets its own 5.5s timer when it becomes visible, independent of others.
   useEffect(() => {
-    if (visibleToasts.length === 0) return;
-    const timers = visibleToasts.map((id) =>
-      setTimeout(() => {
+    for (const id of visibleToasts) {
+      // Already scheduled — skip.
+      if (dismissTimersRef.current.has(id)) continue;
+      const t = setTimeout(() => {
         dismissBadgeToast(id);
         setVisibleToasts((prev) => prev.filter((v) => v !== id));
-      }, 5500),
-    );
-    return () => timers.forEach(clearTimeout);
+        dismissTimersRef.current.delete(id);
+      }, 5500);
+      dismissTimersRef.current.set(id, t);
+    }
+    // Clean up timers for toasts that are no longer visible (e.g. dismissed
+    // manually before the timer fired).
+    for (const [id] of dismissTimersRef.current) {
+      if (!visibleToasts.includes(id)) {
+        const t = dismissTimersRef.current.get(id);
+        if (t) clearTimeout(t);
+        dismissTimersRef.current.delete(id);
+      }
+    }
   }, [visibleToasts, dismissBadgeToast]);
+
+  // Clean up all timers on unmount.
+  useEffect(() => {
+    return () => {
+      for (const [, t] of dismissTimersRef.current) clearTimeout(t);
+      dismissTimersRef.current.clear();
+    };
+  }, []);
 
   if (visibleToasts.length === 0) return null;
 
@@ -73,6 +98,8 @@ export function BadgeToastContainer() {
             </div>
             <button
               onClick={() => {
+                const t = dismissTimersRef.current.get(badgeId);
+                if (t) { clearTimeout(t); dismissTimersRef.current.delete(badgeId); }
                 dismissBadgeToast(badgeId);
                 setVisibleToasts((prev) => prev.filter((v) => v !== badgeId));
               }}

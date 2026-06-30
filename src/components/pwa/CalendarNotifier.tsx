@@ -21,7 +21,15 @@ export function CalendarNotifier() {
   const snoozeNotification = useStore((s) => s.snoozeNotification);
   const dismissNotification = useStore((s) => s.dismissNotification);
   const deleteCalendarEvent = useStore((s) => s.deleteCalendarEvent);
+  // Track which (eventId + day) pairs we've already notified for, so
+  // recurring events fire again on the next day instead of being
+  // permanently suppressed after the first fire.
   const notifiedRef = useRef<Set<string>>(new Set());
+  // Track pending setTimeout ids so we can clear them on unmount.
+  const timeoutsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+  // Track the last minute we checked, so we can fire notifications that
+  // were missed because the page was closed or the tab was throttled.
+  const lastCheckedMinuteRef = useRef<string | null>(null);
 
   useEffect(() => {
     const check = () => {
@@ -30,16 +38,28 @@ export function CalendarNotifier() {
       const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
       const todayDow = now.getDay();
       const todayDom = now.getDate();
+      const lastMin = lastCheckedMinuteRef.current;
+      lastCheckedMinuteRef.current = currentTime;
 
       for (const event of events) {
-        // Skip already-notified (in this session) unless snooze period expired
-        if (notifiedRef.current.has(event.id)) {
+        // Per-day notification key — resets daily so recurring events
+        // can fire again the next day.
+        const notifiedKey = `${event.id}:${today}`;
+
+        // Skip already-notified (today) unless snooze period expired
+        if (notifiedRef.current.has(notifiedKey)) {
           // Check if snooze expired → re-notify
           if (event.snoozedUntil) {
             const snoozedUntilTime = new Date(event.snoozedUntil).getTime();
             if (now.getTime() >= snoozedUntilTime) {
-              // Snooze expired — allow re-notify
-              notifiedRef.current.delete(event.id);
+              // Snooze expired — allow re-notify immediately, without
+              // requiring the exact minute match (the original event
+              // time may have already passed).
+              notifiedRef.current.delete(notifiedKey);
+              // Fire immediately and mark as notified so we don't keep
+              // re-firing on every 30s tick.
+              fireEvent(event, today);
+              continue;
             } else {
               continue;
             }
@@ -64,65 +84,85 @@ export function CalendarNotifier() {
 
         if (!firesToday) continue;
 
-        // Fire when current time matches event time (within 1 minute)
-        if (event.time === currentTime) {
-          notifiedRef.current.add(event.id);
-          addNotification(event.id);
+        // Fire when:
+        //   (a) current time matches event time exactly, OR
+        //   (b) event time has passed since the last check (catches the
+        //       case where the page was closed at 9:00 and reopened at
+        //       9:05 — the user still gets the 9:00 notification).
+        const shouldFire =
+          event.time === currentTime ||
+          (lastMin !== null &&
+            event.time > lastMin &&
+            event.time <= currentTime &&
+            // Only catch up within the same calendar day.
+            event.time <= currentTime);
 
-          // Fire in-app toast notification with action buttons (Section 8)
-          // Primary toast: Mark Done + Snooze 5m
-          toast.info(`📅 ${event.title}`, {
-            description: `${event.time}${event.duration ? ` · ${event.duration}m` : ""}${event.notes ? ` — ${event.notes.slice(0, 60)}` : ""}`,
-            duration: 20000,
-            action: {
-              label: "Mark done",
-              onClick: () => dismissNotification(event.id),
-            },
-            cancel: {
-              label: "Snooze 5m",
-              onClick: () => snoozeNotification(event.id, 5),
-            },
-            style: {
-              background: "linear-gradient(135deg, oklch(0.20 0.014 250 / 0.95), oklch(0.16 0.012 250 / 0.95))",
-              border: "1px solid oklch(0.80 0.16 195 / 0.4)",
-              color: "white",
-              backdropFilter: "blur(20px)",
-            },
-            icon: <CalendarIcon className="h-4 w-4 text-primary" />,
+        if (shouldFire) {
+          fireEvent(event, today);
+        }
+      }
+    };
+
+    const fireEvent = (event: typeof events[number], today: string) => {
+      const notifiedKey = `${event.id}:${today}`;
+      notifiedRef.current.add(notifiedKey);
+      addNotification(event.id);
+
+      // Fire in-app toast notification with action buttons (Section 8)
+      // Primary toast: Mark Done + Snooze 5m
+      toast.info(`📅 ${event.title}`, {
+        description: `${event.time}${event.duration ? ` · ${event.duration}m` : ""}${event.notes ? ` — ${event.notes.slice(0, 60)}` : ""}`,
+        duration: 20000,
+        action: {
+          label: "Mark done",
+          onClick: () => dismissNotification(event.id),
+        },
+        cancel: {
+          label: "Snooze 5m",
+          onClick: () => snoozeNotification(event.id, 5),
+        },
+        style: {
+          background: "linear-gradient(135deg, oklch(0.20 0.014 250 / 0.95), oklch(0.16 0.012 250 / 0.95))",
+          border: "1px solid oklch(0.80 0.16 195 / 0.4)",
+          color: "white",
+          backdropFilter: "blur(20px)",
+        },
+        icon: <CalendarIcon className="h-4 w-4 text-primary" />,
+      });
+      // Secondary toast: more snooze options + delete. Track the timeout
+      // so it can be cleared on unmount.
+      const t = setTimeout(() => {
+        timeoutsRef.current.delete(t);
+        toast("Snooze or dismiss", {
+          description: "Choose a longer snooze or delete this reminder",
+          duration: 20000,
+          action: {
+            label: "10m",
+            onClick: () => snoozeNotification(event.id, 10),
+          },
+          cancel: {
+            label: "Delete",
+            onClick: () => deleteCalendarEvent(event.id),
+          },
+        });
+      }, 500);
+      timeoutsRef.current.add(t);
+
+      // Fire native browser notification (if permission granted)
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+        try {
+          const n = new Notification(`📅 ${event.title}`, {
+            body: `Scheduled for ${event.time}${event.duration ? ` · ${event.duration}m` : ""}`,
+            icon: "/icons/icon-192.png",
+            tag: event.id,
+            requireInteraction: true,
           });
-          // Secondary toast: more snooze options + delete
-          setTimeout(() => {
-            toast("Snooze or dismiss", {
-              description: "Choose a longer snooze or delete this reminder",
-              duration: 20000,
-              action: {
-                label: "10m",
-                onClick: () => snoozeNotification(event.id, 10),
-              },
-              cancel: {
-                label: "Delete",
-                onClick: () => deleteCalendarEvent(event.id),
-              },
-            });
-          }, 500);
-
-          // Fire native browser notification (if permission granted)
-          if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
-            try {
-              const n = new Notification(`📅 ${event.title}`, {
-                body: `Scheduled for ${event.time}${event.duration ? ` · ${event.duration}m` : ""}`,
-                icon: "/icons/icon-192.png",
-                tag: event.id,
-                requireInteraction: true,
-              });
-              n.onclick = () => {
-                window.focus();
-                n.close();
-              };
-            } catch {
-              // ignore
-            }
-          }
+          n.onclick = () => {
+            window.focus();
+            n.close();
+          };
+        } catch {
+          // ignore
         }
       }
     };
@@ -130,8 +170,13 @@ export function CalendarNotifier() {
     // Check immediately, then every 30 seconds
     check();
     const interval = setInterval(check, 30000);
-    return () => clearInterval(interval);
-  }, [events, addNotification, snoozeNotification, dismissNotification]);
+    return () => {
+      clearInterval(interval);
+      // Clear any pending secondary-toast timeouts.
+      for (const t of timeoutsRef.current) clearTimeout(t);
+      timeoutsRef.current.clear();
+    };
+  }, [events, addNotification, snoozeNotification, dismissNotification, deleteCalendarEvent]);
 
   return null;
 }

@@ -24,6 +24,21 @@ export function generateCertificateId(
 }
 
 /**
+ * Generate a Career Master certificate ID — `LP-CAREER-XXXXXXXX`.
+ * Same hashing rules as `generateCertificateId` (padded to 8 chars).
+ */
+export function generateCareerCertificateId(
+  userId: string,
+  careerId: string,
+  completionDate: string,
+): string {
+  const raw = `CAREER-${userId}-${careerId}-${completionDate}`;
+  const hash = simpleHash(raw);
+  const padded = hash.padStart(8, "0").slice(0, 8);
+  return `LP-CAREER-${padded.toUpperCase()}`;
+}
+
+/**
  * Browser-compatible simple hash (returns a base36 string).
  * Uses the classic djb2-style hash. Returns variable-length string —
  * callers must pad if they need a fixed width.

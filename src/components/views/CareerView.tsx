@@ -209,7 +209,7 @@ export function CareerView() {
             { label: "Complete Phase 1 (Foundations)", done: selectPhaseProgress(state, roadmap.phases[0]?.id ?? "").pct === 100 },
             { label: "Complete Phase 3 (Building Blocks — first project shipped)", done: state.projects.some((p) => p.status === "shipped") },
             { label: "Complete 10 lessons in Learn tab", done: lessonProgress >= 10 },
-            { label: "Complete 5 daily challenges", done: state.dailyChallenge.currentStreak >= 5 || state.dailyChallenge.lastChallengeDate !== undefined },
+            { label: "Complete 5 daily challenges", done: (state.dailyChallenge.totalCompleted ?? 0) >= 5 },
             { label: "Have a GitHub profile (add to projects)", done: state.projects.some((p) => p.repoUrl) },
             { label: "Ship a capstone project (Phase 6)", done: selectPhaseProgress(state, roadmap.phases[5]?.id ?? "").pct === 100 },
             { label: "Maintain a 7-day streak", done: state.streak.longest >= 7 },
@@ -397,13 +397,21 @@ function SuggestedNextSteps({ readiness }: {
 // Generates a printable resume PDF in a new window using browser print
 // ============================================================
 function ResumeBuilderButton() {
-  const state = useStore.getState().state;
+  // Subscribe to the store reactively so the form's pre-filled `name` and
+  // `objective` reflect the latest state when the user opens the dialog.
+  // Previously `useStore.getState()` was called once at mount, so changes
+  // made while on the Career tab (e.g. earning badges, completing lessons)
+  // were never reflected in the form seeds.
+  const profile = useStore((s) => s.state.profile);
+  const careerLabel = useStore((s) => s.state.roadmap?.careerLabel);
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState(state.profile.name || "");
+  const [name, setName] = useState(profile.name || "");
   const [email, setEmail] = useState("");
   const [github, setGithub] = useState("");
   const [linkedin, setLinkedin] = useState("");
-  const [objective, setObjective] = useState(`Aspiring ${state.profile.careerId ? (useStore.getState().state.roadmap?.careerLabel ?? "Developer") : "Developer"}`);
+  const [objective, setObjective] = useState(
+    `Aspiring ${profile.careerId ? (careerLabel ?? "Developer") : "Developer"}`,
+  );
   const [includeQuizScores, setIncludeQuizScores] = useState(true);
   const [includeBadges, setIncludeBadges] = useState(true);
   const [includeBranding, setIncludeBranding] = useState(true);
@@ -412,7 +420,9 @@ function ResumeBuilderButton() {
     setOpen(false);
     // Set badge-tracking flag per Section 13.1
     if (typeof window !== "undefined") {
-      window.localStorage.setItem("launchpad:resume-built", "1");
+      try {
+        window.localStorage.setItem("launchpad:resume-built", "1");
+      } catch { /* ignore storage errors */ }
     }
     generateResumePDF({
       name: name || "Learner",

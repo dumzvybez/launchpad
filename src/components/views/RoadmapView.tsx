@@ -34,6 +34,13 @@ const PHASE_COLOR_MAP: Record<string, { bg: string; border: string; text: string
 
 export function RoadmapView() {
   const roadmap = useStore((s) => s.state.roadmap);
+  // Subscribe to `state.tasks` so the phase grid re-renders when a task is
+  // toggled from anywhere (e.g. the CommandPalette). Previously we used
+  // `useStore.getState().state` inside the .map(), which reads the latest
+  // value but doesn't subscribe — so the phase progress bars and lock state
+  // stayed stale until the user navigated into and back out of a phase.
+  const tasks = useStore((s) => s.state.tasks);
+  const isPhaseUnlocked = useStore((s) => s.isPhaseUnlocked);
   const selectedPhaseId = useStore((s) => s.selectedPhaseId);
   const selectedModuleId = useStore((s) => s.selectedModuleId);
   const selectedTaskId = useStore((s) => s.selectedTaskId);
@@ -42,6 +49,9 @@ export function RoadmapView() {
   const selectTask = useStore((s) => s.selectTask);
   const setView = useStore((s) => s.setView);
   const setPlaygroundCode = useStore((s) => s.setPlaygroundCode);
+  // Build a lightweight AppState-shaped object for the selectors. We only
+  // need `tasks` and `roadmap` for selectPhaseProgress, so we omit the rest.
+  const stateForSelectors = { ...useStore.getState().state, tasks, roadmap };
 
   const selectedPhase = useMemo(
     () => roadmap?.phases.find((p) => p.id === selectedPhaseId),
@@ -127,10 +137,10 @@ export function RoadmapView() {
       {!selectedPhase && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {roadmap.phases.map((phase) => {
-            const progress = selectPhaseProgress(useStore.getState().state, phase.id);
+            const progress = selectPhaseProgress(stateForSelectors, phase.id);
             const colors = PHASE_COLOR_MAP[phase.color] ?? PHASE_COLOR_MAP.teal;
             const totalTasks = phase.modules.flatMap((m) => m.tasks).length;
-            const isUnlocked = useStore.getState().isPhaseUnlocked(phase.number);
+            const isUnlocked = isPhaseUnlocked(phase.number);
             const isLocked = !isUnlocked && phase.number > 1;
             return (
               <button

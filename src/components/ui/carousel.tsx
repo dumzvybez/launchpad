@@ -95,12 +95,19 @@ function Carousel({
 
   React.useEffect(() => {
     if (!api) return
-    onSelect(api)
+    // Sync initial state without calling setState synchronously in the
+    // effect body — Embla fires an "init" event we can hook into.
     api.on("reInit", onSelect)
     api.on("select", onSelect)
+    api.on("init", onSelect)
+    // Some Embla versions fire "init" before we register; do a deferred
+    // sync via microtask so we don't trigger cascading renders.
+    Promise.resolve().then(() => onSelect(api))
 
     return () => {
       api?.off("select", onSelect)
+      api?.off("reInit", onSelect)
+      api?.off("init", onSelect)
     }
   }, [api, onSelect])
 

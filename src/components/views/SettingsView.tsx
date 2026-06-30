@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Settings as SettingsIcon,
   Moon,
@@ -46,12 +46,11 @@ export function SettingsView() {
 
   const [confirmReset, setConfirmReset] = useState(false);
   const [customColor, setCustomColor] = useState(state.preferences.customBackground ?? "#6366F1");
-  const [lastBackup, setLastBackup] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
 
-  useEffect(() => {
-    setLastBackup(getLastAutoBackupTime());
-  }, [state.lastAutoBackup]);
+  // Derive lastBackup directly from the store value — no need to mirror it
+  // in local state with setState-in-useEffect.
+  const lastBackup = getLastAutoBackupTime();
 
   const handleExport = () => {
     exportBackup();
@@ -79,7 +78,6 @@ export function SettingsView() {
 
   const handleRunBackupNow = () => {
     runAutoBackup();
-    setLastBackup(getLastAutoBackupTime());
     toast.success("Auto-backup saved");
   };
 
@@ -299,7 +297,7 @@ export function SettingsView() {
         <div className="space-y-3">
           <SettingRow
             label="Auto-backup (daily)"
-            description="Saves a snapshot to localStorage every day. Last backup: never"
+            description="Saves a snapshot to localStorage every day."
           >
             <span className="text-[10px] text-muted-foreground font-mono">
               {lastBackup ? new Date(lastBackup).toLocaleString() : "never"}

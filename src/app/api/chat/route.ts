@@ -42,9 +42,9 @@ You support 30 technologies: Python, JavaScript, TypeScript, HTML, CSS, SQL, Jav
 // making the server fetch internal services (e.g. cloud metadata).
 // ============================================================
 function isPrivateOrLoopbackHost(host: string): boolean {
-  const h = host.toLowerCase();
+  const h = host.toLowerCase().replace(/^\[|\]$/g, ""); // strip IPv6 brackets
   if (h === "localhost" || h.endsWith(".localhost")) return true;
-  if (h === "0.0.0.0" || h === "::" || h === "[::]") return true;
+  if (h === "0.0.0.0" || h === "::") return true;
   // IPv4 loopback 127.x.x.x
   if (/^127\.\d+\.\d+\.\d+$/.test(h)) return true;
   // IPv4 private ranges
@@ -54,8 +54,39 @@ function isPrivateOrLoopbackHost(host: string): boolean {
   // Link-local 169.254.x.x (AWS/GCP/Azure metadata endpoints)
   if (/^169\.254\.\d+\.\d+$/.test(h)) return true;
   // IPv6 loopback / link-local
-  if (h === "::1" || h === "[::1]") return true;
-  if (h.startsWith("fe80:") || h.startsWith("[fe80:")) return true;
+  if (h === "::1") return true;
+  if (h.startsWith("fe80:")) return true;
+  // IPv6 unique local addresses fc00::/7 (private IPv6 range)
+  if (h.startsWith("fc") || h.startsWith("fd")) return true;
+  // IPv4-mapped IPv6 like ::ffff:127.0.0.1
+  const mapped = h.match(/^(?:::ffff:)?(\d+\.\d+\.\d+\.\d+)$/);
+  if (mapped) {
+    return isPrivateOrLoopbackHost(mapped[1]);
+  }
+  // Block decimal / hex / octal IPv4 forms — these are all valid ways to
+  // write e.g. 127.0.0.1 (e.g. http://2130706433/ = 127.0.0.1) and would
+  // otherwise bypass the dotted-decimal checks above.
+  if (/^\d+$/.test(h)) {
+    const n = Number(h);
+    if (Number.isFinite(n) && n >= 0 && n <= 0xffffffff) {
+      // Reconstruct dotted-decimal and recurse.
+      const a = (n >>> 24) & 0xff;
+      const b = (n >>> 16) & 0xff;
+      const c = (n >>> 8) & 0xff;
+      const d = n & 0xff;
+      return isPrivateOrLoopbackHost(`${a}.${b}.${c}.${d}`);
+    }
+  }
+  if (/^0x[0-9a-f]+$/i.test(h)) {
+    const n = parseInt(h, 16);
+    if (Number.isFinite(n) && n >= 0 && n <= 0xffffffff) {
+      const a = (n >>> 24) & 0xff;
+      const b = (n >>> 16) & 0xff;
+      const c = (n >>> 8) & 0xff;
+      const d = n & 0xff;
+      return isPrivateOrLoopbackHost(`${a}.${b}.${c}.${d}`);
+    }
+  }
   return false;
 }
 
@@ -269,8 +300,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Messages array is required" }, { status: 400 });
     }
 
-    // Sanitize messages — keep last 20 to bound cost
-    const trimmed = messages.slice(-20);
+    // Sanitize messages — keep last 20 to bound cost. Also filter to only
+    // `user` and `assistant` roles: a malicious client could otherwise send
+    // `role: "system"` messages to override our system prompt (prompt
+    // injection). The TypeScript type says `role: "user" | "assistant"`, but
+    // runtime validation is required since the body comes straight from the
+    // request.
+    const trimmed = messages
+      .filter((m: { role?: string }) => m.role === "user" || m.role === "assistant")
+      .slice(-20);
 
     const content = await fetchProviderChat(
       provider,

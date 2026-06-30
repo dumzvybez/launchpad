@@ -152,6 +152,9 @@ export function InlineCodeEditor({
   // SECURITY: only accept messages from our own sandboxed iframe.
   // Sandboxed iframes (sandbox="allow-scripts" without allow-same-origin)
   // have an opaque origin — `e.origin === "null"` (string "null").
+  // We also clear the per-run timeout here when a result arrives, so a
+  // successful 100ms run isn't overwritten by the 5s timeout's error.
+  const runTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     const handler = (e: MessageEvent) => {
       if (e.data?.type !== "run-result") return;
@@ -160,6 +163,11 @@ export function InlineCodeEditor({
       // Double-check source identity if available
       if (e.source !== null && iframeRef.current && e.source !== iframeRef.current.contentWindow) {
         return;
+      }
+      // Clear the per-run timeout — the result arrived in time.
+      if (runTimeoutRef.current) {
+        clearTimeout(runTimeoutRef.current);
+        runTimeoutRef.current = null;
       }
       setRunning(false);
       if (e.data.error) {
@@ -207,14 +215,18 @@ export function InlineCodeEditor({
               .replace(/<[A-Za-z]+>/g, "")
           : code;
         await ensureIframe();
-        // 5-second timeout per Section 1.5
-        const timeoutId = setTimeout(() => {
+        // 5-second timeout per Section 1.5. Stored in a ref so the
+        // message handler can clear it when the result arrives —
+        // previously the timeout id was a local variable inside handleRun
+        // and the message handler couldn't access it, so even a successful
+        // 100ms run was overwritten by the timeout's error message at 5s.
+        if (runTimeoutRef.current) clearTimeout(runTimeoutRef.current);
+        runTimeoutRef.current = setTimeout(() => {
+          runTimeoutRef.current = null;
           setRunning(false);
           setError("⏱️ Code took too long. Check for infinite loops.");
         }, 5000);
         iframeRef.current?.contentWindow?.postMessage({ type: "run-code", code: codeToRun }, "*");
-        // Clear timeout in 5.5s (response should come sooner)
-        setTimeout(() => clearTimeout(timeoutId), 5500);
       } else if (isHTML || isCSS) {
         // SECURITY FIX: render HTML/CSS in a sandboxed iframe rather than
         // opening a new same-origin window via window.open + document.write.

@@ -32,6 +32,11 @@ import {
 } from "./storage";
 import { generateRoadmap, validateRoadmap } from "./personalization-engine";
 import { ACHIEVEMENTS } from "./achievements-data";
+import { generateCertificateId, generateCareerCertificateId } from "./certificate-utils";
+// ESM imports for data modules — replaces the previous `require()` calls
+// which can silently fail under Turbopack/Next.js 16 bundling.
+import { ALL_LESSONS } from "./lessons-data";
+import { selectPoolForLanguages } from "./daily-challenges-data-v2";
 
 // ============================================================
 // Derived selectors (work on the personalized roadmap if present)
@@ -79,9 +84,9 @@ export function selectEarnedXP(state: AppState): number {
   }
   // Project XP — +150 XP per shipped project per Section 13.2
   xp += state.projects.filter((p) => p.status === "shipped").length * 150;
-  // Daily challenge XP — +25 XP per completed challenge per Section 13.2
-  // Approximation: current streak × 25 (capped at 50 challenges)
-  xp += Math.min(50, state.streak.current) * 25;
+  // Daily challenge XP — +25 XP per completed challenge per Section 13.2.
+  // Uses the *daily-challenge* streak, not the task-completion streak.
+  xp += Math.min(50, state.dailyChallenge.currentStreak) * 25;
   // Mock interview XP — +100 XP per interview completed per Section 13.2
   const interviewCount = state.chatConversations.filter((c) =>
     c.messages.some((m) => m.content?.includes("I'm ready to start my mock interview")),
@@ -218,21 +223,15 @@ export function selectCareerReadinessScore(state: AppState): {
   let quizSum = 0;
   let quizCount = 0;
   if (userLangs.length > 0) {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { ALL_LESSONS } = require("./lessons-data");
-      for (const lang of userLangs) {
-        const lessons = ALL_LESSONS.filter((l: { track: string }) => l.track === lang);
-        for (const l of lessons) {
-          const prog = state.lessonProgress[l.id];
-          if (prog?.bestQuizScore !== undefined && prog.bestQuizScore !== null) {
-            quizSum += prog.bestQuizScore;
-            quizCount++;
-          }
+    for (const lang of userLangs) {
+      const lessons = ALL_LESSONS.filter((l: { track: string }) => l.track === lang);
+      for (const l of lessons) {
+        const prog = state.lessonProgress[l.id];
+        if (prog?.bestQuizScore !== undefined && prog.bestQuizScore !== null) {
+          quizSum += prog.bestQuizScore;
+          quizCount++;
         }
       }
-    } catch {
-      // ignore
     }
   }
   const quizAverage = quizCount > 0 ? Math.round(quizSum / quizCount) : 0;
@@ -241,8 +240,11 @@ export function selectCareerReadinessScore(state: AppState): {
   const shippedCount = state.projects.filter((p) => p.status === "shipped").length;
   const projectsCompleted = Math.min(100, Math.round((shippedCount / 3) * 100));
 
-  // 4. Daily challenges — streak + % completion
-  const streakScore = Math.min(100, state.streak.current * 5); // 20-day streak = 100%
+  // 4. Daily challenges — streak + % completion.
+  // Use the *daily-challenge* streak (state.dailyChallenge.currentStreak),
+  // not the task-completion streak (state.streak.current) — they are tracked
+  // separately and only the former reflects daily-challenge activity.
+  const streakScore = Math.min(100, state.dailyChallenge.currentStreak * 5); // 20-day streak = 100%
   // Completion %: totalCompletedChallenges / 30 (cap), each completed lesson = 1 challenge
   const completedLessons = Object.values(state.lessonProgress).filter((p) => p.status === "complete").length;
   const completionScore = Math.min(100, Math.round((completedLessons / 30) * 100));
@@ -298,20 +300,12 @@ export function selectCareerProgress(state: AppState): {
   let totalLessons = 0;
   let completedLessons = 0;
   if (userLangs.length > 0) {
-    // Import dynamically to avoid circular deps at module load
-    // We use a lazy require here
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { ALL_LESSONS } = require("./lessons-data");
-      for (const lang of userLangs) {
-        const lessons = ALL_LESSONS.filter((l: { track: string }) => l.track === lang);
-        totalLessons += lessons.length;
-        for (const l of lessons) {
-          if (state.lessonProgress[l.id]?.status === "complete") completedLessons++;
-        }
+    for (const lang of userLangs) {
+      const lessons = ALL_LESSONS.filter((l: { track: string }) => l.track === lang);
+      totalLessons += lessons.length;
+      for (const l of lessons) {
+        if (state.lessonProgress[l.id]?.status === "complete") completedLessons++;
       }
-    } catch {
-      // fall through
     }
   }
   const lessonsPct = totalLessons > 0
@@ -423,7 +417,7 @@ type Store = {
   pendingBadgeToasts: string[];
   /** Playground code (loaded by Try in Playground buttons) */
   playgroundCode: string | null;
-  playgroundLanguage: "javascript" | "typescript" | null;
+  playgroundLanguage: "javascript" | "typescript" | "python" | "html" | "css" | "sql" | "bash" | null;
   /** Force onboarding flow (set by Regenerate Plan button) */
   forceOnboarding: boolean;
 
@@ -443,7 +437,7 @@ type Store = {
   setMobileNavOpen: (open: boolean) => void;
   setAiTutorOpen: (open: boolean) => void;
   setAiTutorMaximized: (max: boolean) => void;
-  setPlaygroundCode: (code: string | null, language?: "javascript" | "typescript" | null) => void;
+  setPlaygroundCode: (code: string | null, language?: "javascript" | "typescript" | "python" | "html" | "css" | "sql" | "bash" | null) => void;
 
   // Task actions
   toggleTask: (taskId: string) => void;
@@ -1178,6 +1172,10 @@ export const useStore = create<Store>((set, get) => {
             lastChallengeDate: today,
             currentStreak: newStreak,
             completedToday: true,
+            // Increment lifetime count only when this is a *new* day's
+            // completion (idempotent — re-clicking "Complete" on the same
+            // day doesn't inflate the counter).
+            totalCompleted: (s.dailyChallenge.totalCompleted ?? 0) + (wasToday ? 0 : 1),
           },
         };
       }),

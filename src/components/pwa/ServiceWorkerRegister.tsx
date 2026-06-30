@@ -12,13 +12,22 @@ export function ServiceWorkerRegister() {
     if (typeof window === "undefined") return;
     if (!("serviceWorker" in navigator)) return;
 
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+    let cancelled = false;
+
     const register = async () => {
+      if (cancelled) return;
       try {
         const reg = await navigator.serviceWorker.register("/sw.js", {
           scope: "/",
         });
-        // Check for updates every hour
-        setInterval(() => reg.update(), 60 * 60 * 1000);
+        if (cancelled) return;
+        // Check for updates every hour. Track the interval id so we can
+        // clear it on unmount — previously it leaked forever and held a
+        // reference to `reg` even after the component was gone.
+        intervalId = setInterval(() => {
+          if (!cancelled) reg.update();
+        }, 60 * 60 * 1000);
       } catch (err) {
         console.warn("[SW] registration failed:", err);
       }
@@ -29,8 +38,13 @@ export function ServiceWorkerRegister() {
       register();
     } else {
       window.addEventListener("load", register);
-      return () => window.removeEventListener("load", register);
     }
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("load", register);
+      if (intervalId) clearInterval(intervalId);
+    };
   }, []);
 
   return null;

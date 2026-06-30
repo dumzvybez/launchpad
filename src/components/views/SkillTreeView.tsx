@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2, Circle, Lock, Clock, ZoomIn, ZoomOut, Crosshair, ChevronRight } from "lucide-react";
 import { useStore, selectPhaseProgress } from "@/lib/store";
@@ -30,12 +30,15 @@ export function SkillTreeView() {
   const containerRef = useRef<HTMLDivElement>(null);
   const phaseRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // Auto-expand the current phase (first phase < 100% complete)
-  useEffect(() => {
-    if (!roadmap || expandedPhase) return;
+  // Auto-expand the current phase (first phase < 100% complete) when the
+  // roadmap loads. Uses the "adjust state during render" pattern recommended
+  // by the React docs — no setState-in-useEffect.
+  const [autoExpandChecked, setAutoExpandChecked] = useState(false);
+  if (!autoExpandChecked && roadmap && !expandedPhase) {
+    setAutoExpandChecked(true);
     const current = roadmap.phases.find((p) => selectPhaseProgress(state, p.id).pct < 100);
     if (current) setExpandedPhase(current.id);
-  }, [roadmap, state, expandedPhase]);
+  }
 
   if (!roadmap) {
     return (

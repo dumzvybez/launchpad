@@ -67,6 +67,19 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
   // Code Review Mode state (in-AI-Tutor Code Review)
   const [codeReviewMode, setCodeReviewMode] = useState(false);
   const [codeReviewSystemPrompt, setCodeReviewSystemPrompt] = useState<string | null>(null);
+  // Whichever mode was started most recently wins. We track this via a
+  // priority field so that when both modes happen to be active at once
+  // (e.g. user starts an interview, then opens code review without ending
+  // the interview), the server gets exactly one system prompt instead of
+  // the interview prompt being silently overwritten by the code-review
+  // prompt (or vice-versa).
+  const [lastActivatedMode, setLastActivatedMode] = useState<"interview" | "code-review" | null>(null);
+  const activeSystemPrompt =
+    lastActivatedMode === "code-review"
+      ? codeReviewSystemPrompt
+      : lastActivatedMode === "interview"
+        ? interviewSystemPrompt
+        : null;
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -128,10 +141,12 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
           model: aiSettings.model,
           temperature: aiSettings.temperature,
           customEndpoint: aiSettings.customEndpoint,
-          // Pass the interview system prompt when in Interview Mode
-          ...(interviewSystemPrompt ? { systemPrompt: interviewSystemPrompt } : {}),
-          // Pass the code review system prompt when in Code Review Mode
-          ...(codeReviewSystemPrompt ? { systemPrompt: codeReviewSystemPrompt } : {}),
+          // Pass whichever system prompt is active — interview OR code review,
+          // not both. Previously both spreads were applied, so whichever
+          // mode was started LAST silently overwrote the other's prompt,
+          // leading to confusing behavior (interview banner still shown
+          // but messages sent with the code-review prompt).
+          ...(activeSystemPrompt ? { systemPrompt: activeSystemPrompt } : {}),
         }),
       });
 
@@ -204,6 +219,7 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
     setInterviewSystemPrompt(null);
     setCodeReviewMode(false);
     setCodeReviewSystemPrompt(null);
+    setLastActivatedMode(null);
     inputRef.current?.focus();
   };
 
@@ -245,6 +261,7 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
     const chatId = createChat();
     // Set the interview system prompt — will be sent with every message
     setInterviewSystemPrompt(sysPrompt);
+    setLastActivatedMode("interview");
     setInterviewMode(false); // close setup screen
     // First user message triggers the AI to introduce itself + ask Q1
     const kickOffMessage: ChatMessage = {
@@ -517,6 +534,7 @@ Be honest but encouraging. This is a learning context. Use code blocks for all c
               // Create a fresh chat for the code review
               const chatId = createChat();
               setCodeReviewSystemPrompt(sysPrompt);
+              setLastActivatedMode("code-review");
               setCodeReviewMode(false); // close setup screen
 
               // Build the first user message containing the code
@@ -556,11 +574,15 @@ Be honest but encouraging. This is a learning context. Use code blocks for all c
                     provider: data.provider,
                   };
                   addMessage(chatId, assistantMessage);
-                  // Track badge progress
+                  // Track badge progress. Wrapped in try/catch —
+                  // localStorage.setItem can throw in Safari private
+                  // mode or when quota is exceeded.
                   if (typeof window !== "undefined") {
-                    window.localStorage.setItem("launchpad:code-reviewed", "1");
-                    const current = Number(window.localStorage.getItem("launchpad:code-review-count") ?? "0");
-                    window.localStorage.setItem("launchpad:code-review-count", String(current + 1));
+                    try {
+                      window.localStorage.setItem("launchpad:code-reviewed", "1");
+                      const current = Number(window.localStorage.getItem("launchpad:code-review-count") ?? "0");
+                      window.localStorage.setItem("launchpad:code-review-count", String(current + 1));
+                    } catch { /* ignore storage errors */ }
                   }
                 } catch (err) {
                   const errorMessage: ChatMessage = {
@@ -587,6 +609,7 @@ Be honest but encouraging. This is a learning context. Use code blocks for all c
             <button
               onClick={() => {
                 setInterviewSystemPrompt(null);
+                setLastActivatedMode(null);
                 handleNewChat();
               }}
               className="ml-auto text-[10px] hover:underline"
@@ -605,6 +628,7 @@ Be honest but encouraging. This is a learning context. Use code blocks for all c
             <button
               onClick={() => {
                 setCodeReviewSystemPrompt(null);
+                setLastActivatedMode(null);
                 handleNewChat();
               }}
               className="ml-auto text-[10px] hover:underline"

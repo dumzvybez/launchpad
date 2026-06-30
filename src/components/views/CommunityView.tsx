@@ -159,12 +159,20 @@ export function CommunityView() {
       if (timer) { clearInterval(timer); timer = null; }
     };
     start();
-    document.addEventListener("visibilitychange", start);
-    document.addEventListener("visibilitychange", stop);
+    // Single visibilitychange listener that starts the timer when the tab
+    // becomes visible and stops it when hidden. Previously `start` and `stop`
+    // were both registered as separate listeners and fired in registration
+    // order on every visibility change — so `stop` always cleared whatever
+    // `start` had just set up, permanently disabling auto-refresh after the
+    // first tab switch.
+    const onVis = () => {
+      if (document.visibilityState === "visible") start();
+      else stop();
+    };
+    document.addEventListener("visibilitychange", onVis);
     return () => {
       stop();
-      document.removeEventListener("visibilitychange", start);
-      document.removeEventListener("visibilitychange", stop);
+      document.removeEventListener("visibilitychange", onVis);
     };
   }, []);
 

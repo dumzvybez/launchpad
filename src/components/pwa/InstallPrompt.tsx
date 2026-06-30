@@ -69,12 +69,25 @@ export function InstallPrompt() {
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
-    await deferredPrompt.prompt();
-    const choice = await deferredPrompt.userChoice;
-    if (choice.outcome === "accepted") {
+    try {
+      await deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      if (choice.outcome === "accepted") {
+        setVisible(false);
+      }
+    } catch (err) {
+      // `prompt()` or `userChoice` can reject on some browsers (e.g. if the
+      // prompt was already shown recently, or the user dismissed the
+      // browser-level dialog). Don't let the rejection propagate as an
+      // unhandled promise error — just log and hide our UI.
+      console.warn("[InstallPrompt] install failed:", err);
       setVisible(false);
+    } finally {
+      // Always clear the deferred prompt — keeping a stale/broken one
+      // around would mean the next install click reuses the same broken
+      // object.
+      setDeferredPrompt(null);
     }
-    setDeferredPrompt(null);
   };
 
   const handleDismiss = () => {

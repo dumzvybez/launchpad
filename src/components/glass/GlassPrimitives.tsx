@@ -150,7 +150,10 @@ export function ProgressBar({
   showLabel?: boolean;
   size?: "sm" | "md" | "lg";
 }) {
-  const pct = Math.min(100, Math.max(0, value));
+  // Coerce to a number and guard against NaN — `Math.max(0, NaN)` returns
+  // NaN, which then renders as `width: 'NaN%'` (invalid CSS, bar shows 0).
+  const safeValue = Number.isFinite(value) ? value : 0;
+  const pct = Math.min(100, Math.max(0, safeValue));
   const heights = { sm: "h-1", md: "h-1.5", lg: "h-2.5" };
   return (
     <div className={cn("flex items-center gap-2", className)}>
@@ -195,7 +198,9 @@ export function ProgressRing({
 }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (Math.min(100, value) / 100) * circumference;
+  // Guard against NaN — see ProgressBar above.
+  const safeValue = Number.isFinite(value) ? value : 0;
+  const offset = circumference - (Math.min(100, safeValue) / 100) * circumference;
   return (
     <div
       className={cn("relative inline-flex items-center justify-center", className)}

@@ -436,6 +436,8 @@ export type AppState = {
     lastChallengeDate?: string;
     currentStreak: number;
     completedToday: boolean;
+    /** Total number of daily challenges ever completed (lifetime). */
+    totalCompleted: number;
   };
   /** Learn tab persistent UI state — fixes the resume bug */
   learnTabState: {

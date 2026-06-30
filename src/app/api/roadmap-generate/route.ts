@@ -169,11 +169,28 @@ function extractJson(content: string): unknown {
   try {
     return JSON.parse(jsonStr);
   } catch (parseErr) {
-    // Try to recover truncated JSON by closing open braces/brackets
-    const openBraces = (jsonStr.match(/{/g) || []).length;
-    const closeBraces = (jsonStr.match(/}/g) || []).length;
-    const openBrackets = (jsonStr.match(/\[/g) || []).length;
-    const closeBrackets = (jsonStr.match(/\]/g) || []).length;
+    // Try to recover truncated JSON by closing open braces/brackets.
+    // IMPORTANT: count braces/brackets OUTSIDE of string literals —
+    // the previous `(jsonStr.match(/{/g) || []).length` counted braces
+    // inside JSON strings too (e.g. a task description like "Use the {...}
+    // syntax"), producing an incorrect count and appending too many `}`
+    // characters, which made the recovered JSON unparseable.
+    let inString = false;
+    let escape = false;
+    let openBraces = 0;
+    let closeBraces = 0;
+    let openBrackets = 0;
+    let closeBrackets = 0;
+    for (const ch of jsonStr) {
+      if (escape) { escape = false; continue; }
+      if (ch === "\\" && inString) { escape = true; continue; }
+      if (ch === '"') { inString = !inString; continue; }
+      if (inString) continue;
+      if (ch === "{") openBraces++;
+      else if (ch === "}") closeBraces++;
+      else if (ch === "[") openBrackets++;
+      else if (ch === "]") closeBrackets++;
+    }
     let recovered = jsonStr;
     // Remove trailing incomplete string/property
     recovered = recovered.replace(/,\s*"[^"]*":\s*"[^"]*$/, "");
@@ -333,6 +350,18 @@ export async function POST(req: NextRequest) {
           status: 429,
           headers: { "Retry-After": String(Math.ceil(rl.resetIn / 1000)) },
         },
+      );
+    }
+
+    // Reject oversized request bodies BEFORE parsing to prevent
+    // memory-exhaustion DoS. A legitimate roadmap-generate request is
+    // well under 10KB; anything bigger is either a corrupt client or a
+    // malicious payload.
+    const contentLength = Number(req.headers.get("content-length") ?? "0");
+    if (contentLength && contentLength > 50_000) {
+      return NextResponse.json(
+        { error: `Request body too large (${contentLength} bytes, max 50KB)` },
+        { status: 413 },
       );
     }
 

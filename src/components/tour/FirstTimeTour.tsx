@@ -25,7 +25,10 @@ export function FirstTimeTour() {
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [active, setActive] = useState(false);
 
-  const steps = TOUR_STEPS.filter((s) => !("condition" in s) || (s.condition && roadmap ? s.condition(roadmap.languageIds) : true));
+  const steps = TOUR_STEPS.filter((s) =>
+    !("condition" in s) ||
+    (s.condition && roadmap && roadmap.languageIds ? s.condition(roadmap.languageIds) : true),
+  );
 
   useEffect(() => {
     if (tourCompleted === false) {
@@ -36,8 +39,16 @@ export function FirstTimeTour() {
 
   if (!active || tourCompleted === true || tourCompleted === undefined) return null;
 
-  const current = steps[step];
-  const isLast = step === steps.length - 1;
+  // Clamp `step` so it can never exceed the available steps array. If the
+  // roadmap changes (e.g. via "Restart Onboarding" or any state update
+  // that removes JS/TS from languageIds) while the user is on the
+  // conditional playground step, `steps` could shrink below `step` —
+  // previously `steps[step]` would be `undefined` and the next render
+  // would throw `TypeError: Cannot read properties of undefined`.
+  const safeStep = Math.min(step, steps.length - 1);
+  const current = steps[safeStep];
+  if (!current) return null;
+  const isLast = safeStep === steps.length - 1;
 
   const finish = () => {
     setPreference("tourCompleted", true);
@@ -56,14 +67,16 @@ export function FirstTimeTour() {
       finish();
       return;
     }
-    setStep(step + 1);
-    setView(steps[step + 1].view as never);
+    const nextIdx = safeStep + 1;
+    setStep(nextIdx);
+    setView(steps[nextIdx].view as never);
   };
 
   const prev = () => {
-    if (step === 0) return;
-    setStep(step - 1);
-    setView(steps[step - 1].view as never);
+    if (safeStep === 0) return;
+    const prevIdx = safeStep - 1;
+    setStep(prevIdx);
+    setView(steps[prevIdx].view as never);
   };
 
   return (
@@ -79,7 +92,7 @@ export function FirstTimeTour() {
         <div className="flex items-start justify-between mb-2">
           <div>
             <div className="text-[10px] font-mono uppercase text-muted-foreground">
-              Tour · Step {step + 1} of {steps.length}
+              Tour · Step {safeStep + 1} of {steps.length}
             </div>
             <h3 className="font-semibold text-base mt-1">{current.title}</h3>
           </div>
@@ -101,7 +114,7 @@ export function FirstTimeTour() {
               key={i}
               className={cn(
                 "h-1.5 rounded-full transition-all",
-                i === step ? "w-6 bg-primary" : i < step ? "w-3 bg-primary/60" : "w-3 bg-foreground/10",
+                i === safeStep ? "w-6 bg-primary" : i < safeStep ? "w-3 bg-primary/60" : "w-3 bg-foreground/10",
               )}
             />
           ))}
@@ -120,10 +133,10 @@ export function FirstTimeTour() {
           <div className="flex items-center gap-1">
             <button
               onClick={prev}
-              disabled={step === 0}
+              disabled={safeStep === 0}
               className={cn(
                 "flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs",
-                step === 0 ? "opacity-40 cursor-not-allowed" : "hover:bg-foreground/10",
+                safeStep === 0 ? "opacity-40 cursor-not-allowed" : "hover:bg-foreground/10",
               )}
             >
               <ChevronLeft className="h-3.5 w-3.5" /> Prev

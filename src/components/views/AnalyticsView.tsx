@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useStore, selectEarnedXP, selectOverallProgress, selectPhaseProgress, selectCareerProgress } from "@/lib/store";
 import { dateKey } from "@/lib/storage";
+import { ALL_LESSONS } from "@/lib/lessons-data";
 import { GlassCard, ProgressBar } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
 import { LANGUAGE_MAP, CAREER_MAP } from "@/lib/career-data";
@@ -66,9 +67,16 @@ export function AnalyticsView() {
   // Lesson progress
   const lessonProgress = Object.values(state.lessonProgress);
   const lessonsComplete = lessonProgress.filter((p) => p.status === "complete").length;
-  // FIX: previously hardcoded as / 30, but a user with 3 languages has 63 lessons.
-  // Compute the actual total from the user's roadmap languages (21 lessons per track).
-  const totalLessonsInPlan = Math.max(1, (roadmap?.languageIds.length ?? 1) * 21);
+  // Compute the actual total from the user's roadmap languages by summing
+  // the real per-track lesson counts. Previously this hardcoded 21 lessons
+  // per track, which was wrong if any track had a different count.
+  const totalLessonsInPlan = Math.max(
+    1,
+    (roadmap?.languageIds ?? []).reduce(
+      (sum, id) => sum + ALL_LESSONS.filter((l) => l.track === id).length,
+      0,
+    ),
+  );
   const quizAvg = lessonProgress.filter((p) => p.bestQuizScore !== undefined)
     .reduce((sum, p, _, arr) => sum + (p.bestQuizScore ?? 0) / arr.length, 0);
 

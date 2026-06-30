@@ -182,7 +182,11 @@ function useToast() {
         listeners.splice(index, 1)
       }
     }
-  }, [state])
+    // Empty dep array — the listener subscription is independent of `state`.
+    // Previously `[state]` caused the listener to be removed and re-added on
+    // every toast dispatch, creating a brief window where rapid dispatches
+    // from other components could be missed.
+  }, [])
 
   return {
     ...state,

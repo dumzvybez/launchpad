@@ -652,7 +652,13 @@ function ShareProgressCardModal({ onClose }: { onClose: () => void }) {
 
   const markShared = () => {
     if (typeof window !== "undefined") {
-      window.localStorage.setItem("launchpad:progress-shared", "1");
+      // Wrap in try/catch — setItem throws in Safari private mode, when
+      // quota is exceeded, or when storage is disabled. Previously an
+      // unhandled throw here would surface as a promise rejection even
+      // though the share itself succeeded.
+      try {
+        window.localStorage.setItem("launchpad:progress-shared", "1");
+      } catch { /* ignore storage errors */ }
     }
   };
 

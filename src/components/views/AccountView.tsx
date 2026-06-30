@@ -312,7 +312,9 @@ function ShareAchievementsModal({
 
   const markShared = () => {
     if (typeof window !== "undefined") {
-      window.localStorage.setItem("launchpad:progress-shared", "1");
+      try {
+        window.localStorage.setItem("launchpad:progress-shared", "1");
+      } catch { /* ignore storage errors */ }
     }
   };
 

@@ -18,12 +18,17 @@ const PRECACHE_URLS = [
   "/favicon.ico",
 ];
 
-// Install — precache the app shell
+// Install — precache the app shell. Use Promise.allSettled instead of
+// cache.addAll so that a single failed precache URL (e.g. a missing
+// icon, or a transient network blip) doesn't abort the entire install
+// and leave the SW stuck in the "installing" state forever.
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(STATIC_CACHE)
-      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then((cache) =>
+        Promise.allSettled(PRECACHE_URLS.map((u) => cache.add(u))),
+      )
       .then(() => self.skipWaiting())
       .catch((err) => console.warn("[SW] precache failed:", err)),
   );
@@ -74,9 +79,12 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Cache the latest version
-          const copy = response.clone();
-          caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy));
+          // Only cache successful responses — caching a 404/500 would lock
+          // the user out of the app on the next offline load.
+          if (response && response.ok && response.status === 200) {
+            const copy = response.clone();
+            caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy));
+          }
           return response;
         })
         .catch(() => caches.match(request).then((r) => r || caches.match("/"))),
@@ -102,7 +110,11 @@ self.addEventListener("fetch", (event) => {
             }
             return response;
           })
-          .catch(() => cached);
+          // If both cache and network fail (first load while offline),
+          // return a proper 504 Response instead of `undefined` —
+          // returning undefined from respondWith is invalid and shows a
+          // browser-level network error.
+          .catch(() => cached ?? new Response("", { status: 504, statusText: "Gateway Timeout" }));
         return cached || fetchPromise;
       }),
     );
@@ -111,9 +123,11 @@ self.addEventListener("fetch", (event) => {
 
   // Default — try network, DON'T cache (avoid caching random external
   // requests like Pyodide CDN partials — they're already cached by the
-  // browser's HTTP cache)
+  // browser's HTTP cache). Same 504 fallback for the offline case.
   event.respondWith(
-    fetch(request).catch(() => caches.match(request)),
+    fetch(request).catch(
+      () => caches.match(request) ?? new Response("", { status: 504, statusText: "Gateway Timeout" }),
+    ),
   );
 });
 

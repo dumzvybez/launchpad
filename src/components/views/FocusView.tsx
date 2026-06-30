@@ -48,10 +48,16 @@ export function FocusView() {
     ? [{ m: 25, label: "Pomodoro" }, { m: 50, label: "Deep work" }, { m: 90, label: "Flow state" }]
     : [{ m: 5, label: "Short" }, { m: 10, label: "Long" }, { m: 15, label: "Reset" }];
 
-  // Reset remaining when duration changes
-  useEffect(() => {
-    setRemaining(duration);
-  }, [duration]);
+  // Reset `remaining` when `duration` changes (but only when the timer is
+  // idle/paused, so we don't disrupt an active countdown). Uses the
+  // "adjust state during render" pattern recommended by the React docs.
+  const [prevDuration, setPrevDuration] = useState(duration);
+  if (duration !== prevDuration) {
+    setPrevDuration(duration);
+    if (timerState !== "running") {
+      setRemaining(duration);
+    }
+  }
 
   // Tick down
   useEffect(() => {
@@ -120,10 +126,15 @@ export function FocusView() {
   }, [state.habits]);
 
   // Today's focus total
+  // IMPORTANT: `startedAt` is an ISO/UTC timestamp. Comparing it to
+  // `new Date().toISOString().slice(0, 10)` (also UTC) gives the wrong "today"
+  // for any user outside UTC — a session at 23:30 local on Jun 15 in UTC−5
+  // has startedAt = "2026-06-16T04:30:00Z" and would be counted on Jun 16.
+  // Use local-date keys via `dateKey(new Date(...))` and `todayKey()` instead.
   const todayFocusMinutes = useMemo(() => {
-    const todayDate = new Date().toISOString().slice(0, 10);
+    const todayLocal = todayKey();
     return state.focusSessions
-      .filter((s) => s.startedAt.slice(0, 10) === todayDate && s.completed)
+      .filter((s) => dateKey(new Date(s.startedAt)) === todayLocal && s.completed)
       .reduce((sum, s) => sum + s.durationMinutes, 0);
   }, [state.focusSessions]);
 
@@ -234,7 +245,7 @@ export function FocusView() {
                 <span className="text-sm text-muted-foreground">m</span>
               </div>
               <div className="text-[10px] text-muted-foreground mt-1">
-                {state.focusSessions.filter((s) => s.startedAt.slice(0, 10) === new Date().toISOString().slice(0, 10)).length} sessions
+                {state.focusSessions.filter((s) => dateKey(new Date(s.startedAt)) === todayKey()).length} sessions
               </div>
             </div>
           </GlassCard>

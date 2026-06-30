@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { Calendar, StickyNote, Timer, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
-import { todayKey } from "@/lib/storage";
-import { CalendarView } from "./CalendarView";
+import { todayKey, dateKey } from "@/lib/storage";
+import { CalendarView, eventOccursOn } from "./CalendarView";
 import { NotesView } from "./NotesView";
 import { FocusView } from "./FocusView";
 
@@ -36,16 +36,17 @@ const TABS: { id: ToolTab; label: string; icon: typeof Calendar; description: st
 const STORAGE_KEY = "launchpad:tools-tab";
 
 export function ToolsView() {
-  // Restore last active tab from localStorage
-  const [activeTab, setActiveTab] = useState<ToolTab>("calendar");
-  useEffect(() => {
+  // Restore last active tab from localStorage via a lazy initialiser so we
+  // don't need a setState-in-useEffect on mount.
+  const [activeTab, setActiveTab] = useState<ToolTab>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved === "calendar" || saved === "notes" || saved === "focus") {
-        setActiveTab(saved);
+        return saved;
       }
     } catch { /* ignore */ }
-  }, []);
+    return "calendar";
+  });
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, activeTab); } catch { /* ignore */ }
   }, [activeTab]);
@@ -59,10 +60,14 @@ export function ToolsView() {
   const streak = useStore((s) => s.state.streak.current);
 
   const today = todayKey();
-  const todaysEvents = calendarEvents.filter((e) => e.date === today).length;
-  const todaysNotes = notes.filter((n) => n.updatedAt?.startsWith(today)).length;
+  // Use `eventOccursOn` so recurring events are counted correctly — the
+  // previous `e.date === today` filter ignored weekly/monthly recurrences.
+  const todaysEvents = calendarEvents.filter((e) => eventOccursOn(e, today)).length;
+  // Convert ISO/UTC timestamps to local date keys before comparing —
+  // `updatedAt.startsWith(today)` was wrong for users outside UTC.
+  const todaysNotes = notes.filter((n) => n.updatedAt && dateKey(new Date(n.updatedAt)) === today).length;
   const todaysFocusMinutes = focusSessions
-    .filter((f) => f.completed && f.startedAt.startsWith(today))
+    .filter((f) => f.completed && dateKey(new Date(f.startedAt)) === today)
     .reduce((sum, f) => sum + f.durationMinutes, 0);
 
   const hour = new Date().getHours();
