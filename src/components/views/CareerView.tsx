@@ -29,6 +29,9 @@ export function CareerView() {
   const roadmap = state.roadmap;
   const profile = state.profile;
   const setView = useStore((s) => s.setView);
+  // Hooks must be called before any early return (Rules of Hooks)
+  const issueCareerCertificate = useStore((s) => s.issueCareerCertificate);
+  const updateCareerCertificateName = useStore((s) => s.updateCareerCertificateName);
 
   if (!roadmap) {
     return (
@@ -48,8 +51,6 @@ export function CareerView() {
 
   // Career Master Certificate: unlocked at 100% readiness
   const careerCert = state.careerCertificate;
-  const issueCareerCertificate = useStore((s) => s.issueCareerCertificate);
-  const updateCareerCertificateName = useStore((s) => s.updateCareerCertificateName);
 
   // Color thresholds per Section 5.2
   const readinessColor =

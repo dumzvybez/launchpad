@@ -922,7 +922,7 @@ function AISettingsPanel({ onClose }: { onClose: () => void }) {
 function CodeReviewPanel({ onClose }: { onClose: () => void }) {
   const aiSettings = useStore((s) => s.state.aiSettings);
   const addChatMessage = useStore((s) => s.addChatMessage);
-  const createChat = useStore((s) => s.createChat);
+  const createChatConversation = useStore((s) => s.createChatConversation);
   const setActiveChat = useStore((s) => s.setActiveChat);
 
   const [code, setCode] = useState("");
@@ -998,18 +998,14 @@ Be honest but encouraging. This is a learning context. Use code blocks for all c
 
   const handleSaveToChat = () => {
     if (!review) return;
-    const chatId = createChat();
+    const chatId = createChatConversation();
     addChatMessage(chatId, {
-      id: `msg-${Date.now()}`,
       role: "user",
       content: `**Code Review** (${language})${context ? `\n\nContext: ${context}` : ""}\n\n\`\`\`${language}\n${code}\n\`\`\``,
-      timestamp: new Date().toISOString(),
     });
     addChatMessage(chatId, {
-      id: `msg-${Date.now()}-review`,
       role: "assistant",
       content: review,
-      timestamp: new Date().toISOString(),
       provider: aiSettings.provider,
     });
     setActiveChat(chatId);

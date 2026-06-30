@@ -512,7 +512,7 @@ type Store = {
   deleteChatConversation: (id: string) => void;
   renameChatConversation: (id: string, title: string) => void;
   addChatMessage: (conversationId: string, message: Omit<ChatMessage, "id" | "timestamp">) => void;
-  setActiveChat: (id: string | null) => void;
+  setActiveChat: (id: string | undefined) => void;
   clearAllChats: () => void;
   setAISettings: (patch: Partial<AISettings>) => void;
   acknowledgeAIWarning: () => void;
@@ -1153,7 +1153,7 @@ export const useStore = create<Store>((set, get) => {
     setActiveChat: (id) => updateState((s) => ({ ...s, activeChatId: id })),
 
     clearAllChats: () =>
-      updateState((s) => ({ ...s, chatConversations: [], activeChatId: null })),
+      updateState((s) => ({ ...s, chatConversations: [], activeChatId: undefined })),
 
     setAISettings: (patch) =>
       updateState((s) => ({ ...s, aiSettings: { ...s.aiSettings, ...patch } })),

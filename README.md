@@ -1,298 +1,300 @@
-# Launchpad — Free Personalized Coding Education Platform
+<div align="center">
 
-![Launchpad](public/icons/logo-1024.png)
+<img src="public/icons/logo-1024.png" alt="Launchpad Logo" width="140" />
 
-A free, privacy-first coding education platform with AI-powered personalized roadmaps, **630 lessons across 30 languages**, **6,000 quiz questions**, **207 projects**, **1,860+ daily challenges**, an inline code editor, AI tutor with mock interview mode, AI code review, a resume auto-builder, GitHub Discussions community, shareable progress cards, spaced repetition quizzes, and a code playground. 100% on-device — no accounts, no tracking.
+# 🚀 Launchpad
 
-**Live URL:** https://launchpad--pi.vercel.app
-**GitHub:** https://github.com/dumzvybez/Launchpad
-**Developer:** Dumindu Dulara Wanasinghe ([Portfolio](https://duminduwanasinghe-dev.vercel.app/))
+### Free. Private. Personalized. Coding education the way it should be.
+
+[![Status](https://img.shields.io/badge/status-actively%20developing-orange?style=for-the-badge)](https://github.com/dumzvybez/Launchpad/discussions)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](#-license)
+[![Live Demo](https://img.shields.io/badge/demo-live-success?style=for-the-badge)](https://launchpad--pi.vercel.app)
+[![Privacy](https://img.shields.io/badge/privacy-100%25%20on--device-9cf?style=for-the-badge)](#-100-on-device-privacy)
+
+**[🌐 Live App](https://launchpad--pi.vercel.app)** · **[💬 Discussions](https://github.com/dumzvybez/Launchpad/discussions)** · **[👨‍💻 Developer Portfolio](https://duminduwanasinghe-dev.vercel.app/)**
+
+</div>
 
 ---
 
-## ✨ Features (Updated Edition)
+> ⚠️ **This project is actively under development.** Things are evolving fast, some features are still being polished, and your feedback genuinely shapes the roadmap. Jump into [Discussions](https://github.com/dumzvybez/Launchpad/discussions) to share ideas, report bugs, or just say hi.
 
-### 🧠 AI-Powered Personalization Engine
-- **3-provider fallback chain:** Gemini 2.5 Flash → Groq Llama 3.3 70B → OpenRouter → deterministic engine
-- **Double retry loop:** If all 3 providers fail, the chain retries once. If it fails again, the user sees a choice screen — "Continue with built-in engine" or "Try Again".
-- **12-check validation** on AI-generated roadmaps (phase count 4-10, foundation/capstone titles, module/task counts, lesson ID references, language coverage, timeline, sequential numbering, unique task IDs, estMinutes range)
-- Variable phase count (4-10) based on profile complexity
-- AI bonus track (career-specific AI content) as second-to-last phase
-- Lesson linking: roadmap tasks link directly to Learn tab lessons (e.g. `python-03`)
-- Source message on plan preview: teal "AI-generated" (with provider name) or amber "Built-in engine used"
+## 🧭 What is Launchpad?
 
-### 📚 Learn Tab — 630 Lessons × 30 Technologies
-Built from the canonical `launchpad_database_v3.txt` curriculum:
+Launchpad is an AI-powered, personalized coding education platform built on one core belief: **learning to code shouldn't require an account, a subscription, or your data.**
 
-| Technology | Stages | | Technology | Stages |
-|-----------|---------|---|------------|---------|
-| Python | 20 + capstone | | Go | 20 + capstone |
-| JavaScript | 20 + capstone | | Rust | 20 + capstone |
-| TypeScript | 20 + capstone | | Swift | 20 + capstone |
-| HTML | 20 + capstone | | Kotlin | 20 + capstone |
-| CSS | 20 + capstone | | PHP | 20 + capstone |
-| SQL | 20 + capstone | | Ruby | 20 + capstone |
-| Java | 20 + capstone | | R | 20 + capstone |
-| C | 20 + capstone | | Dart | 20 + capstone |
-| C++ | 20 + capstone | | Bash | 20 + capstone |
-| C# | 20 + capstone | | React | 20 + capstone |
-| Next.js | 20 + capstone | | Django | 20 + capstone |
-| FastAPI | 20 + capstone | | Flask | 20 + capstone |
-| Svelte | 20 + capstone | | Vue | 20 + capstone |
-| Angular | 20 + capstone | | Node.js | 20 + capstone |
-| PostgreSQL | 20 + capstone | | MongoDB | 20 + capstone |
+Tell it your career goal, and Launchpad generates a custom learning roadmap pulling from a massive on-device curriculum — then walks with you through lessons, quizzes, projects, mock interviews, and even helps you build a resume at the end. All of it runs **100% in your browser.** No servers tracking you. No sign-ups. No catch.
 
-**Per stage:** 8-15 content blocks including `whyItMatters`, prerequisites, topics covered, key concepts, multiple code examples, common pitfalls, real-world apps, interview questions (collapsible), mini project, exercises, and a 10-question quiz with explanations. Each stage also has a curated YouTube tutorial embed (collapsible, privacy-enhanced via youtube-nocookie.com).
+<div align="center">
 
-### ✏️ Inline Code Editor (NEW — Section 1)
-Every code example in every lesson has an **Edit & Run** button:
-- **JavaScript/TypeScript:** Runs in a **sandboxed iframe** (`sandbox="allow-scripts"` only) using `Function` constructor (NOT `eval`). 5-second timeout. Inside the iframe, `document.cookie`, `localStorage`, `fetch`, `XMLHttpRequest`, `WebSocket`, and `eval` are stripped before user code runs. All output captured via `postMessage` bridge.
-- **HTML/CSS:** Live preview iframe using `srcdoc`.
-- **Python:** Pyodide (Python in WebAssembly, ~10MB) loaded lazily and cached.
-- **SQL:** sql.js (SQLite in WASM) — Postgres-specific features link to DB Fiddle.
-- **Bash/Shell:** Simulated commands (echo, ls, cat, mkdir, touch, grep, pwd, cd) with fake virtual filesystem.
-- **Other compiled languages (Java, C, C++, C#, Go, Rust, Swift, Kotlin, PHP, Ruby, R, Dart):** "Open in Online IDE" button → Replit, OneCompiler, or official playgrounds.
-- **Svelte / Vue / Angular:** Link to official playgrounds.
-- **Node.js / MongoDB:** Link to StackBlitz / MongoDB Playground.
+| | | | |
+|:---:|:---:|:---:|:---:|
+| **630** Lessons | **30** Languages | **207** Projects | **6,000** Quiz Questions |
+| **1,860+** Daily Challenges | **25+** Badges | **600** Curated Videos | **0** Accounts Required |
 
-### 📺 YouTube Video Supplements (Section 2)
-- **600 per-stage video links** (`src/data/youtube-links.ts`) — one curated tutorial per stage, embedded via youtube-nocookie.com for privacy
-- **30 per-track playlist links** — "Watch Full Course on YouTube" button in each lesson
-- **Collapsible by default** — click to expand the iframe
-- **Per-video dismissal** ("Hide this video" link)
-- **Global toggle** in Settings → Preferences → "Show video supplements in lessons"
-- Trusted channels: freeCodeCamp, The Net Ninja, Corey Schafer, Kevin Powell, The Cherno, Tim Corey, Let's Get Rusty, Code With Chris, Philipp Lackner, Matt Pocock, Marcus Ng, Hussein Nasser, and more
+</div>
 
-### 🤖 AI Tutor — Bring Your Own Key (BYOK)
-6 providers supported. **No free default** — every user provides their own API key:
+---
 
-| Provider | Models | Free tier |
-|----------|--------|-----------|
-| **Google Gemini** ⭐ | gemini-2.5-flash (rec), gemini-2.5-pro, gemini-2.0-flash | ✅ |
-| **Groq** ⭐ | llama-3.3-70b-versatile (rec), llama-3.1-8b-instant, llama-3.1-70b-versatile | ✅ |
-| **OpenRouter** ⭐ | google/gemini-2.5-flash (rec), openai/gpt-4o, anthropic/claude-sonnet-4, meta-llama/llama-3.3-70b-instruct | Free + Paid |
-| **OpenAI** | gpt-4o-mini (rec), gpt-4o | 💳 |
-| **Anthropic** | claude-sonnet-4-20250514 (rec), claude-3-5-haiku-20241022 | 💳 |
-| **Custom Endpoint** | Any OpenAI-compatible endpoint | — |
+## 📚 Table of Contents
 
-**Deprecated models auto-migrated** on app hydration: gemini-1.5-*, mixtral-8x7b-32768, gemma2-9b-it, gpt-3.5-turbo, gpt-4-turbo, claude-3-5-sonnet-20241022, claude-3-opus-20240229.
+- [✨ Core Features](#-core-features)
+- [🧠 How the AI Personalization Works](#-how-the-ai-personalization-works)
+- [🛠️ Tech Stack](#️-tech-stack)
+- [🚀 Getting Started](#-getting-started)
+- [📖 Course Catalog](#-course-catalog)
+- [📜 Certificates](#-certificates)
+- [🔒 Privacy, By Design](#-100-on-device-privacy)
+- [🗺️ What's Next](#️-whats-next)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
 
-First-time setup screen, **Test Connection** button (sends "Hi" to verify the key), and links to obtain free keys (console.groq.com, aistudio.google.com, openrouter.ai/keys). Multi-conversation history stored on-device. Settings + New Chat + History accessible in BOTH the floating bubble and the full-screen tab.
+---
 
-### 🎯 AI Mock Interview Mode (Section 4 — NEW)
-Inside the AI Tutor, click **🎯 Interview Mode** to start a mock technical interview:
-- Setup screen: career (read-only, from your roadmap), languages (read-only), difficulty (beginner/intermediate/advanced), question count (5/10/15)
-- AI acts as a senior technical interviewer — asks one question at a time, gives 3-5 sentence feedback after each answer
-- At the end: overall score (1-10) and 3 specific areas to study
-- 80+ curated questions in `src/lib/interview-questions.ts` across all 30 technologies, with extra coverage for Svelte, Vue, Angular, Node.js, PostgreSQL, MongoDB
-- Saves session summary to your chat history
-- Free — no other free platform offers this
+## ✨ Core Features
 
-### 🔍 AI Code Review (Section 7 — NEW)
-After marking a project as shipped, click **"Get AI Code Review"** on the project card:
-- Paste your code into the editor
-- AI returns a structured review: Overall Impression, What Works Well (3-5 specifics), Issues Found (with fixes), Suggested Improvements (3 with code), Score (X/10), Encouragement
-- Save review to chat history or copy to clipboard
-- Like having a senior developer review your code — for free
+<details open>
+<summary><strong>🧠 AI-Powered Roadmaps</strong></summary>
+<br>
 
-### 📜 Certificates
-**Per-language certificate:**
-- **Requirement:** Complete all lessons in a track AND average quiz score ≥ 75%
-- Average = (userEarnedMarks / totalPossibleMarks) × 100, where each question = 10 marks, each quiz = 10 questions = 100 marks, totalPossibleMarks = stages × 10 × 10 = 2,000 per track
-- 3 button states: active "Download Certificate" (teal), "Retake Quizzes to Unlock" (amber, shows gap), "Complete all lessons first" (grey)
-- Editable name (prompt before generating), language icon, skills mastered list, Launchpad watermark, deterministic cert ID (`LP-XXXXXXXX`), PDF export via browser print
+Your personalized learning path is generated through a resilient multi-provider AI chain — if one model is down, it quietly falls back to the next, and if everything fails, you can always continue on a deterministic built-in engine instead.
 
-**Career Master Certificate:**
-- **Requirement:** 100% Career Readiness Score (5-dimension formula)
-- Gold accent design, ID prefix `LP-CAREER-XXXXXXXX`
-- Lists all roadmap languages as chips, total estimated hours invested
+```mermaid
+flowchart LR
+    A[Your Profile] --> B{Gemini 2.5 Flash}
+    B -- fails --> C{Groq Llama 3.3 70B}
+    C -- fails --> D{OpenRouter}
+    D -- fails twice --> E[Built-in Engine /<br/>Try Again Choice]
+    B -- success --> F[12-Point Validated Roadmap]
+    C -- success --> F
+    D -- success --> F
+```
 
-**Public Verification Page (Section 3 — NEW):**
-- URL pattern: `/verify/LP-ABC12345`
-- Confirms the ID format is valid
-- Explains Launchpad's privacy-first approach (no central database)
-- Links to the developer portfolio
+- 12-point validation on every AI-generated roadmap (phase counts, lesson references, sequencing, and more)
+- Variable-length roadmaps (4–10 phases) that scale with your goals
+- A dedicated AI-focused bonus phase near the end of every track
+- Every roadmap task links straight into the matching lesson
 
-### 📊 Career Readiness Score (Section 5 — NEW)
-A holistic 0-100% score across 5 dimensions:
-| Dimension | Weight | How calculated |
-|-----------|--------|----------------|
-| Roadmap Progress | 25% | % of roadmap tasks completed |
-| Knowledge (Quizzes) | 25% | Average quiz score across all completed stages |
-| Projects Built | 20% | % of assigned projects marked complete |
-| Daily Challenges | 15% | Streak length + % of total challenges completed |
-| Interview Readiness | 15% | Mock interview sessions completed × average score |
+</details>
 
-If Interview Mode has never been used, its 15% is redistributed equally across the other 4 dimensions. Color thresholds: red (0-40%), amber (41-70%), teal (71-89%), gold with glow (90-100%). At 90%+, a banner encourages applying to jobs. At 100%, Career Master Certificate unlocks.
+<details>
+<summary><strong>📚 Learn Tab — 630 Lessons Across 30 Technologies</strong></summary>
+<br>
 
-### 📄 Resume Auto-Builder (Section 6 — NEW)
-Click **"Build My Resume"** in Career tab to auto-generate a professional resume PDF:
-- Customization modal: name, email, GitHub, LinkedIn, career objective, toggles for quiz scores / badges / branding
-- Auto-populated from your Launchpad data: completed tracks, projects, certificates, quiz scores, streaks, badges
-- PDF via browser print → Save as PDF (no jsPDF dependency needed)
+From Python and JavaScript to Rust, Swift, React, and PostgreSQL — each of the 30 tracks has 20 in-depth stages plus a capstone. Every single stage includes:
 
-### 📤 Shareable Progress Cards (Section 8 — NEW)
-- "Share My Progress" button on Dashboard
-- "Share My Achievements" button on Account → Achievements tab
-- "Share Certificate" appears after earning any certificate
-- Generates a beautiful PNG/PDF card sized for Twitter/X, LinkedIn, Instagram
-- All cards generated client-side using browser print → Save as PDF
+- A "why it matters" framing + prerequisites
+- Multiple worked code examples
+- Common pitfalls & real-world applications
+- Collapsible interview questions
+- A mini project + 10-question quiz with explanations
+- A curated, privacy-respecting YouTube tutorial (youtube-nocookie.com)
 
-### 💬 Community Tab (Section 9 — NEW)
-GitHub Discussions integration via Giscus:
-- **5 sections:** Announcements, Help & Questions, Show & Tell, General Chat, Feature Requests
-- Each section embeds Giscus pointing to a Discussion category
-- Requires a free GitHub account to post
-- **Privacy:** Launchpad progress data is never shared there — it stays on your device
+</details>
 
-### 🔁 Adaptive Quiz Difficulty / Spaced Repetition (Section 10 — NEW)
-- Per-question tracking with SM-2 algorithm
-- Questions you consistently get wrong appear more frequently in future quizzes
-- "Review Mode" option before each quiz: "Take fresh quiz" or "Review difficult questions"
-- "Weak Areas" card on Learn tab shows your top 5 most-missed questions with a "Review Now" button
+<details>
+<summary><strong>✏️ Inline Code Editor — Edit & Run Everywhere</strong></summary>
+<br>
 
-### 📊 How Do Others Learn? (Section 11 — NEW)
-Anonymous benchmark card on Dashboard:
-- Most popular career: Software Engineering (38%)
-- Most popular first language: Python (67%)
-- Average time to complete first phase: 12 days
-- % who complete first certificate: 34%
-- Your stats vs benchmarks (streak percentile, etc.)
-- **Important:** Hardcoded estimates — Launchpad collects ZERO user data
+| Language type | How it runs |
+|---|---|
+| JavaScript / TypeScript | Sandboxed iframe, no `eval`, 5s timeout, network APIs stripped |
+| HTML / CSS | Instant live preview |
+| Python | Pyodide (Python via WebAssembly) |
+| SQL | sql.js in-browser, with DB Fiddle for Postgres-specific features |
+| Bash / Shell | Simulated shell with a fake virtual filesystem |
+| Compiled languages (Java, C++, Go, Rust, etc.) | One-click launch into Replit / OneCompiler / official playgrounds |
+| Frameworks (Svelte, Vue, Angular, Node) | Direct links to official playgrounds / StackBlitz |
 
-### 🚀 Zero to Hero Visual Journey (Section 12 — NEW)
-"View My Journey" button on Dashboard opens a full-screen modal with an animated vertical timeline:
-- Each milestone (started Launchpad, first lesson, first badge, 7-day streak, first certificate, first project shipped, Career Master) is a glowing dot on a teal → violet → amber gradient line
-- Click any milestone for details
-- Summary stats at top: days on Launchpad, lessons completed, projects built
-- "What's next?" button takes you to your roadmap
+</details>
 
-### 🏅 25+ Badges + XP System (Section 13 — ENHANCED)
-- **15 new badges:** Video Scholar, Code Typer, Interview Ready, Spaced Repeater, Resume Builder, Code Reviewed, Career Ready, Community Member, Progress Sharer, Interview Master, Perfect Score, Code Reviewer, Target Locked, Resume Ready, Polyglot Plus
-- **XP system with explicit 10-level curve:**
-  - Level 1: 0–499 XP
-  - Level 2: 500–1,499 XP
-  - Level 3: 1,500–3,499 XP
-  - Level 4: 3,500–7,499 XP
-  - Level 5: 7,500–14,999 XP
-  - Level 6: 15,000–29,999 XP
-  - Level 7: 30,000–59,999 XP
-  - Level 8: 60,000–119,999 XP
-  - Level 9: 120,000–239,999 XP
-  - Level 10: 240,000+ XP (max)
-- XP rewards: lesson +50, quiz pass +30, perfect quiz +60, project +150, daily challenge +25, mock interview +100, badge +75, 7-day streak bonus +200
+<details>
+<summary><strong>🤖 AI Tutor, Mock Interviews & Code Review (Bring Your Own Key)</strong></summary>
+<br>
 
-### 📱 PWA Polish (Section 14 — ENHANCED)
-- **Install prompt** with 7-day dismissal (top-right toast after 18s on page)
-- **Offline banner** — friendly "You're offline" message with list of what still works
-- **Mobile bottom navigation** — fixed bottom bar with 5 most important tabs (Home, Roadmap, Learn, AI, More) — feels like a native app
+No platform-funded AI costs here — you plug in your own free or paid API key (Gemini, Groq, OpenRouter, OpenAI, Anthropic, or any custom OpenAI-compatible endpoint), and unlock:
 
-### 🧩 Multi-Language Code Playground
-- **JavaScript/TypeScript:** runs in-browser via V8 engine
-- **Frameworks & databases:** links to official playgrounds (Svelte REPL, Vue SFC Playground, StackBlitz Angular, DB Fiddle for PostgreSQL, mongoplayground.net for MongoDB, RunKit/StackBlitz for Node.js)
+- 💬 **AI Tutor** — full conversational help, multi-chat history, all stored on-device
+- 🎯 **Mock Interview Mode** — a simulated senior technical interviewer asks questions one at a time, scores you, and tells you exactly what to study next
+- 🔍 **AI Code Review** — paste shipped project code and get a structured review with a score out of 10
 
-### 📅 Daily Challenges — 1,860+ Tasks
-- **60+ tasks per language × 30 languages = 1,860 tasks** (`src/lib/daily-challenges-data-v2.ts`)
-- Pool assigned to each user based on their roadmap languages at onboarding
-- 7 tasks selected per week (deterministic by week-start date), rotating so the same task doesn't repeat for ≥4 weeks
-- Each task: title, description, language tag, difficulty (beginner/intermediate/advanced), hint, reference solution, estimated time, starter code
+</details>
 
-### 📆 Calendar with Recurring Events & Notifications
-- **Frequency options:** one-time, daily, weekly (select weekdays), monthly (day of month)
-- **Time picker** with in-app notifications at the scheduled time
-- **Snooze:** 5 / 10 / 15 / 30 minutes
-- **Notification actions:** Mark done, Delete
-- Browser native notifications (with permission)
+<details>
+<summary><strong>📜 Certificates & Career Readiness</strong></summary>
+<br>
 
-### 🗂️ Projects — 207 with Instructions
-- **Strict language matching:** a project only shows if EVERY required language is in the user's plan
-- **Instructions button** on each project card → full-page step-by-step guide (setup, file structure, core model, feature-by-feature implementation, edge cases, README, test/deploy)
-- Stretch goals, deliverables, project submission (repo URL + notes)
-- 6+ projects per career, range of difficulties
+- **Per-language certificates** unlock once you finish every lesson in a track and hit a 75%+ quiz average
+- **Career Master Certificate** unlocks at a 100% Career Readiness Score — a weighted blend of roadmap progress, quiz performance, projects shipped, daily challenges, and interview practice
+- Every certificate has a public, privacy-respecting verification page at `/verify/LP-XXXXXXXX`
 
-### 🔒 100% On-Device Privacy
-No accounts, no servers, no tracking, no analytics. All data in localStorage.
-- BYOK AI: your API keys never leave your device
-- AI chat history: stored locally only
-- Roadmap generation: only your profile inputs are sent to the AI provider (Gemini/Groq/OpenRouter)
-- Community tab: requires GitHub account, but your Launchpad progress is never shared
+</details>
+
+<details>
+<summary><strong>📄 Resume Builder, Progress Cards & Your Journey</strong></summary>
+<br>
+
+- One-click **resume auto-builder**, populated from your real Launchpad progress, exported as a PDF
+- **Shareable progress cards** for LinkedIn, X, or Instagram
+- A visual **"Zero to Hero" timeline** of every milestone you've hit, start to finish
+
+</details>
+
+<details>
+<summary><strong>🎮 Gamification, Community & Daily Habits</strong></summary>
+<br>
+
+- 25+ badges and a 10-level XP curve that rewards lessons, quizzes, projects, streaks, and interviews
+- **1,860+ daily challenges** across all 30 languages, rotating weekly
+- A built-in **Community tab** (GitHub Discussions via Giscus) — Announcements, Help & Questions, Show & Tell, General Chat, and Feature Requests
+- Calendar with recurring study sessions, reminders, and snooze support
+- Installable as a PWA, with offline support and a mobile-first bottom nav
+
+</details>
+
+---
+
+## 🧠 How the AI Personalization Works
+
+```mermaid
+flowchart TD
+    A[Onboarding: Your Goals & Background] --> B[AI Roadmap Generation]
+    B --> C[Learn Tab: 630 Lessons]
+    B --> D[Daily Challenges Pool]
+    B --> E[Projects: 207 Available]
+    C --> F[Quizzes + Spaced Repetition]
+    E --> G[Ship Project → AI Code Review]
+    F --> H[Career Readiness Score]
+    G --> H
+    D --> H
+    H -->|100%| I[🏆 Career Master Certificate]
+    H -->|per track| J[📜 Language Certificates]
+```
 
 ---
 
 ## 🛠️ Tech Stack
-- **Framework:** Next.js 16 (App Router), TypeScript 5
-- **Styling:** Tailwind CSS 4, shadcn/ui, glass design system
-- **State:** Zustand (client-side, persisted to localStorage)
-- **AI (Roadmap):** Gemini 2.5 Flash → Groq Llama 3.3 70B → OpenRouter fallback chain (server-side, double retry loop)
-- **AI (Chat + Interview + Code Review):** BYOK — Gemini, OpenAI, Anthropic, Groq, OpenRouter, Custom
-- **Code execution:** Sandboxed iframe (JS/TS), Pyodide (Python), sql.js (SQL), simulated (Bash)
-- **Community:** Giscus (GitHub Discussions)
-- **Syntax highlighting:** react-syntax-highlighter (Prism + vscDarkPlus)
-- **Notifications:** sonner (top-right, slide-in, auto-dismiss)
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router) + TypeScript 5 |
+| Styling | Tailwind CSS 4 + shadcn/ui (glass design system) |
+| State | Zustand, persisted to `localStorage` |
+| Roadmap AI | Gemini 2.5 Flash → Groq Llama 3.3 70B → OpenRouter (server-side fallback chain) |
+| Tutor / Interview / Review AI | BYOK — Gemini, OpenAI, Anthropic, Groq, OpenRouter, or custom endpoint |
+| Code Execution | Sandboxed iframe, Pyodide, sql.js, simulated shell |
+| Community | Giscus (GitHub Discussions) |
+| Syntax Highlighting | react-syntax-highlighter (Prism, vscDarkPlus) |
 
 ---
 
 ## 🚀 Getting Started
 
-### Environment Variables
-Create `.env.local` (see `.env.example`):
+**1. Clone & install**
+
+```bash
+git clone https://github.com/dumzvybez/Launchpad.git
+cd Launchpad
+bun install
+```
+
+**2. Set up environment variables** — create `.env.local`:
 
 ```env
-# Roadmap Generation (server-side only — never exposed to client)
+# Server-side only — used for roadmap generation, never exposed to the client
 GEMINI_API_KEY=your_key
 GROQ_API_KEY=your_key
 OPENROUTER_API_KEY=your_key
 ```
 
-Get free keys:
-- **Gemini:** https://aistudio.google.com
-- **Groq:** https://console.groq.com
-- **OpenRouter:** https://openrouter.ai/keys
+Free keys: [Gemini](https://aistudio.google.com) · [Groq](https://console.groq.com) · [OpenRouter](https://openrouter.ai/keys)
 
-If all 3 keys are missing or all 3 providers fail twice, the user sees a choice screen — "Continue with built-in engine" or "Try Again".
+> If all three keys are missing or every provider fails twice, you'll get a clean fallback screen — continue on the built-in engine or try again.
 
-### Install
+**3. Run it**
+
 ```bash
-git clone https://github.com/dumzvybez/Launchpad.git
-cd Launchpad
-bun install
 bun run dev
 ```
 
-Open http://localhost:3000
+Then open **http://localhost:3000** 🎉
 
 ---
 
 ## 📖 Course Catalog
 
-All 30 technologies × 21 lessons (20 stages + 1 capstone) = **630 lessons** · **6,000 quiz questions** · **30 capstone project guides** · **600 YouTube tutorial embeds**.
+30 technologies × 21 lessons (20 stages + capstone) = **630 lessons total.**
 
-Each technology track is 50–200 hours of estimated learning time (beginner to advanced). Curriculum source: `launchpad_database_v3.txt` (the canonical database).
+<div align="center">
+
+| | | | |
+|---|---|---|---|
+| Python | JavaScript | TypeScript | HTML |
+| CSS | SQL | Java | C |
+| C++ | C# | Go | Rust |
+| Swift | Kotlin | PHP | Ruby |
+| R | Dart | Bash | React |
+| Next.js | Django | FastAPI | Flask |
+| Svelte | Vue | Angular | Node.js |
+| PostgreSQL | MongoDB | | |
+
+</div>
+
+Each track represents roughly **50–200 hours** of learning time, beginner to advanced.
 
 ---
 
-## 📜 Certificate Types
+## 📜 Certificates
 
-### Per-Language Certificate
-- **Requirement:** Complete all 21 lessons in a track + 75%+ average quiz score
-- **Format:** Printable PDF (browser print → Save as PDF), landscape, Georgia serif font
-- **Features:** Editable name, language icon, skills mastered list, Launchpad watermark, deterministic cert ID (`LP-XXXXXXXX`), actual lesson + quiz counts
-- **Verification:** Public URL at `/verify/LP-XXXXXXXX` confirms ID format is valid
+| | Per-Language Certificate | Career Master Certificate |
+|---|---|---|
+| **Unlocks when** | All lessons in a track complete + 75%+ quiz average | 100% Career Readiness Score |
+| **Format** | Landscape PDF, deterministic ID (`LP-XXXXXXXX`) | Gold-accented PDF, ID prefix `LP-CAREER-XXXXXXXX` |
+| **Verification** | Public page at `/verify/LP-XXXXXXXX` | Same verification system |
 
-### Career Master Certificate
-- **Requirement:** 100% Career Readiness Score (5 dimensions: roadmap 25% + quizzes 25% + projects 20% + challenges 15% + interviews 15%)
-- **Format:** Printable PDF with gold accent design (amber gradient border, gold seal)
-- **Features:** Lists all roadmap languages as chips, total estimated hours invested, ID prefix `LP-CAREER-XXXXXXXX`
+---
+
+## 🔒 100% On-Device Privacy
+
+No accounts. No servers storing your data. No analytics. Everything lives in your browser's `localStorage`.
+
+- Your AI API keys never leave your device
+- Chat history with the AI Tutor stays local
+- Roadmap generation sends only your stated goals to the AI provider — nothing else
+- The Community tab requires a GitHub account to post, but your Launchpad progress is **never** shared there
+
+---
+
+## 🗺️ What's Next
+
+This is a living project — here's what's actively being worked on or considered:
+
+- Full spaced-repetition (SM-2) wiring across the quiz system
+- A heavier Monaco-based code editor as an optional upgrade
+- More in-browser SQL execution coverage
+- Continued UI/UX polish across Notes & Calendar tabs
+- Whatever the community asks for next 👇
+
+Got an idea? Head to [Feature Requests](https://github.com/dumzvybez/Launchpad/discussions) — this roadmap is shaped by real feedback, not guesses.
 
 ---
 
 ## 🤝 Contributing
 
-Pull requests welcome at https://github.com/dumzvybez/Launchpad
+Pull requests, issues, and ideas are all welcome.
 
-Developer portfolio: https://duminduwanasinghe-dev.vercel.app/
+- **Repo:** [github.com/dumzvybez/Launchpad](https://github.com/dumzvybez/Launchpad)
+- **Discussions:** [Share feedback, report bugs, request features](https://github.com/dumzvybez/Launchpad/discussions)
+- **Developer:** Dumindu Dulara Wanasinghe — [Portfolio](https://duminduwanasinghe-dev.vercel.app/)
 
 ---
 
 ## 📄 License
+
 MIT — free for personal and commercial use.
+
+<div align="center">
+
+**Built solo, built free, built for everyone learning to code.** 💙
+
+</div>

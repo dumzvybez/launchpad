@@ -16,6 +16,7 @@ import {
   Target,
   ListChecks,
   Upload,
+  X,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { GlassCard, GlassButton, GlassPill, ProgressBar } from "@/components/glass/GlassPrimitives";
@@ -568,8 +569,7 @@ function CodeReviewModal({
 }) {
   const aiSettings = useStore((s) => s.state.aiSettings);
   const addChatMessage = useStore((s) => s.addChatMessage);
-  const createChat = useStore((s) => s.createChat);
-  const conversations = useStore((s) => s.state.chatConversations);
+  const createChatConversation = useStore((s) => s.createChatConversation);
   const setActiveChat = useStore((s) => s.setActiveChat);
   const setView = useStore((s) => s.setView);
   const setAiTutorOpen = useStore((s) => s.setAiTutorOpen);
@@ -648,18 +648,14 @@ Use code blocks for all code examples.`;
 
   const handleSaveToChat = () => {
     if (!review) return;
-    const chatId = createChat();
+    const chatId = createChatConversation();
     addChatMessage(chatId, {
-      id: `msg-${Date.now()}`,
       role: "user",
       content: `Code review for **${project.title}**:\n\n\`\`\`${primaryLang}\n${code}\n\`\`\``,
-      timestamp: new Date().toISOString(),
     });
     addChatMessage(chatId, {
-      id: `msg-${Date.now()}-review`,
       role: "assistant",
       content: review,
-      timestamp: new Date().toISOString(),
       provider: aiSettings.provider,
     });
     setActiveChat(chatId);
@@ -719,7 +715,7 @@ Use code blocks for all code examples.`;
                   className="w-full mt-1 px-3 py-2 rounded-md bg-foreground/5 border border-border/60 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
                 <div className="text-[10px] text-muted-foreground mt-1">
-                  Tip: Include all relevant files separated by comments like <code className="font-mono">// file: app.js</code>
+                  {"Tip: Include all relevant files separated by comments like "}<code className="font-mono">{"// file: app.js"}</code>
                 </div>
               </div>
 

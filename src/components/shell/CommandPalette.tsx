@@ -268,7 +268,7 @@ export function CommandPalette() {
                   <div className="flex-1 min-w-0">
                     <div className="truncate text-sm">{p.title}</div>
                     <div className="text-[10px] text-muted-foreground">
-                      {p.phaseTitle} · {p.tier}
+                      {p.technologies.length} language{p.technologies.length !== 1 ? "s" : ""}
                     </div>
                   </div>
                   <ExternalLink className="h-3 w-3 text-muted-foreground" />

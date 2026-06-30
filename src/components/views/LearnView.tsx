@@ -248,7 +248,7 @@ export function LearnView() {
             <Trophy className="h-5 w-5 text-amber-500" />
             <div>
               <div className="text-xs font-semibold text-amber-600 dark:text-amber-400">Capstone Project · Full Project Guide</div>
-              <p className="text-[10px] text-muted-foreground">This is the capstone for the {trackName} track. Build it end-to-end and submit your repo.</p>
+              <p className="text-[10px] text-muted-foreground">This is the capstone for the {ALL_LANGUAGE_INFO[track]?.name ?? track} track. Build it end-to-end and submit your repo.</p>
             </div>
           </div>
         )}

@@ -46,7 +46,7 @@ const EXAMPLES: Record<Lang, { name: string; code: string }[]> = {
     { name: "List Comprehension", code: `squares = [x**2 for x in range(10)]\nprint(squares)\nprint("Sum:", sum(squares))` },
     { name: "Fibonacci", code: `def fib(n):\n    if n < 2:\n        return n\n    return fib(n-1) + fib(n-2)\n\nfor i in range(10):\n    print(f"fib({i}) = {fib(i)}")` },
     { name: "Classes", code: `class Animal:\n    def __init__(self, name):\n        self.name = name\n    def speak(self):\n        return f"{self.name} makes a sound"\n\nclass Dog(Animal):\n    def speak(self):\n        return f"{self.name} barks!"\n\nbuddy = Dog("Buddy")\nprint(buddy.speak())` },
-    { name: "Dictionary", code: `prices = {"apple": 0.50, "banana": 0.25, "cherry": 2.00}\n\ntotal = sum(prices.values())\nprint(f"Total: ${total:.2f}")\nprint(f"Items: {len(prices)}")\nfor fruit, price in sorted(prices.items()):\n    print(f"  {fruit}: ${price:.2f}")` },
+    { name: "Dictionary", code: `prices = {"apple": 0.50, "banana": 0.25, "cherry": 2.00}\n\ntotal = sum(prices.values())\nprint(f"Total: \${total:.2f}")\nprint(f"Items: {len(prices)}")\nfor fruit, price in sorted(prices.items()):\n    print(f"  {fruit}: \${price:.2f}")` },
   ],
   html: [
     { name: "Basic Page", code: `<!DOCTYPE html>\n<html>\n<head>\n  <title>Hello</title>\n</head>\n<body>\n  <h1 style="color: teal;">Hello, Launchpad!</h1>\n  <p>This is a live HTML preview.</p>\n</body>\n</html>` },
