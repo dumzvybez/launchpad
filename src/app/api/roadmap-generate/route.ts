@@ -278,10 +278,64 @@ async function callOpenRouter(prompt: string): Promise<unknown> {
 }
 
 // ============================================================
+// Simple in-memory rate limiter — protects the deployer's AI quota
+// from public abuse. 5 roadmap generations per IP per hour.
+// (Production deployments should swap this for a Redis-backed limiter
+//  shared across all instances.)
+// ============================================================
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const RATE_LIMIT_MAX = 5; // 5 generations / hour / IP
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(ip: string): { ok: boolean; remaining: number; resetIn: number } {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || entry.resetAt < now) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return { ok: true, remaining: RATE_LIMIT_MAX - 1, resetIn: RATE_LIMIT_WINDOW_MS };
+  }
+  if (entry.count >= RATE_LIMIT_MAX) {
+    return { ok: false, remaining: 0, resetIn: entry.resetAt - now };
+  }
+  entry.count++;
+  return { ok: true, remaining: RATE_LIMIT_MAX - entry.count, resetIn: entry.resetAt - now };
+}
+
+// Periodically evict expired entries to prevent memory leak
+if (typeof setInterval !== "undefined") {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [k, v] of rateLimitMap) {
+      if (v.resetAt < now) rateLimitMap.delete(k);
+    }
+  }, 5 * 60 * 1000).unref?.();
+}
+
+// ============================================================
 // POST handler — runs the 3-provider fallback chain
 // ============================================================
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit by client IP
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      req.headers.get("x-real-ip") ??
+      "unknown";
+    const rl = checkRateLimit(ip);
+    if (!rl.ok) {
+      return NextResponse.json(
+        {
+          error: `Rate limit exceeded. You can generate up to ${RATE_LIMIT_MAX} roadmaps per hour. Try again in ${Math.ceil(rl.resetIn / 60_000)} minutes.`,
+          rateLimited: true,
+          retryAfterSeconds: Math.ceil(rl.resetIn / 1000),
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(Math.ceil(rl.resetIn / 1000)) },
+        },
+      );
+    }
+
     const body = await req.json();
     const { input, issues, previousRoadmap }: {
       input: PersonalizationInput;
@@ -291,6 +345,18 @@ export async function POST(req: NextRequest) {
 
     if (!input || !input.careerId) {
       return NextResponse.json({ error: "input with careerId is required" }, { status: 400 });
+    }
+
+    // Cap the size of previousRoadmap to prevent oversized payloads from
+    // being forwarded to the AI provider (DoS / cost protection).
+    if (previousRoadmap) {
+      const size = JSON.stringify(previousRoadmap).length;
+      if (size > 100_000) {
+        return NextResponse.json(
+          { error: `previousRoadmap payload too large (${size} bytes, max 100KB)` },
+          { status: 413 },
+        );
+      }
     }
 
     // Build rich context for the AI

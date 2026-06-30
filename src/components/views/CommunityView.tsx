@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Megaphone,
   HelpCircle,
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { GlassCard } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
+import { useTheme } from "next-themes";
 
 /**
  * CommunityView — GitHub Discussions integration via Giscus.
@@ -101,12 +102,14 @@ const GISCUS_REPO_ID = "R_kgDOTGGynw";
 export function CommunityView() {
   const [activeSection, setActiveSection] = useState<SectionId>("announcements");
   const [reloadKey, setReloadKey] = useState(0);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
   const giscusContainerRef = useRef<HTMLDivElement>(null);
+  const { resolvedTheme } = useTheme();
 
   const section = SECTIONS.find((s) => s.id === activeSection)!;
 
-  // Inject/re-inject Giscus script when section changes or reload is requested
-  useEffect(() => {
+  // Inject/re-inject Giscus script when section changes, theme changes, or reload is requested
+  const injectGiscus = useCallback(() => {
     if (!giscusContainerRef.current) return;
     // Clear previous Giscus iframe
     giscusContainerRef.current.innerHTML = "";
@@ -125,12 +128,58 @@ export function CommunityView() {
     script.setAttribute("data-reactions-enabled", "1");
     script.setAttribute("data-emit-metadata", "0");
     script.setAttribute("data-input-position", "bottom");
-    script.setAttribute("data-theme", "preferred_color_scheme");
+    // Sync Giscus theme with the app's theme (dark/light) instead of always
+    // using "preferred_color_scheme".
+    script.setAttribute("data-theme", resolvedTheme === "light" ? "light" : "dark");
     script.setAttribute("data-lang", "en");
     script.setAttribute("loading", "lazy");
 
     giscusContainerRef.current.appendChild(script);
-  }, [activeSection, section, reloadKey]);
+    setLastRefreshedAt(new Date());
+  }, [section, resolvedTheme]);
+
+  useEffect(() => {
+    injectGiscus();
+  }, [injectGiscus, reloadKey]);
+
+  // Auto-refresh: re-inject Giscus every 60 seconds while the tab is visible,
+  // so users see new comments without having to click Reload. Pauses when the
+  // tab is hidden (saves bandwidth + Giscus API quota).
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval> | null = null;
+    const start = () => {
+      if (timer) return;
+      timer = setInterval(() => {
+        if (document.visibilityState === "visible") {
+          setReloadKey((k) => k + 1);
+        }
+      }, 60_000); // 60 seconds
+    };
+    const stop = () => {
+      if (timer) { clearInterval(timer); timer = null; }
+    };
+    start();
+    document.addEventListener("visibilitychange", start);
+    document.addEventListener("visibilitychange", stop);
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", start);
+      document.removeEventListener("visibilitychange", stop);
+    };
+  }, []);
+
+  // Listen for Giscus iframe messages so we can update the "last refreshed"
+  // timestamp when new comments are posted without a full reload.
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.origin !== "https://giscus.app") return;
+      if (e.data?.giscus?.discussion) {
+        setLastRefreshedAt(new Date());
+      }
+    };
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -159,6 +208,20 @@ export function CommunityView() {
             <Github className="h-3.5 w-3.5" /> Open on GitHub
           </a>
         </div>
+      </div>
+
+      {/* Auto-refresh status line */}
+      <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 -mt-2">
+        <span className="relative flex h-1.5 w-1.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+        </span>
+        Auto-refreshes every 60s while this tab is visible
+        {lastRefreshedAt && (
+          <span className="text-muted-foreground/70">
+            · last updated {lastRefreshedAt.toLocaleTimeString()}
+          </span>
+        )}
       </div>
 
       {/* Section tabs — horizontal scroll on mobile, wraps on desktop */}

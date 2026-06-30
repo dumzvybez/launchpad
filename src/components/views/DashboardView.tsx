@@ -22,6 +22,7 @@ import { GlassCard, GlassButton, ProgressBar, ProgressRing } from "@/components/
 import { cn } from "@/lib/utils";
 import { LANGUAGE_MAP, CAREER_MAP } from "@/lib/career-data";
 import { getTodayChallenge } from "@/lib/daily-challenges-data";
+import { openPrintableHtml, copyHtmlAsPng, downloadHtmlAsPng } from "@/lib/print-utils";
 
 export function DashboardView() {
   const state = useStore((s) => s.state);
@@ -578,7 +579,11 @@ function JourneyTimelineModal({ onClose }: { onClose: () => void }) {
 
 // ============================================================
 // ShareProgressCardModal — Section 8: Shareable Progress Card
-// Uses browser print to PDF instead of html2canvas (lighter, no extra dep)
+// Provides 3 export options:
+//   - Download PNG (instant rasterized image)
+//   - Copy to Clipboard (PNG via Clipboard API)
+//   - Open Printable Page (browser Print → Save as PDF)
+// No auto-print — user picks the option they want.
 // ============================================================
 function ShareProgressCardModal({ onClose }: { onClose: () => void }) {
   const state = useStore((s) => s.state);
@@ -588,225 +593,91 @@ function ShareProgressCardModal({ onClose }: { onClose: () => void }) {
   const streak = state.streak.current;
   const badgesCount = state.badges.filter((b) => b.unlockedAt).length;
   const careerLabel = roadmap?.careerLabel ?? "Developer";
+  const [busy, setBusy] = useState<null | "png" | "clipboard" | "pdf">(null);
+  const [status, setStatus] = useState<{ ok: boolean; msg: string } | null>(null);
 
-  // Build language chips
-  const langChips = (roadmap?.languageIds ?? []).slice(0, 5).map((id) => {
-    const lang = LANGUAGE_MAP[id];
-    return `${lang?.icon ?? "📘"} ${lang?.name ?? id} ✅`;
-  }).join(" · ");
+  // Build the inner HTML for the share card (without <html>/<head>/<body>
+  // wrappers — so we can reuse it both for the printable page and the
+  // PNG rasterizer).
+  const cardInnerHtml = buildShareCardInnerHtml({
+    name: profile.name || "Learner",
+    careerLabel,
+    overallPct: overall.pct,
+    overallCompleted: overall.completed,
+    overallTotal: overall.total,
+    streak,
+    badgesCount,
+    languageIds: roadmap?.languageIds ?? [],
+  });
 
-  const handleDownloadPNG = () => {
-    // Open a new window with the share card HTML, centered and print-optimized.
-    // Card is sized 1200x675 (16:9, perfect for social media).
-    const html = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>Launchpad Progress — ${profile.name || "Learner"}</title>
-  <style>
-    /* Print: card fills the page */
-    @page { size: 1200px 675px; margin: 0; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      width: 100%; min-height: 100vh;
-      background: #0a0a0a;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      display: flex; align-items: center; justify-content: center;
-      padding: 20px;
-    }
-    .card {
-      width: 1200px; height: 675px;
-      background:
-        radial-gradient(circle at 15% 20%, rgba(45, 212, 191, 0.18) 0%, transparent 40%),
-        radial-gradient(circle at 85% 75%, rgba(232, 121, 249, 0.15) 0%, transparent 45%),
-        radial-gradient(circle at 50% 50%, rgba(252, 211, 77, 0.06) 0%, transparent 60%),
-        linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #312E81 100%);
-      color: white;
-      padding: 56px 64px;
-      position: relative;
-      overflow: hidden;
-      border-radius: 16px;
-      box-shadow: 0 25px 80px rgba(0,0,0,0.5);
-      display: flex; flex-direction: column;
-    }
-    /* Decorative grid pattern overlay */
-    .card::before {
-      content: ""; position: absolute; inset: 0;
-      background-image:
-        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none;
-    }
-    .header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 28px;
-      position: relative; z-index: 1;
-    }
-    .brand { display: flex; align-items: center; gap: 14px; }
-    .brand-logo {
-      width: 48px; height: 48px;
-      background: linear-gradient(135deg, #2DD4BF 0%, #E879F9 50%, #FCD34D 100%);
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 26px;
-      box-shadow: 0 8px 24px rgba(45, 212, 191, 0.3);
-    }
-    .brand-text {
-      font-size: 32px; font-weight: 800; letter-spacing: -1px;
-      background: linear-gradient(135deg, #2DD4BF 0%, #E879F9 50%, #FCD34D 100%);
-      -webkit-background-clip: text; background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .user-block { text-align: right; }
-    .user-name { font-size: 18px; font-weight: 600; opacity: 0.95; }
-    .user-meta { font-size: 12px; opacity: 0.6; margin-top: 2px; }
-    .divider {
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-      margin: 0 0 28px;
-      position: relative; z-index: 1;
-    }
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px 32px;
-      position: relative; z-index: 1;
-      flex: 1;
-    }
-    .stat { display: flex; flex-direction: column; gap: 6px; }
-    .stat-label {
-      font-size: 11px; opacity: 0.55;
-      text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;
-    }
-    .stat-value { font-size: 22px; font-weight: 700; line-height: 1.1; }
-    .stat-value .accent { color: #2DD4BF; }
-    .stat-value .accent-2 { color: #E879F9; }
-    .stat-value .accent-3 { color: #FCD34D; }
-    .progress-row { display: flex; align-items: center; gap: 12px; }
-    .progress-bar {
-      flex: 1; height: 10px; background: rgba(255,255,255,0.08);
-      border-radius: 5px; overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #2DD4BF 0%, #E879F9 100%);
-      border-radius: 5px;
-      box-shadow: 0 0 16px rgba(45, 212, 191, 0.5);
-    }
-    .progress-pct { font-size: 22px; font-weight: 700; min-width: 70px; }
-    .lang-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
-    .lang-chip {
-      font-size: 12px; padding: 4px 10px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 14px;
-      font-weight: 500;
-    }
-    .footer {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-top: 24px;
-      padding-top: 20px;
-      border-top: 1px solid rgba(255,255,255,0.06);
-      position: relative; z-index: 1;
-    }
-    .tagline {
-      font-size: 14px; opacity: 0.7;
-      font-style: italic;
-    }
-    .url {
-      font-size: 12px; opacity: 0.5;
-      font-family: 'JetBrains Mono', monospace;
-      letter-spacing: 0.5px;
-    }
-    /* On screen, hide everything except the card */
-    @media screen {
-      body { background: #0a0a0a; }
-    }
-    /* On print, only the card shows */
-    @media print {
-      body { background: white; padding: 0; }
-      .card { box-shadow: none; border-radius: 0; }
-    }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="header">
-      <div class="brand">
-        <div class="brand-logo">🚀</div>
-        <div class="brand-text">Launchpad</div>
-      </div>
-      <div class="user-block">
-        <div class="user-name">${profile.name || "Learner"}</div>
-        <div class="user-meta">${careerLabel}</div>
-      </div>
-    </div>
-    <div class="divider"></div>
-    <div class="stats-grid">
-      <div class="stat">
-        <div class="stat-label">Roadmap Progress</div>
-        <div class="progress-row">
-          <div class="progress-bar"><div class="progress-fill" style="width: ${overall.pct}%"></div></div>
-          <div class="progress-pct"><span class="accent">${overall.pct}%</span></div>
-        </div>
-      </div>
-      <div class="stat">
-        <div class="stat-label">Daily Streak</div>
-        <div class="stat-value">🔥 <span class="accent-2">${streak}</span> days</div>
-      </div>
-      <div class="stat">
-        <div class="stat-label">Badges Earned</div>
-        <div class="stat-value">🏆 <span class="accent-3">${badgesCount}</span></div>
-      </div>
-      <div class="stat">
-        <div class="stat-label">Tasks Completed</div>
-        <div class="stat-value">✅ <span class="accent">${overall.completed}</span> <span style="opacity:0.5; font-size:14px;">/ ${overall.total}</span></div>
-      </div>
-      <div class="stat" style="grid-column: 1 / -1;">
-        <div class="stat-label">Languages in Plan</div>
-        <div class="lang-chips">
-          ${(roadmap?.languageIds ?? []).slice(0, 6).map(id => {
-            const lang = LANGUAGE_MAP[id];
-            return `<span class="lang-chip">${lang?.icon ?? "📘"} ${lang?.name ?? id}</span>`;
-          }).join("")}
-        </div>
-      </div>
-    </div>
-    <div class="footer">
-      <div class="tagline">Learning. Building. Growing.</div>
-      <div class="url">launchpad--pi.vercel.app</div>
-    </div>
-  </div>
-  <script>
-    window.onload = () => { setTimeout(() => window.print(), 400); };
-  </script>
-</body>
-</html>`;
-    const w = window.open("", "_blank", "width=1280,height=800");
-    if (w) {
-      w.document.write(html);
-      w.document.close();
-    }
-    // Track for badge
+  const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8" /><title>Launchpad Progress — ${profile.name || "Learner"}</title>
+<style>${SHARE_CARD_CSS}</style></head><body>${cardInnerHtml}</body></html>`;
+
+  const handlePng = async () => {
+    setBusy("png"); setStatus(null);
+    const r = await downloadHtmlAsPng(cardInnerHtml, `launchpad-progress-${(profile.name || "learner").replace(/\s+/g, "-").toLowerCase()}`, { width: 1200, height: 675 });
+    setBusy(null);
+    setStatus({ ok: r.ok, msg: r.ok ? "PNG downloaded." : `Failed: ${r.error}` });
+    if (r.ok) markShared();
+  };
+
+  const handleCopyClipboard = async () => {
+    setBusy("clipboard"); setStatus(null);
+    const r = await copyHtmlAsPng(cardInnerHtml, { width: 1200, height: 675 });
+    setBusy(null);
+    setStatus({
+      ok: r.ok,
+      msg: r.ok
+        ? "Image copied to clipboard. Paste into your post (Ctrl/⌘+V)."
+        : `Clipboard unavailable: ${r.error}`,
+    });
+    if (r.ok) markShared();
+  };
+
+  const handlePdf = () => {
+    setBusy("pdf");
+    const ok = openPrintableHtml(fullHtml, {
+      filename: `launchpad-progress-${(profile.name || "learner").replace(/\s+/g, "-").toLowerCase()}`,
+      title: "Launchpad Progress Card",
+    });
+    setBusy(null);
+    setStatus({
+      ok,
+      msg: ok
+        ? "Opened in a new tab — click Download Now to save as PDF."
+        : "Popup blocked — downloaded the HTML file instead. Open it locally to print.",
+    });
+    markShared();
+  };
+
+  const markShared = () => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem("launchpad:progress-shared", "1");
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="max-w-md w-full bg-card rounded-xl shadow-2xl p-5" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-hidden"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="share-card-title"
+    >
+      <div
+        className="max-w-md w-full bg-card rounded-xl shadow-2xl p-5 overflow-hidden border border-border/60"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold">📤 Share My Progress</h3>
-          <button onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground">✕</button>
+          <h3 id="share-card-title" className="text-sm font-semibold">📤 Share My Progress</h3>
+          <button onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground p-1 rounded" aria-label="Close">✕</button>
         </div>
-        <p className="text-xs text-muted-foreground mb-4">
-          Generate a beautiful shareable card for Twitter/X, LinkedIn, or Instagram. Uses your browser&apos;s Print dialog → Save as PDF (or screenshot).
+        <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+          Generate a beautiful 1200×675 shareable card for Twitter/X, LinkedIn, or Instagram. Pick the format you need:
         </p>
 
         {/* Card preview (mini) */}
-        <div className="rounded-lg p-4 mb-4 text-white text-xs" style={{ background: "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #312E81 100%)" }}>
+        <div className="rounded-lg p-4 mb-4 text-white text-xs overflow-hidden" style={{ background: "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #312E81 100%)" }}>
           <div className="flex items-center justify-between mb-2">
             <div className="font-bold text-sm bg-gradient-to-r from-teal-400 via-fuchsia-400 to-amber-300 bg-clip-text text-transparent">🚀 Launchpad</div>
             <div className="opacity-70 text-[10px]">{profile.name || "Learner"}</div>
@@ -817,14 +688,172 @@ function ShareProgressCardModal({ onClose }: { onClose: () => void }) {
           <div className="opacity-40 text-[9px] font-mono mt-1">launchpad--pi.vercel.app</div>
         </div>
 
-        <GlassButton variant="primary" className="w-full" onClick={handleDownloadPNG}>
-          <Share2 className="h-3.5 w-3.5" /> Generate Card (Print to PDF)
-        </GlassButton>
-        <p className="text-[10px] text-muted-foreground text-center mt-2">
-          A new window opens with the card. Use your browser&apos;s &quot;Save as PDF&quot; or screenshot tool.
+        {/* 3 export buttons */}
+        <div className="space-y-2">
+          <GlassButton variant="primary" className="w-full justify-center" onClick={handlePng} disabled={busy !== null}>
+            <Share2 className="h-3.5 w-3.5" /> {busy === "png" ? "Rendering PNG…" : "Download as PNG image"}
+          </GlassButton>
+          <GlassButton variant="ghost" className="w-full justify-center" onClick={handleCopyClipboard} disabled={busy !== null}>
+            <Share2 className="h-3.5 w-3.5" /> {busy === "clipboard" ? "Copying…" : "Copy to clipboard (PNG)"}
+          </GlassButton>
+          <GlassButton variant="ghost" className="w-full justify-center" onClick={handlePdf} disabled={busy !== null}>
+            <Share2 className="h-3.5 w-3.5" /> {busy === "pdf" ? "Opening…" : "Open printable page (Save as PDF)"}
+          </GlassButton>
+        </div>
+
+        {status && (
+          <div className={cn(
+            "mt-3 rounded-md p-2 text-xs",
+            status.ok ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
+                      : "bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30",
+          )} role="status">
+            {status.ok ? "✅ " : "⚠️ "}{status.msg}
+          </div>
+        )}
+
+        <p className="text-[10px] text-muted-foreground text-center mt-3">
+          PNG / clipboard best for social posts. PDF best for keeping a record.
         </p>
       </div>
     </div>
+  );
+}
+
+// Shared CSS for the share card (used by both PNG rasterizer and printable page)
+const SHARE_CARD_CSS = `
+  @page { size: 1200px 675px; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; min-height: 100vh;
+    background: #0a0a0a;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .card {
+    width: 1200px; height: 675px;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(45, 212, 191, 0.18) 0%, transparent 40%),
+      radial-gradient(circle at 85% 75%, rgba(232, 121, 249, 0.15) 0%, transparent 45%),
+      radial-gradient(circle at 50% 50%, rgba(252, 211, 77, 0.06) 0%, transparent 60%),
+      linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #312E81 100%);
+    color: white;
+    padding: 56px 64px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    box-shadow: 0 25px 80px rgba(0,0,0,0.5);
+    display: flex; flex-direction: column;
+  }
+  .card::before {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; position: relative; z-index: 1; }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-logo {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, #2DD4BF 0%, #E879F9 50%, #FCD34D 100%);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    box-shadow: 0 8px 24px rgba(45, 212, 191, 0.3);
+  }
+  .brand-text {
+    font-size: 32px; font-weight: 800; letter-spacing: -1px;
+    background: linear-gradient(135deg, #2DD4BF 0%, #E879F9 50%, #FCD34D 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .user-block { text-align: right; }
+  .user-name { font-size: 18px; font-weight: 600; opacity: 0.95; }
+  .user-meta { font-size: 12px; opacity: 0.6; margin-top: 2px; }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent); margin: 0 0 28px; position: relative; z-index: 1; }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 32px; position: relative; z-index: 1; flex: 1; }
+  .stat { display: flex; flex-direction: column; gap: 6px; }
+  .stat-label { font-size: 11px; opacity: 0.55; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; }
+  .stat-value { font-size: 22px; font-weight: 700; line-height: 1.1; }
+  .stat-value .accent { color: #2DD4BF; }
+  .stat-value .accent-2 { color: #E879F9; }
+  .stat-value .accent-3 { color: #FCD34D; }
+  .progress-row { display: flex; align-items: center; gap: 12px; }
+  .progress-bar { flex: 1; height: 10px; background: rgba(255,255,255,0.08); border-radius: 5px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #2DD4BF 0%, #E879F9 100%); border-radius: 5px; box-shadow: 0 0 16px rgba(45, 212, 191, 0.5); }
+  .progress-pct { font-size: 22px; font-weight: 700; min-width: 70px; }
+  .lang-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+  .lang-chip { font-size: 12px; padding: 4px 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; font-weight: 500; }
+  .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.06); position: relative; z-index: 1; }
+  .tagline { font-size: 14px; opacity: 0.7; font-style: italic; }
+  .url { font-size: 12px; opacity: 0.5; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px; }
+  @media screen { body { background: #0a0a0a; } }
+  @media print { body { background: white; padding: 0; } .card { box-shadow: none; border-radius: 0; } }
+`;
+
+function buildShareCardInnerHtml(opts: {
+  name: string;
+  careerLabel: string;
+  overallPct: number;
+  overallCompleted: number;
+  overallTotal: number;
+  streak: number;
+  badgesCount: number;
+  languageIds: string[];
+}): string {
+  const langChipsHtml = opts.languageIds.slice(0, 6).map(id => {
+    const lang = LANGUAGE_MAP[id];
+    return `<span class="lang-chip">${lang?.icon ?? "📘"} ${lang?.name ?? id}</span>`;
+  }).join("");
+  return `<div class="card">
+    <div class="header">
+      <div class="brand">
+        <div class="brand-logo">🚀</div>
+        <div class="brand-text">Launchpad</div>
+      </div>
+      <div class="user-block">
+        <div class="user-name">${escapeHtmlAttr(opts.name)}</div>
+        <div class="user-meta">${escapeHtmlAttr(opts.careerLabel)}</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="stats-grid">
+      <div class="stat">
+        <div class="stat-label">Roadmap Progress</div>
+        <div class="progress-row">
+          <div class="progress-bar"><div class="progress-fill" style="width: ${opts.overallPct}%"></div></div>
+          <div class="progress-pct"><span class="accent">${opts.overallPct}%</span></div>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Daily Streak</div>
+        <div class="stat-value">🔥 <span class="accent-2">${opts.streak}</span> days</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Badges Earned</div>
+        <div class="stat-value">🏆 <span class="accent-3">${opts.badgesCount}</span></div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Tasks Completed</div>
+        <div class="stat-value">✅ <span class="accent">${opts.overallCompleted}</span> <span style="opacity:0.5; font-size:14px;">/ ${opts.overallTotal}</span></div>
+      </div>
+      <div class="stat" style="grid-column: 1 / -1;">
+        <div class="stat-label">Languages in Plan</div>
+        <div class="lang-chips">${langChipsHtml}</div>
+      </div>
+    </div>
+    <div class="footer">
+      <div class="tagline">Learning. Building. Growing.</div>
+      <div class="url">launchpad--pi.vercel.app</div>
+    </div>
+  </div>`;
+}
+
+function escapeHtmlAttr(s: string): string {
+  return s.replace(/[&<>"']/g, (c) =>
+    c === "&" ? "&amp;" : c === "<" ? "&lt;" : c === ">" ? "&gt;" : c === '"' ? "&quot;" : "&#39;",
   );
 }
 

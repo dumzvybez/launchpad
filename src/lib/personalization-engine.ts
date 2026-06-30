@@ -1324,7 +1324,11 @@ export function generateRoadmap(input: PersonalizationInput): GeneratedRoadmap {
   const career = CAREER_MAP[input.careerId];
 
   // Generate phases — the count varies based on profile complexity.
+  // Phase 0 is always the VS Code Setup phase (installs, extensions, theme,
+  // shortcuts, official tutorial video). All subsequent phases get bumped
+  // by one in numbering.
   const phases: GeneratedPhase[] = [
+    genVSCodeSetupPhase(input, 1),
     genPhase1(input, timeline),
     genPhase2(input),
     genPhase3(input),
@@ -1332,12 +1336,13 @@ export function generateRoadmap(input: PersonalizationInput): GeneratedRoadmap {
     genPhase5(input),
     genPhase6(input),
   ];
+  phases.forEach((p, i) => { p.number = i + 1; });
 
   // Add extra phases for multi-language learners
   const secondaryLangs = secondaryLanguages(input);
   if (secondaryLangs.length >= 1) {
     const extraPhase = genExtraLanguagePhase(input, secondaryLangs[0], phases.length + 1);
-    phases.splice(3, 0, extraPhase);
+    phases.splice(4, 0, extraPhase); // insert after VS Code + Phase 1,2,3 (was 3, now 4)
     phases.forEach((p, i) => { p.number = i + 1; });
   }
 
@@ -1755,6 +1760,337 @@ function genAIBonusPhase(input: PersonalizationInput, phaseNumber: number): Gene
     estWeeks: 0,
     objectives,
     modules,
+  };
+}
+
+// ============================================================
+// VS Code Setup Phase — always the FIRST phase of every roadmap.
+// Teaches the user how to set up VS Code: install, extensions,
+// theme, keyboard shortcuts, settings sync, and includes a link
+// to the official Microsoft "Get Started with VS Code" tutorial
+// video on YouTube.
+// ============================================================
+function genVSCodeSetupPhase(input: PersonalizationInput, phaseNumber: number): GeneratedPhase {
+  const primary = primaryLanguage(input);
+  const langId = primary?.id ?? "python";
+  const langName = primary?.name ?? "Python";
+
+  // Language-specific VS Code extension packs — Microsoft publishes
+  // official extension packs for most popular languages.
+  const langExtMap: Record<string, { ext: string; packId: string; packName: string }> = {
+    python:     { ext: "Python",            packId: "ms-python.python",                       packName: "Python" },
+    javascript: { ext: "JavaScript/TypeScript", packId: "ms-vscode.vscode-typescript-next",    packName: "TypeScript Next" },
+    typescript: { ext: "JavaScript/TypeScript", packId: "ms-vscode.vscode-typescript-next",    packName: "TypeScript Next" },
+    react:      { ext: "React",             packId: "dsznajder.es7-react-js-snippets",         packName: "ES7+ React Snippets" },
+    nextjs:     { ext: "Next.js",           packId: "bradlc.vscode-tailwindcss",               packName: "Tailwind CSS IntelliSense" },
+    vue:        { ext: "Vue",               packId: "Vue.volar",                               packName: "Vue Language Features (Volar)" },
+    angular:    { ext: "Angular",           packId: "Angular.ng-template",                     packName: "Angular Language Service" },
+    svelte:     { ext: "Svelte",            packId: "svelte.svelte-vscode",                    packName: "Svelte for VS Code" },
+    nodejs:     { ext: "Node.js",           packId: "ms-vscode.vscode-js-profile",             packName: "Node.js Extension Pack" },
+    java:       { ext: "Java",              packId: "vscjava.vscode-java-pack",                packName: "Extension Pack for Java" },
+    c:          { ext: "C/C++",             packId: "ms-vscode.cpptools",                      packName: "C/C++" },
+    cpp:        { ext: "C/C++",             packId: "ms-vscode.cpptools",                      packName: "C/C++" },
+    csharp:     { ext: "C#",                packId: "ms-dotnettools.csharp",                   packName: "C# Dev Kit" },
+    go:         { ext: "Go",                packId: "golang.Go",                               packName: "Go" },
+    rust:       { ext: "Rust",              packId: "rust-lang.rust-analyzer",                 packName: "rust-analyzer" },
+    swift:      { ext: "Swift",             packId: "sswg.swift-lang",                         packName: "Swift Language" },
+    kotlin:     { ext: "Kotlin",            packId: "fwcd.kotlin",                             packName: "Kotlin" },
+    php:        { ext: "PHP",               packId: "DEVSENSE.phptools-vscode",                packName: "PHP Tools" },
+    ruby:       { ext: "Ruby",              packId: "Shopify.ruby-extensions-pack",            packName: "Ruby Extension Pack" },
+    r:          { ext: "R",                 packId: "REditorSupport.r",                        packName: "R" },
+    dart:       { ext: "Dart/Flutter",      packId: "Dart-Code.dart-code",                     packName: "Dart" },
+    bash:       { ext: "Bash/Shell",        packId: "timonwong.shellcheck",                    packName: "shellcheck" },
+    sql:        { ext: "SQL",               packId: "mtxr.sqltools",                           packName: "SQLTools" },
+    postgresql: { ext: "PostgreSQL",        packId: "ckolkman.vscode-postgres",                packName: "PostgreSQL" },
+    mongodb:    { ext: "MongoDB",           packId: "mongodb.mongodb-vscode",                  packName: "MongoDB for VS Code" },
+    html:       { ext: "HTML",              packId: "ritwickdey.liveserver",                   packName: "Live Server" },
+    css:        { ext: "CSS",               packId: "bradlc.vscode-tailwindcss",               packName: "Tailwind CSS IntelliSense" },
+    django:     { ext: "Django",            packId: "batisteo.vscode-django",                  packName: "Django" },
+    fastapi:    { ext: "FastAPI",           packId: "ms-python.python",                        packName: "Python (FastAPI)" },
+    flask:      { ext: "Flask",             packId: "ms-python.python",                        packName: "Python (Flask)" },
+  };
+  const langExt = langExtMap[langId] ?? langExtMap.python;
+
+  // Career-specific extension recommendations (on top of the language pack)
+  const careerExtMap: Record<string, { packId: string; packName: string }[]> = {
+    "web-dev": [
+      { packId: "esbenp.prettier-vscode", packName: "Prettier (code formatter)" },
+      { packId: "dbaeumer.vscode-eslint", packName: "ESLint" },
+      { packId: "ritwickdey.liveserver", packName: "Live Server" },
+    ],
+    "software-engineering": [
+      { packId: "ms-vscode-remote.remote-wsl", packName: "WSL (Windows Subsystem for Linux)" },
+      { packId: "ms-azuretools.vscode-docker", packName: "Docker" },
+      { packId: "ms-vscode.cpptools-extension-pack", packName: "C/C++ Extension Pack" },
+    ],
+    "data-science": [
+      { packId: "ms-toolsai.jupyter", packName: "Jupyter" },
+      { packId: "ms-python.python", packName: "Python" },
+    ],
+    "ai-ml": [
+      { packId: "ms-toolsai.jupyter", packName: "Jupyter" },
+      { packId: "ms-python.python", packName: "Python" },
+    ],
+    "cloud-devops": [
+      { packId: "ms-azuretools.vscode-docker", packName: "Docker" },
+      { packId: "ms-kubernetes-tools.vscode-kubernetes-tools", packName: "Kubernetes" },
+      { packId: "redhat.vscode-yaml", packName: "YAML" },
+    ],
+    "mobile-dev": [
+      { packId: "Dart-Code.flutter", packName: "Flutter" },
+      { packId: "ms-vscode.vscode-js-profile", packName: "React Native" },
+    ],
+    "cybersecurity": [
+      { packId: "ms-vscode.cpptools", packName: "C/C++" },
+      { packId: "redhat.vscode-yaml", packName: "YAML" },
+    ],
+    "game-dev": [
+      { packId: "ms-vscode.cpptools", packName: "C/C++" },
+    ],
+    "hardware-embedded": [
+      { packId: "ms-vscode.cpptools", packName: "C/C++" },
+      { packId: "platformio.platformio-ide", packName: "PlatformIO IDE" },
+    ],
+  };
+  const careerExts = careerExtMap[input.careerId] ?? [];
+
+  return {
+    id: `phase-${phaseNumber}-vscode-setup`,
+    number: phaseNumber,
+    title: "VS Code Setup — Your Developer Environment",
+    subtitle: `Install VS Code, configure extensions for ${langName}, master the keyboard shortcuts, and run your first program`,
+    color: "sky",
+    icon: "🛠️",
+    estWeeks: 1,
+    objectives: [
+      `Install VS Code and the ${langExt.ext} extension pack`,
+      "Choose a theme and configure settings for productivity",
+      "Learn the essential keyboard shortcuts",
+      "Run your first program from inside VS Code",
+    ],
+    modules: [
+      {
+        id: `phase-${phaseNumber}-m1-install`,
+        title: "Download & install VS Code",
+        description: "Get VS Code running on your operating system in under 5 minutes.",
+        tasks: [
+          {
+            id: `phase-${phaseNumber}-m1-t1`,
+            title: "Download and install VS Code",
+            why: "VS Code is the most popular code editor in the world — free, open-source, runs everywhere, and has the largest extension ecosystem.",
+            brief: "Download VS Code from code.visualstudio.com and install it on your operating system (Windows, macOS, or Linux).",
+            estMinutes: 15,
+            xp: 30,
+            tags: ["setup", "vscode"],
+            steps: [
+              "Go to https://code.visualstudio.com/download",
+              "Download the installer for your OS (Windows, macOS, or Linux — pick the one matching your system)",
+              "Run the installer with default options",
+              "Launch VS Code and verify the welcome screen appears",
+            ],
+          },
+        ],
+      },
+      {
+        id: `phase-${phaseNumber}-m2-extensions`,
+        title: `Install the ${langExt.ext} extension pack`,
+        description: `Add language support for ${langName} and any career-specific tools.`,
+        tasks: [
+          {
+            id: `phase-${phaseNumber}-m2-t1`,
+            title: `Install ${langExt.packName} extension`,
+            why: `The official ${langExt.packName} extension gives you syntax highlighting, IntelliSense (autocomplete), debugging, and linting for ${langName}.`,
+            brief: `Open the Extensions panel (Ctrl/Cmd+Shift+X), search for "${langExt.packName}", and install it.`,
+            estMinutes: 10,
+            xp: 30,
+            tags: ["setup", "vscode", "extensions"],
+            steps: [
+              "Open VS Code",
+              "Press Ctrl+Shift+X (Windows/Linux) or Cmd+Shift+X (macOS) to open the Extensions panel",
+              `Search for "${langExt.packName}" (${langExt.packId})`,
+              "Click Install",
+              "Reload VS Code if prompted",
+            ],
+          },
+          ...(careerExts.length > 0 ? [{
+            id: `phase-${phaseNumber}-m2-t2`,
+            title: "Install career-specific extensions",
+            why: "These extensions provide the tooling you'll use daily in your chosen career.",
+            brief: `Install these extensions for your career path: ${careerExts.map(e => e.packName).join(", ")}.`,
+            estMinutes: 15,
+            xp: 40,
+            tags: ["setup", "vscode", "extensions", "career"],
+            steps: careerExts.map(e => `Install "${e.packName}" (${e.packId})`),
+          }] : []),
+          {
+            id: `phase-${phaseNumber}-m2-t3`,
+            title: "Install universal productivity extensions",
+            why: "These extensions make every developer faster — regardless of language.",
+            brief: "Install Prettier (formatter), GitLens (Git superpowers), and indent-rainbow (visual aid).",
+            estMinutes: 10,
+            xp: 30,
+            tags: ["setup", "vscode", "extensions"],
+            steps: [
+              'Install "Prettier - Code formatter" (esbenp.prettier-vscode)',
+              'Install "GitLens — Git supercharged" (eamodio.gitlens)',
+              'Install "indent-rainbow" (oderwat.indent-rainbow)',
+              'Optional: Install "Material Icon Theme" (PKief.material-icon-theme) for nicer file icons',
+            ],
+          },
+        ],
+      },
+      {
+        id: `phase-${phaseNumber}-m3-theme-and-settings`,
+        title: "Choose a theme & tune your settings",
+        description: "Make VS Code look great and behave the way you want.",
+        tasks: [
+          {
+            id: `phase-${phaseNumber}-m3-t1`,
+            title: "Pick a color theme",
+            why: "A good theme reduces eye strain and makes code structure easier to scan.",
+            brief: "Open the Command Palette (Ctrl/Cmd+Shift+P), type 'Color Theme', and pick one you like.",
+            estMinutes: 5,
+            xp: 20,
+            tags: ["setup", "vscode", "theme"],
+            steps: [
+              "Press Ctrl+Shift+P (Windows/Linux) or Cmd+Shift+P (macOS)",
+              "Type 'Color Theme' and select 'Preferences: Color Theme'",
+              "Try: One Dark Pro, GitHub Dark, Material Theme, or Night Owl",
+              "Press Enter to apply",
+            ],
+          },
+          {
+            id: `phase-${phaseNumber}-m3-t2`,
+            title: "Enable format-on-save and font ligatures",
+            why: "Format-on-save keeps your code clean automatically. Font ligatures make =>, !==, and -> render as single glyphs (easier to read).",
+            brief: "Open settings.json (Ctrl/Cmd+, then click the file icon) and add the recommended settings.",
+            estMinutes: 10,
+            xp: 30,
+            tags: ["setup", "vscode", "settings"],
+            steps: [
+              "Press Ctrl+, (Windows/Linux) or Cmd+, (macOS) to open Settings",
+              "Click the 'Open Settings (JSON)' icon in the top-right",
+              "Add: \"editor.formatOnSave\": true",
+              "Add: \"editor.fontLigatures\": true",
+              "Optional: Set \"editor.fontFamily\" to 'Fira Code' or 'JetBrains Mono' (download separately)",
+            ],
+          },
+          {
+            id: `phase-${phaseNumber}-m3-t3`,
+            title: "Enable Settings Sync",
+            why: "Settings Sync backs up your extensions, settings, and keybindings to your GitHub or Microsoft account — so they follow you to any computer.",
+            brief: "Turn on Settings Sync from the gear menu in the bottom-left corner.",
+            estMinutes: 5,
+            xp: 20,
+            tags: ["setup", "vscode", "sync"],
+            steps: [
+              "Click the gear icon in the bottom-left corner of VS Code",
+              "Select 'Turn on Settings Sync...'",
+              "Choose what to sync (Settings, Keybindings, Extensions, UI State, Snippets)",
+              "Sign in with GitHub or Microsoft",
+            ],
+          },
+        ],
+      },
+      {
+        id: `phase-${phaseNumber}-m4-shortcuts`,
+        title: "Master the essential keyboard shortcuts",
+        description: "These 10 shortcuts cover 90% of what professional developers use daily.",
+        tasks: [
+          {
+            id: `phase-${phaseNumber}-m4-t1`,
+            title: "Learn the top 10 VS Code shortcuts",
+            why: "Memorizing these will roughly double your editing speed within a week.",
+            brief: "Practice each shortcut 5 times until it's muscle memory.",
+            estMinutes: 30,
+            xp: 50,
+            tags: ["setup", "vscode", "shortcuts"],
+            steps: [
+              "Ctrl/Cmd+P — Quick Open file (type a filename to jump to it)",
+              "Ctrl/Cmd+Shift+P — Command Palette (search any VS Code command)",
+              "Ctrl/Cmd+Shift+X — Extensions panel",
+              "Ctrl/Cmd+B — Toggle sidebar",
+              "Ctrl/Cmd+` — Toggle integrated terminal",
+              "Ctrl/Cmd+/ — Toggle line comment",
+              "Alt+Up/Down — Move line up/down",
+              "Shift+Alt+Down — Copy line down",
+              "Ctrl/Cmd+D — Select next occurrence of current word (multi-cursor)",
+              "Ctrl/Cmd+Shift+K — Delete current line",
+            ],
+          },
+          {
+            id: `phase-${phaseNumber}-m4-t2`,
+            title: "Open the integrated terminal",
+            why: "The integrated terminal means you never have to leave VS Code to run commands.",
+            brief: "Open the terminal panel and run your first command.",
+            estMinutes: 5,
+            xp: 20,
+            tags: ["setup", "vscode", "terminal"],
+            steps: [
+              "Press Ctrl+` (backtick, usually above Tab)",
+              "Verify the terminal panel opens at the bottom",
+              "Type: echo 'Hello from VS Code terminal' and press Enter",
+              "Press Ctrl+` again to hide the terminal",
+            ],
+          },
+        ],
+      },
+      {
+        id: `phase-${phaseNumber}-m5-first-program`,
+        title: `Write your first ${langName} program in VS Code`,
+        description: "Tie it all together — create a file, write code, save, and run it.",
+        tasks: [
+          {
+            id: `phase-${phaseNumber}-m5-t1`,
+            title: `Create and run a hello-world ${langName} file`,
+            why: "Confirming you can edit, save, and run code from VS Code proves your setup is complete.",
+            brief: `Create a new file, write a hello-world ${langName} program, save it, and run it from the integrated terminal.`,
+            estMinutes: 20,
+            xp: 60,
+            tags: ["setup", "vscode", "first-program"],
+            steps: [
+              "Press Ctrl/Cmd+N to create a new file",
+              `Save it (Ctrl/Cmd+S) as 'hello.${langId === "python" ? "py" : langId === "javascript" ? "js" : langId === "typescript" ? "ts" : "txt"}'`,
+              langId === "python"
+                ? "Type: print('Hello, Launchpad!')"
+                : langId === "javascript" || langId === "typescript"
+                ? "Type: console.log('Hello, Launchpad!')"
+                : `Type your language's hello-world program`,
+              "Save the file",
+              "Open the terminal (Ctrl/Cmd+`)",
+              langId === "python"
+                ? "Run: python hello.py"
+                : langId === "javascript" || langId === "typescript"
+                ? "Run: node hello.js"
+                : "Run using your language's standard command",
+              "Verify you see the output in the terminal",
+            ],
+          },
+        ],
+      },
+      {
+        id: `phase-${phaseNumber}-m6-tutorial-video`,
+        title: "Watch the official VS Code tutorial video",
+        description: "Microsoft publishes a free 'Get Started with VS Code' video that covers everything above visually. The video is embedded below — click to expand.",
+        tasks: [
+          {
+            id: `phase-${phaseNumber}-m6-t1`,
+            title: "Watch 'Getting Started with VS Code' (official)",
+            why: "Seeing VS Code used by an expert fills in the gaps that text instructions miss — workflow, navigation, debugging.",
+            brief: "Watch the official Microsoft VS Code tutorial video below, then try one workflow from it.\n\n📺 Watch on YouTube: https://www.youtube-nocookie.com/embed/S320N3xkinE (Microsoft's official 'Getting Started with Visual Studio Code' — 7 min)",
+            estMinutes: 15,
+            xp: 40,
+            tags: ["setup", "vscode", "tutorial", "video", "youtube:vscode-getting-started"],
+            steps: [
+              "Expand the YouTube video embed below the task description",
+              "Watch the full 7-minute walkthrough from Microsoft",
+              "Pick ONE feature you didn't know about and try it on your own code",
+              "Mark this task complete when done",
+            ],
+          },
+        ],
+      },
+    ],
   };
 }
 

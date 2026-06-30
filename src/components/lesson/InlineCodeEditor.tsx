@@ -133,6 +133,7 @@ export function InlineCodeEditor({
   const [copied, setCopied] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
   const [pyodideLoading, setPyodideLoading] = useState(false);
+  const [htmlPreview, setHtmlPreview] = useState<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const pyodideRef = useRef<any>(null);
 
@@ -148,9 +149,18 @@ export function InlineCodeEditor({
   const isExternal = lang in EXTERNAL_IDE_URLS;
 
   // Listen for iframe postMessage (for JS execution)
+  // SECURITY: only accept messages from our own sandboxed iframe.
+  // Sandboxed iframes (sandbox="allow-scripts" without allow-same-origin)
+  // have an opaque origin — `e.origin === "null"` (string "null").
   useEffect(() => {
     const handler = (e: MessageEvent) => {
       if (e.data?.type !== "run-result") return;
+      // Only accept from our own iframe (opaque origin = "null")
+      if (e.origin !== "null") return;
+      // Double-check source identity if available
+      if (e.source !== null && iframeRef.current && e.source !== iframeRef.current.contentWindow) {
+        return;
+      }
       setRunning(false);
       if (e.data.error) {
         setError(e.data.error);
@@ -206,13 +216,16 @@ export function InlineCodeEditor({
         // Clear timeout in 5.5s (response should come sooner)
         setTimeout(() => clearTimeout(timeoutId), 5500);
       } else if (isHTML || isCSS) {
+        // SECURITY FIX: render HTML/CSS in a sandboxed iframe rather than
+        // opening a new same-origin window via window.open + document.write.
+        // A same-origin window could let user code reach window.opener.localStorage
+        // and exfiltrate API keys, chat history, etc.
+        // The sandboxed iframe uses sandbox="allow-scripts" WITHOUT allow-same-origin,
+        // which gives the iframe an opaque origin — it can't access the parent's
+        // cookies, localStorage, or DOM.
         const fullDoc = isHTML ? code : `<!DOCTYPE html><html><head><style>${code}</style></head><body><h1>Hello from CSS!</h1><p>Style me.</p></body></html>`;
-        setOutput([{ type: "log", text: "Opened HTML/CSS preview in a new window." }]);
-        const w = window.open("", "_blank");
-        if (w) {
-          w.document.write(fullDoc);
-          w.document.close();
-        }
+        setHtmlPreview(fullDoc);
+        setOutput([{ type: "log", text: "HTML/CSS preview rendered below ↓ (sandboxed)" }]);
         setRunning(false);
       } else if (isPython) {
         // Load Pyodide lazily (~10MB), cache in memory per Section 1.4
@@ -257,6 +270,7 @@ export function InlineCodeEditor({
     setOutput(null);
     setError(null);
     setEditable(false);
+    setHtmlPreview(null);
   };
 
   const handleCopy = async () => {
@@ -383,7 +397,7 @@ export function InlineCodeEditor({
 
           {/* Output panel */}
           {output && output.length > 0 && (
-            <div className="rounded-md bg-slate-950 text-slate-100 p-3 font-mono text-xs space-y-1 max-h-48 overflow-y-auto">
+            <div className="rounded-md bg-slate-950 text-slate-100 p-3 font-mono text-xs space-y-1 max-h-48 overflow-y-auto" role="log" aria-live="polite">
               {output.map((line, i) => (
                 <div key={i} className={cn(
                   "whitespace-pre-wrap",
@@ -393,6 +407,21 @@ export function InlineCodeEditor({
                   {line.type === "error" ? "❌ " : line.type === "warn" ? "⚠️ " : "› "}{line.text}
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* HTML/CSS live preview — sandboxed iframe (no allow-same-origin) */}
+          {htmlPreview && (
+            <div className="rounded-md border border-border/60 overflow-hidden">
+              <div className="px-2 py-1 bg-foreground/5 border-b border-border/60 text-[10px] font-mono uppercase text-muted-foreground">
+                Live Preview
+              </div>
+              <iframe
+                srcDoc={htmlPreview}
+                title="HTML/CSS preview"
+                sandbox="allow-scripts"
+                className="w-full h-64 bg-white"
+              />
             </div>
           )}
 

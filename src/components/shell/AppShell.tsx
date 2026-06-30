@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { AuroraBackground } from "@/components/glass/AuroraBackground";
@@ -9,23 +10,32 @@ import { TopBar } from "./TopBar";
 import { CommandPalette, useCommandPaletteShortcut } from "./CommandPalette";
 import { SplashScreen } from "./SplashScreen";
 import { OnboardingFlow } from "./OnboardingFlow";
-import { DashboardView } from "@/components/views/DashboardView";
-import { RoadmapView } from "@/components/views/RoadmapView";
-import { LearnView } from "@/components/views/LearnView";
-import { PlaygroundView } from "@/components/views/PlaygroundView";
-import { DailyChallengeView } from "@/components/views/DailyChallengeView";
-import { SkillTreeView } from "@/components/views/SkillTreeView";
-import { NotesView } from "@/components/views/NotesView";
-import { ProjectsView } from "@/components/views/ProjectsView";
-import { FocusView } from "@/components/views/FocusView";
-import { AnalyticsView } from "@/components/views/AnalyticsView";
-import { CareerView } from "@/components/views/CareerView";
-import { CalendarView } from "@/components/views/CalendarView";
-import { AITutorView } from "@/components/views/AITutorView";
-import { CommunityView } from "@/components/views/CommunityView";
-import { ToolsView } from "@/components/views/ToolsView";
-import { AccountView } from "@/components/views/AccountView";
-import { SettingsView } from "@/components/views/SettingsView";
+// Lazy-load all 17 views to cut the initial bundle size.
+// Each view (and its heavy deps — react-syntax-highlighter, Pyodide, etc.)
+// is only loaded when the user actually navigates to that tab.
+// Loading fallback is a centered spinner so users see immediate feedback.
+const viewLoadingFallback = () => (
+  <div className="flex items-center justify-center py-12">
+    <div className="h-6 w-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+  </div>
+);
+const DashboardView = dynamic(() => import("@/components/views/DashboardView").then(m => ({ default: m.DashboardView })), { loading: viewLoadingFallback });
+const RoadmapView = dynamic(() => import("@/components/views/RoadmapView").then(m => ({ default: m.RoadmapView })), { loading: viewLoadingFallback });
+const LearnView = dynamic(() => import("@/components/views/LearnView").then(m => ({ default: m.LearnView })), { loading: viewLoadingFallback });
+const PlaygroundView = dynamic(() => import("@/components/views/PlaygroundView").then(m => ({ default: m.PlaygroundView })), { loading: viewLoadingFallback });
+const DailyChallengeView = dynamic(() => import("@/components/views/DailyChallengeView").then(m => ({ default: m.DailyChallengeView })), { loading: viewLoadingFallback });
+const SkillTreeView = dynamic(() => import("@/components/views/SkillTreeView").then(m => ({ default: m.SkillTreeView })), { loading: viewLoadingFallback });
+const NotesView = dynamic(() => import("@/components/views/NotesView").then(m => ({ default: m.NotesView })), { loading: viewLoadingFallback });
+const ProjectsView = dynamic(() => import("@/components/views/ProjectsView").then(m => ({ default: m.ProjectsView })), { loading: viewLoadingFallback });
+const FocusView = dynamic(() => import("@/components/views/FocusView").then(m => ({ default: m.FocusView })), { loading: viewLoadingFallback });
+const AnalyticsView = dynamic(() => import("@/components/views/AnalyticsView").then(m => ({ default: m.AnalyticsView })), { loading: viewLoadingFallback });
+const CareerView = dynamic(() => import("@/components/views/CareerView").then(m => ({ default: m.CareerView })), { loading: viewLoadingFallback });
+const CalendarView = dynamic(() => import("@/components/views/CalendarView").then(m => ({ default: m.CalendarView })), { loading: viewLoadingFallback });
+const AITutorView = dynamic(() => import("@/components/views/AITutorView").then(m => ({ default: m.AITutorView })), { loading: viewLoadingFallback });
+const CommunityView = dynamic(() => import("@/components/views/CommunityView").then(m => ({ default: m.CommunityView })), { loading: viewLoadingFallback });
+const ToolsView = dynamic(() => import("@/components/views/ToolsView").then(m => ({ default: m.ToolsView })), { loading: viewLoadingFallback });
+const AccountView = dynamic(() => import("@/components/views/AccountView").then(m => ({ default: m.AccountView })), { loading: viewLoadingFallback });
+const SettingsView = dynamic(() => import("@/components/views/SettingsView").then(m => ({ default: m.SettingsView })), { loading: viewLoadingFallback });
 import { AITutorFloating } from "@/components/ai/AITutorFloating";
 import { BadgeToastContainer } from "@/components/achievements/BadgeToastContainer";
 import { FirstTimeTour } from "@/components/tour/FirstTimeTour";
@@ -128,23 +138,28 @@ export function AppShell() {
 
         <main className={focusMode ? "flex-1 p-3 sm:p-6" : "flex-1 p-3 sm:p-6 pt-4 pb-24 lg:pb-6"}>
           <div className="max-w-6xl mx-auto">
-            {currentView === "dashboard" && <DashboardView />}
-            {currentView === "roadmap" && <RoadmapView />}
-            {currentView === "learn" && <LearnView />}
-            {currentView === "playground" && <PlaygroundView />}
-            {currentView === "daily-challenge" && <DailyChallengeView />}
-            {currentView === "skill-tree" && <SkillTreeView />}
-            {currentView === "calendar" && <CalendarView />}
-            {currentView === "notes" && <NotesView />}
-            {currentView === "projects" && <ProjectsView />}
-            {currentView === "focus" && <FocusView />}
-            {currentView === "analytics" && <AnalyticsView />}
-            {currentView === "career" && <CareerView />}
-            {currentView === "ai-tutor" && <AITutorView />}
-            {currentView === "community" && <CommunityView />}
-            {currentView === "tools" && <ToolsView />}
-            {currentView === "account" && <AccountView />}
-            {currentView === "settings" && <SettingsView />}
+            {(() => {
+              switch (currentView) {
+                case "dashboard": return <DashboardView />;
+                case "roadmap": return <RoadmapView />;
+                case "learn": return <LearnView />;
+                case "playground": return <PlaygroundView />;
+                case "daily-challenge": return <DailyChallengeView />;
+                case "skill-tree": return <SkillTreeView />;
+                case "calendar": return <CalendarView />;
+                case "notes": return <NotesView />;
+                case "projects": return <ProjectsView />;
+                case "focus": return <FocusView />;
+                case "analytics": return <AnalyticsView />;
+                case "career": return <CareerView />;
+                case "ai-tutor": return <AITutorView />;
+                case "community": return <CommunityView />;
+                case "tools": return <ToolsView />;
+                case "account": return <AccountView />;
+                case "settings": return <SettingsView />;
+                default: return <DashboardView />;
+              }
+            })()}
           </div>
         </main>
 

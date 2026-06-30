@@ -339,9 +339,11 @@ export function SettingsView() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => {
-                        // 1. Clear all localStorage (Launchpad data + backups + flags)
+                        // 1. Clear only Launchpad's own localStorage keys
+                        // (DO NOT call localStorage.clear() — that would wipe
+                        //  other apps on the same origin, e.g. other PWAs,
+                        //  browser extensions' stored data, etc.)
                         try {
-                          // Remove all launchpad:* keys
                           const keysToRemove: string[] = [];
                           for (let i = 0; i < localStorage.length; i++) {
                             const key = localStorage.key(i);
@@ -350,10 +352,17 @@ export function SettingsView() {
                             }
                           }
                           keysToRemove.forEach(k => localStorage.removeItem(k));
-                          // Nuclear option: clear everything
-                          localStorage.clear();
+                          // Also clear Launchpad's Cache Storage (service worker
+                          // caches) so cached API responses don't leak after reset.
+                          if ("caches" in window) {
+                            caches.keys().then((cacheNames) => {
+                              for (const name of cacheNames) {
+                                if (name.startsWith("launchpad")) caches.delete(name);
+                              }
+                            }).catch(() => { /* ignore */ });
+                          }
                         } catch (e) {
-                          // ignore
+                          console.warn("Failed to clear localStorage:", e);
                         }
                         // 2. Reset the in-memory store state too
                         resetAll();

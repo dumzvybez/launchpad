@@ -33,6 +33,54 @@ const EVENT_CONFIG: Record<CalendarEvent["type"], { icon: typeof BookOpen; color
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
+// ============================================================
+// Recurrence expansion — given an event with a `frequency`, returns
+// true if the event occurs on the given date (YYYY-MM-DD).
+// Fixes the v2.67 bug where recurring events were stored but only
+// ever appeared on their original `date`, never on future occurrences.
+// ============================================================
+function eventOccursOn(e: CalendarEvent, dateStr: string): boolean {
+  // Always include the original date regardless of frequency
+  if (e.date === dateStr) return true;
+  if (!e.frequency || e.frequency === "one-time") return false;
+
+  // Parse the target date (local time)
+  const [ty, tm, td] = dateStr.split("-").map(Number);
+  if (!ty || !tm || !td) return false;
+  const target = new Date(ty, tm - 1, td);
+  const targetWeekday = target.getDay(); // 0=Sun..6=Sat
+  const targetDayOfMonth = target.getDate();
+
+  // Parse the event's original date
+  const [ey, em, ed] = e.date.split("-").map(Number);
+  if (!ey || !em || !ed) return false;
+  const eventStart = new Date(ey, em - 1, ed);
+  // Recurring events only fire AFTER their start date (inclusive of start).
+  if (target < eventStart) return false;
+
+  if (e.frequency === "daily") {
+    return true;
+  }
+  if (e.frequency === "weekly") {
+    if (!e.weekdays || e.weekdays.length === 0) {
+      // No weekdays specified → fire on the same weekday as the original date
+      return targetWeekday === eventStart.getDay();
+    }
+    return e.weekdays.includes(targetWeekday);
+  }
+  if (e.frequency === "monthly") {
+    if (e.dayOfMonth == null) {
+      // No day-of-month specified → fire on the same day-of-month as original
+      return targetDayOfMonth === eventStart.getDate();
+    }
+    // Cap to month length (e.g. dayOfMonth=31 in Feb → fires on the 28th/29th)
+    const lastDayOfMonth = new Date(ty, tm, 0).getDate();
+    const effectiveDay = Math.min(e.dayOfMonth, lastDayOfMonth);
+    return targetDayOfMonth === effectiveDay;
+  }
+  return false;
+}
+
 export function CalendarView() {
   const events = useStore((s) => s.state.calendarEvents);
   const addEvent = useStore((s) => s.addCalendarEvent);
@@ -93,21 +141,22 @@ export function CalendarView() {
     return cells;
   }, [cursor]);
 
-  // Events for selected date
+  // Events for selected date (with recurrence expansion)
   const selectedEvents = useMemo(
-    () => events.filter((e) => e.date === selectedDate).sort((a, b) => (a.time || "").localeCompare(b.time || "")),
+    () => events.filter((e) => eventOccursOn(e, selectedDate)).sort((a, b) => (a.time || "").localeCompare(b.time || "")),
     [events, selectedDate],
   );
 
-  // Events by date for calendar dots
+  // Events by date for calendar dots (with recurrence expansion across the
+  // currently-visible month)
   const eventsByDate = useMemo(() => {
     const map: Record<string, CalendarEvent[]> = {};
-    for (const e of events) {
-      if (!map[e.date]) map[e.date] = [];
-      map[e.date].push(e);
+    // Build the set of dates visible on the current month grid (6 weeks = 42 cells)
+    for (const cell of grid) {
+      map[cell.date] = events.filter((e) => eventOccursOn(e, cell.date));
     }
     return map;
-  }, [events]);
+  }, [events, grid]);
 
   const handleAdd = () => {
     if (!draft.title.trim()) return;
@@ -424,7 +473,7 @@ export function CalendarView() {
                 const d = new Date();
                 d.setDate(d.getDate() + i);
                 const key = dateKey(d);
-                const dayEvents = events.filter((e) => e.date === key);
+                const dayEvents = events.filter((e) => eventOccursOn(e, key));
                 if (dayEvents.length > 0) upcoming.push({ date: key, events: dayEvents });
               }
               if (upcoming.length === 0) {

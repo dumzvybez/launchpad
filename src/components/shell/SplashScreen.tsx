@@ -4,15 +4,19 @@ import { useEffect, useState } from "react";
 
 /**
  * SplashScreen — premium animated intro shown on EVERY page load/refresh.
- * Holds final frame ~7 seconds total. Cycles through 3 subtitles.
+ * Total duration: ~4.5 seconds (down from 8.8s in v2.67).
+ *
+ * - 0.0–0.8s: logo draws in
+ * - 0.8–3.7s: hold phase, subtitles cycle
+ * - 3.7–4.5s: fade out
  *
  * User can disable it permanently in Settings → Appearance.
+ * A "Skip" button is shown for accessibility / power users.
  */
 const SUBTITLES = [
   "Learn to code. For real this time.",
   "AI-personalized. Completely free. 100% private.",
   "From zero to job-ready — without leaving this app.",
-  "The only platform built around YOUR goal.",
   "Open-source. No accounts. No tracking. Ever.",
 ];
 
@@ -21,18 +25,17 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
   const [subtitleIdx, setSubtitleIdx] = useState(0);
 
   useEffect(() => {
-    // Draw phase: logo animates in (1.4s)
-    const t1 = setTimeout(() => setPhase("hold"), 1400);
-    // Hold phase: ~6.5s — long enough to read all subtitles cycling
-    const t2 = setTimeout(() => setPhase("fade"), 7900);
-    // Fade phase: 0.9s
-    const t3 = setTimeout(() => onDone(), 8800);
+    // Draw phase: logo animates in (0.8s)
+    const t1 = setTimeout(() => setPhase("hold"), 800);
+    // Hold phase: ~2.9s — long enough to read 3 subtitles cycling
+    const t2 = setTimeout(() => setPhase("fade"), 3700);
+    // Fade phase: 0.8s
+    const t3 = setTimeout(() => onDone(), 4500);
 
-    // Cycle subtitles every ~1.4s during hold
-    const sub1 = setTimeout(() => setSubtitleIdx(1), 2000);
-    const sub2 = setTimeout(() => setSubtitleIdx(2), 3400);
-    const sub3 = setTimeout(() => setSubtitleIdx(3), 4800);
-    const sub4 = setTimeout(() => setSubtitleIdx(4), 6200);
+    // Cycle subtitles every ~900ms during hold (3 subtitles shown)
+    const sub1 = setTimeout(() => setSubtitleIdx(1), 1700);
+    const sub2 = setTimeout(() => setSubtitleIdx(2), 2600);
+    const sub3 = setTimeout(() => setSubtitleIdx(3), 3300);
 
     return () => {
       clearTimeout(t1);
@@ -41,7 +44,6 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
       clearTimeout(sub1);
       clearTimeout(sub2);
       clearTimeout(sub3);
-      clearTimeout(sub4);
     };
   }, [onDone]);
 
@@ -51,7 +53,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
       style={{
         background: "oklch(0.11 0.012 250)",
         opacity: phase === "fade" ? 0 : 1,
-        transition: "opacity 800ms cubic-bezier(0.16, 1, 0.3, 1)",
+        transition: "opacity 700ms cubic-bezier(0.16, 1, 0.3, 1)",
         pointerEvents: phase === "fade" ? "none" : "auto",
       }}
     >
@@ -76,9 +78,10 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
           viewBox="0 0 512 512"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
           style={{
             transform: phase === "draw" ? "scale(0.85)" : "scale(1)",
-            transition: "transform 800ms cubic-bezier(0.16, 1, 0.3, 1)",
+            transition: "transform 700ms cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         >
           <defs>
@@ -109,7 +112,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
             opacity={phase === "draw" ? 0 : 1}
             style={{
               transform: phase === "draw" ? "translateY(20px)" : "translateY(0)",
-              transition: "opacity 500ms 200ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms 200ms cubic-bezier(0.16, 1, 0.3, 1)",
+              transition: "opacity 400ms 200ms cubic-bezier(0.16, 1, 0.3, 1), transform 500ms 200ms cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           />
           <path
@@ -119,7 +122,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
             opacity={phase === "draw" ? 0 : 1}
             style={{
               transform: phase === "draw" ? "translateY(20px)" : "translateY(0)",
-              transition: "opacity 500ms 500ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms 500ms cubic-bezier(0.16, 1, 0.3, 1)",
+              transition: "opacity 400ms 400ms cubic-bezier(0.16, 1, 0.3, 1), transform 500ms 400ms cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           />
           <path
@@ -129,7 +132,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
             opacity={phase === "draw" ? 0 : 1}
             style={{
               transform: phase === "draw" ? "translateY(20px)" : "translateY(0)",
-              transition: "opacity 500ms 800ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms 800ms cubic-bezier(0.16, 1, 0.3, 1)",
+              transition: "opacity 400ms 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 500ms 600ms cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           />
         </svg>
@@ -140,7 +143,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
           style={{
             opacity: phase === "draw" ? 0 : 1,
             transform: phase === "draw" ? "translateY(10px)" : "translateY(0)",
-            transition: "opacity 600ms 1000ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms 1000ms cubic-bezier(0.16, 1, 0.3, 1)",
+            transition: "opacity 500ms 800ms cubic-bezier(0.16, 1, 0.3, 1), transform 500ms 800ms cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         >
           <h1
@@ -166,7 +169,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
               key={subtitleIdx}
               className="text-sm text-foreground/80 italic"
               style={{
-                animation: "splash-subtitle-in 600ms cubic-bezier(0.16, 1, 0.3, 1)",
+                animation: "splash-subtitle-in 500ms cubic-bezier(0.16, 1, 0.3, 1)",
               }}
             >
               {SUBTITLES[subtitleIdx]}
@@ -180,7 +183,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
           style={{
             background: "oklch(0.3 0.01 250)",
             opacity: phase === "draw" ? 0 : 1,
-            transition: "opacity 400ms 1200ms",
+            transition: "opacity 300ms 1000ms",
           }}
         >
           <div
@@ -188,11 +191,20 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
             style={{
               background: "linear-gradient(90deg, #2DD4BF, #E879F9, #FCD34D)",
               width: phase === "fade" ? "100%" : phase === "hold" ? "100%" : "20%",
-              transition: "width 7500ms cubic-bezier(0.65, 0, 0.35, 1)",
+              transition: "width 3500ms cubic-bezier(0.65, 0, 0.35, 1)",
             }}
           />
         </div>
       </div>
+
+      {/* Skip button — bottom right, accessible */}
+      <button
+        onClick={onDone}
+        className="absolute bottom-6 right-6 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        aria-label="Skip intro"
+      >
+        Skip intro →
+      </button>
 
       <style>{`
         @keyframes splash-subtitle-in {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useEffect, useRef } from "react";
+import { useMemo, useEffect, useRef, useState } from "react";
 import {
   ChevronRight,
   ChevronLeft,
@@ -13,6 +13,7 @@ import {
   Target,
   Home,
   BookOpen,
+  Youtube,
 } from "lucide-react";
 import { useStore, selectPhaseProgress } from "@/lib/store";
 import { GlassCard, ProgressBar, GlassButton } from "@/components/glass/GlassPrimitives";
@@ -63,8 +64,8 @@ export function RoadmapView() {
         <p className="text-sm text-muted-foreground mb-4">
           Complete onboarding to generate your personalized learning roadmap.
         </p>
-        <GlassButton onClick={() => useStore.getState().setPreference("tourCompleted" as never, false as never)}>
-          Go to Dashboard
+        <GlassButton onClick={() => setView("dashboard")}>
+          <Home className="h-3.5 w-3.5" /> Go to Dashboard
         </GlassButton>
       </GlassCard>
     );
@@ -502,6 +503,14 @@ function TaskDetailView({
           </div>
         )}
 
+        {/* YouTube video embed — triggered by a `youtube:VIDEO_ID` tag */}
+        {(() => {
+          const ytTag = task.tags?.find((t) => t.startsWith("youtube:"));
+          if (!ytTag) return null;
+          const videoId = ytTag.slice("youtube:".length);
+          return <TaskYouTubeEmbed videoId={videoId} />;
+        })()}
+
         {/* Code example with Try in Playground */}
         {task.codeExample && (
           <div className="mb-3">
@@ -551,5 +560,52 @@ function BackButton({ onClick, label }: { onClick: () => void; label: string }) 
       <ChevronLeft className="h-4 w-4" />
       Back to {label}
     </button>
+  );
+}
+
+// ============================================================
+// TaskYouTubeEmbed — collapsible YouTube embed for roadmap tasks
+// that include a `youtube:VIDEO_ID` tag (e.g. the VS Code setup task).
+// Uses youtube-nocookie.com for privacy. Collapsed by default.
+// ============================================================
+function TaskYouTubeEmbed({ videoId }: { videoId: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  if (dismissed) return null;
+  return (
+    <div className="mb-3 rounded-lg border border-border/60 bg-card/40 overflow-hidden">
+      <div className="px-3 py-2 flex items-center justify-between gap-2">
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="flex items-center gap-2 text-xs font-semibold hover:text-primary transition-colors"
+          aria-expanded={expanded}
+        >
+          <Youtube className="h-4 w-4 text-red-500" />
+          {expanded ? "Hide video" : "Watch tutorial video"}
+        </button>
+        <button
+          onClick={() => setDismissed(true)}
+          className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Hide
+        </button>
+      </div>
+      {expanded && (
+        <div>
+          <div className="px-3 pb-2 text-[10px] text-muted-foreground italic">
+            ⚠️ Loading this video connects to YouTube servers (youtube-nocookie.com).
+          </div>
+          <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+            <iframe
+              className="absolute inset-0 w-full h-full"
+              src={`https://www.youtube-nocookie.com/embed/${videoId}`}
+              title="Tutorial video"
+              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

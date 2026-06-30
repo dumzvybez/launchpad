@@ -33,6 +33,7 @@ import {
 } from "@/lib/lessons-data";
 import { getVideoLink, getPlaylist } from "@/data/youtube-links";
 import { InlineCodeEditor } from "@/components/lesson/InlineCodeEditor";
+import { openPrintableHtml } from "@/lib/print-utils";
 import type { Lesson, QuizQuestion } from "@/lib/types";
 
 type Tab = "tracks" | "lesson" | "quiz" | "result";
@@ -1282,17 +1283,14 @@ function generateCertificate(
     <div class="seal">VERIFIED<br/>${date.split(",")[0]}</div>
     <div class="cert-id">Certificate ID: ${certId}</div>
   </div>
-  <script>
-    window.onload = () => { setTimeout(() => window.print(), 300); };
-  </script>
 </body>
 </html>`;
 
-  const w = window.open("", "_blank");
-  if (w) {
-    w.document.write(html);
-    w.document.close();
-  }
+  // Open via shared utility — no auto-print, user clicks "Download Now".
+  openPrintableHtml(html, {
+    filename: `launchpad-certificate-${trackId}-${certId}`,
+    title: `Launchpad ${trackName} Certificate`,
+  });
 }
 
 function escapeHtml(s: string): string {

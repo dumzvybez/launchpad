@@ -4,7 +4,7 @@
 // even when offline (after first load).
 // ============================================================
 
-const CACHE_VERSION = "launchpad-v2-1";
+const CACHE_VERSION = "launchpad-v2-2";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -59,6 +59,15 @@ self.addEventListener("fetch", (event) => {
   // Skip Next.js HMR + dev requests in development
   if (url.pathname.startsWith("/_next/webpack-hmr")) return;
 
+  // PRIVACY: NEVER cache API responses. The /api/chat endpoint may
+  // contain AI responses that include user code, and /api/roadmap-generate
+  // responses include the user's personalized roadmap. Caching these in
+  // Cache Storage would persist them in the browser even after the user
+  // clicks "Reset all data" in Settings (which only clears localStorage).
+  if (url.pathname.startsWith("/api/")) {
+    return; // Let the request go straight to the network, no caching
+  }
+
   // For navigation requests — network-first (so user gets latest HTML),
   // fall back to cached version when offline
   if (request.mode === "navigate") {
@@ -100,17 +109,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Default — try network, fall back to cache
+  // Default — try network, DON'T cache (avoid caching random external
+  // requests like Pyodide CDN partials — they're already cached by the
+  // browser's HTTP cache)
   event.respondWith(
-    fetch(request)
-      .then((response) => {
-        if (response && response.status === 200) {
-          const copy = response.clone();
-          caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy));
-        }
-        return response;
-      })
-      .catch(() => caches.match(request)),
+    fetch(request).catch(() => caches.match(request)),
   );
 });
 

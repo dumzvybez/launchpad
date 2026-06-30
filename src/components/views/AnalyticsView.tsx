@@ -66,6 +66,9 @@ export function AnalyticsView() {
   // Lesson progress
   const lessonProgress = Object.values(state.lessonProgress);
   const lessonsComplete = lessonProgress.filter((p) => p.status === "complete").length;
+  // FIX: previously hardcoded as / 30, but a user with 3 languages has 63 lessons.
+  // Compute the actual total from the user's roadmap languages (21 lessons per track).
+  const totalLessonsInPlan = Math.max(1, (roadmap?.languageIds.length ?? 1) * 21);
   const quizAvg = lessonProgress.filter((p) => p.bestQuizScore !== undefined)
     .reduce((sum, p, _, arr) => sum + (p.bestQuizScore ?? 0) / arr.length, 0);
 
@@ -203,9 +206,9 @@ export function AnalyticsView() {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">Lessons completed</span>
-              <span className="text-sm font-mono font-semibold">{lessonsComplete} / 30</span>
+              <span className="text-sm font-mono font-semibold">{lessonsComplete} / {totalLessonsInPlan}</span>
             </div>
-            <ProgressBar value={(lessonsComplete / 30) * 100} className="h-2" />
+            <ProgressBar value={(lessonsComplete / totalLessonsInPlan) * 100} className="h-2" />
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">Avg quiz score</span>
               <span className="text-sm font-mono font-semibold">{quizAvg > 0 ? `${Math.round(quizAvg)}%` : "—"}</span>

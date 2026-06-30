@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Play, Trash2, Copy, Code2, Info, ExternalLink, ChevronDown, ChevronRight, Download } from "lucide-react";
+import { Play, Trash2, Copy, Code2, Info, ExternalLink, Download, VSCode } from "@/components/views/PlaygroundIcons";
 import { useStore } from "@/lib/store";
 import { GlassCard, GlassButton } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 /**
  * PlaygroundView — multi-language code playground.
  *
- * Languages supported (per user request to support more languages):
+ * Languages supported:
  *   - JavaScript / TypeScript: runs in-browser via V8 (existing behavior)
  *   - Python: Pyodide loaded lazily on first run, cached in memory + IndexedDB
  *   - HTML/CSS: live preview in iframe
@@ -17,15 +17,21 @@ import { cn } from "@/lib/utils";
  *   - Bash: simulated with fake virtual filesystem
  *   - Other compiled languages: link to Replit/OneCompiler
  *
- * Language runtimes (Pyodide ~10MB) are downloaded once and kept on device.
- * The first Python run shows a "Downloading Python runtime..." indicator.
- * Subsequent runs load instantly from memory cache.
+ * Layout (per user feedback):
+ *   Row 1: heading
+ *   Row 2: language tabs + runtime info
+ *   Row 3: Examples (collapsible, ABOVE the editor so editor can expand)
+ *   Row 4: VS Code suggestion card
+ *   Row 5: Editor (large) — and Output (large) side-by-side on desktop,
+ *          stacked on mobile.
+ *   Row 6: Frameworks & databases links (collapsible)
  */
 
-type Lang = "javascript" | "python" | "html" | "css" | "sql" | "bash";
+type Lang = "javascript" | "typescript" | "python" | "html" | "css" | "sql" | "bash";
 
 const LANGUAGES: { id: Lang; label: string; icon: string; runtime: string }[] = [
   { id: "javascript", label: "JavaScript", icon: "🟨", runtime: "In-browser (V8)" },
+  { id: "typescript", label: "TypeScript", icon: "🔷", runtime: "In-browser (TS → JS, type-strip)" },
   { id: "python", label: "Python", icon: "🐍", runtime: "Pyodide (downloads ~10MB on first run, cached)" },
   { id: "html", label: "HTML", icon: "🌐", runtime: "Live preview iframe" },
   { id: "css", label: "CSS", icon: "🎨", runtime: "Live preview iframe" },
@@ -40,6 +46,11 @@ const EXAMPLES: Record<Lang, { name: string; code: string }[]> = {
     { name: "Array Methods", code: `const nums = [1, 2, 3, 4, 5];\n\nconst doubled = nums.map(n => n * 2);\nconst sum = nums.reduce((a, b) => a + b, 0);\nconst evens = nums.filter(n => n % 2 === 0);\n\nconsole.log("Original:", nums);\nconsole.log("Doubled:", doubled);\nconsole.log("Sum:", sum);\nconsole.log("Evens:", evens);` },
     { name: "Object & Class", code: `class Animal {\n  constructor(name) { this.name = name; }\n  speak() { return \`\${this.name} makes a sound\`; }\n}\n\nclass Dog extends Animal {\n  speak() { return \`\${this.name} barks!\`; }\n}\n\nconst buddy = new Dog("Buddy");\nconsole.log(buddy.speak());` },
     { name: "Async/Await", code: `function fetchUser(id) {\n  return new Promise(resolve => {\n    setTimeout(() => resolve({ id, name: "User " + id }), 500);\n  });\n}\n\nasync function main() {\n  console.log("Loading...");\n  const user = await fetchUser(1);\n  console.log("Got:", user);\n  console.log("Done!");\n}\n\nmain();` },
+  ],
+  typescript: [
+    { name: "Hello World", code: `const greeting: string = "Hello, Launchpad!";\nconsole.log(greeting);` },
+    { name: "Interfaces", code: `interface User {\n  id: number;\n  name: string;\n  email?: string;\n}\n\nconst u: User = { id: 1, name: "Ada", email: "ada@example.com" };\nconsole.log(u);` },
+    { name: "Generics", code: `function first<T>(arr: T[]): T | undefined {\n  return arr[0];\n}\n\nconsole.log(first([1, 2, 3]));\nconsole.log(first(["a", "b"]));` },
   ],
   python: [
     { name: "Hello World", code: `print("Hello, Launchpad!")` },
@@ -92,15 +103,42 @@ async function loadPyodide(onProgress?: (msg: string) => void): Promise<any> {
   return pyodideLoading;
 }
 
+/**
+ * Strip TypeScript type annotations to convert TS into runnable JS.
+ * Conservative regex-based stripper — handles most common cases.
+ */
+function stripTypeScriptTypes(code: string): string {
+  let out = code;
+  // Remove `: Type` annotations on variable declarations (but not object literals)
+  out = out.replace(/:\s*[A-Za-z_][A-Za-z0-9_<>\[\]{}|&,\s.]*(?=\s*[=,;)\]])/g, "");
+  // Remove `interface X { ... }` blocks
+  out = out.replace(/interface\s+\w+\s*(<[^>]+>)?\s*(extends\s+[\w, ]+)?\s*\{[^}]*\}/g, "");
+  // Remove `type X = ...;` aliases
+  out = out.replace(/type\s+\w+\s*(<[^>]+>)?\s*=\s*[^;]+;/g, "");
+  // Remove `as Type` assertions
+  out = out.replace(/\s+as\s+[A-Za-z_][A-Za-z0-9_<>\[\]{}|&,.]*/g, "");
+  // Remove `<>` generic type args on function calls/constructors
+  out = out.replace(/(<[A-Za-z_][A-Za-z0-9_,\s|&<>]*>)(?=\()/g, "");
+  // Remove `public`/`private`/`protected`/`readonly` modifiers
+  out = out.replace(/\b(public|private|protected|readonly)\s+/g, "");
+  // Remove non-null assertion `!`
+  out = out.replace(/!\s*([.;,)\]])/g, "$1");
+  // Remove `enum X { ... }` blocks (rare in playground snippets)
+  out = out.replace(/enum\s+\w+\s*\{[^}]*\}/g, "");
+  return out;
+}
+
 export function PlaygroundView() {
   const [language, setLanguage] = useState<Lang>("javascript");
   const [code, setCode] = useState("");
   const [output, setOutput] = useState<{ type: "log" | "error" | "warn" | "info"; text: string }[]>([]);
   const [running, setRunning] = useState(false);
   const [pyodideStatus, setPyodideStatus] = useState<string>("");
-  const [showExamples, setShowExamples] = useState(false);
+  const [showExamples, setShowExamples] = useState(true);
+  const [showExternalLinks, setShowExternalLinks] = useState(false);
   const [htmlPreview, setHtmlPreview] = useState<string | null>(null);
   const storeCode = useStore((s) => s.playgroundCode);
+  const storeLang = useStore((s) => s.playgroundLanguage);
   const setPlaygroundCode = useStore((s) => s.setPlaygroundCode);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -108,16 +146,11 @@ export function PlaygroundView() {
   useEffect(() => {
     if (storeCode) {
       setCode(storeCode);
+      // If the source language was TypeScript, switch the playground to TS
+      if (storeLang === "typescript") setLanguage("typescript");
       setPlaygroundCode(null);
     }
-  }, [storeCode, setPlaygroundCode]);
-
-  // When language changes, load first example or clear
-  useEffect(() => {
-    if (!code || !EXAMPLES[language].some(e => e.code === code)) {
-      // Keep current code if user is editing, otherwise load first example
-    }
-  }, [language]);
+  }, [storeCode, storeLang, setPlaygroundCode]);
 
   const run = async () => {
     setRunning(true);
@@ -125,7 +158,8 @@ export function PlaygroundView() {
     setHtmlPreview(null);
 
     try {
-      if (language === "javascript") {
+      if (language === "javascript" || language === "typescript") {
+        const jsCode = language === "typescript" ? stripTypeScriptTypes(code) : code;
         // JS execution (existing logic)
         const logs: { type: "log" | "error" | "warn" | "info"; text: string }[] = [];
         const origLog = console.log, origError = console.error, origWarn = console.warn, origInfo = console.info;
@@ -138,11 +172,12 @@ export function PlaygroundView() {
         };
         console.log = capture("log"); console.error = capture("error"); console.warn = capture("warn"); console.info = capture("info");
         try {
-          const wrapped = `return (async () => { ${code} })();`;
+          const wrapped = `return (async () => { ${jsCode} })();`;
+          // eslint-disable-next-line no-new-func
           const fn = new Function(wrapped);
-          const result = fn();
-          if (result && typeof result.then === "function") {
-            result.catch((err: Error) => {
+          const result: unknown = fn();
+          if (result && typeof (result as Promise<unknown>).then === "function") {
+            (result as Promise<unknown>).catch((err: Error) => {
               logs.push({ type: "error", text: err.message });
               setOutput([...logs]);
               setRunning(false);
@@ -197,14 +232,15 @@ export function PlaygroundView() {
   };
 
   const langConfig = LANGUAGES.find(l => l.id === language)!;
-  const fileExt = language === "javascript" ? "js" : language === "python" ? "py" : language;
+  const fileExt = language === "javascript" ? "js" : language === "typescript" ? "ts" : language === "python" ? "py" : language;
 
   return (
     <div className="space-y-4">
+      {/* Heading */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Code Playground</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Write, run, and experiment with code in 6 languages — all in your browser. Python runtime downloads once and is cached on your device.
+          Write, run, and experiment with code in {LANGUAGES.length} languages — all in your browser. Python runtime downloads once and is cached on your device.
         </p>
       </div>
 
@@ -214,6 +250,7 @@ export function PlaygroundView() {
           <button
             key={l.id}
             onClick={() => setLanguage(l.id)}
+            aria-pressed={language === l.id}
             className={cn(
               "inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all",
               language === l.id
@@ -221,7 +258,7 @@ export function PlaygroundView() {
                 : "text-muted-foreground hover:text-foreground hover:bg-foreground/5",
             )}
           >
-            <span>{l.icon}</span>
+            <span aria-hidden="true">{l.icon}</span>
             {l.label}
           </button>
         ))}
@@ -229,25 +266,73 @@ export function PlaygroundView() {
 
       {/* Runtime info for selected language */}
       <div className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-        <Info className="h-3 w-3" />
+        <Info className="h-3 w-3" aria-hidden="true" />
         <span><strong className="text-foreground">{langConfig.label}:</strong> {langConfig.runtime}</span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
-        {/* Editor + output */}
-        <div className="space-y-3">
+      {/* Examples — moved ABOVE the editor so the editor + output can expand */}
+      <div className="rounded-xl border border-border/60 bg-card/40 overflow-hidden">
+        <button
+          onClick={() => setShowExamples(!showExamples)}
+          aria-expanded={showExamples}
+          className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors"
+        >
+          <span>Examples ({EXAMPLES[language].length})</span>
+          <span className="text-[10px] normal-case tracking-normal">click to {showExamples ? "hide" : "show"}</span>
+        </button>
+        {showExamples && (
+          <div className="px-3 pb-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5">
+            {EXAMPLES[language].map((ex) => (
+              <button
+                key={ex.name}
+                onClick={() => setCode(ex.code)}
+                className="text-left rounded-lg border border-border/60 hover:border-primary/40 hover:bg-primary/5 p-2.5 transition-colors group"
+              >
+                <div className="flex items-center gap-2">
+                  <Code2 className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+                  <span className="text-xs font-medium">{ex.name}</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1 line-clamp-1 font-mono">
+                  {ex.code.split("\n")[0]}
+                </p>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* VS Code suggestion card */}
+      <GlassCard className="p-3.5 border-sky-500/30 bg-sky-500/5">
+        <div className="flex items-start gap-2.5">
+          <VSCode className="h-5 w-5 text-sky-500 shrink-0 mt-0.5" />
+          <div className="text-xs flex-1">
+            <p className="font-medium text-foreground mb-1">Use VS Code for a better experience</p>
+            <p className="text-muted-foreground">
+              For larger projects, debugging, and IntelliSense, install{" "}
+              <a href="https://code.visualstudio.com/download" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">
+                Visual Studio Code
+              </a>{" "}
+              — the free, open-source editor from Microsoft. See your roadmap's <strong>&quot;VS Code Setup&quot;</strong> phase for a recommended extensions list, theme, and shortcuts.
+            </p>
+          </div>
+        </div>
+      </GlassCard>
+
+      {/* Editor + Output — full-width, large, side-by-side on desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        {/* Editor column */}
+        <div className="space-y-2">
           {/* Toolbar */}
           <div className="flex items-center gap-2 flex-wrap">
             <GlassButton variant="primary" size="sm" onClick={run} disabled={running || !code.trim()}>
               <Play className="h-3.5 w-3.5" /> {running ? (pyodideStatus ? "Loading..." : "Running...") : "Run"}
             </GlassButton>
-            <GlassButton variant="ghost" size="sm" onClick={copyCode}>
+            <GlassButton variant="ghost" size="sm" onClick={copyCode} disabled={!code.trim()}>
               <Copy className="h-3.5 w-3.5" /> Copy
             </GlassButton>
             <GlassButton variant="ghost" size="sm" onClick={clear}>
               <Trash2 className="h-3.5 w-3.5" /> Clear
             </GlassButton>
-            {/* SQL external link */}
             {language === "sql" && (
               <a
                 href="https://www.db-fiddle.com/"
@@ -262,13 +347,13 @@ export function PlaygroundView() {
 
           {/* Pyodide loading status */}
           {pyodideStatus && (
-            <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-2.5 text-xs text-amber-700 dark:text-amber-300 flex items-center gap-2">
-              <Download className="h-3.5 w-3.5 animate-pulse" />
+            <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-2.5 text-xs text-amber-700 dark:text-amber-300 flex items-center gap-2" role="status">
+              <Download className="h-3.5 w-3.5 animate-pulse" aria-hidden="true" />
               {pyodideStatus}
             </div>
           )}
 
-          {/* Code editor */}
+          {/* Code editor — expanded height */}
           <div className="rounded-xl border border-border/60 overflow-hidden">
             <div className="px-3 py-1.5 bg-zinc-900 border-b border-zinc-700/50 flex items-center justify-between">
               <span className="text-[10px] font-mono text-zinc-400 uppercase">code.{fileExt}</span>
@@ -279,7 +364,8 @@ export function PlaygroundView() {
               value={code}
               onChange={(e) => setCode(e.target.value)}
               spellCheck={false}
-              className="w-full h-72 p-3 font-mono text-xs bg-zinc-900 text-zinc-100 resize-y focus:outline-none"
+              aria-label="Code editor"
+              className="w-full h-[420px] p-3 font-mono text-xs bg-zinc-900 text-zinc-100 resize-y focus:outline-none leading-relaxed"
               placeholder={`// Write your ${langConfig.label} here, then click Run`}
               onKeyDown={(e) => {
                 if (e.key === "Tab") {
@@ -291,20 +377,44 @@ export function PlaygroundView() {
                   setCode(newCode);
                   requestAnimationFrame(() => { t.selectionStart = t.selectionEnd = start + 2; });
                 }
+                // Ctrl/Cmd+Enter to run
+                if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+                  e.preventDefault();
+                  if (code.trim() && !running) run();
+                }
               }}
             />
           </div>
+          <p className="text-[10px] text-muted-foreground px-1">
+            <kbd className="px-1 py-0.5 rounded bg-foreground/10 font-mono">Tab</kbd> inserts 2 spaces · <kbd className="px-1 py-0.5 rounded bg-foreground/10 font-mono">Ctrl/⌘+Enter</kbd> runs
+          </p>
+        </div>
+
+        {/* Output / preview column — expanded height */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              {htmlPreview ? "Live Preview" : "Output"}
+            </span>
+            {output.length > 0 && (
+              <span className="text-[10px] font-mono text-muted-foreground">{output.length} lines</span>
+            )}
+          </div>
 
           {/* Output console (hidden for HTML/CSS — they get preview iframe) */}
-          {(language === "javascript" || language === "python" || language === "bash" || language === "sql") && (
+          {(language === "javascript" || language === "typescript" || language === "python" || language === "bash" || language === "sql") && !htmlPreview && (
             <div className="rounded-xl border border-border/60 overflow-hidden">
-              <div className="px-3 py-1.5 bg-card/60 border-b border-border/60 flex items-center justify-between">
-                <span className="text-[10px] font-mono text-muted-foreground uppercase">Output</span>
-                {output.length > 0 && <span className="text-[10px] font-mono text-muted-foreground">{output.length} lines</span>}
+              <div className="px-3 py-1.5 bg-card/60 border-b border-border/60">
+                <span className="text-[10px] font-mono text-muted-foreground uppercase">Console</span>
               </div>
-              <div className="p-3 min-h-[100px] max-h-[300px] overflow-y-auto bg-zinc-950 text-zinc-100 font-mono text-xs">
+              <div
+                className="p-3 h-[420px] overflow-y-auto bg-zinc-950 text-zinc-100 font-mono text-xs"
+                role="log"
+                aria-live="polite"
+                aria-label="Code output console"
+              >
                 {output.length === 0 ? (
-                  <span className="text-zinc-500 italic">{"// Output will appear here"}</span>
+                  <span className="text-zinc-500 italic">{"// Output will appear here after you click Run"}</span>
                 ) : (
                   output.map((line, i) => (
                     <div key={i} className={cn(
@@ -323,52 +433,22 @@ export function PlaygroundView() {
             </div>
           )}
 
-          {/* HTML/CSS live preview */}
+          {/* HTML/CSS live preview — expanded height */}
           {htmlPreview && (
             <div className="rounded-xl border border-border/60 overflow-hidden">
               <div className="px-3 py-1.5 bg-card/60 border-b border-border/60">
-                <span className="text-[10px] font-mono text-muted-foreground uppercase">Live Preview</span>
+                <span className="text-[10px] font-mono text-muted-foreground uppercase">Preview</span>
               </div>
               <iframe
                 srcDoc={htmlPreview}
-                title="Preview"
-                className="w-full h-72 bg-white"
+                title="Live HTML/CSS preview"
+                className="w-full h-[420px] bg-white"
                 sandbox="allow-scripts"
               />
             </div>
           )}
-        </div>
 
-        {/* Examples sidebar — collapsible */}
-        <div className="space-y-2">
-          <button
-            onClick={() => setShowExamples(!showExamples)}
-            className="w-full flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors"
-          >
-            <span>Examples ({EXAMPLES[language].length})</span>
-            {showExamples ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          </button>
-          {showExamples && (
-            <div className="space-y-1.5">
-              {EXAMPLES[language].map((ex) => (
-                <button
-                  key={ex.name}
-                  onClick={() => setCode(ex.code)}
-                  className="w-full text-left rounded-lg border border-border/60 hover:border-primary/40 hover:bg-primary/5 p-2.5 transition-colors group"
-                >
-                  <div className="flex items-center gap-2">
-                    <Code2 className="h-3.5 w-3.5 text-primary" />
-                    <span className="text-xs font-medium">{ex.name}</span>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground mt-1 line-clamp-1 font-mono">
-                    {ex.code.split("\n")[0]}
-                  </p>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Download status indicator for Pyodide */}
+          {/* Python runtime status sidebar */}
           {language === "python" && (
             <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/20 p-2.5 text-[10px] text-muted-foreground">
               <div className="font-semibold text-emerald-600 dark:text-emerald-400 mb-1">📦 Python Runtime</div>
@@ -382,12 +462,21 @@ export function PlaygroundView() {
         </div>
       </div>
 
-      {/* Frameworks & databases — moved to BOTTOM per user request */}
-      <GlassCard className="p-4 border-sky-500/30 bg-sky-500/5">
-        <div className="flex items-start gap-2">
-          <ExternalLink className="h-4 w-4 text-sky-500 shrink-0 mt-0.5" />
-          <div className="text-xs text-muted-foreground flex-1">
-            <p className="mb-2 font-medium text-foreground">Frameworks & databases — use official playgrounds</p>
+      {/* Frameworks & databases — collapsible */}
+      <div className="rounded-xl border border-sky-500/30 bg-sky-500/5 overflow-hidden">
+        <button
+          onClick={() => setShowExternalLinks(!showExternalLinks)}
+          aria-expanded={showExternalLinks}
+          className="w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <span className="flex items-center gap-2">
+            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+            Frameworks &amp; databases — use official playgrounds
+          </span>
+          <span className="text-[10px] normal-case">{showExternalLinks ? "hide" : "show"}</span>
+        </button>
+        {showExternalLinks && (
+          <div className="px-3.5 pb-3.5 text-xs text-muted-foreground">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
               <a href="https://svelte.dev/playground" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Svelte REPL →</a>
               <a href="https://play.vuejs.org/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Vue SFC →</a>
@@ -403,8 +492,8 @@ export function PlaygroundView() {
               Node.js runs server-side. PostgreSQL/MongoDB need a database server.
             </p>
           </div>
-        </div>
-      </GlassCard>
+        )}
+      </div>
     </div>
   );
 }

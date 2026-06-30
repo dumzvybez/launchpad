@@ -31,7 +31,7 @@ const ALL_NAV: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, hint: "Overview & today", group: "main" },
   { id: "roadmap", label: "Roadmap", icon: Map, hint: "6 phases, modules, tasks", group: "main" },
   { id: "learn", label: "Learn", icon: GraduationCap, hint: "Lessons & quizzes", group: "learn" },
-  { id: "playground", label: "JS Playground", icon: Code2, hint: "Run JavaScript in your browser", group: "learn" },
+  { id: "playground", label: "Playground", icon: Code2, hint: "Run code in 10+ languages in your browser", group: "learn" },
   { id: "daily-challenge", label: "Daily Challenge", icon: Target, hint: "Rotating coding challenges", group: "learn" },
   { id: "projects", label: "Projects", icon: FolderGit2, hint: "Build & track portfolio", group: "learn" },
   { id: "ai-tutor", label: "AI Tutor", icon: Bot, hint: "Ask the AI tutor", group: "learn" },
@@ -52,13 +52,9 @@ const GROUP_LABELS: Record<string, string> = {
 };
 
 export function getNavItems(roadmap?: { languageIds: string[] } | null): NavItem[] {
-  if (!roadmap) return ALL_NAV;
-  const hasJSOrTS = roadmap.languageIds.some((id) =>
-    ["javascript", "typescript", "react", "nextjs"].includes(id),
-  );
-  if (hasJSOrTS) return ALL_NAV;
-  // Hide playground if no JS/TS in plan
-  return ALL_NAV.filter((n) => n.id !== "playground");
+  // Playground supports all 30+ languages now, so always show it.
+  void roadmap;
+  return ALL_NAV;
 }
 
 export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
@@ -114,9 +110,10 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
                 <button
                   key={item.id}
                   onClick={() => setView(item.id)}
+                  aria-current={active ? "page" : undefined}
                   className={cn(
                     "group flex items-center gap-3 rounded-lg px-3 py-1.5 text-[13px] transition-all duration-200",
-                    "border border-transparent",
+                    "border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                     active
                       ? "nav-item-active"
                       : "text-foreground/60 hover:text-foreground hover:bg-foreground/4",

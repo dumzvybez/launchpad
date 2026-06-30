@@ -66,6 +66,7 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
   const [interviewQuestionCount, setInterviewQuestionCount] = useState(10);
   // Code Review Mode state (in-AI-Tutor Code Review)
   const [codeReviewMode, setCodeReviewMode] = useState(false);
+  const [codeReviewSystemPrompt, setCodeReviewSystemPrompt] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -129,6 +130,8 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
           customEndpoint: aiSettings.customEndpoint,
           // Pass the interview system prompt when in Interview Mode
           ...(interviewSystemPrompt ? { systemPrompt: interviewSystemPrompt } : {}),
+          // Pass the code review system prompt when in Code Review Mode
+          ...(codeReviewSystemPrompt ? { systemPrompt: codeReviewSystemPrompt } : {}),
         }),
       });
 
@@ -159,7 +162,8 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
     }
   };
 
-  // Test Connection — sends "Hi" to verify the API key works
+  // Test Connection — POST-based, sends "Hi" to verify the API key works.
+  // The key goes in the request body, never in URL query params.
   const handleTestConnection = async () => {
     if (!aiSettings.apiKey || !aiSettings.model) {
       setTestResult({ ok: false, msg: "Enter an API key and select a model first." });
@@ -168,8 +172,17 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
     setTesting(true);
     setTestResult(null);
     try {
-      const url = `/api/chat?test=1&provider=${encodeURIComponent(aiSettings.provider)}&apiKey=${encodeURIComponent(aiSettings.apiKey)}&model=${encodeURIComponent(aiSettings.model)}${aiSettings.customEndpoint ? `&customEndpoint=${encodeURIComponent(aiSettings.customEndpoint)}` : ""}`;
-      const res = await fetch(url);
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          test: true,
+          provider: aiSettings.provider,
+          apiKey: aiSettings.apiKey,
+          model: aiSettings.model,
+          customEndpoint: aiSettings.customEndpoint || undefined,
+        }),
+      });
       const data = await res.json();
       if (data.ok) {
         setTestResult({ ok: true, msg: "✅ Connected!" });
@@ -186,9 +199,11 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
   const handleNewChat = () => {
     createChat();
     setInput("");
-    // Reset interview mode when starting a new chat
+    // Reset interview + code review modes when starting a new chat
     setInterviewMode(false);
     setInterviewSystemPrompt(null);
+    setCodeReviewMode(false);
+    setCodeReviewSystemPrompt(null);
     inputRef.current?.focus();
   };
 
@@ -472,10 +487,94 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
           />
         )}
 
-        {/* AI Code Review panel — only in full-screen tab */}
+        {/* AI Code Review setup screen — only in full-screen tab */}
         {codeReviewMode && fullTab && (
-          <CodeReviewPanel
+          <CodeReviewSetupScreen
+            hasUserKey={hasUserKey}
             onClose={() => setCodeReviewMode(false)}
+            onOpenSettings={() => setShowSettings(true)}
+            onSubmit={(opts) => {
+              // Build the system prompt — same template as before
+              const sysPrompt = `You are a senior software engineer performing a code review. The user has shared some code${opts.context ? ` and noted: "${opts.context}"` : ""}.
+
+Review their code for:
+1. **Correctness** — Does it work as intended? Are there bugs?
+2. **Code Quality** — Is it readable, well-named, properly indented?
+3. **Best Practices** — Does it follow ${opts.language} conventions and idioms?
+4. **Efficiency** — Any unnecessary complexity or performance issues?
+5. **Improvements** — 3 specific, actionable things they could add or improve
+
+Format your response with these exact headings:
+## Overall Impression
+## What Works Well (list 3-5 specific things)
+## Issues Found (list each issue with explanation and fix)
+## Suggested Improvements (list 3 with code examples)
+## Score: X/10
+## Encouragement (one genuine, specific sentence)
+
+Be honest but encouraging. This is a learning context. Use code blocks for all code examples.`;
+
+              // Create a fresh chat for the code review
+              const chatId = createChat();
+              setCodeReviewSystemPrompt(sysPrompt);
+              setCodeReviewMode(false); // close setup screen
+
+              // Build the first user message containing the code
+              const kickOffMessage: ChatMessage = {
+                id: `msg-${Date.now()}`,
+                role: "user",
+                content: `**🔍 AI Code Review** — ${opts.language}${opts.context ? `\n\n**Context:** ${opts.context}` : ""}\n\nPlease review this code:\n\n\`\`\`${opts.language}\n${opts.code}\n\`\`\``,
+                timestamp: new Date().toISOString(),
+              };
+              addMessage(chatId, kickOffMessage);
+              setInput("");
+              setSending(true);
+
+              // Fire the first AI call
+              (async () => {
+                try {
+                  const response = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      messages: [kickOffMessage].map((m) => ({ role: m.role, content: m.content })),
+                      apiKey: aiSettings.apiKey,
+                      provider: aiSettings.provider,
+                      model: aiSettings.model,
+                      temperature: aiSettings.temperature,
+                      customEndpoint: aiSettings.customEndpoint,
+                      systemPrompt: sysPrompt,
+                    }),
+                  });
+                  const data = await response.json();
+                  if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+                  const assistantMessage: ChatMessage = {
+                    id: `msg-${Date.now()}-ai`,
+                    role: "assistant",
+                    content: data.content || "(no response)",
+                    timestamp: new Date().toISOString(),
+                    provider: data.provider,
+                  };
+                  addMessage(chatId, assistantMessage);
+                  // Track badge progress
+                  if (typeof window !== "undefined") {
+                    window.localStorage.setItem("launchpad:code-reviewed", "1");
+                    const current = Number(window.localStorage.getItem("launchpad:code-review-count") ?? "0");
+                    window.localStorage.setItem("launchpad:code-review-count", String(current + 1));
+                  }
+                } catch (err) {
+                  const errorMessage: ChatMessage = {
+                    id: `msg-${Date.now()}-err`,
+                    role: "assistant",
+                    content: `⚠️ Error: ${(err as Error).message}\n\nCheck your API key and provider settings.`,
+                    timestamp: new Date().toISOString(),
+                  };
+                  addMessage(chatId, errorMessage);
+                } finally {
+                  setSending(false);
+                }
+              })();
+            }}
           />
         )}
 
@@ -493,6 +592,24 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
               className="ml-auto text-[10px] hover:underline"
             >
               End interview →
+            </button>
+          </div>
+        )}
+
+        {/* Code Review Mode banner — shown when a review is in progress */}
+        {codeReviewSystemPrompt && !codeReviewMode && (
+          <div className="rounded-md bg-fuchsia-500/10 border border-fuchsia-500/30 px-3 py-1.5 text-xs text-fuchsia-600 dark:text-fuchsia-300 flex items-center gap-2">
+            <Search className="h-3 w-3" />
+            <span className="font-medium">Code Review Mode active</span>
+            <span className="text-muted-foreground">· AI is acting as a senior reviewer</span>
+            <button
+              onClick={() => {
+                setCodeReviewSystemPrompt(null);
+                handleNewChat();
+              }}
+              className="ml-auto text-[10px] hover:underline"
+            >
+              End review →
             </button>
           </div>
         )}
@@ -744,8 +861,18 @@ function AISettingsPanel({ onClose }: { onClose: () => void }) {
     setTesting(true);
     setTestResult(null);
     try {
-      const url = `/api/chat?test=1&provider=${encodeURIComponent(aiSettings.provider)}&apiKey=${encodeURIComponent(aiSettings.apiKey)}&model=${encodeURIComponent(aiSettings.model)}${aiSettings.customEndpoint ? `&customEndpoint=${encodeURIComponent(aiSettings.customEndpoint)}` : ""}`;
-      const res = await fetch(url);
+      // POST-based test — key goes in body, never in URL params
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          test: true,
+          provider: aiSettings.provider,
+          apiKey: aiSettings.apiKey,
+          model: aiSettings.model,
+          customEndpoint: aiSettings.customEndpoint || undefined,
+        }),
+      });
       const data = await res.json();
       if (data.ok) {
         setTestResult({ ok: true, msg: "✅ Connected!" });
@@ -916,101 +1043,37 @@ function AISettingsPanel({ onClose }: { onClose: () => void }) {
 }
 
 // ============================================================
-// CodeReviewPanel — in-AI-Tutor Code Review
-// Lets the user paste code (no project context needed) and get an AI review.
+// CodeReviewSetupScreen — setup form for AI Code Review
+// Mirrors the InterviewSetupScreen pattern:
+// 1. User picks language, pastes code, optional context.
+// 2. On submit, the parent creates a fresh chat + sends the first
+//    message. The AI's response lands in the chat thread as an
+//    assistant message — just like a normal chat.
+// 3. The user can then keep chatting with the reviewer about the
+//    code, ask follow-ups, request changes, etc.
 // ============================================================
-function CodeReviewPanel({ onClose }: { onClose: () => void }) {
-  const aiSettings = useStore((s) => s.state.aiSettings);
-  const addChatMessage = useStore((s) => s.addChatMessage);
-  const createChatConversation = useStore((s) => s.createChatConversation);
-  const setActiveChat = useStore((s) => s.setActiveChat);
+type CodeReviewSubmit = {
+  code: string;
+  language: string;
+  context: string;
+};
 
+function CodeReviewSetupScreen({
+  hasUserKey,
+  onClose,
+  onOpenSettings,
+  onSubmit,
+}: {
+  hasUserKey: boolean;
+  onClose: () => void;
+  onOpenSettings: () => void;
+  onSubmit: (opts: CodeReviewSubmit) => void;
+}) {
   const [code, setCode] = useState("");
   const [language, setLanguage] = useState("javascript");
   const [context, setContext] = useState("");
-  const [review, setReview] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const hasKey = !!aiSettings.apiKey;
-
-  const handleSubmit = async () => {
-    if (!code.trim()) return;
-    if (!hasKey) {
-      setError("No API key configured. Click Settings to add one.");
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    setReview(null);
-
-    const systemPrompt = `You are a senior software engineer performing a code review. The user has shared some code${context ? ` and noted: "${context}"` : ""}.
-
-Review their code for:
-1. **Correctness** — Does it work as intended? Are there bugs?
-2. **Code Quality** — Is it readable, well-named, properly indented?
-3. **Best Practices** — Does it follow ${language} conventions and idioms?
-4. **Efficiency** — Any unnecessary complexity or performance issues?
-5. **Improvements** — 3 specific, actionable things they could add or improve
-
-Format your response with these exact headings:
-## Overall Impression
-## What Works Well (list 3-5 specific things)
-## Issues Found (list each issue with explanation and fix)
-## Suggested Improvements (list 3 with code examples)
-## Score: X/10
-## Encouragement (one genuine, specific sentence)
-
-Be honest but encouraging. This is a learning context. Use code blocks for all code examples.`;
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [{
-            role: "user" as const,
-            content: `Please review this ${language} code${context ? ` (Context: ${context})` : ""}:\n\n\`\`\`${language}\n${code}\n\`\`\``,
-          }],
-          apiKey: aiSettings.apiKey,
-          provider: aiSettings.provider,
-          model: aiSettings.model,
-          temperature: aiSettings.temperature,
-          customEndpoint: aiSettings.customEndpoint,
-          systemPrompt,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
-      setReview(data.content || "(no response)");
-      // Set badge-tracking flags
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem("launchpad:code-reviewed", "1");
-        const current = Number(window.localStorage.getItem("launchpad:code-review-count") ?? "0");
-        window.localStorage.setItem("launchpad:code-review-count", String(current + 1));
-      }
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSaveToChat = () => {
-    if (!review) return;
-    const chatId = createChatConversation();
-    addChatMessage(chatId, {
-      role: "user",
-      content: `**Code Review** (${language})${context ? `\n\nContext: ${context}` : ""}\n\n\`\`\`${language}\n${code}\n\`\`\``,
-    });
-    addChatMessage(chatId, {
-      role: "assistant",
-      content: review,
-      provider: aiSettings.provider,
-    });
-    setActiveChat(chatId);
-    onClose();
-  };
+  const canSubmit = code.trim().length > 0 && hasUserKey;
 
   return (
     <div className="rounded-xl border border-fuchsia-500/40 bg-fuchsia-500/5 p-4 space-y-3 my-2">
@@ -1021,7 +1084,7 @@ Be honest but encouraging. This is a learning context. Use code blocks for all c
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-semibold">🔍 AI Code Review</h3>
           <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-            Paste your code and get a structured review: correctness, quality, best practices, efficiency, and 3 specific improvements.
+            Paste your code and get a structured review — correctness, quality, best practices, efficiency, and 3 specific improvements. The review will appear in your chat, and you can keep talking with the reviewer about the code.
           </p>
         </div>
         <button
@@ -1033,10 +1096,23 @@ Be honest but encouraging. This is a learning context. Use code blocks for all c
         </button>
       </div>
 
+      {!hasUserKey && (
+        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-2.5 text-xs text-amber-700 dark:text-amber-300 flex items-center justify-between gap-2">
+          <span>No API key configured. You&apos;ll need one to run the review.</span>
+          <button
+            onClick={onOpenSettings}
+            className="text-[11px] font-medium px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 shrink-0"
+          >
+            Open Settings →
+          </button>
+        </div>
+      )}
+
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <label className="text-[11px] font-medium shrink-0">Language:</label>
+          <label className="text-[11px] font-medium shrink-0" htmlFor="cr-language">Language:</label>
           <select
+            id="cr-language"
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
             className="text-xs bg-foreground/5 rounded-md px-2 py-1 border border-border/60"
@@ -1049,8 +1125,9 @@ Be honest but encouraging. This is a learning context. Use code blocks for all c
         <textarea
           value={code}
           onChange={(e) => setCode(e.target.value)}
-          rows={8}
+          rows={10}
           placeholder={`// Paste your ${language} code here...`}
+          aria-label="Code to review"
           className="w-full px-3 py-2 rounded-md bg-foreground/5 border border-border/60 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-fuchsia-500/40"
         />
         <input
@@ -1058,48 +1135,32 @@ Be honest but encouraging. This is a learning context. Use code blocks for all c
           value={context}
           onChange={(e) => setContext(e.target.value)}
           placeholder="Optional: what does this code do? What are you trying to achieve?"
+          aria-label="Optional context for the code review"
           className="w-full px-3 py-1.5 rounded-md bg-foreground/5 border border-border/60 text-xs"
         />
       </div>
 
-      {error && (
-        <div className="rounded-md border border-rose-500/40 bg-rose-500/10 p-2 text-xs text-rose-600 dark:text-rose-300">
-          ⚠️ {error}
-        </div>
-      )}
-
-      {review && (
-        <div className="rounded-md border border-border/60 bg-foreground/5 p-3">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-xs font-semibold">AI Review</div>
-            <div className="flex gap-2">
-              <button onClick={() => navigator.clipboard.writeText(review)} className="text-[10px] px-2 py-1 rounded-md bg-foreground/5 hover:bg-foreground/10">Copy</button>
-              <button onClick={handleSaveToChat} className="text-[10px] px-2 py-1 rounded-md bg-primary/10 text-primary hover:bg-primary/20">Save to Chat</button>
-            </div>
-          </div>
-          <div className="prose prose-sm dark:prose-invert max-w-none text-xs">
-            <pre className="whitespace-pre-wrap font-sans">{review}</pre>
-          </div>
-        </div>
-      )}
-
       <div className="flex items-center gap-2">
         <button
-          onClick={handleSubmit}
-          disabled={!code.trim() || loading || !hasKey}
+          onClick={() => canSubmit && onSubmit({ code: code.trim(), language, context: context.trim() })}
+          disabled={!canSubmit}
           className={cn(
             "flex-1 px-3 py-2 rounded-md text-xs font-medium transition-colors",
-            code.trim() && !loading && hasKey
+            canSubmit
               ? "bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white hover:brightness-110"
               : "bg-foreground/5 text-muted-foreground cursor-not-allowed",
           )}
         >
-          {loading ? "Reviewing..." : "🔍 Submit for Review"}
+          🔍 Start Code Review
         </button>
         <button onClick={onClose} className="px-3 py-2 rounded-md border border-border/60 text-xs hover:bg-foreground/5">
           Cancel
         </button>
       </div>
+
+      <p className="text-[10px] text-muted-foreground italic">
+        A new chat will be created for this review. You can continue the conversation afterwards to ask follow-up questions about the same code.
+      </p>
     </div>
   );
 }

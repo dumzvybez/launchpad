@@ -805,7 +805,9 @@ function generateProjectSteps(project: SelectedProject): { title: string; detail
 }
 
 // ============================================================
-// ExploreMoreProjects — shows all projects grouped by language
+// ExploreMoreProjects — clean, searchable, filterable catalog
+// of all 207 projects. Designed to be easier to scan than the
+// previous grouped-by-language wall of cards.
 // ============================================================
 function ExploreMoreProjects({
   allProjects,
@@ -816,63 +818,154 @@ function ExploreMoreProjects({
   selectedProjectIds: Set<string>;
   languageMap: typeof LANGUAGE_MAP;
 }) {
-  // Group projects by primary language
-  const byLanguage = new Map<string, SelectedProject[]>();
-  for (const p of allProjects) {
-    const lang = p.languages[0] ?? "other";
-    if (!byLanguage.has(lang)) byLanguage.set(lang, []);
-    byLanguage.get(lang)!.push(p);
-  }
-  // Sort languages alphabetically
-  const sortedLangs = [...byLanguage.keys()].sort();
+  const [query, setQuery] = useState("");
+  const [difficultyFilter, setDifficultyFilter] = useState<"all" | "beginner" | "intermediate" | "advanced">("all");
+  const [languageFilter, setLanguageFilter] = useState<string>("all");
+  const [hideInPlan, setHideInPlan] = useState(false);
+
+  // Build the list of unique primary languages for the filter dropdown
+  const availableLangs = useMemo(() => {
+    const s = new Set<string>();
+    for (const p of allProjects) s.add(p.languages[0] ?? "other");
+    return [...s].sort();
+  }, [allProjects]);
+
+  // Apply filters
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return allProjects.filter((p) => {
+      if (hideInPlan && selectedProjectIds.has(p.id)) return false;
+      if (difficultyFilter !== "all" && p.difficulty !== difficultyFilter) return false;
+      if (languageFilter !== "all" && (p.languages[0] ?? "other") !== languageFilter) return false;
+      if (q) {
+        const hay = `${p.title} ${p.description} ${p.languages.join(" ")} ${p.skills?.join(" ") ?? ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [allProjects, query, difficultyFilter, languageFilter, hideInPlan, selectedProjectIds]);
+
+  // Group the filtered results by primary language (sorted alphabetically)
+  const byLanguage = useMemo(() => {
+    const map = new Map<string, SelectedProject[]>();
+    for (const p of filtered) {
+      const lang = p.languages[0] ?? "other";
+      if (!map.has(lang)) map.set(lang, []);
+      map.get(lang)!.push(p);
+    }
+    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  }, [filtered]);
+
+  const inPlanCount = allProjects.filter((p) => selectedProjectIds.has(p.id)).length;
 
   return (
-    <div className="mt-4 space-y-4 max-h-[600px] overflow-y-auto pr-1">
-      <p className="text-[11px] text-muted-foreground italic">
-        Showing all {allProjects.length} projects from the catalog, grouped by primary language. Projects already in your plan are marked with ✓.
-      </p>
-      {sortedLangs.map((langId) => {
-        const projects = byLanguage.get(langId)!;
-        const lang = languageMap[langId];
-        return (
-          <div key={langId} className="space-y-2">
-            <div className="flex items-center gap-2 sticky top-0 bg-card/80 backdrop-blur-sm py-1.5 z-10">
-              <span className="text-base">{lang?.icon ?? "📘"}</span>
-              <span className="text-xs font-semibold">{lang?.name ?? langId}</span>
-              <span className="text-[10px] text-muted-foreground">· {projects.length} projects</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {projects.map((p) => {
-                const isInPlan = selectedProjectIds.has(p.id);
-                return (
-                  <div
-                    key={p.id}
-                    className={cn(
-                      "rounded-lg border p-2.5 text-xs",
-                      isInPlan ? "border-emerald-500/30 bg-emerald-500/5" : "border-border/40 bg-foreground/3",
-                    )}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="font-medium leading-tight">{p.title}</div>
-                      {isInPlan && <span className="text-[9px] text-emerald-600 dark:text-emerald-400 shrink-0">✓ in plan</span>}
-                    </div>
-                    <div className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{p.description}</div>
-                    <div className="flex items-center gap-1.5 mt-1.5">
-                      <span className={cn(
-                        "text-[9px] px-1.5 py-0.5 rounded",
-                        p.difficulty === "beginner" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" :
-                        p.difficulty === "intermediate" ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" :
-                        "bg-rose-500/10 text-rose-600 dark:text-rose-400"
-                      )}>{p.difficulty}</span>
-                      <span className="text-[9px] text-muted-foreground">· {p.estHours}h</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+    <div className="mt-4 space-y-3">
+      {/* Search + filters */}
+      <div className="rounded-lg border border-border/60 bg-foreground/3 p-3 space-y-2">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search projects by name, language, or skill..."
+          aria-label="Search projects"
+          className="w-full px-3 py-2 rounded-md bg-background border border-border/60 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40"
+        />
+        <div className="flex flex-wrap items-center gap-2 text-[11px]">
+          <select
+            value={difficultyFilter}
+            onChange={(e) => setDifficultyFilter(e.target.value as "all" | "beginner" | "intermediate" | "advanced")}
+            aria-label="Filter by difficulty"
+            className="px-2 py-1 rounded-md bg-background border border-border/60 text-[11px]"
+          >
+            <option value="all">All difficulties</option>
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+          <select
+            value={languageFilter}
+            onChange={(e) => setLanguageFilter(e.target.value)}
+            aria-label="Filter by language"
+            className="px-2 py-1 rounded-md bg-background border border-border/60 text-[11px]"
+          >
+            <option value="all">All languages</option>
+            {availableLangs.map((id) => (
+              <option key={id} value={id}>{languageMap[id]?.name ?? id}</option>
+            ))}
+          </select>
+          <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={hideInPlan}
+              onChange={(e) => setHideInPlan(e.target.checked)}
+              className="rounded"
+            />
+            Hide projects already in my plan
+          </label>
+          <span className="ml-auto text-muted-foreground">
+            {filtered.length} of {allProjects.length} shown
+            {inPlanCount > 0 && <> · {inPlanCount} in your plan</>}
+          </span>
+        </div>
+      </div>
+
+      {/* Results — grouped by language with sticky headers */}
+      <div className="max-h-[600px] overflow-y-auto pr-1 space-y-4">
+        {byLanguage.length === 0 ? (
+          <div className="text-center py-8 text-xs text-muted-foreground">
+            No projects match your filters. Try clearing the search or changing the filters.
           </div>
-        );
-      })}
+        ) : (
+          byLanguage.map(([langId, projects]) => {
+            const lang = languageMap[langId];
+            return (
+              <div key={langId} className="space-y-2">
+                <div className="flex items-center gap-2 sticky top-0 bg-card/95 backdrop-blur-sm py-1.5 px-2 -mx-2 z-10 border-b border-border/40">
+                  <span className="text-base" aria-hidden="true">{lang?.icon ?? "📘"}</span>
+                  <span className="text-xs font-semibold">{lang?.name ?? langId}</span>
+                  <span className="text-[10px] text-muted-foreground">· {projects.length} project{projects.length === 1 ? "" : "s"}</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {projects.map((p) => {
+                    const isInPlan = selectedProjectIds.has(p.id);
+                    return (
+                      <div
+                        key={p.id}
+                        className={cn(
+                          "rounded-lg border p-2.5 text-xs transition-colors",
+                          isInPlan ? "border-emerald-500/40 bg-emerald-500/5" : "border-border/40 bg-card/40 hover:border-primary/40 hover:bg-primary/5",
+                        )}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="font-medium leading-tight">{p.title}</div>
+                          {isInPlan && (
+                            <span className="text-[9px] text-emerald-600 dark:text-emerald-400 shrink-0 font-semibold">
+                              ✓ in plan
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{p.description}</div>
+                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                          <span className={cn(
+                            "text-[9px] px-1.5 py-0.5 rounded font-medium",
+                            p.difficulty === "beginner" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" :
+                            p.difficulty === "intermediate" ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" :
+                            "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                          )}>{p.difficulty}</span>
+                          <span className="text-[9px] text-muted-foreground">· {p.estHours}h</span>
+                          {p.tier && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-foreground/5 text-muted-foreground">{p.tier}</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 }

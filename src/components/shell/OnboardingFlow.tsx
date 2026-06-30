@@ -339,7 +339,7 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
               <div className="h-10 w-10"><LogoMark size={40} /></div>
               <div>
                 <h1 className="text-lg font-semibold">Launchpad Onboarding</h1>
-                <p className="text-xs text-muted-foreground font-mono">Step {step} of {TOTAL_STEPS - 1}</p>
+                <p className="text-xs text-muted-foreground font-mono">Step {step + 1} of {TOTAL_STEPS}</p>
               </div>
             </div>
             <div className="flex gap-1">
