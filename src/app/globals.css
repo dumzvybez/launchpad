@@ -653,3 +653,50 @@
     letter-spacing: -0.005em;
   }
 }
+
+/* ============================================================
+ * Section 5 — Print-friendly lesson view
+ * When the user clicks the Print button on a lesson, only the
+ * lesson content should be visible in the print output. We hide
+ * everything else (sidebar, topbar, nav, buttons) via visibility,
+ * then position the .lesson-content at the top of the page.
+ * ============================================================ */
+@media print {
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+  /* Show the lesson content and its descendants */
+  .lesson-content,
+  .lesson-content * {
+    visibility: visible;
+  }
+  /* Position the lesson content at the top of the page */
+  .lesson-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  /* Elements marked .no-print are fully removed (not just hidden) */
+  .no-print {
+    display: none !important;
+  }
+  /* Use white background and black text for print */
+  .lesson-content {
+    background: white !important;
+    color: black !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  /* Page setup */
+  @page {
+    margin: 1.5cm;
+  }
+  /* Avoid breaking inside code blocks */
+  .lesson-content pre,
+  .lesson-content code {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+}

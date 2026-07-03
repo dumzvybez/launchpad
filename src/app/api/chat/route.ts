@@ -217,7 +217,7 @@ async function fetchProviderChat(
       return callOpenAICompatible(
         "https://openrouter.ai/api/v1/chat/completions",
         apiKey, model, messages, temperature,
-        { "HTTP-Referer": "https://launchpad--pi.vercel.app", "X-Title": "Launchpad" },
+        { "HTTP-Referer": "https://launchpad--dev.vercel.app", "X-Title": "Launchpad" },
         systemPrompt,
       );
     case "openai":

@@ -24,6 +24,7 @@ const RoadmapView = dynamic(() => import("@/components/views/RoadmapView").then(
 const LearnView = dynamic(() => import("@/components/views/LearnView").then(m => ({ default: m.LearnView })), { loading: viewLoadingFallback });
 const PlaygroundView = dynamic(() => import("@/components/views/PlaygroundView").then(m => ({ default: m.PlaygroundView })), { loading: viewLoadingFallback });
 const DailyChallengeView = dynamic(() => import("@/components/views/DailyChallengeView").then(m => ({ default: m.DailyChallengeView })), { loading: viewLoadingFallback });
+const FlashcardsView = dynamic(() => import("@/components/views/FlashcardsView").then(m => ({ default: m.FlashcardsView })), { loading: viewLoadingFallback });
 const SkillTreeView = dynamic(() => import("@/components/views/SkillTreeView").then(m => ({ default: m.SkillTreeView })), { loading: viewLoadingFallback });
 const NotesView = dynamic(() => import("@/components/views/NotesView").then(m => ({ default: m.NotesView })), { loading: viewLoadingFallback });
 const ProjectsView = dynamic(() => import("@/components/views/ProjectsView").then(m => ({ default: m.ProjectsView })), { loading: viewLoadingFallback });
@@ -159,6 +160,7 @@ export function AppShell() {
                 case "learn": return <LearnView />;
                 case "playground": return <PlaygroundView />;
                 case "daily-challenge": return <DailyChallengeView />;
+                case "flashcards": return <FlashcardsView />;
                 case "skill-tree": return <SkillTreeView />;
                 case "calendar": return <CalendarView />;
                 case "notes": return <NotesView />;

@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = "https://launchpad--pi.vercel.app";
+  const base = "https://launchpad--dev.vercel.app";
   const now = new Date();
   return [
     { url: base, lastModified: now, priority: 1, changeFrequency: "weekly" },

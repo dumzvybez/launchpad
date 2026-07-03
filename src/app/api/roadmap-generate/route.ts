@@ -271,7 +271,7 @@ async function callOpenRouter(prompt: string): Promise<unknown> {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
-      "HTTP-Referer": "https://launchpad--pi.vercel.app",
+      "HTTP-Referer": "https://launchpad--dev.vercel.app",
       "X-Title": "Launchpad",
     },
     body: JSON.stringify({

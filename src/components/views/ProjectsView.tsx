@@ -89,9 +89,13 @@ export function ProjectsView() {
     );
   }
 
-  // Full-page instructions view (Section 4.1)
+  // Full-page instructions view (Section 4.1 + Section 26)
+  // Section 26: look up the project from ALL projects (not just the user's
+  // selected plan) so users can view instructions for any project in the
+  // Explore More catalog.
   if (instructionsProjectId) {
-    const proj = selectedProjects.find((p) => p.id === instructionsProjectId);
+    const proj = ALL_PROJECTS.find((p) => p.id === instructionsProjectId)
+      ?? selectedProjects.find((p) => p.id === instructionsProjectId);
     if (proj) {
       return <ProjectInstructionsView project={proj} onBack={() => setInstructionsProjectId(null)} onSubmit={(repoUrl, notes) => {
         addProjectSubmission(proj.id, repoUrl, notes);
@@ -368,6 +372,7 @@ export function ProjectsView() {
               allProjects={ALL_PROJECTS}
               selectedProjectIds={new Set(selectedProjects.map(p => p.id))}
               languageMap={LANGUAGE_MAP}
+              onViewInstructions={setInstructionsProjectId}
             />
           )}
         </div>
@@ -674,7 +679,7 @@ Use code blocks for all code examples.`;
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-5xl h-[92vh] bg-card rounded-xl shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
         {/* Header — sticky with clear close button */}
         <div className="flex items-center justify-between p-4 border-b border-border/60 shrink-0">
@@ -817,10 +822,15 @@ function ExploreMoreProjects({
   allProjects,
   selectedProjectIds,
   languageMap,
+  onViewInstructions,
 }: {
   allProjects: SelectedProject[];
   selectedProjectIds: Set<string>;
   languageMap: typeof LANGUAGE_MAP;
+  /** Section 26 — callback to open the full instructions view for any project,
+   * including ones NOT in the user's plan. Previously only in-plan projects
+   * could open instructions. */
+  onViewInstructions: (projectId: string) => void;
 }) {
   const [query, setQuery] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState<"all" | "beginner" | "intermediate" | "advanced">("all");
@@ -961,6 +971,14 @@ function ExploreMoreProjects({
                             <span className="text-[9px] px-1.5 py-0.5 rounded bg-foreground/5 text-muted-foreground">{p.tier}</span>
                           )}
                         </div>
+                        {/* Section 26 — View Instructions button for ALL projects,
+                            including those NOT in the user's plan. */}
+                        <button
+                          onClick={() => onViewInstructions(p.id)}
+                          className="mt-2 text-[10px] text-primary hover:underline flex items-center gap-1"
+                        >
+                          <BookOpen className="h-3 w-3" /> View instructions
+                        </button>
                       </div>
                     );
                   })}

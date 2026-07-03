@@ -38,6 +38,7 @@ import {
   Code2,
   Target,
   Wrench,
+  Layers,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { useTheme } from "next-themes";
@@ -62,6 +63,7 @@ const VIEW_ICONS: Record<ViewId, typeof LayoutDashboard> = {
   "daily-challenge": Target,
   "ai-tutor": Bot,
   tools: Wrench,
+  flashcards: Layers,
 };
 
 const VIEWS: { id: ViewId; label: string }[] = [
@@ -72,6 +74,7 @@ const VIEWS: { id: ViewId; label: string }[] = [
   { id: "daily-challenge", label: "Daily Challenge" },
   { id: "skill-tree", label: "Skill Tree" },
   { id: "ai-tutor", label: "AI Tutor" },
+  { id: "flashcards", label: "Flashcards" },
   { id: "tools", label: "Tools (Calendar/Notes/Focus)" },
   { id: "projects", label: "Projects" },
   { id: "analytics", label: "Analytics" },

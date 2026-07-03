@@ -21,10 +21,14 @@ import {
   Lock,
   Star,
   CheckCircle2,
+  Bookmark,
+  Printer,
+  MessageCircleQuestion,
+  RefreshCw,
 } from "lucide-react";
-import { useStore, selectCertificateEligible, selectTrackQuizAverage } from "@/lib/store";
+import { useStore, selectCertificateEligible, selectTrackQuizAverage, selectWeakAreas } from "@/lib/store";
 import { GlassCard, GlassButton, ProgressBar } from "@/components/glass/GlassPrimitives";
-import { cn } from "@/lib/utils";
+import { cn, estimateReadTime } from "@/lib/utils";
 import {
   ALL_LESSONS,
   getLessonsForTrack,
@@ -34,6 +38,7 @@ import {
 import { getVideoLink, getPlaylist } from "@/data/youtube-links";
 import { InlineCodeEditor } from "@/components/lesson/InlineCodeEditor";
 import { openPrintableHtml } from "@/lib/print-utils";
+import { isDueForReview } from "@/lib/sm2";
 import type { Lesson, QuizQuestion } from "@/lib/types";
 
 type Tab = "tracks" | "lesson" | "quiz" | "result";
@@ -50,6 +55,7 @@ export function LearnView() {
   const setSelectedLessonId = (id: string | null) => setLearnTabState({ selectedLessonId: id });
 
   const [filterLang, setFilterLang] = useState<string | null>(null); // null = show all
+  const [lessonFilter, setLessonFilter] = useState<"all" | "bookmarked" | "in-progress" | "completed">("all");
   const lessonProgress = useStore((s) => s.state.lessonProgress);
   const setLessonProgress = useStore((s) => s.setLessonProgress);
   const setPlaygroundCode = useStore((s) => s.setPlaygroundCode);
@@ -59,6 +65,14 @@ export function LearnView() {
   const certificates = useStore((s) => s.state.certificates);
   const issueCertificate = useStore((s) => s.issueCertificate);
   const updateCertificateName = useStore((s) => s.updateCertificateName);
+
+  // Section 1 (SM-2) + Section 3 (bookmarks) store hooks
+  const state = useStore((s) => s.state);
+  const toggleLessonBookmark = useStore((s) => s.toggleLessonBookmark);
+  const reviewModeLessonId = useStore((s) => s.reviewModeLessonId);
+  const startQuizReviewMode = useStore((s) => s.startQuizReviewMode);
+  const weakAreas = useMemo(() => selectWeakAreas(state, 5), [state]);
+  const bookmarkedLessons = state.bookmarkedLessons ?? [];
 
   const selectedLesson = useMemo(
     () => ALL_LESSONS.find((l) => l.id === selectedLessonId),
@@ -92,6 +106,67 @@ export function LearnView() {
           <p className="text-sm text-muted-foreground mt-1">
             {totalCompleted} of {ALL_LESSONS.length} lessons complete across {allTracks.length} languages · Build real coding skills with structured lessons, code examples, and quizzes.
           </p>
+        </div>
+
+        {/* Section 1.5 — Weak Areas card (SM-2 spaced repetition) */}
+        {weakAreas.length > 0 && (
+          <GlassCard className="p-4 border-amber-500/30 bg-amber-500/5">
+            <div className="flex items-center gap-2 mb-3">
+              <Target className="h-4 w-4 text-amber-500" />
+              <h2 className="text-sm font-semibold">🎯 Weak Areas — Review these before moving on</h2>
+            </div>
+            <div className="space-y-1.5">
+              {weakAreas.map((w, i) => (
+                <div key={`${w.lessonId}:${w.questionId}`} className="flex items-center gap-2 text-xs">
+                  <span className="text-muted-foreground font-mono w-5">{i + 1}.</span>
+                  <span className="flex-1 truncate">
+                    <span className="font-medium">{ALL_LANGUAGE_INFO[w.trackId]?.name ?? w.trackId}</span>
+                    {" · "}
+                    <span className="text-muted-foreground">{w.lessonTitle}</span>
+                    {" — "}
+                    <span className="text-rose-500">missed {w.incorrectCount}×</span>
+                  </span>
+                  <GlassButton
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-[10px]"
+                    onClick={() => {
+                      setSelectedTrack(w.trackId);
+                      setSelectedLessonId(w.lessonId);
+                      setTab("lesson");
+                      startQuizReviewMode(w.lessonId);
+                      window.scrollTo(0, 0);
+                    }}
+                  >
+                    Review Now
+                  </GlassButton>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
+        )}
+
+        {/* Section 3.3 — Lesson filter chips */}
+        <div className="flex flex-wrap gap-1.5">
+          {([
+            { id: "all", label: "All", count: ALL_LESSONS.length },
+            { id: "bookmarked", label: "⭐ Bookmarked", count: bookmarkedLessons.length },
+            { id: "in-progress", label: "🔄 In Progress", count: Object.values(lessonProgress).filter((p) => p.status === "in-progress").length },
+            { id: "completed", label: "✅ Completed", count: Object.values(lessonProgress).filter((p) => p.status === "complete").length },
+          ] as const).map((chip) => (
+            <button
+              key={chip.id}
+              onClick={() => setLessonFilter(chip.id)}
+              className={cn(
+                "px-2.5 py-1 rounded-full text-xs font-medium border transition-colors",
+                lessonFilter === chip.id
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border/60 text-muted-foreground hover:bg-foreground/5",
+              )}
+            >
+              {chip.label} ({chip.count})
+            </button>
+          ))}
         </div>
 
         {/* Section 1: Your Languages (from roadmap) — track cards, no chip buttons */}
@@ -213,14 +288,44 @@ export function LearnView() {
         </div>
 
         {/* Lesson header */}
-        <GlassCard className="p-5">
+        <GlassCard className="p-5 lesson-content">
           <div className="flex items-start justify-between gap-3 mb-2">
-            <div>
-              <h1 className="text-xl font-bold">{selectedLesson.title}</h1>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl font-bold">{selectedLesson.title}</h1>
+                {/* Section 3 — Bookmark button */}
+                <button
+                  onClick={() => toggleLessonBookmark(selectedLesson.id)}
+                  className="p-1 rounded hover:bg-foreground/10 transition-colors no-print"
+                  aria-label={bookmarkedLessons.includes(selectedLesson.id) ? "Remove bookmark" : "Bookmark lesson"}
+                  title={bookmarkedLessons.includes(selectedLesson.id) ? "Bookmarked — click to remove" : "Bookmark this lesson"}
+                >
+                  <Bookmark
+                    className={cn(
+                      "h-4 w-4",
+                      bookmarkedLessons.includes(selectedLesson.id)
+                        ? "fill-primary text-primary"
+                        : "text-muted-foreground",
+                    )}
+                  />
+                </button>
+                {/* Section 5 — Print button */}
+                <button
+                  onClick={() => window.print()}
+                  className="p-1 rounded hover:bg-foreground/10 transition-colors no-print"
+                  aria-label="Print lesson"
+                  title="Print lesson — opens print dialog (choose 'Save as PDF' for a digital copy)"
+                >
+                  <Printer className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </div>
               <p className="text-sm text-muted-foreground mt-1">{selectedLesson.description}</p>
             </div>
             <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono shrink-0">
-              <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {selectedLesson.estMinutes}m</span>
+              {/* Section 4 — Read time estimate alongside official estMinutes */}
+              <span className="flex items-center gap-1" title={`Official estimate: ${selectedLesson.estMinutes}m · Calculated read time: ${estimateReadTime(selectedLesson.blocks)}m`}>
+                <Clock className="h-3 w-3" /> {selectedLesson.estMinutes}m · est. {estimateReadTime(selectedLesson.blocks)}m read
+              </span>
               <span className={cn(
                 "px-1.5 py-0.5 rounded",
                 selectedLesson.difficulty === "beginner" && "bg-emerald-500/15 text-emerald-600",
@@ -263,7 +368,11 @@ export function LearnView() {
         ) : (
           <div className="space-y-3">
             {selectedLesson.blocks.map((block, i) => (
-              <LessonBlockView key={i} block={block} onTryInPlayground={(code) => {
+              // Section 20 — key includes lessonId so the editor remounts
+              // fresh when the user navigates to a different lesson/phase.
+              // Previously key={i} caused React to reuse the same instance,
+              // retaining the previous lesson's code/output.
+              <LessonBlockView key={`${selectedLesson.id}:${i}`} block={block} onTryInPlayground={(code) => {
                 setPlaygroundCode(code, "javascript");
                 setView("playground");
               }} />
@@ -326,10 +435,10 @@ export function LearnView() {
     );
   }
 
-  // Quiz view
+  // Quiz view — wraps QuizView with a mode picker (Section 1.4)
   if (tab === "quiz" && selectedLesson) {
     return (
-      <QuizView
+      <QuizModePicker
         lesson={selectedLesson}
         onComplete={(score) => {
           setLessonProgress(selectedLesson.id, "complete", score);
@@ -996,7 +1105,11 @@ function LessonBlockView({
   return null;
 }
 
-function QuizView({
+// ============================================================
+// Section 1.4 — Quiz Mode Picker (fresh quiz vs review difficult questions)
+// ============================================================
+
+function QuizModePicker({
   lesson,
   onComplete,
   onBack,
@@ -1005,41 +1118,163 @@ function QuizView({
   onComplete: (score: number) => void;
   onBack: () => void;
 }) {
+  const [mode, setMode] = useState<"picker" | "fresh" | "review">("picker");
+  const questionRecords = useStore((s) => s.state.questionRecords);
+
+  // Compute review questions: those due for review OR marked "hard".
+  const reviewQuestions = useMemo(() => {
+    return lesson.quiz.filter((q) => {
+      const key = `${lesson.id}:${q.id}`;
+      const rec = questionRecords?.[key];
+      if (!rec) return false;
+      return rec.difficulty === "hard" || new Date(rec.nextReviewDate).getTime() <= Date.now();
+    });
+  }, [lesson, questionRecords]);
+
+  if (mode === "picker") {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <button onClick={onBack} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+            <ChevronLeft className="h-4 w-4" /> Back to lesson
+          </button>
+        </div>
+
+        <GlassCard className="p-5">
+          <h2 className="text-lg font-bold mb-1">{lesson.title} — Quiz</h2>
+          <p className="text-xs text-muted-foreground mb-4">How would you like to take this quiz?</p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              onClick={() => setMode("fresh")}
+              className="text-left p-4 rounded-xl border-2 border-border/60 hover:border-primary hover:bg-primary/5 transition-all"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Trophy className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold">Take fresh quiz</span>
+              </div>
+              <p className="text-xs text-muted-foreground">All {lesson.quiz.length} questions</p>
+            </button>
+
+            <button
+              onClick={() => setMode("review")}
+              disabled={reviewQuestions.length === 0}
+              className={cn(
+                "text-left p-4 rounded-xl border-2 transition-all",
+                reviewQuestions.length === 0
+                  ? "border-border/40 opacity-50 cursor-not-allowed"
+                  : "border-amber-500/40 hover:border-amber-500 hover:bg-amber-500/5",
+              )}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <RefreshCw className="h-4 w-4 text-amber-500" />
+                <span className="text-sm font-semibold">Review difficult questions</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {reviewQuestions.length > 0
+                  ? `${reviewQuestions.length} question${reviewQuestions.length !== 1 ? "s" : ""} due for review`
+                  : "No questions due — take a fresh quiz instead"}
+              </p>
+            </button>
+          </div>
+        </GlassCard>
+      </div>
+    );
+  }
+
+  return (
+    <QuizView
+      lesson={lesson}
+      onComplete={onComplete}
+      onBack={onBack}
+      reviewMode={mode === "review"}
+      reviewQuestions={mode === "review" ? reviewQuestions : undefined}
+    />
+  );
+}
+
+function QuizView({
+  lesson,
+  onComplete,
+  onBack,
+  reviewMode = false,
+  reviewQuestions,
+}: {
+  lesson: Lesson;
+  onComplete: (score: number) => void;
+  onBack: () => void;
+  /** Section 1.4 — if true, only show reviewQuestions (due/hard). */
+  reviewMode?: boolean;
+  /** The subset of questions to show in review mode. */
+  reviewQuestions?: QuizQuestion[];
+}) {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [submitted, setSubmitted] = useState(false);
   const recordQuizAnswer = useStore((s) => s.recordQuizAnswer);
+  const createChatConversation = useStore((s) => s.createChatConversation);
+  const addChatMessage = useStore((s) => s.addChatMessage);
+  const setView = useStore((s) => s.setView);
+  const setActiveChat = useStore((s) => s.setActiveChat);
+  const setAiTutorOpen = useStore((s) => s.setAiTutorOpen);
+
+  // Use review questions if in review mode, otherwise all questions.
+  const questions = reviewMode && reviewQuestions ? reviewQuestions : lesson.quiz;
 
   const score = useMemo(() => {
+    if (questions.length === 0) return 0;
     let correct = 0;
-    for (const q of lesson.quiz) {
+    for (const q of questions) {
       if (answers[q.id] === q.correctIndex) correct++;
     }
-    return Math.round((correct / lesson.quiz.length) * 100);
-  }, [answers, lesson.quiz]);
+    return Math.round((correct / questions.length) * 100);
+  }, [answers, questions]);
 
   const correctCount = useMemo(() => {
     let c = 0;
-    for (const q of lesson.quiz) {
+    for (const q of questions) {
       if (answers[q.id] === q.correctIndex) c++;
     }
     return c;
-  }, [answers, lesson.quiz]);
+  }, [answers, questions]);
 
-  const passMark = 7; // 7/10 = 70%
+  const passMark = Math.max(1, Math.ceil(questions.length * 0.7)); // 70%
   const passed = correctCount >= passMark;
 
   const handleSubmit = () => {
     setSubmitted(true);
     // Record each answer in the store (per-question tracking per Section 1.1)
-    for (const q of lesson.quiz) {
+    for (const q of questions) {
       const sel = answers[q.id];
       if (sel !== undefined) {
         recordQuizAnswer(lesson.id, q.id, sel, sel === q.correctIndex);
       }
     }
-    // NOTE: Do NOT auto-advance. Let the user review their answers and the
-    // explanations, then they click "See results" manually when ready.
-    // Previous behavior: setTimeout(() => onComplete(score), 2000); — too fast.
+    // Track review-mode usage for the Spaced Repeater badge (Section 1.4).
+    if (reviewMode && typeof window !== "undefined") {
+      try {
+        const cur = Number(window.localStorage.getItem("launchpad:review-mode-count") ?? "0");
+        window.localStorage.setItem("launchpad:review-mode-count", String(cur + 1));
+      } catch { /* ignore */ }
+    }
+  };
+
+  // Section 6 — "I don't understand" button. Opens the AI Tutor in a new
+  // chat pre-loaded with the question, options, correct answer, and
+  // explanation, asking for a different explanation. Also tracks usage
+  // for the question-explorer badge.
+  const openTutorWithQuestion = (q: QuizQuestion) => {
+    const chatId = createChatConversation();
+    const prompt = `I'm stuck on this quiz question from "${lesson.title}":\n\n**Question:** ${q.question}\n\n**Options:**\n${q.options.map((o, i) => `${i + 1}. ${o}`).join("\n")}\n\n**Correct answer:** ${q.options[q.correctIndex]}\n\n**Explanation:** ${q.explanation ?? "(no explanation provided)"}\n\nCan you explain this in a different way? I don't understand the explanation.`;
+    addChatMessage(chatId, { role: "user", content: prompt });
+    setActiveChat(chatId);
+    setView("ai-tutor");
+    setAiTutorOpen(true);
+    if (typeof window !== "undefined") {
+      try {
+        const cur = Number(window.localStorage.getItem("launchpad:tutor-from-quiz-count") ?? "0");
+        window.localStorage.setItem("launchpad:tutor-from-quiz-count", String(cur + 1));
+      } catch { /* ignore */ }
+    }
   };
 
   return (
@@ -1049,20 +1284,31 @@ function QuizView({
           <ChevronLeft className="h-4 w-4" /> Back to lesson
         </button>
         <div className="text-[10px] text-muted-foreground font-mono">
-          {lesson.quiz.length} questions · Need {passMark}/{lesson.quiz.length} to pass
+          {reviewMode ? `Review mode · ${questions.length} due question${questions.length !== 1 ? "s" : ""}` : `${questions.length} questions · Need ${passMark}/${questions.length} to pass`}
         </div>
       </div>
 
-      <GlassCard className="p-5">
-        <h2 className="text-lg font-bold mb-1">{lesson.title} — Quiz</h2>
-        <p className="text-xs text-muted-foreground">Pick the best answer for each question. Explanations appear after you submit.</p>
+      <GlassCard className={cn("p-5", reviewMode && "border-amber-500/30 bg-amber-500/5")}>
+        <h2 className="text-lg font-bold mb-1">{lesson.title} — {reviewMode ? "Review Quiz" : "Quiz"}</h2>
+        <p className="text-xs text-muted-foreground">
+          {reviewMode
+            ? "🔁 Spaced repetition review — these are your most-missed questions. Re-answer them to update your SM-2 schedule."
+            : "Pick the best answer for each question. Explanations appear after you submit."}
+        </p>
       </GlassCard>
 
-      {lesson.quiz.map((q, qi) => (
+      {questions.length === 0 ? (
+        <GlassCard className="p-6 text-center">
+          <p className="text-sm text-emerald-500 font-medium">✅ No questions due for review — you&apos;re on top of it!</p>
+          <p className="text-xs text-muted-foreground mt-2">Take a fresh quiz instead to keep practicing.</p>
+        </GlassCard>
+      ) : (
+        <>
+      {questions.map((q, qi) => (
         <GlassCard key={q.id} className="p-4">
           <div className="flex items-start gap-2 mb-3">
             <span className="text-[10px] font-mono text-muted-foreground mt-0.5 shrink-0">
-              Question {qi + 1} of {lesson.quiz.length}
+              Question {qi + 1} of {questions.length}
             </span>
             <p className="text-sm font-medium flex-1">{q.question}</p>
           </div>
@@ -1100,6 +1346,16 @@ function QuizView({
               <p className="text-xs text-foreground/80 italic">{q.explanation}</p>
             </div>
           )}
+          {/* Section 6 — "I don't understand" button. Only shown after submit. */}
+          {submitted && (
+            <button
+              onClick={() => openTutorWithQuestion(q)}
+              className="mt-2 text-xs text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors no-print"
+              title="Get a different explanation from the AI Tutor"
+            >
+              <MessageCircleQuestion className="h-3.5 w-3.5" /> I don&apos;t understand — ask the AI Tutor
+            </button>
+          )}
         </GlassCard>
       ))}
 
@@ -1111,19 +1367,19 @@ function QuizView({
           )}>
             <Trophy className="h-4 w-4 inline mr-1" />
             {passed
-              ? `Passed! ${correctCount}/${lesson.quiz.length} correct (${score}%)`
-              : `Not yet — ${correctCount}/${lesson.quiz.length} correct (need ${passMark})`}
+              ? `Passed! ${correctCount}/${questions.length} correct (${score}%)`
+              : `Not yet — ${correctCount}/${questions.length} correct (need ${passMark})`}
           </div>
         ) : (
           <div className="text-xs text-muted-foreground">
-            {Object.keys(answers).length}/{lesson.quiz.length} answered
+            {Object.keys(answers).length}/{questions.length} answered
           </div>
         )}
         {!submitted ? (
           <GlassButton
             variant="primary"
             onClick={handleSubmit}
-            disabled={Object.keys(answers).length < lesson.quiz.length}
+            disabled={Object.keys(answers).length < questions.length}
           >
             Submit quiz
           </GlassButton>
@@ -1144,6 +1400,8 @@ function QuizView({
           (✓/✗), the correct answer highlighted in green, and an explanation. When you&apos;re ready,
           click <strong>“See results &amp; review →”</strong> to continue.
         </div>
+      )}
+        </>
       )}
     </div>
   );

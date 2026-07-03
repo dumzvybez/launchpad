@@ -141072,8 +141072,8 @@ export const ALL_LESSONS: Lesson[] =
       },
       {
         "kind": "code",
-        "language": "bash",
-        "code": "python3 -m venv .venv && source .venv/bin/activate\npip install \"Flask>=3.0,<4.0\"\n\n# app.py\nfrom flask import Flask\n\napp = Flask(__name__)\n\n@app.route(\"/\")\ndef hello():\n    return \"Hello, Flask!\"\n\n# Run dev server ONLY in development:\n#   flask --app app run --debug\n# NEVER call app.run() in a deployed process.",
+        "language": "python",
+        "code": "# Terminal setup (run these first):\n#   python3 -m venv .venv && source .venv/bin/activate\n#   pip install \"Flask>=3.0,<4.0\"\n\n# app.py\nfrom flask import Flask\n\napp = Flask(__name__)\n\n@app.route(\"/\")\ndef hello():\n    return \"Hello, Flask!\"\n\n# Run dev server ONLY in development:\n#   flask --app app run --debug\n# NEVER call app.run() in a deployed process.",
         "caption": "Install + minimal app"
       },
       {
@@ -146214,7 +146214,7 @@ export const ALL_LESSONS: Lesson[] =
       {
         "kind": "code",
         "language": "python",
-        "code": "# app/__init__.py\nfrom flask_wtf.csrf import CSRFProtect\nfrom flask import Flask\n\ndef create_app(config_name=\"dev\"):\n    app = Flask(__name__)\n    app.config.from_object(f\"app.config.{config_name}Config\")\n    csrf = CSRFProtect(app)  # protects ALL POST/PUT/PATCH/DELETE\n    return app\n\n# In a template, expose the token to JS:\n<meta name=\"csrf-token\" content=\"{{ csrf_token() }}\">\n\n# In JS, send it on every state-changing request:\n#   fetch('/api/posts', {\n#     method: 'POST',\n#     headers: {'Content-Type': 'application/json',\n#               'X-CSRFToken': document.querySelector('meta[name=csrf-token]').content},\n#     body: JSON.stringify({...}),\n#   })",
+        "code": "# app/__init__.py\nfrom flask_wtf.csrf import CSRFProtect\nfrom flask import Flask\n\ndef create_app(config_name=\"dev\"):\n    app = Flask(__name__)\n    app.config.from_object(f\"app.config.{config_name}Config\")\n    csrf = CSRFProtect(app)  # protects ALL POST/PUT/PATCH/DELETE\n    return app\n\n# In a template, expose the token to JS:\n# <meta name=\"csrf-token\" content=\"{{ csrf_token() }}\">\n\n# In JS, send it on every state-changing request:\n#   fetch('/api/posts', {\n#     method: 'POST',\n#     headers: {'Content-Type': 'application/json',\n#               'X-CSRFToken': document.querySelector('meta[name=csrf-token]').content},\n#     body: JSON.stringify({...}),\n#   })",
         "caption": "CSRFProtect + AJAX header"
       },
       {
@@ -183879,7 +183879,3660 @@ export const ALL_LESSONS: Lesson[] =
     "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
-  }
+  },
+  // ============================================================
+  // Section 30 — Gap language lessons (docker, tailwind, express, graphql, kubernetes)
+  // Generated to close the onboarding-vs-content gap.
+  // ============================================================
+  {
+  "id": "docker-01",
+  "track": "docker",
+  "title": "Getting Started with Docker",
+  "description": "Understand what Docker is, why it exists, and run your first container.",
+  "difficulty": "beginner",
+  "estMinutes": 60,
+  "order": 1,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Getting Started with Docker"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "Docker solves the 'it works on my machine' problem. It packages your application and its dependencies into a single, portable container that runs identically on any machine \u2014 your laptop, a colleague's computer, or a production server. Every modern tech company uses Docker for deployment."
+    },
+    {
+      "kind": "text",
+      "content": "Docker is a platform for developing, shipping, and running applications in containers. A container is a lightweight, standalone, executable package that includes everything needed to run an application: code, runtime, system tools, libraries, and settings."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic command-line/terminal familiarity",
+        "A computer running Windows, macOS, or Linux",
+        "No prior Docker or container experience needed"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "What is a container vs a virtual machine?",
+        "Installing Docker Desktop",
+        "The docker command-line interface",
+        "Running your first container: hello-world",
+        "Understanding images vs containers"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Check Docker is installed\ndocker --version\n# Run your first container\ndocker run hello-world\n\n# List running containers\ndocker ps\n# List all containers (including stopped)\ndocker ps -a\n# List downloaded images\ndocker images",
+      "caption": "Basic Docker commands"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Image: a read-only template with instructions for creating a container (like a class in OOP)",
+        "Container: a runnable instance of an image (like an object in OOP)",
+        "Docker Engine: the runtime that builds and runs containers",
+        "Docker Hub: the public registry where images are stored (like GitHub for containers)"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Forgetting to stop and remove old containers \u2014 they accumulate and waste disk space",
+        "Running containers as root by default \u2014 for production, create a non-root user",
+        "Not understanding that containers are ephemeral \u2014 data inside a container is lost when it stops; use volumes for persistence"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What's the difference between a Docker image and a container?",
+        "How does Docker differ from a virtual machine?",
+        "What is Docker Hub and why is it useful?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Run the nginx web server in a container and access it in your browser: docker run -d -p 8080:80 nginx, then open http://localhost:8080"
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Run the ubuntu container interactively: docker run -it ubuntu bash",
+        "List all containers on your system and clean up stopped ones with docker container prune"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the key difference between a Docker image and a container?",
+      "options": [
+        "An image is a running process; a container is a file",
+        "An image is a read-only template; a container is a running instance of it",
+        "They are the same thing",
+        "A container is a template; an image is a running instance"
+      ],
+      "correctIndex": 1,
+      "explanation": "An image is the blueprint (read-only template), and a container is a running instance created from that image \u2014 like a class vs an object in OOP."
+    },
+    {
+      "id": "q2",
+      "question": "Which command runs a container from the hello-world image?",
+      "options": [
+        "docker start hello-world",
+        "docker run hello-world",
+        "docker create hello-world",
+        "docker execute hello-world"
+      ],
+      "correctIndex": 1,
+      "explanation": "docker run creates AND starts a container from an image. docker create only creates it; docker start starts an existing container."
+    },
+    {
+      "id": "q3",
+      "question": "What happens to data inside a container when the container stops?",
+      "options": [
+        "It's automatically saved to Docker Hub",
+        "It's preserved forever",
+        "It's lost unless you use a volume",
+        "It's saved to the host's /tmp directory"
+      ],
+      "correctIndex": 2,
+      "explanation": "Containers are ephemeral \u2014 data written inside the container filesystem is lost when the container is removed. Use Docker volumes or bind mounts for data that needs to persist."
+    },
+    {
+      "id": "q4",
+      "question": "Which command lists all running containers?",
+      "options": [
+        "docker list",
+        "docker ps",
+        "docker containers",
+        "docker show"
+      ],
+      "correctIndex": 1,
+      "explanation": "docker ps lists running containers. Use docker ps -a to include stopped containers."
+    },
+    {
+      "id": "q5",
+      "question": "What is Docker Hub?",
+      "options": [
+        "A local container storage",
+        "A public registry for Docker images",
+        "A Docker command-line tool",
+        "A container orchestration platform"
+      ],
+      "correctIndex": 1,
+      "explanation": "Docker Hub is the default public registry where Docker images are stored and shared \u2014 like GitHub but for container images."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "docker-02",
+  "track": "docker",
+  "title": "Dockerfile Basics \u2014 Building Custom Images",
+  "description": "Write a Dockerfile to package your application into a custom Docker image.",
+  "difficulty": "beginner",
+  "estMinutes": 75,
+  "order": 2,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Dockerfile Basics \u2014 Building Custom Images"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "A Dockerfile is how you package your own application into a reproducible, portable Docker image. It's the bridge between 'my code on my laptop' and 'my app running anywhere.' Every deployed containerized application starts with a Dockerfile."
+    },
+    {
+      "kind": "text",
+      "content": "A Dockerfile is a text file containing a series of instructions that Docker reads to build an image. Each instruction creates a new layer in the image, making builds cacheable and efficient."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete the 'Getting Started with Docker' lesson",
+        "Basic understanding of your application's dependencies"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Dockerfile syntax: FROM, RUN, COPY, CMD",
+        "Building images with docker build",
+        "Tagging images",
+        "Best practices: .dockerignore, layer caching"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "dockerfile",
+      "code": "# Dockerfile for a simple Node.js app\nFROM node:20-alpine\n\nWORKDIR /app\n\n# Copy package files and install dependencies first (for caching)\nCOPY package*.json ./\nRUN npm ci --production\n\n# Copy the rest of the application\nCOPY . .\n\n# Expose the port the app runs on\nEXPOSE 3000\n\n# Command to run the application\nCMD [\"node\", \"server.js\"]",
+      "caption": "A typical Node.js Dockerfile"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "FROM: the base image to build on (e.g., node:20, python:3.12, ubuntu:22.04)",
+        "RUN: executes a command during the build (e.g., npm install)",
+        "COPY: copies files from your machine into the image",
+        "CMD: the default command to run when the container starts",
+        "Layer caching: each instruction creates a layer; Docker caches layers so rebuilds are fast"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Copying all files before npm install \u2014 this invalidates the cache every time code changes, making rebuilds slow",
+        "Using :latest tag \u2014 it's unpredictable; always pin a specific version",
+        "Running as root \u2014 create a non-root user in the Dockerfile for security"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What does the FROM instruction do in a Dockerfile?",
+        "Why would you COPY package.json and RUN npm install before copying the rest of the code?",
+        "What's the difference between CMD and ENTRYPOINT?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Write a Dockerfile for a simple Python Flask app, build it with docker build -t my-flask-app ., and run it with docker run -p 5000:5000 my-flask-app"
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Create a .dockerignore file to exclude node_modules, .git, and other unnecessary files from the build context",
+        "Add a HEALTHCHECK instruction to your Dockerfile"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What does the FROM instruction in a Dockerfile do?",
+      "options": [
+        "Runs a command",
+        "Sets the base image to build on",
+        "Copies files into the image",
+        "Exposes a port"
+      ],
+      "correctIndex": 1,
+      "explanation": "FROM specifies the base image \u2014 every Dockerfile starts with FROM (e.g., FROM node:20-alpine)."
+    },
+    {
+      "id": "q2",
+      "question": "Why should you COPY package.json and RUN npm install BEFORE copying the rest of your code?",
+      "options": [
+        "It's required by Docker",
+        "For layer caching \u2014 dependencies only reinstall when package.json changes",
+        "To make the image smaller",
+        "To run the app faster"
+      ],
+      "correctIndex": 1,
+      "explanation": "Docker caches layers. By installing dependencies before copying code, the expensive npm install layer is cached and only re-runs when package.json changes \u2014 not on every code change."
+    },
+    {
+      "id": "q3",
+      "question": "Which instruction sets the default command to run when the container starts?",
+      "options": [
+        "RUN",
+        "CMD",
+        "EXEC",
+        "START"
+      ],
+      "correctIndex": 1,
+      "explanation": "CMD sets the default command. It can be overridden at runtime with docker run <image> <command>."
+    },
+    {
+      "id": "q4",
+      "question": "What is the purpose of a .dockerignore file?",
+      "options": [
+        "To ignore Docker errors",
+        "To exclude files from the build context (like .gitignore for Docker)",
+        "To skip building certain layers",
+        "To prevent Docker from running"
+      ],
+      "correctIndex": 1,
+      "explanation": ".dockerignore excludes files/directories from the build context, making builds faster and images smaller (e.g., exclude node_modules, .git, .env)."
+    },
+    {
+      "id": "q5",
+      "question": "Why should you avoid using the :latest tag in production?",
+      "options": [
+        "It's too long",
+        "It's unpredictable \u2014 the image it points to can change over time",
+        "Docker doesn't support it",
+        "It requires more memory"
+      ],
+      "correctIndex": 1,
+      "explanation": "The :latest tag is a moving target \u2014 it can point to different images over time. Always pin a specific version (e.g., node:20.11-alpine) for reproducible builds."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "docker-03",
+  "track": "docker",
+  "title": "Docker Compose \u2014 Multi-Container Apps",
+  "description": "Define and run multi-container applications with Docker Compose.",
+  "difficulty": "intermediate",
+  "estMinutes": 70,
+  "order": 3,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Docker Compose \u2014 Multi-Container Apps"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "Real applications rarely run in a single container \u2014 they need a database, a cache, maybe a queue. Docker Compose lets you define all of these in one file and start them with a single command. It's the standard way to run development environments."
+    },
+    {
+      "kind": "text",
+      "content": "Docker Compose is a tool for defining and running multi-container Docker applications. You write a docker-compose.yml file that describes your services, networks, and volumes, then run docker compose up to start everything."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete 'Getting Started with Docker' and 'Dockerfile Basics'",
+        "Basic understanding of YAML"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "docker-compose.yml syntax",
+        "Defining services, networks, and volumes",
+        "Environment variables and secrets",
+        "docker compose up / down / logs",
+        "Development vs production overrides"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# docker-compose.yml for a web app + database\nservices:\n  web:\n    build: .\n    ports:\n      - \"3000:3000\"\n    environment:\n      - DATABASE_URL=postgres://user:pass@db:5432/myapp\n    depends_on:\n      - db\n\n  db:\n    image: postgres:16-alpine\n    environment:\n      POSTGRES_USER: user\n      POSTGRES_PASSWORD: pass\n      POSTGRES_DB: myapp\n    volumes:\n      - db-data:/var/lib/postgresql/data\n\nvolumes:\n  db-data:",
+      "caption": "A typical docker-compose.yml"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Service: a container defined in the compose file (e.g., web, db)",
+        "depends_on: controls startup order (db starts before web)",
+        "Volumes: persistent storage that survives container removal",
+        "Networks: services on the same network can reach each other by service name (e.g., db:5432)"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "depends_on doesn't wait for the database to be 'ready' \u2014 use a healthcheck or wait-for-it script",
+        "Not using named volumes \u2014 data is lost when you run docker compose down -v",
+        "Hardcoding secrets in the compose file \u2014 use .env files and docker secrets"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "How does Docker Compose differ from plain Docker?",
+        "What does depends_on do, and what does it NOT do?",
+        "How do services in a compose file communicate with each other?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Create a docker-compose.yml for a web app + PostgreSQL database. Start it with docker compose up, verify the web app can connect to the database, then stop it with docker compose down."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Add a Redis cache service to your compose file",
+        "Use a docker-compose.override.yml file for development-specific settings"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is Docker Compose used for?",
+      "options": [
+        "Building single images",
+        "Running multi-container applications",
+        "Orchestrating containers across multiple servers",
+        "Monitoring container health"
+      ],
+      "correctIndex": 1,
+      "explanation": "Docker Compose defines and runs multi-container applications \u2014 e.g., a web server + database + cache \u2014 all from a single YAML file."
+    },
+    {
+      "id": "q2",
+      "question": "How do services in a compose file communicate with each other?",
+      "options": [
+        "By IP address",
+        "By service name (e.g., db:5432)",
+        "By container ID",
+        "By port number only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Services on the same Docker network can reach each other by service name. For example, the web service can connect to the database at db:5432 \u2014 Docker's built-in DNS resolves the service name."
+    },
+    {
+      "id": "q3",
+      "question": "What does depends_on do?",
+      "options": [
+        "Waits for a service to be healthy",
+        "Controls startup order only",
+        "Creates a network link",
+        "Shares environment variables"
+      ],
+      "correctIndex": 1,
+      "explanation": "depends_on controls startup ORDER \u2014 the database container starts before the web container. But it does NOT wait for the database to be 'ready to accept connections.' Use a healthcheck or a wait-for-it script for that."
+    },
+    {
+      "id": "q4",
+      "question": "Which command starts all services defined in docker-compose.yml?",
+      "options": [
+        "docker start all",
+        "docker compose up",
+        "docker run compose",
+        "docker compose start-all"
+      ],
+      "correctIndex": 1,
+      "explanation": "docker compose up builds, (re)creates, starts, and attaches to all services. Use -d for detached mode (running in background)."
+    },
+    {
+      "id": "q5",
+      "question": "What is a Docker volume used for in a compose file?",
+      "options": [
+        "To share code between containers",
+        "For persistent data that survives container removal",
+        "To configure environment variables",
+        "To set up networking"
+      ],
+      "correctIndex": 1,
+      "explanation": "Volumes provide persistent storage. Without a volume, data inside the database container is lost when the container is removed. Named volumes (e.g., db-data:) persist across docker compose down/up cycles."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "docker-04",
+  "track": "docker",
+  "title": "Docker Volumes & Data Persistence",
+  "description": "Persist data across container restarts with Docker volumes and bind mounts.",
+  "difficulty": "intermediate",
+  "estMinutes": 55,
+  "order": 4,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Docker Volumes & Data Persistence"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "Containers are ephemeral \u2014 when a container is removed, all data inside it is lost. For databases, user uploads, logs, or any data that must survive, you need volumes. Understanding persistence is essential for running any stateful application in Docker."
+    },
+    {
+      "kind": "text",
+      "content": "Docker provides two main ways to persist data: named volumes (managed by Docker) and bind mounts (mapped to a host directory). Each has trade-offs for development vs production."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete 'Getting Started with Docker'",
+        "Basic understanding of filesystems"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Named volumes vs bind mounts",
+        "Creating and managing volumes",
+        "Sharing volumes between containers",
+        "Backup and restore strategies"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Create a named volume\ndocker volume create my-data\n\n# Use a volume in a container\ndocker run -d \\\n  --name my-db \\\n  -v my-data:/var/lib/postgresql/data \\\n  postgres:16\n\n# List volumes\ndocker volume ls\n\n# Inspect a volume\ndocker volume inspect my-data\n\n# Remove a volume (only if no container is using it)\ndocker volume rm my-data\n\n# Bind mount (maps a host directory into the container)\ndocker run -v /host/path:/container/path my-image",
+      "caption": "Docker volume commands"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Named volume: managed by Docker, stored in a Docker-managed location on the host",
+        "Bind mount: maps a specific host directory into the container \u2014 great for development (live code reload)",
+        "Volume driver: plugins that let volumes be stored on remote hosts or cloud storage (e.g., NFS, AWS EBS)"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Using bind mounts in production \u2014 they create a coupling between the host filesystem and the container; use named volumes instead",
+        "Forgetting to back up volumes \u2014 use docker run --rm -v my-data:/data -v $(pwd):/backup ubuntu tar cvf /backup/my-data.tar /data to back up",
+        "Running docker volume rm on a volume that's in use \u2014 Docker will warn you; always stop containers first"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What's the difference between a named volume and a bind mount?",
+        "How would you back up a Docker volume?",
+        "When would you use a bind mount vs a named volume?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Run a PostgreSQL container with a named volume. Insert some data, stop and remove the container, start a new container with the same volume, and verify the data is still there."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Back up a volume to a tar file and restore it to a new volume",
+        "Share a volume between two containers simultaneously"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the key difference between a named volume and a bind mount?",
+      "options": [
+        "Named volumes are faster",
+        "Named volumes are managed by Docker; bind mounts map a specific host directory",
+        "Bind mounts are more secure",
+        "There is no difference"
+      ],
+      "correctIndex": 1,
+      "explanation": "Named volumes are created and managed by Docker (stored in Docker's area on the host). Bind mounts map a specific host directory into the container \u2014 you specify the exact path on the host."
+    },
+    {
+      "id": "q2",
+      "question": "Why are containers described as 'ephemeral'?",
+      "options": [
+        "They run very briefly",
+        "Data inside a container is lost when the container is removed",
+        "They can't store any data",
+        "They automatically delete themselves"
+      ],
+      "correctIndex": 1,
+      "explanation": "Ephemeral means 'lasting for a very short time.' When a container is removed, its writable layer (where all runtime data is stored) is deleted. Volumes solve this by storing data outside the container's filesystem."
+    },
+    {
+      "id": "q3",
+      "question": "Which flag mounts a volume into a container?",
+      "options": [
+        "--mount",
+        "-v",
+        "--volume",
+        "-m"
+      ],
+      "correctIndex": 1,
+      "explanation": "The -v (or --volume) flag mounts a volume. Syntax: -v volume-name:/container/path or -v /host/path:/container/path for bind mounts."
+    },
+    {
+      "id": "q4",
+      "question": "When would you use a bind mount instead of a named volume?",
+      "options": [
+        "In production for databases",
+        "In development for live code reloading",
+        "Never",
+        "When you need more security"
+      ],
+      "correctIndex": 1,
+      "explanation": "Bind mounts are great for development \u2014 you map your source code directory into the container, and changes on the host are immediately reflected inside the container (live reload). For production, use named volumes."
+    },
+    {
+      "id": "q5",
+      "question": "How do you back up a Docker volume?",
+      "options": [
+        "docker volume backup",
+        "Run a temporary container that mounts the volume and creates a tar archive",
+        "Use docker cp",
+        "It's not possible"
+      ],
+      "correctIndex": 1,
+      "explanation": "To back up a volume, run a temporary container that mounts both the volume and a host directory, then creates a tar archive: docker run --rm -v my-data:/data -v $(pwd):/backup ubuntu tar cvf /backup/backup.tar /data"
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "docker-05",
+  "track": "docker",
+  "title": "Docker Best Practices & Optimization",
+  "description": "Optimize Docker images for size, security, and build speed with multi-stage builds and best practices.",
+  "difficulty": "intermediate",
+  "estMinutes": 80,
+  "order": 5,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Docker Best Practices & Optimization"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "A poorly written Dockerfile produces large images, slow builds, and security vulnerabilities. Production Docker images should be small (faster to pull), secure (fewer attack surfaces), and cacheable (fast rebuilds). These best practices are what separate casual Docker users from professionals."
+    },
+    {
+      "kind": "text",
+      "content": "Multi-stage builds, alpine base images, layer optimization, and non-root users are the key techniques for production-grade Docker images."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete 'Dockerfile Basics' and 'Docker Compose'",
+        "Basic understanding of Linux permissions"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Multi-stage builds",
+        "Choosing the right base image (alpine vs slim vs full)",
+        "Layer optimization and caching",
+        "Security: non-root users, minimal images, scanning",
+        "docker scan and Docker Scout"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "dockerfile",
+      "code": "# Multi-stage build for a Node.js app\n\n# Stage 1: Build\nFROM node:20-alpine AS builder\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci\nCOPY . .\nRUN npm run build\n\n# Stage 2: Production\nFROM node:20-alpine AS production\nWORKDIR /app\n\n# Create a non-root user\nRUN addgroup -g 1001 -S nodejs && \\\n    adduser -S nextjs -u 1001\n\n# Copy only production dependencies\nCOPY package*.json ./\nRUN npm ci --production && npm cache clean --force\n\n# Copy the built app from the builder stage\nCOPY --from=builder /app/dist ./dist\n\n# Switch to non-root user\nUSER nodejs\n\nEXPOSE 3000\nCMD [\"node\", \"dist/server.js\"]",
+      "caption": "Multi-stage Dockerfile with non-root user"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Multi-stage build: use multiple FROM instructions; only the final stage ends up in the image (smaller image, no build tools in production)",
+        "Alpine: a tiny Linux distribution (~5MB) \u2014 use node:20-alpine instead of node:20 for much smaller images",
+        "Non-root user: containers run as root by default; create and switch to a non-root user for security",
+        "Layer squashing: each RUN/COPY creates a layer; combine RUN commands to reduce layers"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Using full OS images (ubuntu:22.04 is ~77MB) when alpine would do (~5MB) \u2014 15x larger than needed",
+        "Leaving build tools (gcc, make, devDependencies) in the production image \u2014 increases size and attack surface",
+        "Not scanning images for vulnerabilities \u2014 use docker scout or trivy to find CVEs in your base image"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is a multi-stage build and why would you use it?",
+        "How can you reduce the size of a Docker image?",
+        "Why should you run containers as a non-root user?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Take an existing single-stage Dockerfile and convert it to a multi-stage build. Compare the image sizes with docker images before and after."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Scan your image with docker scout to find vulnerabilities",
+        "Use a .dockerignore to exclude unnecessary files and measure the build time improvement"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the main benefit of a multi-stage build?",
+      "options": [
+        "Faster builds",
+        "Smaller final image \u2014 only the final stage's content is included",
+        "Better security",
+        "Easier to debug"
+      ],
+      "correctIndex": 1,
+      "explanation": "Multi-stage builds let you use a 'builder' stage with all build tools, then copy only the built artifacts into a clean final stage. The build tools and intermediate files don't end up in the production image \u2014 it's much smaller."
+    },
+    {
+      "id": "q2",
+      "question": "Why use node:20-alpine instead of node:20?",
+      "options": [
+        "It's more secure",
+        "It's much smaller (~5MB base vs ~100MB)",
+        "It's faster at runtime",
+        "It has more features"
+      ],
+      "correctIndex": 1,
+      "explanation": "Alpine Linux is ~5MB vs ~100MB for a full Debian-based image. Using alpine base images dramatically reduces image size and pull time."
+    },
+    {
+      "id": "q3",
+      "question": "Why should containers run as a non-root user?",
+      "options": [
+        "It's faster",
+        "Security \u2014 if an attacker breaks in, they have limited permissions",
+        "It's required by Docker",
+        "It uses less memory"
+      ],
+      "correctIndex": 1,
+      "explanation": "By default, containers run as root. If an attacker exploits a vulnerability in your app, they get root access inside the container. Creating and switching to a non-root user limits the damage."
+    },
+    {
+      "id": "q4",
+      "question": "Which tool scans Docker images for known vulnerabilities?",
+      "options": [
+        "docker scan",
+        "docker scout (or trivy)",
+        "docker check",
+        "docker security"
+      ],
+      "correctIndex": 1,
+      "explanation": "docker scout (formerly docker scan) and third-party tools like trivy scan images against CVE databases and report known vulnerabilities in the base image and installed packages."
+    },
+    {
+      "id": "q5",
+      "question": "How do you combine multiple RUN commands to reduce layers?",
+      "options": [
+        "Use semicolons",
+        "Chain with && in a single RUN instruction",
+        "You can't combine them",
+        "Use a script file"
+      ],
+      "correctIndex": 1,
+      "explanation": "Each RUN creates a layer. Combine them: RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/* \u2014 this creates one layer instead of three."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tailwind-01",
+  "track": "tailwind",
+  "title": "Getting Started with Tailwind CSS",
+  "description": "Understand utility-first CSS and set up Tailwind in your first project.",
+  "difficulty": "beginner",
+  "estMinutes": 50,
+  "order": 1,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Getting Started with Tailwind CSS"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "Tailwind CSS is a utility-first CSS framework that lets you build custom designs without leaving your HTML. Instead of writing custom CSS classes, you compose styles from small, reusable utility classes. It's the fastest-growing CSS approach and is used by companies like GitHub, Netflix, and Shopify."
+    },
+    {
+      "kind": "text",
+      "content": "Tailwind CSS scans your HTML files for class names and generates only the CSS you actually use \u2014 no unused styles, no bloated stylesheet. The result is a tiny, highly optimized CSS bundle."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic HTML and CSS knowledge",
+        "A code editor (VS Code recommended)",
+        "Node.js installed (for the Tailwind CLI)"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "What is utility-first CSS?",
+        "Installing Tailwind via CLI or PostCSS",
+        "The tailwind.config.js file",
+        "Your first utility classes",
+        "The Tailwind IntelliSense VS Code extension"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "html",
+      "code": "<!-- A button styled entirely with Tailwind utility classes -->\n<button class=\"\n  bg-blue-500\n  hover:bg-blue-700\n  text-white\n  font-bold\n  py-2\n  px-4\n  rounded\n  transition-colors\n  duration-200\n\">\n  Click me\n</button>",
+      "caption": "A styled button using only Tailwind classes"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Utility class: a single-purpose CSS class like text-center, p-4, or bg-blue-500",
+        "Responsive prefix: sm:, md:, lg:, xl: \u2014 applies styles only at that breakpoint or larger",
+        "Configuration: tailwind.config.js customizes colors, fonts, spacing, and more",
+        "JIT (Just-In-Time): Tailwind generates CSS on-demand as it scans your files"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not installing the Tailwind IntelliSense extension \u2014 you'll miss autocomplete and hover previews",
+        "Using @apply too early \u2014 embrace utility classes first; @apply is for reducing repetition later",
+        "Forgetting to configure content paths in tailwind.config.js \u2014 Tailwind won't generate CSS for files it doesn't scan"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is utility-first CSS and what are its advantages?",
+        "How does Tailwind differ from Bootstrap or other CSS frameworks?",
+        "How does Tailwind keep the CSS bundle small?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Create a simple landing page with a hero section, a feature grid, and a footer \u2014 all styled with Tailwind utility classes. No custom CSS."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Install the Tailwind IntelliSense VS Code extension and try hovering over classes to see the CSS preview",
+        "Make your landing page responsive by adding md: and lg: prefixes"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What does 'utility-first CSS' mean?",
+      "options": [
+        "Writing CSS utilities from scratch",
+        "Using small, single-purpose CSS classes to compose styles directly in HTML",
+        "A CSS reset tool",
+        "A CSS preprocessor"
+      ],
+      "correctIndex": 1,
+      "explanation": "Utility-first means you style elements by composing small, single-purpose classes (like p-4, text-center, bg-blue-500) directly in your HTML, rather than writing custom CSS classes."
+    },
+    {
+      "id": "q2",
+      "question": "How does Tailwind keep the final CSS bundle small?",
+      "options": [
+        "It uses CSS minification only",
+        "It scans your HTML and generates only the CSS classes you actually use",
+        "It inlines all CSS",
+        "It doesn't \u2014 Tailwind produces large CSS files"
+      ],
+      "correctIndex": 1,
+      "explanation": "Tailwind's JIT engine scans your content files for class names and generates only the CSS for classes you actually use. Unused utilities are never included in the final bundle."
+    },
+    {
+      "id": "q3",
+      "question": "Which file configures Tailwind's theme (colors, fonts, spacing)?",
+      "options": [
+        "package.json",
+        "tailwind.config.js",
+        ".tailwindrc",
+        "webpack.config.js"
+      ],
+      "correctIndex": 1,
+      "explanation": "tailwind.config.js is where you customize Tailwind's theme \u2014 add custom colors, fonts, breakpoints, spacing, and more."
+    },
+    {
+      "id": "q4",
+      "question": "What does the md: prefix do in Tailwind?",
+      "options": [
+        "Applies the style only on mobile",
+        "Applies the style at the medium breakpoint (768px) and larger",
+        "Applies the style only in dark mode",
+        "Makes the text medium-sized"
+      ],
+      "correctIndex": 1,
+      "explanation": "md: is a responsive prefix \u2014 it applies the style only at the medium breakpoint (768px) and above. For example, md:text-center centers text only on screens 768px+ wide."
+    },
+    {
+      "id": "q5",
+      "question": "What is the Tailwind IntelliSense VS Code extension used for?",
+      "options": [
+        "Compiling Tailwind CSS",
+        "Autocomplete, hover previews, and linting for Tailwind classes",
+        "Deploying Tailwind sites",
+        "Converting CSS to Tailwind"
+      ],
+      "correctIndex": 1,
+      "explanation": "The IntelliSense extension provides autocomplete for class names, hover previews showing the CSS, and linting \u2014 it's essential for a productive Tailwind workflow."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tailwind-02",
+  "track": "tailwind",
+  "title": "Tailwind Layout & Spacing",
+  "description": "Master Flexbox, Grid, padding, margin, and gap utilities for layout.",
+  "difficulty": "beginner",
+  "estMinutes": 60,
+  "order": 2,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Tailwind Layout & Spacing"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "Layout is the foundation of every UI. Tailwind's spacing and layout utilities (Flexbox, Grid, padding, margin, gap) let you build any layout without writing a single line of custom CSS. Understanding these utilities is essential for building responsive, well-aligned interfaces."
+    },
+    {
+      "kind": "text",
+      "content": "Tailwind uses a consistent spacing scale (0, 1, 2, 3, 4, ... where each unit = 0.25rem = 4px by default). This makes spacing predictable and consistent across your entire project."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete 'Getting Started with Tailwind CSS'",
+        "Basic understanding of Flexbox and CSS Grid"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Padding (p-*) and margin (m-*) utilities",
+        "The spacing scale (1 = 0.25rem = 4px)",
+        "Flexbox utilities (flex, items-*, justify-*)",
+        "CSS Grid utilities (grid, grid-cols-*, gap-*)",
+        "Responsive layout patterns"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "html",
+      "code": "<!-- A responsive card grid -->\n<div class=\"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6\">\n  <div class=\"bg-white rounded-lg shadow p-4\">\n    <h3 class=\"text-lg font-bold mb-2\">Card 1</h3>\n    <p class=\"text-gray-600 text-sm\">A card with padding and shadow.</p>\n  </div>\n  <div class=\"bg-white rounded-lg shadow p-4\">\n    <h3 class=\"text-lg font-bold mb-2\">Card 2</h3>\n    <p class=\"text-gray-600 text-sm\">Responsive: 1 col on mobile, 2 on tablet, 3 on desktop.</p>\n  </div>\n</div>\n\n<!-- A centered flex container -->\n<div class=\"flex items-center justify-center min-h-screen\">\n  <div class=\"text-center\">\n    <h1 class=\"text-4xl font-bold\">Centered content</h1>\n  </div>\n</div>",
+      "caption": "Layout examples with Tailwind"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Spacing scale: p-4 = padding: 1rem (16px); m-2 = margin: 0.5rem (8px)",
+        "flex: sets display: flex; items-center vertically centers; justify-center horizontally centers",
+        "grid grid-cols-3: creates a 3-column grid; gap-4 sets 1rem gap between items",
+        "Responsive: grid-cols-1 md:grid-cols-3 means 1 column on mobile, 3 columns on medium screens+"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Using arbitrary pixel values (p-[17px]) instead of the scale \u2014 breaks design consistency",
+        "Forgetting that margin doesn't collapse in flex/grid contexts \u2014 use gap instead",
+        "Not testing responsive layouts \u2014 always check mobile, tablet, and desktop views"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "How does Tailwind's spacing scale work?",
+        "How would you create a responsive 3-column grid that collapses to 1 column on mobile?",
+        "Why use gap instead of margin for grid/flex spacing?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a responsive navigation bar: logo on the left, links on the right (flexbox), that collapses to a vertical menu on mobile using Tailwind's responsive utilities."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Create a card grid that shows 1 card per row on mobile, 2 on tablet, 4 on desktop",
+        "Build a sticky footer that stays at the bottom of the page using flexbox"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What does p-4 mean in Tailwind?",
+      "options": [
+        "padding: 4px",
+        "padding: 1rem (16px)",
+        "padding: 0.4rem",
+        "padding: 4rem"
+      ],
+      "correctIndex": 1,
+      "explanation": "Tailwind's spacing scale uses 1 unit = 0.25rem = 4px. So p-4 = padding: 1rem (16px). The scale goes 0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24..."
+    },
+    {
+      "id": "q2",
+      "question": "How do you create a responsive 3-column grid that's 1 column on mobile?",
+      "options": [
+        "grid grid-cols-3",
+        "grid grid-cols-1 md:grid-cols-3",
+        "grid columns-1-3",
+        "responsive-grid 1/3"
+      ],
+      "correctIndex": 1,
+      "explanation": "grid grid-cols-1 md:grid-cols-3 means: 1 column by default (mobile), and 3 columns at the medium breakpoint (768px+) and above."
+    },
+    {
+      "id": "q3",
+      "question": "Which utility classes center content both horizontally and vertically?",
+      "options": [
+        "text-center align-center",
+        "flex items-center justify-center",
+        "center both",
+        "flex-center"
+      ],
+      "correctIndex": 1,
+      "explanation": "flex sets display: flex, items-center vertically centers (align-items: center), and justify-center horizontally centers (justify-content: center)."
+    },
+    {
+      "id": "q4",
+      "question": "Why is gap preferred over margin for spacing grid/flex children?",
+      "options": [
+        "It's faster",
+        "It only applies between items (no extra space at edges) and doesn't have margin-collapse issues",
+        "It's required by Tailwind",
+        "It uses less memory"
+      ],
+      "correctIndex": 1,
+      "explanation": "gap applies space ONLY between items \u2014 no extra space at the outer edges. It also avoids margin-collapse issues that make margin-based spacing unpredictable in flex/grid contexts."
+    },
+    {
+      "id": "q5",
+      "question": "What does min-h-screen do?",
+      "options": [
+        "Sets min-height to 100px",
+        "Sets min-height to 100vh (full viewport height)",
+        "Sets min-height to 100rem",
+        "Hides content on small screens"
+      ],
+      "correctIndex": 1,
+      "explanation": "min-h-screen sets min-height: 100vh, which makes the element at least as tall as the viewport. Useful for full-height layouts like centered login pages."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tailwind-03",
+  "track": "tailwind",
+  "title": "Tailwind Colors, Typography & Dark Mode",
+  "description": "Style text and backgrounds with Tailwind's color system and implement dark mode.",
+  "difficulty": "beginner",
+  "estMinutes": 55,
+  "order": 3,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Tailwind Colors, Typography & Dark Mode"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "Color and typography define the visual identity of your application. Tailwind's color system (with shades 50-950) and typography utilities let you create professional, accessible designs. Dark mode support is now expected in every modern app."
+    },
+    {
+      "kind": "text",
+      "content": "Tailwind provides a comprehensive color palette with 22 colors, each with 10 shades (50, 100, 200, ..., 950). Dark mode is built-in with the dark: prefix."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete 'Getting Started with Tailwind CSS' and 'Tailwind Layout & Spacing'"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Background colors (bg-*) and text colors (text-*)",
+        "Color shades (50-950 scale)",
+        "Typography: font-size, font-weight, line-height, letter-spacing",
+        "Dark mode with dark: prefix",
+        "Customizing colors in tailwind.config.js"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "html",
+      "code": "<!-- Color and typography examples -->\n<div class=\"bg-blue-500 text-white p-4 rounded\">\n  <h2 class=\"text-2xl font-bold tracking-tight\">Blue background, white text</h2>\n  <p class=\"text-blue-100 text-sm mt-1\">Lighter blue text for subtitles</p>\n</div>\n\n<!-- Dark mode -->\n<div class=\"bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6\">\n  <p>This card adapts to dark mode automatically.</p>\n</div>\n\n<!-- Typography -->\n<p class=\"text-lg leading-relaxed tracking-wide font-light text-gray-700\">\n  Large, relaxed text with wide letter spacing and light weight.\n</p>",
+      "caption": "Colors and typography with Tailwind"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Color shade: bg-blue-500 is the '500' shade (medium). 50 is lightest, 950 is darkest",
+        "dark: prefix: applies styles only in dark mode (dark:bg-gray-900)",
+        "Typography: text-lg (font-size), font-bold (weight), leading-relaxed (line-height), tracking-wide (letter-spacing)",
+        "Opacity: bg-blue-500/50 sets 50% opacity \u2014 no need for rgba()"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Using too many different colors \u2014 stick to 2-3 primary colors plus grays",
+        "Forgetting contrast \u2014 text-blue-300 on bg-blue-500 may fail WCAG contrast checks",
+        "Not testing dark mode \u2014 some elements look broken when the background flips"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "How does Tailwind's color shade system work?",
+        "How do you implement dark mode in Tailwind?",
+        "How do you set text opacity in Tailwind?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a pricing card component with a featured tier (different background color), proper typography hierarchy, and dark mode support."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Add custom brand colors to tailwind.config.js and use them",
+        "Implement a dark mode toggle button that switches between light and dark themes"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What does bg-blue-500 mean in Tailwind?",
+      "options": [
+        "background-color: blue with 500px",
+        "background-color: the '500' shade of blue (medium intensity)",
+        "background-color: #500blue",
+        "500% opacity blue"
+      ],
+      "correctIndex": 1,
+      "explanation": "bg-blue-500 sets background-color to the '500' shade of blue \u2014 a medium intensity. The scale goes 50 (lightest) to 950 (darkest)."
+    },
+    {
+      "id": "q2",
+      "question": "How do you apply a style only in dark mode?",
+      "options": [
+        "Use the night: prefix",
+        "Use the dark: prefix (e.g., dark:bg-gray-900)",
+        "Use @media (prefers-dark)",
+        "It's not possible in Tailwind"
+      ],
+      "correctIndex": 1,
+      "explanation": "The dark: prefix applies styles only when dark mode is active. For example, bg-white dark:bg-gray-900 uses white in light mode and gray-900 in dark mode."
+    },
+    {
+      "id": "q3",
+      "question": "How do you set 50% opacity on a background color?",
+      "options": [
+        "bg-blue-500-opacity-50",
+        "bg-blue-500/50",
+        "bg-blue-500-50",
+        "opacity-bg-50"
+      ],
+      "correctIndex": 1,
+      "explanation": "Use the slash syntax: bg-blue-500/50 sets the blue-500 background color at 50% opacity. This works for text colors too (text-blue-500/50)."
+    },
+    {
+      "id": "q4",
+      "question": "Which utility sets line-height?",
+      "options": [
+        "line-height-relaxed",
+        "leading-relaxed",
+        "lh-relaxed",
+        "line-relaxed"
+      ],
+      "correctIndex": 1,
+      "explanation": "leading-* utilities set line-height. For example, leading-relaxed sets line-height: 1.625. Other options: leading-none, leading-tight, leading-normal, leading-loose."
+    },
+    {
+      "id": "q5",
+      "question": "What does tracking-wide do?",
+      "options": [
+        "Increases font size",
+        "Increases letter-spacing (space between characters)",
+        "Increases word spacing",
+        "Increases line height"
+      ],
+      "correctIndex": 1,
+      "explanation": "tracking-* utilities set letter-spacing. tracking-wide increases the space between characters. Other options: tracking-tighter, tracking-tight, tracking-normal, tracking-wider, tracking-widest."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tailwind-04",
+  "track": "tailwind",
+  "title": "Tailwind Responsive Design & States",
+  "description": "Build responsive interfaces with breakpoint prefixes and style interactive states like hover and focus.",
+  "difficulty": "intermediate",
+  "estMinutes": 65,
+  "order": 4,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Tailwind Responsive Design & States"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "Modern websites must work on screens from 320px (phones) to 2560px+ (large monitors). Tailwind's responsive prefixes (sm:, md:, lg:, xl:) and state modifiers (hover:, focus:, active:) let you handle all of this without media queries or custom CSS \u2014 directly in your HTML."
+    },
+    {
+      "kind": "text",
+      "content": "Tailwind uses a mobile-first approach: base styles apply to all screens, and responsive prefixes apply at that breakpoint and above. State modifiers (hover:, focus:) work the same way."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete 'Getting Started with Tailwind CSS' and 'Tailwind Layout & Spacing'"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Mobile-first responsive design",
+        "Breakpoint prefixes: sm:, md:, lg:, xl:, 2xl:",
+        "State modifiers: hover:, focus:, active:, disabled:",
+        "Group hover and peer modifiers",
+        "Custom breakpoints in tailwind.config.js"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "html",
+      "code": "<!-- Responsive: starts stacked on mobile, side-by-side on desktop -->\n<div class=\"flex flex-col md:flex-row gap-4\">\n  <div class=\"flex-1 bg-blue-100 p-4\">Left</div>\n  <div class=\"flex-1 bg-green-100 p-4\">Right</div>\n</div>\n\n<!-- Hover and focus states -->\n<button class=\"\n  bg-indigo-500 hover:bg-indigo-600\n  focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2\n  focus:outline-none\n  active:bg-indigo-700\n  disabled:opacity-50 disabled:cursor-not-allowed\n  text-white font-medium py-2 px-4 rounded\n  transition-colors\n\">\n  Click me\n</button>\n\n<!-- Group hover: child changes when parent is hovered -->\n<div class=\"group bg-white p-4 rounded cursor-pointer\">\n  <h3 class=\"group-hover:text-blue-500\">Hover the card</h3>\n  <p class=\"opacity-0 group-hover:opacity-100 transition-opacity\">This text appears on hover</p>\n</div>",
+      "caption": "Responsive and state examples"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Mobile-first: base (unprefixed) styles apply to mobile; md: applies at 768px+",
+        "hover:focus:active: state modifiers \u2014 style changes when the user interacts",
+        "group-hover: child elements change when the parent (.group) is hovered",
+        "peer: sibling element state \u2014 peer-checked: styles the sibling of a checked input"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Forgetting mobile-first \u2014 if you set text-lg, it applies to ALL screens; use text-base lg:text-lg to override on larger screens",
+        "Not adding focus styles \u2014 accessibility requires visible focus indicators; use focus:ring-2",
+        "Overusing group/peer \u2014 if the relationship is complex, extract a component instead"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "Explain Tailwind's mobile-first approach",
+        "What is group-hover and when would you use it?",
+        "How do you style focus states for accessibility in Tailwind?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a responsive navbar that shows a hamburger menu on mobile (hidden by default, toggled with a button) and full links on desktop. Use responsive prefixes and group-hover for dropdown menus."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Add a focus-visible ring to all interactive elements on your page",
+        "Create a card that reveals additional content on hover using group-hover"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What does Tailwind's 'mobile-first' approach mean?",
+      "options": [
+        "You should design for mobile only",
+        "Base (unprefixed) styles apply to mobile; responsive prefixes apply at larger screens",
+        "Mobile styles are written last",
+        "You must use a mobile emulator"
+      ],
+      "correctIndex": 1,
+      "explanation": "In Tailwind's mobile-first approach, unprefixed styles apply to ALL screen sizes (starting from mobile). Responsive prefixes like md: and lg: apply at that breakpoint and above \u2014 they override the base styles on larger screens."
+    },
+    {
+      "id": "q2",
+      "question": "What does group-hover do?",
+      "options": [
+        "Hovers all elements in a group",
+        "Styles child elements when the parent (.group) is hovered",
+        "Creates a hover animation",
+        "Groups multiple hover styles"
+      ],
+      "correctIndex": 1,
+      "explanation": "Add class 'group' to a parent element, then use group-hover: on children. When the parent is hovered, the child's group-hover: styles apply. Useful for card hovers, dropdown menus, etc."
+    },
+    {
+      "id": "q3",
+      "question": "Which breakpoint does md: correspond to?",
+      "options": [
+        "480px",
+        "640px",
+        "768px",
+        "1024px"
+      ],
+      "correctIndex": 2,
+      "explanation": "md: applies at 768px and above. The default breakpoints are: sm: 640px, md: 768px, lg: 1024px, xl: 1280px, 2xl: 1536px."
+    },
+    {
+      "id": "q4",
+      "question": "How do you add a focus ring for accessibility?",
+      "options": [
+        "focus:ring-2 focus:ring-blue-400",
+        "focus:border-blue-400",
+        "focus:outline-blue",
+        "focus:ring"
+      ],
+      "correctIndex": 0,
+      "explanation": "Use focus:ring-2 focus:ring-blue-400 focus:outline-none to add a visible focus ring. The ring utility creates an outline-like ring that doesn't affect layout \u2014 essential for keyboard accessibility."
+    },
+    {
+      "id": "q5",
+      "question": "What does disabled:opacity-50 do?",
+      "options": [
+        "Sets 50% opacity always",
+        "Sets 50% opacity only when the element is disabled",
+        "Disables the opacity",
+        "Sets opacity to 50px"
+      ],
+      "correctIndex": 1,
+      "explanation": "disabled: is a state modifier \u2014 the style applies only when the element is in the disabled state. disabled:opacity-50 makes disabled buttons appear faded at 50% opacity."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tailwind-05",
+  "track": "tailwind",
+  "title": "Tailwind Customization & @apply",
+  "description": "Extend Tailwind with custom themes, extract reusable component classes with @apply, and build a design system.",
+  "difficulty": "intermediate",
+  "estMinutes": 70,
+  "order": 5,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Tailwind Customization & @apply"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "Every real project needs custom branding \u2014 brand colors, custom fonts, reusable component patterns. Tailwind's configuration system and the @apply directive let you customize everything and extract reusable component classes when utility-first gets repetitive."
+    },
+    {
+      "kind": "text",
+      "content": "The tailwind.config.js file is your design system's single source of truth. The @apply directive lets you extract commonly-used utility combinations into named classes \u2014 useful for buttons, cards, and other repeated patterns."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete all previous Tailwind lessons",
+        "Basic understanding of CSS and design systems"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Customizing colors, fonts, spacing in tailwind.config.js",
+        "Adding custom breakpoints",
+        "The @apply directive for component classes",
+        "When to use @apply vs utility classes",
+        "Plugins and presets"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "javascript",
+      "code": "// tailwind.config.js \u2014 custom theme\nmodule.exports = {\n  content: ['./src/**/*.{html,js,jsx,ts,tsx}'],\n  theme: {\n    extend: {\n      colors: {\n        brand: {\n          50: '#eff6ff',\n          500: '#3b82f6',\n          900: '#1e3a8a',\n        },\n      },\n      fontFamily: {\n        sans: ['Inter', 'system-ui', 'sans-serif'],\n      },\n      screens: {\n        '3xl': '1920px',\n      },\n    },\n  },\n  plugins: [],\n};",
+      "caption": "Customizing Tailwind's theme"
+    },
+    {
+      "kind": "code",
+      "language": "css",
+      "code": "/* Using @apply to extract reusable component classes */\n@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n@layer components {\n  .btn-primary {\n    @apply bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded transition-colors;\n  }\n  \n  .btn-secondary {\n    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded transition-colors;\n  }\n  \n  .card {\n    @apply bg-white rounded-lg shadow-md p-6 dark:bg-gray-800;\n  }\n}",
+      "caption": "Extracting component classes with @apply"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "extend: adds to Tailwind's defaults without replacing them (recommended)",
+        "theme override (without extend): replaces Tailwind's defaults entirely",
+        "@apply: extracts utility combinations into a named CSS class",
+        "@layer components: tells Tailwind these are component-level classes (lower priority than utilities)"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Overusing @apply \u2014 if you're writing .card { @apply ... } for every component, you lose the benefit of utility-first. Use it only for truly repeated patterns",
+        "Not using extend \u2014 if you set theme.colors without extend, you lose ALL of Tailwind's default colors",
+        "Forgetting to purge \u2014 if content paths are wrong, @apply classes may be stripped from production CSS"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "How do you add custom brand colors to Tailwind?",
+        "What does @apply do and when should you use it?",
+        "What's the difference between extending and overriding a theme?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Create a small design system: custom brand colors in tailwind.config.js, 3 button variants (.btn-primary, .btn-secondary, .btn-danger) using @apply, and a .card component class. Build a page that uses all of them."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Add a custom animation (e.g., fade-in) to tailwind.config.js and use it",
+        "Create a .input component class with focus states using @apply"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the difference between extend and override in tailwind.config.js?",
+      "options": [
+        "They are the same",
+        "extend adds to defaults; override replaces defaults entirely",
+        "extend replaces; override adds",
+        "There is no extend option"
+      ],
+      "correctIndex": 1,
+      "explanation": "Using theme.extend.colors adds your custom colors alongside Tailwind's defaults. Setting theme.colors directly REPLACES all default colors \u2014 you lose blue, red, gray, etc. Always use extend unless you intentionally want to remove defaults."
+    },
+    {
+      "id": "q2",
+      "question": "What does @apply do?",
+      "options": [
+        "Applies a CSS reset",
+        "Extracts utility class combinations into a named CSS class",
+        "Applies a Tailwind plugin",
+        "Imports external CSS"
+      ],
+      "correctIndex": 1,
+      "explanation": "@apply lets you write .btn { @apply bg-blue-500 text-white px-4 py-2 rounded; } \u2014 it extracts the utility classes into a reusable named class, reducing repetition in your HTML."
+    },
+    {
+      "id": "q3",
+      "question": "When should you use @apply?",
+      "options": [
+        "Always \u2014 for every element",
+        "Never \u2014 utility classes only",
+        "Only for truly repeated patterns (buttons, cards) where the utility combination is identical across many uses",
+        "Only in production"
+      ],
+      "correctIndex": 2,
+      "explanation": "Use @apply sparingly \u2014 only for component patterns that repeat identically (e.g., all primary buttons look the same). For one-off styles, use utility classes directly. Overusing @apply defeats the purpose of utility-first CSS."
+    },
+    {
+      "id": "q4",
+      "question": "How do you add a custom font family in Tailwind?",
+      "options": [
+        "@import the font in CSS only",
+        "Add fontFamily to theme.extend in tailwind.config.js",
+        "Use the font-family utility",
+        "It's not possible"
+      ],
+      "correctIndex": 1,
+      "explanation": "Add fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } to theme.extend in tailwind.config.js. Then use font-sans to apply it."
+    },
+    {
+      "id": "q5",
+      "question": "What does @layer components do?",
+      "options": [
+        "Removes component styles",
+        "Tells Tailwind these are component-level classes (lower priority than utilities)",
+        "Disables utility classes",
+        "Groups CSS files"
+      ],
+      "correctIndex": 1,
+      "explanation": "@layer components wraps your @apply classes so Tailwind knows they are component-level. This means utility classes always override them \u2014 so you can write .btn { @apply bg-blue-500 } and still override with bg-red-500 in your HTML."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "express-01",
+  "track": "express",
+  "title": "Getting Started with Express.js",
+  "description": "Build your first web server with Express.js \u2014 the most popular Node.js web framework.",
+  "difficulty": "beginner",
+  "estMinutes": 55,
+  "order": 1,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Getting Started with Express.js"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "Express.js is the foundational web framework for Node.js \u2014 it powers the backend of companies like Uber, IBM, and Netflix. Understanding Express is essential for any JavaScript full-stack developer. It's minimal, flexible, and teaches you how HTTP works at a low level."
+    },
+    {
+      "kind": "text",
+      "content": "Express is a fast, unopinionated, minimalist web framework for Node.js. It provides a thin layer of fundamental web application features, without obscuring Node.js features you already know."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic JavaScript (functions, objects, async/await)",
+        "Node.js installed (v18+)",
+        "Understanding of HTTP methods (GET, POST)"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "What is Express and why use it?",
+        "Creating an Express app",
+        "Routing: GET and POST handlers",
+        "Sending JSON and HTML responses",
+        "Listening on a port"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "javascript",
+      "code": "// Install: npm install express\nconst express = require('express');\nconst app = express();\n\n// Middleware to parse JSON bodies\napp.use(express.json());\n\n// GET route \u2014 returns a greeting\napp.get('/', (req, res) => {\n  res.json({ message: 'Hello from Express!' });\n});\n\n// GET route with a URL parameter\napp.get('/users/:id', (req, res) => {\n  res.json({ userId: req.params.id });\n});\n\n// POST route \u2014 receives JSON data\napp.post('/users', (req, res) => {\n  const { name, email } = req.body;\n  res.status(201).json({ id: 1, name, email });\n});\n\n// Start the server\napp.listen(3000, () => {\n  console.log('Server running on http://localhost:3000');\n});",
+      "caption": "A basic Express server"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Route: a URL path + HTTP method combination (e.g., GET /users)",
+        "req (request): contains the URL, headers, query params, body, and params",
+        "res (response): methods to send data back \u2014 res.json(), res.send(), res.status()",
+        "Middleware: functions that run between receiving a request and sending a response (app.use())"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Forgetting app.use(express.json()) \u2014 req.body will be undefined for POST requests with JSON bodies",
+        "Not sending a response \u2014 the request hangs forever; always call res.send(), res.json(), or res.end()",
+        "Using res.send() after res.json() \u2014 can't send a response twice; pick one"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is Express.js and why is it popular?",
+        "Explain the difference between req.params and req.query",
+        "What is middleware in Express?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a simple API with 3 routes: GET / (returns a welcome message), GET /health (returns { status: 'ok' }), and POST /echo (returns the JSON body you sent). Test with curl or Postman."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Add a GET /users/:id route that returns a user object based on the :id parameter",
+        "Add query parameter support: GET /search?q=express returns { query: 'express' }"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is Express.js?",
+      "options": [
+        "A database",
+        "A minimal web framework for Node.js",
+        "A frontend library",
+        "A CSS framework"
+      ],
+      "correctIndex": 1,
+      "explanation": "Express is a fast, unopinionated, minimalist web framework for Node.js. It provides routing, middleware, and HTTP utilities \u2014 the foundation for most Node.js backends."
+    },
+    {
+      "id": "q2",
+      "question": "What does app.get('/users/:id', handler) do?",
+      "options": [
+        "Gets all users",
+        "Defines a route that handles GET requests to /users/:id (e.g., /users/42)",
+        "Gets a user by ID from the database",
+        "Redirects to /users"
+      ],
+      "correctIndex": 1,
+      "explanation": "app.get('/users/:id', handler) registers a route handler for GET requests to /users/:id. The :id is a URL parameter accessible via req.params.id."
+    },
+    {
+      "id": "q3",
+      "question": "What is middleware in Express?",
+      "options": [
+        "A database driver",
+        "A function that runs between receiving a request and sending a response",
+        "A frontend framework",
+        "A package manager"
+      ],
+      "correctIndex": 1,
+      "explanation": "Middleware are functions that have access to req, res, and the next() function. They run in order, processing the request before it reaches your route handler. Example: app.use(express.json()) parses JSON bodies."
+    },
+    {
+      "id": "q4",
+      "question": "Why do you need app.use(express.json())?",
+      "options": [
+        "To send JSON responses",
+        "To parse incoming JSON request bodies (so req.body works)",
+        "To format the response as JSON",
+        "It's optional"
+      ],
+      "correctIndex": 1,
+      "explanation": "express.json() is middleware that parses incoming request bodies with JSON payloads and makes them available as req.body. Without it, req.body is undefined for POST/PUT requests."
+    },
+    {
+      "id": "q5",
+      "question": "How do you send a 201 Created status code?",
+      "options": [
+        "res.send(201)",
+        "res.status(201).json({...})",
+        "res.code(201)",
+        "res.created()"
+      ],
+      "correctIndex": 1,
+      "explanation": "Use res.status(201) to set the status code, then chain .json() or .send() to send the response. 201 is the standard status code for successful resource creation."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "express-02",
+  "track": "express",
+  "title": "Express Middleware Deep Dive",
+  "description": "Master middleware \u2014 the backbone of Express. Build custom middleware for logging, auth, and error handling.",
+  "difficulty": "intermediate",
+  "estMinutes": 70,
+  "order": 2,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Express Middleware Deep Dive"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "Middleware is the heart of Express. Authentication, logging, CORS, body parsing, error handling \u2014 everything in Express is middleware. Understanding middleware deeply is what separates beginners from production-ready Express developers."
+    },
+    {
+      "kind": "text",
+      "content": "Middleware functions are executed in the order they are added with app.use(). Each middleware receives (req, res, next) and can modify the request, end the response, or call next() to pass control to the next middleware."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete 'Getting Started with Express.js'",
+        "Understanding of JavaScript closures and higher-order functions"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Writing custom middleware",
+        "Application-level vs router-level middleware",
+        "Error-handling middleware",
+        "Third-party middleware (cors, morgan, helmet)",
+        "The next() function and the middleware chain"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "javascript",
+      "code": "// Custom logging middleware\napp.use((req, res, next) => {\n  console.log(`${new Date().toISOString()} ${req.method} ${req.url}`);\n  next(); // pass control to the next middleware\n});\n\n// Authentication middleware\nfunction requireAuth(req, res, next) {\n  const token = req.headers.authorization;\n  if (!token) {\n    return res.status(401).json({ error: 'No token provided' });\n  }\n  // Verify token...\n  req.user = { id: 1, name: 'Ada' }; // attach user to request\n  next();\n}\n\n// Use middleware on specific routes only\napp.get('/profile', requireAuth, (req, res) => {\n  res.json({ user: req.user });\n});\n\n// Error-handling middleware (4 arguments!)\napp.use((err, req, res, next) => {\n  console.error(err.stack);\n  res.status(500).json({ error: 'Something went wrong!' });\n});",
+      "caption": "Custom middleware examples"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "next(): passes control to the next middleware \u2014 if you forget this, the request hangs",
+        "Error middleware: has 4 arguments (err, req, res, next) \u2014 Express recognizes it by the arity",
+        "app.use() applies to ALL routes; app.get('/path', middleware, handler) applies to specific routes",
+        "Third-party middleware: cors (cross-origin), morgan (logging), helmet (security headers), express-rate-limit"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Forgetting next() \u2014 the request hangs forever because no middleware sends a response or passes control",
+        "Not handling async errors \u2014 async middleware needs try/catch or use express-async-handler",
+        "Putting error middleware before route handlers \u2014 it won't catch errors from routes defined after it"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "Explain the middleware chain in Express",
+        "What is the difference between app.use() and app.get() with middleware?",
+        "How does error-handling middleware differ from regular middleware?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build an API with: (1) a logging middleware that prints each request, (2) an auth middleware that checks for a fake API key in headers, (3) a protected /admin route that requires auth, and (4) a global error handler."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Add the cors middleware to allow cross-origin requests from a frontend",
+        "Install and configure helmet to add security headers to your API"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What does the next() function do in Express middleware?",
+      "options": [
+        "Skips to the next route",
+        "Passes control to the next middleware function in the chain",
+        "Sends the response",
+        "Starts the server"
+      ],
+      "correctIndex": 1,
+      "explanation": "next() passes control to the next middleware function. If you don't call next() and don't send a response, the request hangs indefinitely \u2014 the client times out."
+    },
+    {
+      "id": "q2",
+      "question": "How does Express recognize error-handling middleware?",
+      "options": [
+        "By the function name",
+        "By having 4 arguments (err, req, res, next)",
+        "By being registered last",
+        "By using try/catch"
+      ],
+      "correctIndex": 1,
+      "explanation": "Express identifies error-handling middleware by its arity \u2014 it must have exactly 4 parameters: (err, req, res, next). Regular middleware has 3 (req, res, next)."
+    },
+    {
+      "id": "q3",
+      "question": "What is the difference between app.use(middleware) and app.get('/path', middleware, handler)?",
+      "options": [
+        "They are the same",
+        "app.use applies to ALL routes; app.get with middleware applies to specific routes only",
+        "app.use is faster",
+        "app.get is for GET requests only"
+      ],
+      "correctIndex": 1,
+      "explanation": "app.use(middleware) runs for EVERY request regardless of method or path. app.get('/path', middleware, handler) runs the middleware only for GET requests to /path \u2014 route-specific middleware."
+    },
+    {
+      "id": "q4",
+      "question": "What happens if you forget to call next() in middleware?",
+      "options": [
+        "The server crashes",
+        "The request hangs forever (client times out)",
+        "Express skips to the next route automatically",
+        "The response is sent automatically"
+      ],
+      "correctIndex": 1,
+      "explanation": "If middleware doesn't call next() and doesn't send a response (res.send/res.json), the request hangs indefinitely. The client will eventually time out. Always either call next() or send a response."
+    },
+    {
+      "id": "q5",
+      "question": "Which third-party middleware adds security headers?",
+      "options": [
+        "cors",
+        "morgan",
+        "helmet",
+        "body-parser"
+      ],
+      "correctIndex": 2,
+      "explanation": "helmet sets various HTTP headers for security \u2014 it helps protect against well-known web vulnerabilities like XSS, clickjacking, and MIME sniffing. Just app.use(helmet()) and you're protected."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "express-03",
+  "track": "express",
+  "title": "Express Routing & RESTful APIs",
+  "description": "Structure Express apps with express.Router and build RESTful API endpoints.",
+  "difficulty": "intermediate",
+  "estMinutes": 65,
+  "order": 3,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Express Routing & RESTful APIs"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "A RESTful API is the standard way to expose data and functionality over HTTP. Express Router lets you organize routes into modular files \u2014 essential for any app with more than a handful of endpoints. This is the structure every production Express app uses."
+    },
+    {
+      "kind": "text",
+      "content": "REST (Representational State Transfer) is an architectural style for APIs that uses HTTP methods (GET, POST, PUT, DELETE) to operate on resources identified by URLs. Express Router lets you group related routes and mount them at a prefix."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete 'Getting Started with Express.js' and 'Express Middleware Deep Dive'"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "RESTful API conventions",
+        "express.Router() for modular routing",
+        "HTTP methods: GET, POST, PUT, PATCH, DELETE",
+        "Route parameters vs query parameters",
+        "Status codes and response patterns"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "javascript",
+      "code": "// routes/users.js \u2014 modular router\nconst express = require('express');\nconst router = express.Router();\n\n// In-memory data (replace with a database in production)\nlet users = [{ id: 1, name: 'Ada', email: 'ada@example.com' }];\n\n// GET /users \u2014 list all users\nrouter.get('/', (req, res) => {\n  res.json(users);\n});\n\n// GET /users/:id \u2014 get one user\nrouter.get('/:id', (req, res) => {\n  const user = users.find(u => u.id === parseInt(req.params.id));\n  if (!user) return res.status(404).json({ error: 'User not found' });\n  res.json(user);\n});\n\n// POST /users \u2014 create a user\nrouter.post('/', (req, res) => {\n  const { name, email } = req.body;\n  const user = { id: users.length + 1, name, email };\n  users.push(user);\n  res.status(201).json(user);\n});\n\n// PUT /users/:id \u2014 update a user\nrouter.put('/:id', (req, res) => {\n  const user = users.find(u => u.id === parseInt(req.params.id));\n  if (!user) return res.status(404).json({ error: 'User not found' });\n  Object.assign(user, req.body);\n  res.json(user);\n});\n\n// DELETE /users/:id \u2014 delete a user\nrouter.delete('/:id', (req, res) => {\n  const index = users.findIndex(u => u.id === parseInt(req.params.id));\n  if (index === -1) return res.status(404).json({ error: 'User not found' });\n  users.splice(index, 1);\n  res.status(204).send();\n});\n\nmodule.exports = router;\n\n// app.js \u2014 mount the router\nconst usersRouter = require('./routes/users');\napp.use('/users', usersRouter);",
+      "caption": "RESTful API with express.Router"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "REST conventions: GET (read), POST (create), PUT (full update), PATCH (partial update), DELETE (remove)",
+        "express.Router(): creates a modular, mountable route handler",
+        "Route prefix: app.use('/users', usersRouter) mounts all user routes under /users",
+        "Status codes: 200 OK, 201 Created, 204 No Content, 400 Bad Request, 404 Not Found, 500 Server Error"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Using GET for mutations \u2014 GET should never modify data (it breaks caching, bookmarks, and crawlers)",
+        "Returning 200 for 'not found' \u2014 use 404, not 200 with { error: 'not found' }",
+        "Not validating input \u2014 always validate req.body before using it; use a library like zod or joi"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is a RESTful API?",
+        "Explain the difference between PUT and PATCH",
+        "How does express.Router help organize a large Express app?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a complete RESTful API for a 'todo' resource with GET (list), POST (create), PUT (update), and DELETE (remove). Use express.Router and mount it at /api/todos."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Add input validation: POST /users should return 400 if name or email is missing",
+        "Add pagination: GET /users?page=2&limit=10 returns paginated results"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "Which HTTP method should you use to create a new resource?",
+      "options": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
+      "correctIndex": 1,
+      "explanation": "POST creates a new resource. The server assigns the ID and returns 201 Created. The new resource's URL is typically returned in the Location header."
+    },
+    {
+      "id": "q2",
+      "question": "What is the difference between PUT and PATCH?",
+      "options": [
+        "They are the same",
+        "PUT replaces the entire resource; PATCH applies a partial update",
+        "PUT is faster",
+        "PATCH is for deletion"
+      ],
+      "correctIndex": 1,
+      "explanation": "PUT replaces the entire resource (you send the full new state). PATCH applies a partial update (you send only the fields that changed). For example, PUT /users/1 with {name: 'Ada'} would erase the email field; PATCH would only change the name."
+    },
+    {
+      "id": "q3",
+      "question": "What does express.Router() do?",
+      "options": [
+        "Creates a new Express app",
+        "Creates a modular, mountable route handler",
+        "Routes requests to different servers",
+        "Creates a database connection"
+      ],
+      "correctIndex": 1,
+      "explanation": "express.Router() creates a mini-router that you can add routes to, then mount in your main app with app.use('/prefix', router). This lets you split routes into separate files (e.g., users.js, posts.js) for maintainability."
+    },
+    {
+      "id": "q4",
+      "question": "Which status code indicates 'resource created successfully'?",
+      "options": [
+        "200",
+        "201",
+        "204",
+        "301"
+      ],
+      "correctIndex": 1,
+      "explanation": "201 Created indicates a new resource was successfully created. It's the standard response for POST requests that create a resource. 200 OK is for successful reads/updates; 204 No Content is for successful deletions."
+    },
+    {
+      "id": "q5",
+      "question": "Why should GET requests never modify data?",
+      "options": [
+        "They're too slow",
+        "GET is for reading only \u2014 modifying data on GET breaks caching, bookmarks, and web crawlers",
+        "GET doesn't support request bodies",
+        "It's a security rule"
+      ],
+      "correctIndex": 1,
+      "explanation": "GET is supposed to be 'safe' and 'idempotent' \u2014 it should only read data. Modifying data on GET breaks HTTP caching, browser pre-fetching, bookmarks (which might accidentally trigger actions), and web crawlers (like Googlebot). Use POST/PUT/DELETE for mutations."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "express-04",
+  "track": "express",
+  "title": "Express Error Handling & Validation",
+  "description": "Handle errors gracefully and validate user input with proper patterns and libraries.",
+  "difficulty": "intermediate",
+  "estMinutes": 60,
+  "order": 4,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Express Error Handling & Validation"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "Bad input and unhandled errors crash APIs and leak sensitive data. Production Express apps MUST validate every input and handle every error gracefully. This lesson covers the patterns that keep your API secure and reliable."
+    },
+    {
+      "kind": "text",
+      "content": "Express error handling has two parts: (1) input validation (reject bad data before it reaches your logic) and (2) error-handling middleware (catch and format errors consistently)."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete all previous Express lessons",
+        "Basic understanding of async/await and try/catch"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Input validation with zod or joi",
+        "Validation middleware pattern",
+        "Async error handling (try/catch vs express-async-handler)",
+        "Custom error classes",
+        "Global error-handling middleware",
+        "Production vs development error responses"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "javascript",
+      "code": "// Validation with zod\nconst { z } = require('zod');\n\n// Define a schema\nconst createUserSchema = z.object({\n  name: z.string().min(1, 'Name is required').max(100),\n  email: z.string().email('Invalid email'),\n  age: z.number().int().min(0).max(150).optional(),\n});\n\n// Validation middleware\nfunction validate(schema) {\n  return (req, res, next) => {\n    const result = schema.safeParse(req.body);\n    if (!result.success) {\n      return res.status(400).json({\n        error: 'Validation failed',\n        details: result.error.issues,\n      });\n    }\n    req.body = result.data; // use the validated/transformed data\n    next();\n  };\n}\n\n// Use it\napp.post('/users', validate(createUserSchema), (req, res) => {\n  // req.body is guaranteed to match the schema\n  res.status(201).json({ user: req.body });\n});\n\n// Custom error class\nclass AppError extends Error {\n  constructor(message, statusCode) {\n    super(message);\n    this.statusCode = statusCode;\n    this.isOperational = true;\n  }\n}\n\n// Global error handler (must be LAST middleware)\napp.use((err, req, res, next) => {\n  const statusCode = err.statusCode || 500;\n  const isDev = process.env.NODE_ENV === 'development';\n  res.status(statusCode).json({\n    error: err.message,\n    ...(isDev && { stack: err.stack }),\n  });\n});",
+      "caption": "Validation and error handling patterns"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Schema validation: define the expected shape of data; reject anything that doesn't match",
+        "safeParse: returns { success, data } or { success, error } \u2014 doesn't throw",
+        "Operational errors: expected errors (bad input, not found) vs programming errors (bugs, undefined variable)",
+        "Error middleware: 4-argument function, must be registered LAST in the middleware chain"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Using try/catch in every route \u2014 use express-async-handler or Express 5's built-in async support instead",
+        "Leaking stack traces in production \u2014 only show them in development",
+        "Catching errors but not passing them to next(err) \u2014 the error handler never runs"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "How do you handle async errors in Express 4 vs Express 5?",
+        "What is the difference between operational and programming errors?",
+        "How do you validate user input in Express?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Add input validation to your todo API: POST /api/todos must validate that 'title' is a non-empty string and 'completed' is an optional boolean. Return 400 with specific error messages for invalid input."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Create a custom AppError class and use it in your routes (e.g., throw new AppError('User not found', 404))",
+        "Add a 404 handler for unknown routes that returns { error: 'Route not found' }"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What does zod's safeParse() return?",
+      "options": [
+        "The parsed data or throws",
+        "An object: { success: true, data } or { success: false, error }",
+        "A boolean",
+        "A promise"
+      ],
+      "correctIndex": 1,
+      "explanation": "safeParse() returns { success: true, data } if validation passes, or { success: false, error } if it fails. Unlike parse(), it doesn't throw \u2014 you handle both cases explicitly."
+    },
+    {
+      "id": "q2",
+      "question": "How many arguments does Express error-handling middleware have?",
+      "options": [
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "correctIndex": 2,
+      "explanation": "Error-handling middleware has 4 arguments: (err, req, res, next). Express identifies error handlers by this arity \u2014 the extra 'err' parameter at the front."
+    },
+    {
+      "id": "q3",
+      "question": "Why should you never show stack traces in production?",
+      "options": [
+        "They're too long",
+        "They leak internal implementation details (file paths, library versions) that help attackers",
+        "They slow down the response",
+        "They're not informative"
+      ],
+      "correctIndex": 1,
+      "explanation": "Stack traces reveal internal file paths, library names, and code structure \u2014 valuable information for attackers. In production, return a generic error message. In development, include the stack for debugging."
+    },
+    {
+      "id": "q4",
+      "question": "What is an 'operational error' in Express?",
+      "options": [
+        "A bug in the code",
+        "An expected error like 'user not found' or 'invalid input' that the app handles gracefully",
+        "A server crash",
+        "A network timeout"
+      ],
+      "correctIndex": 1,
+      "explanation": "Operational errors are expected runtime errors the app can handle gracefully (404 not found, 400 bad request, 401 unauthorized). Programming errors are bugs (undefined variable, type error) that require code fixes. The distinction helps decide whether to send an error response or crash the process."
+    },
+    {
+      "id": "q5",
+      "question": "Where should the error-handling middleware be registered?",
+      "options": [
+        "First, before all routes",
+        "In the middle, between routes",
+        "Last, after all routes and other middleware",
+        "It doesn't matter"
+      ],
+      "correctIndex": 2,
+      "explanation": "Error-handling middleware must be registered LAST \u2014 after all routes and other middleware. Express matches middleware in registration order, so if you register the error handler before a route, it won't catch errors from that route."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "express-05",
+  "track": "express",
+  "title": "Express Production Deployment",
+  "description": "Deploy Express apps to production with security, performance, and reliability best practices.",
+  "difficulty": "advanced",
+  "estMinutes": 85,
+  "order": 5,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Express Production Deployment"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "A development Express app is very different from a production one. Production apps need security headers, rate limiting, compression, process management (PM2), logging, monitoring, and proper environment configuration. Skip these and your app will be slow, vulnerable, and hard to debug."
+    },
+    {
+      "kind": "text",
+      "content": "Production readiness involves: security middleware (helmet, cors, rate-limit), performance (compression, clustering), process management (PM2 or Docker), logging (winston/pino), and environment-based configuration."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete all previous Express lessons",
+        "Basic understanding of environment variables",
+        "Familiarity with Docker (helpful but not required)"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Security: helmet, cors, express-rate-limit",
+        "Performance: compression, clustering",
+        "Process management with PM2",
+        "Logging with winston or pino",
+        "Environment variables and dotenv",
+        "Graceful shutdown"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "javascript",
+      "code": "// Production Express setup\nrequire('dotenv').config();\nconst express = require('express');\nconst helmet = require('helmet');\nconst cors = require('cors');\nconst compression = require('compression');\nconst rateLimit = require('express-rate-limit');\nconst morgan = require('morgan');\n\nconst app = express();\n\n// Trust proxy (needed when behind a reverse proxy like nginx/load balancer)\napp.set('trust proxy', 1);\n\n// Security middleware\napp.use(helmet()); // security headers\napp.use(cors({ origin: process.env.CORS_ORIGIN })); // restrict origins\n\n// Rate limiting\nconst limiter = rateLimit({\n  windowMs: 15 * 60 * 1000, // 15 minutes\n  max: 100, // max 100 requests per window per IP\n  message: 'Too many requests from this IP',\n});\napp.use('/api/', limiter);\n\n// Performance\napp.use(compression()); // gzip responses\n\n// Logging\napp.use(morgan('combined'));\n\n// Body parsing\napp.use(express.json({ limit: '10kb' })); // limit body size\n\n// Routes\napp.use('/api/users', require('./routes/users'));\n\n// Graceful shutdown\nprocess.on('SIGTERM', () => {\n  console.log('SIGTERM received. Shutting down gracefully...');\n  server.close(() => {\n    console.log('Server closed.');\n    process.exit(0);\n  });\n});\n\nconst PORT = process.env.PORT || 3000;\nconst server = app.listen(PORT, () => {\n  console.log(`Server running on port ${PORT}`);\n});",
+      "caption": "Production Express configuration"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "helmet: adds 15 security headers (XSS protection, clickjacking prevention, etc.) with one line",
+        "Rate limiting: prevents brute-force and DDoS \u2014 express-rate-limit caps requests per IP per window",
+        "compression: gzip responses \u2014 reduces bandwidth by 50-70%",
+        "PM2: process manager \u2014 auto-restarts on crash, clustering for multi-core utilization",
+        "trust proxy: needed when behind nginx/load balancer \u2014 makes req.ip and rate limiting work correctly"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not setting NODE_ENV=production in production \u2014 Express runs slower in development mode",
+        "Using console.log for logging \u2014 use winston or pino for structured, leveled logging",
+        "Not handling SIGTERM \u2014 Kubernetes/Docker sends SIGTERM to shut down; handle it to finish in-flight requests"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What security middleware should every production Express app use?",
+        "How does rate limiting work and why is it important?",
+        "What is graceful shutdown and how do you implement it?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Take your todo API and add: helmet, cors (restrict to localhost:3000), rate limiting (100 req/15min), compression, morgan logging, and dotenv for configuration. Run it with NODE_ENV=production."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Install PM2 and run your app with pm2 start app.js --name todo-api -i max (cluster mode)",
+        "Add a health check endpoint (GET /health) that returns { status: 'ok', uptime: seconds } for load balancer probes"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What does helmet() do?",
+      "options": [
+        "Adds a helmet logo",
+        "Adds 15+ security-related HTTP headers",
+        "Encrypts responses",
+        "Blocks DDoS attacks"
+      ],
+      "correctIndex": 1,
+      "explanation": "helmet() sets various HTTP headers to improve security \u2014 including X-Content-Type-Options, X-Frame-Options, Content-Security-Policy, and more. It's the easiest way to secure an Express app."
+    },
+    {
+      "id": "q2",
+      "question": "Why is rate limiting important in production?",
+      "options": [
+        "It makes the app faster",
+        "It prevents brute-force attacks and DDoS by capping requests per IP per time window",
+        "It reduces server costs",
+        "It's required by law"
+      ],
+      "correctIndex": 1,
+      "explanation": "Rate limiting caps how many requests a single IP can make in a time window (e.g., 100 per 15 minutes). This prevents brute-force password attacks, API abuse, and basic DDoS attacks."
+    },
+    {
+      "id": "q3",
+      "question": "What does compression() middleware do?",
+      "options": [
+        "Minifies JavaScript",
+        "Gzip-compresses HTTP responses \u2014 reduces bandwidth by 50-70%",
+        "Compresses images",
+        "Compresses the database"
+      ],
+      "correctIndex": 1,
+      "explanation": "compression() gzip-compresses HTTP responses. The server sends compressed data; the browser decompresses it. This reduces bandwidth and speeds up page loads, especially for large JSON API responses."
+    },
+    {
+      "id": "q4",
+      "question": "What is graceful shutdown?",
+      "options": [
+        "Turning off the server quickly",
+        "Handling SIGTERM to stop accepting new requests, finish in-flight requests, then exit cleanly",
+        "Forcing the server to stop immediately",
+        "Restarting the server periodically"
+      ],
+      "correctIndex": 1,
+      "explanation": "Graceful shutdown: when the server receives SIGTERM (from Docker/Kubernetes/PM2), it stops accepting new connections, finishes processing in-flight requests, closes database connections, then exits. This prevents dropped requests and data corruption."
+    },
+    {
+      "id": "q5",
+      "question": "Why must you set app.set('trust proxy', 1) when behind a reverse proxy?",
+      "options": [
+        "It makes the app faster",
+        "It makes req.ip and rate limiting work correctly \u2014 the proxy's IP would be used otherwise",
+        "It's required by Express",
+        "It enables HTTPS"
+      ],
+      "correctIndex": 1,
+      "explanation": "Behind a reverse proxy (nginx, load balancer), req.ip would be the proxy's IP, not the client's. trust proxy tells Express to use the X-Forwarded-For header to get the real client IP \u2014 essential for rate limiting and logging."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "graphql-01",
+  "track": "graphql",
+  "title": "Getting Started with GraphQL",
+  "description": "Understand GraphQL \u2014 a query language for APIs that gives clients exactly the data they ask for.",
+  "difficulty": "beginner",
+  "estMinutes": 60,
+  "order": 1,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Getting Started with GraphQL"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "GraphQL, developed by Facebook in 2012 and open-sourced in 2015, solves the biggest problems with REST APIs: over-fetching (getting too much data) and under-fetching (getting too little, requiring multiple round-trips). Companies like GitHub, Shopify, and Airbnb use GraphQL because it lets frontend developers ask for exactly what they need in a single request."
+    },
+    {
+      "kind": "text",
+      "content": "GraphQL is a query language for your API. Instead of multiple REST endpoints (GET /users, GET /users/1/posts, GET /posts/1/comments), you send a single query to one endpoint that describes exactly what data you want \u2014 and get back exactly that, nothing more, nothing less."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of APIs and HTTP",
+        "JavaScript fundamentals",
+        "Familiarity with JSON"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "What is GraphQL and why use it?",
+        "GraphQL vs REST \u2014 key differences",
+        "The GraphQL schema: types, queries, mutations",
+        "Writing your first query",
+        "The single endpoint: /graphql"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "graphql",
+      "code": "# GraphQL query \u2014 get a user and their posts, but only the fields you need\nquery {\n  user(id: 1) {\n    name\n    email\n    posts {\n      title\n      publishedAt\n    }\n  }\n}\n\n# The response matches the query's shape exactly\n# {\n#   \"user\": {\n#     \"name\": \"Ada\",\n#     \"email\": \"ada@example.com\",\n#     \"posts\": [\n#       { \"title\": \"Hello World\", \"publishedAt\": \"2024-01-15\" }\n#     ]\n#   }\n# }",
+      "caption": "A GraphQL query and its response"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Schema: the contract between client and server \u2014 defines what types and operations exist",
+        "Query: reads data (like GET in REST)",
+        "Mutation: modifies data (like POST/PUT/DELETE in REST)",
+        "Subscription: real-time updates via WebSocket (like a live feed)",
+        "Resolver: a function that fetches the data for a specific field"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Over-fetching in REST: GET /users/1 returns the user's bio, avatar, settings, billing \u2014 when you only needed the name. GraphQL lets you ask for just { name }",
+        "Under-fetching in REST: to show a user's posts and comments, you need 3 API calls. GraphQL does it in 1",
+        "N+1 problem: if a resolver fetches each post's author individually, 100 posts = 101 database queries. Use DataLoader to batch"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is GraphQL and how does it differ from REST?",
+        "What are the advantages of GraphQL over REST?",
+        "What is the N+1 problem in GraphQL and how do you solve it?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Explore the public Star Wars GraphQL API at https://graphql.org/swapi/. Write a query to get a character's name and the titles of all films they appear in."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Compare: how many REST calls would it take to get a GitHub user's name, their 5 most recent repos, and each repo's last 3 issues? In GraphQL, it's one query.",
+        "Write a GraphQL query that asks for a film's title, director, and release date"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the key advantage of GraphQL over REST?",
+      "options": [
+        "It's faster",
+        "Clients ask for exactly the data they need \u2014 no over-fetching or under-fetching",
+        "It uses less memory",
+        "It doesn't require a server"
+      ],
+      "correctIndex": 1,
+      "explanation": "GraphQL lets clients specify exactly which fields they want. No over-fetching (getting unused data) and no under-fetching (needing multiple round-trips). One query gets exactly what you need."
+    },
+    {
+      "id": "q2",
+      "question": "How many endpoints does a typical GraphQL API have?",
+      "options": [
+        "One per resource (like REST)",
+        "One \u2014 usually /graphql",
+        "One per query type",
+        "It depends on the database"
+      ],
+      "correctIndex": 1,
+      "explanation": "A GraphQL API has a single endpoint (usually /graphql). All queries, mutations, and subscriptions go to this one URL. The server figures out what data to return based on the query string."
+    },
+    {
+      "id": "q3",
+      "question": "What is a GraphQL Query used for?",
+      "options": [
+        "Creating data",
+        "Reading data (like GET in REST)",
+        "Deleting data",
+        "Real-time updates"
+      ],
+      "correctIndex": 1,
+      "explanation": "A Query reads data \u2014 it's the GraphQL equivalent of a GET request. Mutations modify data (create/update/delete). Subscriptions provide real-time updates."
+    },
+    {
+      "id": "q4",
+      "question": "What is the N+1 problem in GraphQL?",
+      "options": [
+        "N servers + 1 client",
+        "A resolver that makes 1 query for a list, then N queries for each item's related data \u2014 solved by batching with DataLoader",
+        "N queries to 1 database",
+        "A network timeout"
+      ],
+      "correctIndex": 1,
+      "explanation": "If a list of 100 posts each need their author, a naive resolver makes 1 query for the posts + 100 queries for each author = 101 queries (N+1). DataLoader batches these into 2 queries."
+    },
+    {
+      "id": "q5",
+      "question": "What does a GraphQL schema do?",
+      "options": [
+        "Stores the database",
+        "Defines the contract between client and server \u2014 what types and operations exist",
+        "Caches queries",
+        "Handles authentication"
+      ],
+      "correctIndex": 1,
+      "explanation": "The schema is the API's contract. It defines what types exist (User, Post, Comment), what fields they have, and what operations (queries, mutations) are available. Clients can introspect the schema to discover what's possible."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "graphql-02",
+  "track": "graphql",
+  "title": "GraphQL Schema & Types",
+  "description": "Define your API's contract with a GraphQL schema \u2014 types, queries, and mutations.",
+  "difficulty": "beginner",
+  "estMinutes": 65,
+  "order": 2,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "GraphQL Schema & Types"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "The schema is the heart of a GraphQL API. It defines what data exists, what operations are possible, and what the client can ask for. A well-designed schema is self-documenting, type-safe, and enables autocomplete in tools like GraphiQL and Apollo Client."
+    },
+    {
+      "kind": "text",
+      "content": "A GraphQL schema is written in the Schema Definition Language (SDL). It defines types (objects with fields), queries (read operations), and mutations (write operations). Each field has a type \u2014 String, Int, Boolean, ID, or a custom type."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete 'Getting Started with GraphQL'",
+        "Basic understanding of typed languages (TypeScript helpful)"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Schema Definition Language (SDL)",
+        "Scalar types: String, Int, Float, Boolean, ID",
+        "Object types and fields",
+        "Query and Mutation types",
+        "Arguments and input types",
+        "Enums and lists"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "graphql",
+      "code": "# Schema Definition Language (SDL)\n\n# Object type \u2014 a User has these fields\ntype User {\n  id: ID!\n  name: String!\n  email: String!\n  age: Int\n  posts: [Post!]!\n}\n\n# Another object type\ntype Post {\n  id: ID!\n  title: String!\n  content: String!\n  author: User!\n  publishedAt: String\n}\n\n# The Query type \u2014 defines all read operations\ntype Query {\n  user(id: ID!): User\n  users(limit: Int = 10): [User!]!\n  posts(authorId: ID): [Post!]!\n}\n\n# The Mutation type \u2014 defines all write operations\ntype Mutation {\n  createUser(input: CreateUserInput!): User!\n  updateUser(id: ID!, input: UpdateUserInput!): User!\n  deleteUser(id: ID!): Boolean!\n}\n\n# Input type \u2014 for mutation arguments\ninput CreateUserInput {\n  name: String!\n  email: String!\n  age: Int\n}\n\ninput UpdateUserInput {\n  name: String\n  email: String\n  age: Int\n}\n\n# Enum \u2014 a field with a fixed set of values\nenum PostStatus {\n  DRAFT\n  PUBLISHED\n  ARCHIVED\n}",
+      "caption": "A complete GraphQL schema"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "!: Non-nullable \u2014 the field always returns a value (never null). String! means required",
+        "[Type!]: A non-empty list of non-null items",
+        "ID: a unique identifier scalar type (serialized as a string)",
+        "Input type: a type used for mutation arguments (like a DTO in REST)",
+        "Enum: a type with a fixed set of values"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Overusing non-null (!) \u2014 if a field is ! and the resolver returns null, the entire query fails. Use null carefully for fields that might not always be available",
+        "Not using input types for mutations \u2014 flat arguments (name: String, email: String) don't scale; group them in an input type",
+        "Designing the schema to match your database \u2014 design it for the CLIENT, not the database. The schema is the API, not the data model"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What does the ! mean in a GraphQL schema?",
+        "What is the difference between an input type and an object type?",
+        "Should your GraphQL schema mirror your database schema? Why or why not?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Write a GraphQL schema for a blog: types for User, Post, and Comment. Include queries (getUser, getAllPosts) and mutations (createPost, addComment). Use input types for mutation arguments."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Add an enum type for PostStatus (DRAFT, PUBLISHED, ARCHIVED) and use it in the Post type",
+        "Make the 'age' field on User nullable, and the 'email' field non-null \u2014 explain why"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What does the ! mean in GraphQL (e.g., String!)?",
+      "options": [
+        "The field is optional",
+        "The field is non-nullable \u2014 it must always return a value, never null",
+        "The field is an array",
+        "The field is deprecated"
+      ],
+      "correctIndex": 1,
+      "explanation": "! marks a field as non-nullable. String! means the field must always return a string, never null. If a resolver for a non-null field returns null, the entire query fails with an error."
+    },
+    {
+      "id": "q2",
+      "question": "What is an input type used for in GraphQL?",
+      "options": [
+        "For query arguments",
+        "For mutation arguments (grouping multiple fields into a structured input)",
+        "For database inputs",
+        "For file uploads"
+      ],
+      "correctIndex": 1,
+      "explanation": "Input types group multiple fields into a structured argument for mutations. Instead of createUser(name: String, email: String, age: Int), you write createUser(input: CreateUserInput!). This is more maintainable and extensible."
+    },
+    {
+      "id": "q3",
+      "question": "Should your GraphQL schema mirror your database schema?",
+      "options": [
+        "Yes, always",
+        "No \u2014 design the schema for the CLIENT's needs, not the database structure",
+        "It depends on the database",
+        "Only for SQL databases"
+      ],
+      "correctIndex": 1,
+      "explanation": "The GraphQL schema is the API contract, not the data model. Design it for what clients need \u2014 they might want computed fields, aggregated data, or related data that spans multiple database tables. The resolvers handle the mapping."
+    },
+    {
+      "id": "q4",
+      "question": "What does [Post!]! mean?",
+      "options": [
+        "A nullable list of nullable posts",
+        "A non-null list where every item is also non-null (the list is never null and never contains null items)",
+        "An empty list",
+        "A single post"
+      ],
+      "correctIndex": 1,
+      "explanation": "[Post!]! means: a non-null list (!) of non-null posts (Post!). The list itself can't be null (it can be empty []), and no item in the list can be null."
+    },
+    {
+      "id": "q5",
+      "question": "What is the ID scalar type in GraphQL?",
+      "options": [
+        "An integer ID",
+        "A unique identifier, serialized as a string but can be parsed as a number",
+        "A UUID only",
+        "An auto-incrementing integer"
+      ],
+      "correctIndex": 1,
+      "explanation": "ID is a scalar type for unique identifiers. It's serialized as a string, but the server can accept either a string or an integer as input. It's semantically 'this is an identifier' \u2014 not just a string."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "graphql-03",
+  "track": "graphql",
+  "title": "GraphQL Resolvers & Apollo Server",
+  "description": "Build a working GraphQL server with Apollo Server and write resolvers that fetch data.",
+  "difficulty": "intermediate",
+  "estMinutes": 75,
+  "order": 3,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "GraphQL Resolvers & Apollo Server"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "Resolvers are the functions that actually fetch the data for each field in your schema. Apollo Server is the most popular GraphQL server for Node.js \u2014 it handles parsing, validation, caching, and gives you GraphiQL (an interactive query explorer) for free. This is where the schema meets real data."
+    },
+    {
+      "kind": "text",
+      "content": "A resolver is a function that returns data for a specific field. Apollo Server connects your schema (type definitions) to your resolvers (data-fetching functions) and serves them over HTTP."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete 'Getting Started with GraphQL' and 'GraphQL Schema & Types'",
+        "Node.js and npm installed"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Installing Apollo Server",
+        "Writing resolver functions",
+        "The resolver signature: (parent, args, context, info)",
+        "Context for shared data (auth, database connections)",
+        "Running the server and exploring with GraphiQL"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "javascript",
+      "code": "// npm install @apollo/server graphql\nimport { ApolloServer } from '@apollo/server';\nimport { startStandaloneServer } from '@apollo/server/standalone';\n\n// 1. Define the schema (typeDefs)\nconst typeDefs = `#graphql\n  type User {\n    id: ID!\n    name: String!\n    email: String!\n    posts: [Post!]!\n  }\n\n  type Post {\n    id: ID!\n    title: String!\n    author: User!\n  }\n\n  type Query {\n    user(id: ID!): User\n    users: [User!]!\n  }\n`;\n\n// 2. Mock data\nconst users = [\n  { id: '1', name: 'Ada', email: 'ada@example.com' },\n  { id: '2', name: 'Grace', email: 'grace@example.com' },\n];\nconst posts = [\n  { id: '1', title: 'Hello World', authorId: '1' },\n  { id: '2', title: 'GraphQL Rocks', authorId: '1' },\n];\n\n// 3. Write resolvers \u2014 one function per field\nconst resolvers = {\n  Query: {\n    user: (_, { id }) => users.find(u => u.id === id),\n    users: () => users,\n  },\n  // Field resolver: resolve 'posts' on a User\n  User: {\n    posts: (parent) => posts.filter(p => p.authorId === parent.id),\n  },\n  // Field resolver: resolve 'author' on a Post\n  Post: {\n    author: (parent) => users.find(u => u.id === parent.authorId),\n  },\n};\n\n// 4. Start the server\nconst server = new ApolloServer({ typeDefs, resolvers });\nconst { url } = await startStandaloneServer(server, { listen: { port: 4000 } });\nconsole.log(`GraphQL API ready at ${url}`);",
+      "caption": "A complete Apollo Server with resolvers"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Resolver: a function (parent, args, context, info) => data that fetches the value for a field",
+        "parent: the result of the parent resolver (e.g., for User.posts, parent is the User object)",
+        "args: the arguments passed to the field (e.g., user(id: \"1\") \u2192 args.id = '1')",
+        "context: shared across all resolvers \u2014 use for database connections, auth user, etc.",
+        "GraphiQL: built-in interactive query explorer at http://localhost:4000"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Forgetting to write field resolvers for related types \u2014 if User has a 'posts' field but no resolver, it returns null",
+        "Using global variables for data \u2014 use the context parameter to pass database connections",
+        "Not handling errors \u2014 throw new Error('User not found') in a resolver; Apollo formats it as { errors: [{ message: 'User not found' }] }"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What are the four arguments a GraphQL resolver receives?",
+        "What is the 'context' in Apollo Server used for?",
+        "How do field resolvers work for related types?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a GraphQL API for a simple blog: types for User and Post, queries to get users and posts by author, and resolvers that use in-memory arrays. Test all queries in GraphiQL."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Add a context function that simulates authentication (check for a fake auth header)",
+        "Add a Mutation type with a createPost mutation and write its resolver"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What are the four arguments a GraphQL resolver receives?",
+      "options": [
+        "req, res, next, err",
+        "parent, args, context, info",
+        "query, mutation, subscription, type",
+        "schema, types, resolvers, data"
+      ],
+      "correctIndex": 1,
+      "explanation": "Resolvers receive (parent, args, context, info). parent = the parent object's resolved value, args = the field's arguments, context = shared data (db, auth), info = schema details (rarely used)."
+    },
+    {
+      "id": "q2",
+      "question": "What is the 'context' used for in Apollo Server?",
+      "options": [
+        "Storing the schema",
+        "Sharing data across all resolvers (database connections, authenticated user, etc.)",
+        "Caching query results",
+        "Logging requests"
+      ],
+      "correctIndex": 1,
+      "explanation": "context is an object shared across all resolvers for a single request. Use it to pass database connections, the authenticated user, request headers, etc. Define it once in the server setup; access it in any resolver as the third argument."
+    },
+    {
+      "id": "q3",
+      "question": "How does a field resolver for a related type work?",
+      "options": [
+        "It's automatic \u2014 no resolver needed",
+        "You write a resolver on the parent type (e.g., User.posts) that receives the parent User object and returns the related posts",
+        "It's configured in the schema",
+        "It's handled by the database"
+      ],
+      "correctIndex": 1,
+      "explanation": "For User.posts, you write a resolver in the User object: User: { posts: (parent) => posts.filter(p => p.authorId === parent.id) }. The parent argument is the User object \u2014 use its id to find the related posts."
+    },
+    {
+      "id": "q4",
+      "question": "What is GraphiQL?",
+      "options": [
+        "A GraphQL database",
+        "An interactive in-browser GraphQL query explorer \u2014 lets you write and test queries with autocomplete",
+        "A GraphQL linter",
+        "A GraphQL hosting service"
+      ],
+      "correctIndex": 1,
+      "explanation": "GraphiQL (or Apollo Sandbox) is a built-in interactive IDE for GraphQL. Open your server URL in a browser and you get a query editor with autocomplete (from the schema), syntax highlighting, and response pane \u2014 free with Apollo Server."
+    },
+    {
+      "id": "q5",
+      "question": "What happens if a resolver throws an Error?",
+      "options": [
+        "The server crashes",
+        "Apollo formats it as a GraphQL error response: { errors: [{ message: '...' }], data: null }",
+        "The query is retried",
+        "The error is ignored"
+      ],
+      "correctIndex": 1,
+      "explanation": "If a resolver throws, Apollo catches it and returns a structured error response: { errors: [{ message: 'Error message', ... }], data: null }. The server doesn't crash \u2014 other parts of the query may still return data if they're independent."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "graphql-04",
+  "track": "graphql",
+  "title": "GraphQL Mutations & Client Integration",
+  "description": "Write mutations to modify data and connect a frontend to your GraphQL API with Apollo Client.",
+  "difficulty": "intermediate",
+  "estMinutes": 70,
+  "order": 4,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "GraphQL Mutations & Client Integration"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "Reading data is only half the API. Mutations let you create, update, and delete data. And building a real app means connecting a frontend (React, Vue, etc.) to your GraphQL backend. Apollo Client provides caching, loading states, and error handling out of the box."
+    },
+    {
+      "kind": "text",
+      "content": "Mutations are the GraphQL equivalent of POST/PUT/DELETE. On the frontend, Apollo Client integrates with React (or any framework) to send queries and mutations, cache results, and update the UI automatically."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete all previous GraphQL lessons",
+        "Basic React knowledge (for the frontend section)"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Defining mutations in the schema",
+        "Writing mutation resolvers",
+        "Apollo Client setup in React",
+        "useQuery and useMutation hooks",
+        "Cache updates after mutations"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "javascript",
+      "code": "// Server: mutation resolver\nconst typeDefs = `#graphql\n  type Mutation {\n    createPost(input: CreatePostInput!): Post!\n  }\n  input CreatePostInput {\n    title: String!\n    content: String!\n  }\n`;\n\nconst resolvers = {\n  Mutation: {\n    createPost: (_, { input }, context) => {\n      if (!context.user) throw new Error('Not authenticated');\n      const post = { id: String(posts.length + 1), ...input, authorId: context.user.id };\n      posts.push(post);\n      return post;\n    },\n  },\n};\n\n// Client (React): useMutation hook\nimport { useMutation, gql } from '@apollo/client';\n\nconst CREATE_POST = gql`\n  mutation CreatePost($input: CreatePostInput!) {\n    createPost(input: $input) {\n      id\n      title\n    }\n  }\n`;\n\nfunction CreatePostForm() {\n  const [createPost, { loading, error }] = useMutation(CREATE_POST);\n\n  const handleSubmit = async (e) => {\n    e.preventDefault();\n    try {\n      await createPost({\n        variables: { input: { title: 'My Post', content: 'Hello!' } },\n      });\n      console.log('Post created!');\n    } catch (err) {\n      console.error(err);\n    }\n  };\n\n  return (\n    <form onSubmit={handleSubmit}>\n      <button disabled={loading}>Create Post</button>\n      {error && <p>Error: {error.message}</p>}\n    </form>\n  );\n}",
+      "caption": "Mutation resolver and Apollo Client integration"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Mutation type: defines write operations in the schema (createPost, updateUser, deleteUser)",
+        "useMutation: Apollo Client hook for executing mutations \u2014 returns [mutateFn, { loading, error, data }]",
+        "useQuery: Apollo Client hook for executing queries \u2014 auto-runs on mount, provides loading/error/data states",
+        "Cache: Apollo Client caches query results \u2014 mutations can update the cache automatically or manually",
+        "Optimistic UI: update the UI before the server responds \u2014 feels instant, rolls back if the mutation fails"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not updating the cache after a mutation \u2014 the new post doesn't appear in the list until a page refresh. Use refetchQueries or update the cache manually",
+        "Forgetting to handle loading and error states in the UI \u2014 users see nothing while the mutation is in flight",
+        "Not validating input on the server \u2014 always validate mutation input in the resolver, even if the client validated it too"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "How do mutations differ from queries in GraphQL?",
+        "How does Apollo Client cache query results?",
+        "How do you update the Apollo cache after a mutation?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Add a createPost mutation to your blog API. Then build a simple React form that uses useMutation to create a post and display it. Make sure the post list updates after creation (use refetchQueries or cache update)."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Add a deletePost mutation and a delete button in the UI",
+        "Implement optimistic UI: show the new post immediately, roll back if the mutation fails"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is a GraphQL mutation?",
+      "options": [
+        "A type of query",
+        "A write operation that modifies data (create, update, delete) \u2014 like POST/PUT/DELETE in REST",
+        "A schema change",
+        "A real-time subscription"
+      ],
+      "correctIndex": 1,
+      "explanation": "A mutation is a write operation. It modifies data on the server and returns the modified data. The Mutation type in the schema defines all available write operations."
+    },
+    {
+      "id": "q2",
+      "question": "What does useMutation return in Apollo Client?",
+      "options": [
+        "Just the data",
+        "A tuple: [mutateFunction, { loading, error, data }]",
+        "A promise",
+        "A subscription"
+      ],
+      "correctIndex": 1,
+      "explanation": "useMutation returns [mutateFunction, resultObject]. Call mutateFunction({ variables: {...} }) to execute the mutation. resultObject has { loading, error, data } for the UI state."
+    },
+    {
+      "id": "q3",
+      "question": "Why might a newly created post not appear in the list after a createPost mutation?",
+      "options": [
+        "The mutation failed",
+        "Apollo Client cached the old list and didn't update it \u2014 use refetchQueries or update the cache manually",
+        "The server didn't save it",
+        "The UI is broken"
+      ],
+      "correctIndex": 1,
+      "explanation": "Apollo Client caches query results. After a mutation, the cache still has the old list. Solutions: (1) refetchQueries: ['GetPosts'] to re-run the list query, (2) update the cache manually in the mutation's update function, or (3) use optimistic UI."
+    },
+    {
+      "id": "q4",
+      "question": "What is optimistic UI in Apollo Client?",
+      "options": [
+        "Showing an error before the request",
+        "Updating the UI immediately (before the server responds) and rolling back if the mutation fails \u2014 makes the app feel instant",
+        "A type of caching",
+        "A query optimization"
+      ],
+      "correctIndex": 1,
+      "explanation": "Optimistic UI updates the UI immediately with the expected result, before the server responds. If the mutation succeeds, the optimistic update is confirmed. If it fails, the UI rolls back. This makes the app feel instant \u2014 no loading spinner."
+    },
+    {
+      "id": "q5",
+      "question": "Should you validate mutation input on the server even if the client validated it?",
+      "options": [
+        "No, client validation is enough",
+        "Yes \u2014 the client can be bypassed (Postman, curl, malicious user); always validate on the server too",
+        "Only for sensitive data",
+        "Only in production"
+      ],
+      "correctIndex": 1,
+      "explanation": "Client-side validation is for UX (immediate feedback). Server-side validation is for security \u2014 the client can be bypassed entirely (curl, Postman, malicious user). Always validate on the server, even if the client also validates."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "graphql-05",
+  "track": "graphql",
+  "title": "GraphQL Best Practices & Production",
+  "description": "Security, performance, pagination, and production patterns for GraphQL APIs.",
+  "difficulty": "advanced",
+  "estMinutes": 80,
+  "order": 5,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "GraphQL Best Practices & Production"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "A naive GraphQL API is a security nightmare \u2014 clients can request infinitely nested data, bypass rate limits, and crash the server with expensive queries. Production GraphQL APIs need pagination, depth limiting, cost analysis, authentication, and caching. This lesson covers everything you need to ship safely."
+    },
+    {
+      "kind": "text",
+      "content": "Production GraphQL APIs address: (1) pagination (cursor-based for large lists), (2) security (depth limiting, query cost analysis, rate limiting), (3) authentication (per-resolver or schema-level), (4) caching (response caching, DataLoader for N+1), and (5) error handling (partial success, error codes)."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete all previous GraphQL lessons",
+        "Understanding of authentication concepts (JWT, sessions)"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Cursor-based pagination (Relay-style connections)",
+        "Depth limiting and query complexity analysis",
+        "Authentication and authorization in resolvers",
+        "DataLoader for N+1 batching",
+        "Persisted queries for security and performance",
+        "Federation and schema stitching (overview)"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "javascript",
+      "code": "// 1. Cursor-based pagination (Relay connection pattern)\nconst typeDefs = `#graphql\n  type PostConnection {\n    edges: [PostEdge!]!\n    pageInfo: PageInfo!\n  }\n  type PostEdge {\n    node: Post!\n    cursor: String!\n  }\n  type PageInfo {\n    hasNextPage: Boolean!\n    endCursor: String\n  }\n  type Query {\n    posts(first: Int = 10, after: String): PostConnection!\n  }\n`;\n\n// 2. Authentication via context\nconst server = new ApolloServer({ typeDefs, resolvers });\nconst { url } = await startStandaloneServer(server, {\n  context: async ({ req }) => {\n    const token = req.headers.authorization || '';\n    const user = await verifyToken(token); // your JWT verification\n    return { user }; // available in every resolver as context.user\n  },\n});\n\n// 3. Authorization in resolvers\nconst resolvers = {\n  Query: {\n    // Only authenticated users can see their posts\n    myPosts: (_, __, context) => {\n      if (!context.user) throw new Error('Not authenticated');\n      return posts.filter(p => p.authorId === context.user.id);\n    },\n  },\n};\n\n// 4. Depth limiting (prevent malicious nested queries)\nimport depthLimit from 'graphql-depth-limit';\nconst server = new ApolloServer({\n  typeDefs,\n  resolvers,\n  validationRules: [depthLimit(5)], // max 5 levels of nesting\n});",
+      "caption": "Production GraphQL patterns"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Cursor pagination: instead of page numbers, use cursors (opaque tokens). The client says 'give me 10 items after this cursor' \u2014 stable when data changes",
+        "Depth limiting: cap how deep a query can nest (e.g., max 5 levels) \u2014 prevents { user { posts { author { posts { author { ... } } } } } } infinite recursion",
+        "Query complexity: assign a cost to each field; reject queries that exceed a cost budget \u2014 prevents expensive queries",
+        "Persisted queries: the client sends a query hash, not the full query string \u2014 smaller requests, server only accepts pre-registered queries",
+        "DataLoader: batches and caches database requests within a single request \u2014 solves the N+1 problem"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Allowing unlimited depth \u2014 a malicious client can nest { user { posts { author { posts { author { ... } } } } } } infinitely, crashing the server",
+        "Not paginating lists \u2014 returning 10,000 posts in one query is slow and memory-intensive; use cursor pagination",
+        "Authenticating at the HTTP level only \u2014 GraphQL has one endpoint; do auth in the context, then authorize per-resolver"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "How does cursor-based pagination differ from offset pagination?",
+        "What is the N+1 problem and how does DataLoader solve it?",
+        "How do you prevent malicious clients from sending deeply nested queries?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Add production features to your blog API: (1) cursor-based pagination on the posts query, (2) authentication via context (JWT), (3) a protected myPosts query, (4) depth limiting (max 5 levels)."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Install graphql-depth-limit and add it as a validation rule",
+        "Add DataLoader to batch user lookups (solve the N+1 problem when fetching post authors)"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "Why is cursor-based pagination preferred over offset pagination in GraphQL?",
+      "options": [
+        "It's faster",
+        "It's stable when data changes \u2014 if a new item is inserted between page 1 and 2, offset pagination shows a duplicate; cursor pagination doesn't",
+        "It uses less memory",
+        "It's required by GraphQL"
+      ],
+      "correctIndex": 1,
+      "explanation": "Offset pagination (page=2&limit=10) breaks when data changes between requests \u2014 a new insert can cause a duplicate or skipped item. Cursor pagination ('give me 10 items after this cursor') is stable because the cursor points to a specific position, not a calculated offset."
+    },
+    {
+      "id": "q2",
+      "question": "What does DataLoader do?",
+      "options": [
+        "Caches GraphQL queries",
+        "Batches and caches database requests within a single GraphQL request \u2014 solves the N+1 problem",
+        "Loads data from files",
+        "Balances the server load"
+      ],
+      "correctIndex": 1,
+      "explanation": "DataLoader batches multiple individual database queries into a single query. If 100 posts each need their author, DataLoader collects all 100 author IDs and fires ONE 'SELECT * FROM users WHERE id IN (1,2,3,...)' query instead of 100 separate queries."
+    },
+    {
+      "id": "q3",
+      "question": "How do you prevent deeply nested malicious queries?",
+      "options": [
+        "Rate limiting",
+        "Depth limiting \u2014 use graphql-depth-limit to cap nesting at e.g. 5 levels",
+        "Authentication",
+        "Caching"
+      ],
+      "correctIndex": 1,
+      "explanation": "graphql-depth-limit adds a validation rule that rejects queries exceeding a max depth. Without it, a client could send { user { posts { author { posts { author { ... infinite ... } } } } } } and crash the server."
+    },
+    {
+      "id": "q4",
+      "question": "Where should authentication happen in a GraphQL API?",
+      "options": [
+        "At the HTTP middleware level only",
+        "In the context function \u2014 extract the user from the request, then authorize per-resolver",
+        "In each resolver's schema definition",
+        "In the database"
+      ],
+      "correctIndex": 1,
+      "explanation": "GraphQL has one endpoint, so HTTP-level auth alone isn't enough. Do authentication in the context function (extract the user from the JWT). Then do authorization per-resolver \u2014 check context.user in each resolver that needs it."
+    },
+    {
+      "id": "q5",
+      "question": "What are persisted queries?",
+      "options": [
+        "Queries saved to the database",
+        "The client sends a query hash instead of the full query string \u2014 smaller requests and the server only accepts pre-registered queries (security)",
+        "Cached query results",
+        "Queries that never change"
+      ],
+      "correctIndex": 1,
+      "explanation": "Persisted queries: the client and server agree on a set of queries at build time. At runtime, the client sends just the hash (e.g., abc123), not the full query string. This reduces request size and prevents clients from sending arbitrary queries \u2014 a security feature."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "kubernetes-01",
+  "track": "kubernetes",
+  "title": "Getting Started with Kubernetes",
+  "description": "Understand container orchestration and why Kubernetes is the industry standard for running containers at scale.",
+  "difficulty": "beginner",
+  "estMinutes": 70,
+  "order": 1,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Getting Started with Kubernetes"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "When you have 1 container, you run it with Docker. When you have 100 containers across 10 servers, you need Kubernetes. It automates deployment, scaling, load balancing, self-healing, and rolling updates. Every major tech company (Google, Netflix, Spotify, Uber) runs Kubernetes in production."
+    },
+    {
+      "kind": "text",
+      "content": "Kubernetes (K8s) is a container orchestration platform. It manages a cluster of machines and runs your containers across them, handling failures, scaling, networking, and storage automatically. Think of it as an operating system for your data center."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Docker fundamentals (images, containers, Dockerfile)",
+        "Basic command-line skills",
+        "Understanding of client-server architecture"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "What problem does Kubernetes solve?",
+        "Kubernetes architecture: control plane and nodes",
+        "Pods, Deployments, and Services",
+        "kubectl \u2014 the Kubernetes CLI",
+        "Running your first pod"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "bash",
+      "code": "# Check kubectl is installed\nkubectl version --client\n\n# Run a simple nginx pod\nkubectl run nginx --image=nginx\n\n# List pods\nkubectl get pods\n\n# Get details about a pod\nkubectl describe pod nginx\n\n# Port-forward to access the pod locally\nkubectl port-forward pod/nginx 8080:80\n\n# Delete the pod\nkubectl delete pod nginx",
+      "caption": "Basic kubectl commands"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Cluster: a set of machines (nodes) that Kubernetes manages",
+        "Control plane: the 'brain' \u2014 makes scheduling decisions, maintains state",
+        "Node: a worker machine where containers run",
+        "Pod: the smallest deployable unit \u2014 usually 1 container, but can have sidecar containers",
+        "kubectl: the CLI tool you use to interact with the cluster"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Confusing pods and containers \u2014 a pod can contain multiple containers; you deploy pods, not containers",
+        "Running kubectl commands against the wrong cluster \u2014 always check kubectl config current-context",
+        "Not cleaning up resources \u2014 pods, services, and deployments accumulate; use kubectl delete when done"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What problem does Kubernetes solve?",
+        "Explain the difference between a pod and a container",
+        "What are the main components of a Kubernetes cluster?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Install minikube (local Kubernetes cluster), start it with minikube start, and run an nginx pod. Port-forward to access it in your browser."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Run a Redis pod and connect to it via port-forward",
+        "Use kubectl get pods -o wide to see which node your pod is running on"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is Kubernetes?",
+      "options": [
+        "A container runtime like Docker",
+        "A container orchestration platform that manages containers across multiple machines",
+        "A programming language",
+        "A database"
+      ],
+      "correctIndex": 1,
+      "explanation": "Kubernetes is a container orchestration platform. It doesn't replace Docker \u2014 it manages Docker containers (or any container runtime) across a cluster of machines, handling scheduling, scaling, self-healing, and networking."
+    },
+    {
+      "id": "q2",
+      "question": "What is a pod in Kubernetes?",
+      "options": [
+        "A type of container",
+        "The smallest deployable unit \u2014 usually contains one container, but can have multiple (sidecars)",
+        "A Kubernetes node",
+        "A network policy"
+      ],
+      "correctIndex": 1,
+      "explanation": "A pod is the smallest deployable unit in Kubernetes. It usually contains a single container, but can contain multiple tightly-coupled containers (sidecars) that share networking and storage. You deploy pods, not containers."
+    },
+    {
+      "id": "q3",
+      "question": "What is the control plane in Kubernetes?",
+      "options": [
+        "Where your app runs",
+        "The 'brain' of the cluster \u2014 makes scheduling decisions, maintains cluster state, handles API requests",
+        "A network controller",
+        "A monitoring dashboard"
+      ],
+      "correctIndex": 1,
+      "explanation": "The control plane is the cluster's brain. It includes the API server (kubectl talks to this), scheduler (decides which node runs your pod), controller manager (maintains desired state), and etcd (the cluster's database). Worker nodes run your actual app containers."
+    },
+    {
+      "id": "q4",
+      "question": "Which command lists all pods in the current namespace?",
+      "options": [
+        "kubectl list pods",
+        "kubectl get pods",
+        "kubectl pods",
+        "kubectl show pods"
+      ],
+      "correctIndex": 1,
+      "explanation": "kubectl get pods lists all pods. Use kubectl get pods -o wide for more details (node name, IP). Use kubectl get pods --all-namespaces to see pods across all namespaces."
+    },
+    {
+      "id": "q5",
+      "question": "What does kubectl port-forward do?",
+      "options": [
+        "Forwards a port from your local machine to a pod \u2014 lets you access a pod without exposing it publicly",
+        "Changes a pod's port",
+        "Forwards traffic between pods",
+        "Creates a load balancer"
+      ],
+      "correctIndex": 1,
+      "explanation": "kubectl port-forward pod/nginx 8080:80 forwards your local port 8080 to the pod's port 80. This lets you access a pod for debugging without exposing it via a Service. The connection is temporary and only works while the command is running."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "kubernetes-02",
+  "track": "kubernetes",
+  "title": "Kubernetes Deployments & Services",
+  "description": "Deploy applications with Deployments and expose them with Services.",
+  "difficulty": "intermediate",
+  "estMinutes": 80,
+  "order": 2,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Kubernetes Deployments & Services"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "Pods die. Deployments keep your app running by automatically restarting failed pods, scaling them up/down, and rolling out new versions with zero downtime. Services make pods discoverable \u2014 they give a stable IP and DNS name to a set of pods that come and go. These are the two most important Kubernetes resources."
+    },
+    {
+      "kind": "text",
+      "content": "A Deployment manages a set of pods \u2014 it ensures N replicas are always running, handles rolling updates, and can roll back. A Service gives pods a stable network identity (IP + DNS name) so other services can find them even as pods are created and destroyed."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete 'Getting Started with Kubernetes'",
+        "Understanding of networking basics (IP, DNS, ports)"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Deployment YAML: replicas, selectors, pod templates",
+        "kubectl apply -f for declarative management",
+        "Service types: ClusterIP, NodePort, LoadBalancer",
+        "Labels and selectors",
+        "Rolling updates and rollbacks"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# deployment.yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web-app\nspec:\n  replicas: 3                    # always run 3 pods\n  selector:\n    matchLabels:\n      app: web-app\n  template:                      # pod template\n    metadata:\n      labels:\n        app: web-app\n    spec:\n      containers:\n      - name: web\n        image: nginx:1.25\n        ports:\n        - containerPort: 80\n        resources:\n          limits:\n            memory: \"128Mi\"\n            cpu: \"250m\"\n---\n# service.yaml\napiVersion: v1\nkind: Service\nmetadata:\n  name: web-app-service\nspec:\n  type: LoadBalancer             # expose externally\n  selector:\n    app: web-app                 # route to pods with this label\n  ports:\n  - port: 80                     # external port\n    targetPort: 80               # container port",
+      "caption": "Deployment + Service YAML"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Deployment: ensures N replicas of a pod are always running; handles updates and rollbacks",
+        "ReplicaSet: a Deployment creates a ReplicaSet, which creates pods \u2014 you rarely manage ReplicaSets directly",
+        "Service: gives pods a stable IP/DNS name; routes traffic to matching pods via labels",
+        "ClusterIP: internal-only (default). NodePort: exposes on a port on every node. LoadBalancer: cloud provider gives you a public IP",
+        "Label selector: Services find pods by matching labels (app: web-app) \u2014 pods and services are decoupled"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not setting resource limits \u2014 a pod can consume all node resources; always set resources.limits",
+        "Using latest tag \u2014 deployments can't roll back if every version is :latest; use semantic version tags",
+        "Forgetting the Service \u2014 your pods are running but unreachable from outside the cluster without a Service"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the difference between a Deployment and a Pod?",
+        "Explain the three Service types in Kubernetes",
+        "How do rolling updates work in a Deployment?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Write a deployment.yaml for a 3-replica web app and a service.yaml to expose it. Apply both with kubectl apply -f. Verify the app is accessible, then update the image to trigger a rolling update."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Scale your deployment to 5 replicas with kubectl scale deployment web-app --replicas=5",
+        "Roll back a failed update with kubectl rollout undo deployment web-app"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the main purpose of a Kubernetes Deployment?",
+      "options": [
+        "To deploy a single pod",
+        "To manage a set of pods \u2014 ensures N replicas are running, handles rolling updates and rollbacks",
+        "To expose pods to the internet",
+        "To store configuration data"
+      ],
+      "correctIndex": 1,
+      "explanation": "A Deployment manages a set of identical pods. It ensures the desired number of replicas are always running, handles rolling updates (zero-downtime deploys), and can roll back to a previous version if something goes wrong."
+    },
+    {
+      "id": "q2",
+      "question": "What does a Kubernetes Service do?",
+      "options": [
+        "Runs containers",
+        "Gives pods a stable IP and DNS name \u2014 routes traffic to pods even as they're created and destroyed",
+        "Stores data",
+        "Monitors pod health"
+      ],
+      "correctIndex": 1,
+      "explanation": "Pods come and go (they're ephemeral \u2014 each gets a new IP). A Service provides a stable IP and DNS name that other services can reach. The Service uses label selectors to route traffic to matching pods, even as pods are created and destroyed."
+    },
+    {
+      "id": "q3",
+      "question": "Which Service type exposes your app externally with a cloud load balancer?",
+      "options": [
+        "ClusterIP",
+        "NodePort",
+        "LoadBalancer",
+        "Ingress"
+      ],
+      "correctIndex": 2,
+      "explanation": "LoadBalancer creates a cloud-provider load balancer (AWS ELB, GCP Load Balancer, etc.) with a public IP. ClusterIP is internal-only (default). NodePort exposes on a high port on every node. Ingress is an HTTP-level router (layer 7)."
+    },
+    {
+      "id": "q4",
+      "question": "How does a Service know which pods to route traffic to?",
+      "options": [
+        "By pod name",
+        "By label selectors \u2014 the Service has a selector that matches pod labels",
+        "By IP address",
+        "By namespace"
+      ],
+      "correctIndex": 1,
+      "explanation": "Services use label selectors to find pods. The Service spec has selector: { app: web-app }, and pods have labels: { app: web-app }. The Service continuously scans for pods with matching labels and routes traffic to them \u2014 pods can be added/removed dynamically."
+    },
+    {
+      "id": "q5",
+      "question": "Why should you always set resource limits on containers in Kubernetes?",
+      "options": [
+        "It's required",
+        "Without limits, a single pod can consume all node resources (CPU/memory), causing other pods to crash or the node to fail",
+        "It makes pods faster",
+        "It reduces costs"
+      ],
+      "correctIndex": 1,
+      "explanation": "Without resource limits, a single container can use all the node's CPU and memory, starving other pods and potentially crashing the node. Always set resources.limits (and resources.requests for scheduling) in your pod spec."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "kubernetes-03",
+  "track": "kubernetes",
+  "title": "Kubernetes ConfigMaps, Secrets & Volumes",
+  "description": "Manage configuration, secrets, and persistent storage in Kubernetes.",
+  "difficulty": "intermediate",
+  "estMinutes": 75,
+  "order": 3,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Kubernetes ConfigMaps, Secrets & Volumes"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "Your app needs configuration (database URLs, feature flags), secrets (API keys, passwords), and persistent storage (database files, uploads). Kubernetes provides ConfigMaps for config, Secrets for sensitive data, and PersistentVolumes for storage. Understanding these is essential for running any real application."
+    },
+    {
+      "kind": "text",
+      "content": "ConfigMaps and Secrets decouple configuration from your container image \u2014 the same image works in dev, staging, and prod with different configs. Volumes provide persistent storage that survives pod restarts."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete 'Getting Started with Kubernetes' and 'Deployments & Services'"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "ConfigMaps for non-sensitive configuration",
+        "Secrets for passwords, API keys, certificates",
+        "Mounting ConfigMaps/Secrets as files or environment variables",
+        "PersistentVolumes and PersistentVolumeClaims",
+        "StorageClasses for dynamic provisioning"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# configmap.yaml\napiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: app-config\ndata:\n  DATABASE_URL: \"postgres://db:5432/myapp\"\n  LOG_LEVEL: \"info\"\n  FEATURES: \"dark-mode,beta\"\n---\n# secret.yaml (base64-encoded values)\napiVersion: v1\nkind: Secret\nmetadata:\n  name: app-secrets\ntype: Opaque\ndata:\n  API_KEY: c2VjcmV0LWFwaS1rZXk=   # echo -n 'secret-api-key' | base64\n  DB_PASSWORD: cGFzc3dvcmQxMjM=  # echo -n 'password123' | base64\n---\n# pod that uses them\napiVersion: v1\nkind: Pod\nmetadata:\n  name: app\nspec:\n  containers:\n  - name: app\n    image: my-app:1.0\n    envFrom:\n    - configMapRef:\n        name: app-config        # all ConfigMap keys as env vars\n    - secretRef:\n        name: app-secrets        # all Secret keys as env vars\n    volumeMounts:\n    - name: config-volume\n      mountPath: /etc/config     # ConfigMap mounted as files\n  volumes:\n  - name: config-volume\n    configMap:\n      name: app-config",
+      "caption": "ConfigMap, Secret, and Pod that uses them"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "ConfigMap: stores non-sensitive config as key-value pairs \u2014 injected as env vars or mounted as files",
+        "Secret: stores sensitive data (base64-encoded, not encrypted by default \u2014 enable encryption at rest in production)",
+        "PersistentVolume (PV): cluster-level storage resource (e.g., a disk)",
+        "PersistentVolumeClaim (PVC): a pod's request for storage \u2014 binds to a PV",
+        "StorageClass: enables dynamic provisioning \u2014 Kubernetes creates the PV automatically when a PVC is created"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Storing secrets in ConfigMaps \u2014 ConfigMaps are plain text; use Secrets for anything sensitive",
+        "Forgetting that Secrets are base64-encoded, not encrypted \u2014 enable encryption-at-rest in your cluster for real security",
+        "Not using PVCs for databases \u2014 data is lost when the pod restarts; always use persistent volumes for stateful apps"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the difference between a ConfigMap and a Secret?",
+        "How do you make storage persist across pod restarts?",
+        "What is a PersistentVolumeClaim?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Create a ConfigMap with app settings, a Secret with a fake API key, and a Pod that uses both as environment variables. Verify the values are available inside the container with kubectl exec -it pod/app -- env."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Create a PersistentVolumeClaim and mount it to a pod. Write data to it, delete the pod, recreate it, and verify the data persists",
+        "Mount a ConfigMap as a file (not env var) and read it from inside the container"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the difference between a ConfigMap and a Secret?",
+      "options": [
+        "They are the same",
+        "ConfigMaps store non-sensitive config; Secrets store sensitive data (base64-encoded)",
+        "Secrets are encrypted; ConfigMaps are not",
+        "ConfigMaps are larger"
+      ],
+      "correctIndex": 1,
+      "explanation": "ConfigMaps store plain-text configuration (URLs, feature flags, log levels). Secrets store sensitive data (passwords, API keys, certificates) base64-encoded. Note: base64 is NOT encryption \u2014 enable encryption-at-rest in production."
+    },
+    {
+      "id": "q2",
+      "question": "How do you make data persist across pod restarts?",
+      "options": [
+        "You can't \u2014 pods are ephemeral",
+        "Use a PersistentVolumeClaim (PVC) \u2014 it requests storage that survives pod deletion",
+        "Store data in a ConfigMap",
+        "Use a larger pod"
+      ],
+      "correctIndex": 1,
+      "explanation": "Pods are ephemeral \u2014 their filesystem is lost when they restart. A PersistentVolumeClaim (PVC) requests storage from the cluster. The data lives on the PersistentVolume (PV), not the pod, so it survives pod restarts, deletions, and rescheduling to another node."
+    },
+    {
+      "id": "q3",
+      "question": "What is a PersistentVolumeClaim (PVC)?",
+      "options": [
+        "A type of pod",
+        "A request for storage by a pod \u2014 specifies size and access mode; binds to a PersistentVolume",
+        "A backup of a volume",
+        "A cloud storage bill"
+      ],
+      "correctIndex": 1,
+      "explanation": "A PVC is a pod's request for storage. It says 'I need 5GB of read-write storage.' Kubernetes finds or creates a matching PersistentVolume (PV) and binds it. The pod mounts the PVC; the data persists on the PV."
+    },
+    {
+      "id": "q4",
+      "question": "How can you inject ConfigMap values into a pod?",
+      "options": [
+        "Only as environment variables",
+        "As environment variables (envFrom) OR mounted as files (volumes)",
+        "Only as files",
+        "Only via command-line arguments"
+      ],
+      "correctIndex": 1,
+      "explanation": "ConfigMaps can be injected as environment variables (envFrom: configMapRef) or mounted as files (volumes: configMap). Secrets work the same way. Files are useful for config that the app reads from disk; env vars are useful for simple key-value config."
+    },
+    {
+      "id": "q5",
+      "question": "Are Kubernetes Secrets encrypted by default?",
+      "options": [
+        "Yes, always",
+        "No \u2014 they are base64-encoded (which is NOT encryption). You must enable encryption-at-rest in the cluster for real security",
+        "Only in production",
+        "Only for certain secret types"
+      ],
+      "correctIndex": 1,
+      "explanation": "By default, Secrets are base64-encoded \u2014 which is just encoding, not encryption. Anyone with kubectl access can decode them. For production, enable encryption-at-rest (encrypts Secrets in etcd) and use a cloud KMS or HashiCorp Vault for the encryption key."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "kubernetes-04",
+  "track": "kubernetes",
+  "title": "Kubernetes Health Checks & Auto-scaling",
+  "description": "Keep your apps healthy with probes and scale automatically with HPA.",
+  "difficulty": "advanced",
+  "estMinutes": 80,
+  "order": 4,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Kubernetes Health Checks & Auto-scaling"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "In production, pods crash, apps hang, and traffic spikes. Kubernetes liveness/readiness probes automatically restart unhealthy pods and remove them from load balancers. The Horizontal Pod Autoscaler (HPA) scales your app up during traffic spikes and down during quiet periods \u2014 saving money and preventing outages."
+    },
+    {
+      "kind": "text",
+      "content": "Liveness probes detect deadlocked apps and restart them. Readiness probes detect apps that are alive but not ready to serve traffic (e.g., still warming up). The HPA watches CPU/memory or custom metrics and adjusts the replica count automatically."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete all previous Kubernetes lessons",
+        "Understanding of HTTP endpoints and metrics"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Liveness probes: restart dead pods",
+        "Readiness probes: remove unready pods from the Service",
+        "Startup probes: for slow-starting apps",
+        "Horizontal Pod Autoscaler (HPA)",
+        "Metrics Server and custom metrics"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# deployment with probes and HPA\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web-app\nspec:\n  replicas: 2\n  selector:\n    matchLabels:\n      app: web-app\n  template:\n    metadata:\n      labels:\n        app: web-app\n    spec:\n      containers:\n      - name: web\n        image: my-app:1.0\n        ports:\n        - containerPort: 3000\n        livenessProbe:           # restart if this fails\n          httpGet:\n            path: /health\n            port: 3000\n          initialDelaySeconds: 10\n          periodSeconds: 10\n          failureThreshold: 3\n        readinessProbe:          # remove from load balancer if this fails\n          httpGet:\n            path: /ready\n            port: 3000\n          initialDelaySeconds: 5\n          periodSeconds: 5\n        resources:\n          requests:               # needed for HPA\n            cpu: 100m\n            memory: 128Mi\n          limits:\n            cpu: 250m\n            memory: 256Mi\n---\napiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata:\n  name: web-app-hpa\nspec:\n  scaleTargetRef:\n    apiVersion: apps/v1\n    kind: Deployment\n    name: web-app\n  minReplicas: 2\n  maxReplicas: 10\n  metrics:\n  - type: Resource\n    resource:\n      name: cpu\n      target:\n        type: Utilization\n        averageUtilization: 70    # scale up if CPU > 70%",
+      "caption": "Probes and HPA"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Liveness probe: 'Is the app alive?' If it fails, Kubernetes restarts the pod. Use for detecting deadlocks",
+        "Readiness probe: 'Is the app ready to serve traffic?' If it fails, the pod is removed from the Service's endpoints (but NOT restarted)",
+        "Startup probe: 'Has the app finished starting?' Disables liveness/readiness until it succeeds \u2014 for slow-starting apps (Java, Python)",
+        "HPA: watches metrics (CPU, memory, custom) and adjusts replicas. Scales up when CPU > 70%, down when CPU < 70%",
+        "Metrics Server: required for HPA \u2014 collects CPU/memory usage from each node"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Setting liveness probe too aggressive \u2014 if the probe fails during startup, Kubernetes kills and restarts the pod in an infinite loop (CrashLoopBackOff). Use startupProbe for slow starters",
+        "Not setting resource requests \u2014 HPA can't scale based on CPU if requests aren't set (it needs a baseline to calculate utilization %)",
+        "Setting minReplicas to 1 for production \u2014 if that pod crashes, there's a brief outage. Use at least 2"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the difference between a liveness probe and a readiness probe?",
+        "How does the Horizontal Pod Autoscaler work?",
+        "What is a startup probe and when would you use it?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Add liveness and readiness probes to your web app deployment (create /health and /ready endpoints in your app). Add an HPA that scales between 2-10 replicas based on CPU. Generate load with kubectl run load-generator --image=busybox --rm -it -- /bin/sh -c 'while true; do wget -q -O- http://web-app-service; done' and watch the HPA scale up."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Add a startup probe to a slow-starting app (initialDelaySeconds: 0, periodSeconds: 10, failureThreshold: 30)",
+        "Install the Metrics Server and verify kubectl top pods shows CPU/memory usage"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the difference between a liveness probe and a readiness probe?",
+      "options": [
+        "They are the same",
+        "Liveness restarts the pod if it fails; readiness removes the pod from the Service (no restart)",
+        "Liveness is for HTTP; readiness is for TCP",
+        "Liveness is more important"
+      ],
+      "correctIndex": 1,
+      "explanation": "Liveness probe: 'Is the app alive?' If it fails, Kubernetes RESTARTS the pod. Readiness probe: 'Is the app ready to serve?' If it fails, Kubernetes removes the pod from the Service's endpoints (stops routing traffic to it) but does NOT restart it. The pod can become ready again later."
+    },
+    {
+      "id": "q2",
+      "question": "What does the Horizontal Pod Autoscaler (HPA) do?",
+      "options": [
+        "Scales nodes automatically",
+        "Watches metrics (CPU, memory, custom) and adjusts the number of pod replicas automatically",
+        "Adds more CPU to pods",
+        "Creates new clusters"
+      ],
+      "correctIndex": 1,
+      "explanation": "The HPA watches metrics and adjusts replica count. If average CPU exceeds 70%, it adds more replicas. If CPU drops below 70%, it removes replicas. This handles traffic spikes automatically and saves money during quiet periods."
+    },
+    {
+      "id": "q3",
+      "question": "What is a startup probe used for?",
+      "options": [
+        "To check if the pod has started",
+        "For slow-starting apps \u2014 it disables liveness/readiness probes until the app is fully started, preventing premature restarts",
+        "To start the cluster",
+        "To initialize volumes"
+      ],
+      "correctIndex": 1,
+      "explanation": "Startup probes are for apps that take a long time to start (Java, Python with heavy imports). Without a startup probe, the liveness probe might fail during startup and restart the pod in an infinite loop (CrashLoopBackOff). The startup probe disables liveness/readiness until it succeeds."
+    },
+    {
+      "id": "q4",
+      "question": "Why must you set resource requests for HPA to work?",
+      "options": [
+        "It's required by Kubernetes",
+        "HPA calculates CPU utilization as a percentage of the requested amount \u2014 without requests, it can't calculate utilization",
+        "It makes pods faster",
+        "It reduces costs"
+      ],
+      "correctIndex": 1,
+      "explanation": "HPA scales based on CPU utilization (%). Utilization = actual usage / requested amount. If requests aren't set, Kubernetes can't calculate the percentage, and HPA won't work. Always set resources.requests.cpu when using HPA."
+    },
+    {
+      "id": "q5",
+      "question": "What happens if a liveness probe fails failureThreshold times?",
+      "options": [
+        "The pod is deleted",
+        "Kubernetes restarts the pod (the container is killed and recreated)",
+        "The pod is removed from the Service",
+        "An alert is sent"
+      ],
+      "correctIndex": 1,
+      "explanation": "If the liveness probe fails failureThreshold consecutive times (default 3), Kubernetes restarts the pod \u2014 it kills the container and creates a new one. This is self-healing: if your app deadlocks, Kubernetes detects it and restarts automatically."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "kubernetes-05",
+  "track": "kubernetes",
+  "title": "Kubernetes Production Best Practices",
+  "description": "Security, namespaces, RBAC, Helm, and CI/CD patterns for production Kubernetes.",
+  "difficulty": "advanced",
+  "estMinutes": 90,
+  "order": 5,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Kubernetes Production Best Practices"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "Running a pod is easy. Running a production cluster with 100 microservices, strict security, automated deploys, and zero downtime is hard. This lesson covers the patterns that every DevOps engineer needs: namespaces, RBAC, Helm, CI/CD, and security hardening."
+    },
+    {
+      "kind": "text",
+      "content": "Production Kubernetes involves: (1) Namespaces for isolation, (2) RBAC for access control, (3) Helm for package management, (4) CI/CD with GitOps (ArgoCD, Flux), (5) Network policies, (6) Pod Security Standards, and (7) Observability (Prometheus + Grafana)."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Complete all previous Kubernetes lessons",
+        "Basic CI/CD concepts"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Namespaces for multi-tenancy and environment isolation",
+        "RBAC: Roles, RoleBindings, ClusterRoles",
+        "Helm: package manager for Kubernetes",
+        "GitOps with ArgoCD or Flux",
+        "Network Policies for pod-to-pod security",
+        "Pod Security Standards (PSS)",
+        "Observability: Prometheus, Grafana, Loki"
+      ]
+    },
+    {
+      "kind": "code",
+      "language": "yaml",
+      "code": "# 1. Namespace\napiVersion: v1\nkind: Namespace\nmetadata:\n  name: production\n---\n# 2. RBAC: ServiceAccount + Role + RoleBinding\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: app-sa\n  namespace: production\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: pod-reader\n  namespace: production\nrules:\n- apiGroups: [\"\"]\n  resources: [\"pods\", \"pods/log\"]\n  verbs: [\"get\", \"list\", \"watch\"]\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  name: app-sa-pod-reader\n  namespace: production\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: pod-reader\nsubjects:\n- kind: ServiceAccount\n  name: app-sa\n  namespace: production\n---\n# 3. Network Policy: restrict incoming traffic\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: web-app-policy\n  namespace: production\nspec:\n  podSelector:\n    matchLabels:\n      app: web-app\n  policyTypes:\n  - Ingress\n  ingress:\n  - from:\n    - podSelector:\n        matchLabels:\n          app: frontend   # only frontend pods can reach web-app\n    ports:\n    - protocol: TCP\n      port: 80",
+      "caption": "Namespace, RBAC, and NetworkPolicy"
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Namespace: a virtual cluster within a cluster \u2014 use for environment isolation (dev/staging/prod) or multi-tenancy",
+        "RBAC: Role-Based Access Control \u2014 Roles grant permissions, RoleBindings assign Roles to users/ServiceAccounts",
+        "Helm: a package manager for Kubernetes \u2014 define charts (templated YAML) for reusable, versioned deployments",
+        "GitOps: store all Kubernetes manifests in Git; ArgoCD/Flux automatically syncs Git \u2192 cluster. Git is the source of truth",
+        "Network Policy: a firewall for pods \u2014 restrict which pods can talk to which other pods"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Running everything in the 'default' namespace \u2014 use namespaces for isolation (e.g., dev, staging, production)",
+        "Giving ServiceAccounts cluster-admin \u2014 use least privilege; create a Role with only the permissions needed",
+        "Not using Network Policies \u2014 by default, any pod can reach any other pod. Use Network Policies for defense in depth",
+        "Manual kubectl apply in production \u2014 use GitOps (ArgoCD/Flux) so every change goes through Git (reviewable, auditable, reversible)"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is a Kubernetes Namespace and why use them?",
+        "Explain RBAC in Kubernetes",
+        "What is GitOps and why is it preferred over manual kubectl apply?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Create a 'production' namespace, deploy your web app into it with a ServiceAccount, create a Role that only allows reading pods, and bind it to the ServiceAccount. Add a NetworkPolicy that only allows traffic from a 'frontend' pod."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Install Helm and deploy an app using a public Helm chart (e.g., bitnami/nginx)",
+        "Set up a simple GitOps pipeline: push YAML to Git, install ArgoCD, and let it sync automatically"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is a Kubernetes Namespace used for?",
+      "options": [
+        "Naming pods",
+        "Virtual cluster isolation \u2014 use for environments (dev/staging/prod) or multi-tenancy",
+        "DNS configuration",
+        "Storage management"
+      ],
+      "correctIndex": 1,
+      "explanation": "Namespaces provide isolation within a cluster. Use them to separate environments (dev, staging, production) or different teams. Resources in one namespace are isolated from another (by default). You can apply RBAC, NetworkPolicies, and ResourceQuotas per namespace."
+    },
+    {
+      "id": "q2",
+      "question": "What does RBAC stand for and what does it do?",
+      "options": [
+        "Random-Based Access Control",
+        "Role-Based Access Control \u2014 grants permissions via Roles, assigned to users/ServiceAccounts via RoleBindings",
+        "Resource-Based Access Control",
+        "Remote-Based Access Control"
+      ],
+      "correctIndex": 1,
+      "explanation": "RBAC (Role-Based Access Control) defines Roles (sets of permissions) and RoleBindings (assigns Roles to users or ServiceAccounts). Follow the principle of least privilege \u2014 give each ServiceAccount only the permissions it needs."
+    },
+    {
+      "id": "q3",
+      "question": "What is Helm?",
+      "options": [
+        "A monitoring tool",
+        "A package manager for Kubernetes \u2014 uses 'charts' (templated YAML) for reusable, versioned deployments",
+        "A container runtime",
+        "A load balancer"
+      ],
+      "correctIndex": 1,
+      "explanation": "Helm is the package manager for Kubernetes. A Helm 'chart' is a set of templated YAML files. Instead of writing raw YAML for every deployment, you install a chart: helm install my-app bitnami/nginx. Charts are versioned, parameterizable, and reusable."
+    },
+    {
+      "id": "q4",
+      "question": "What is GitOps?",
+      "options": [
+        "Using Git for source code",
+        "Storing all Kubernetes manifests in Git; an operator (ArgoCD/Flux) automatically syncs Git \u2192 cluster. Git is the source of truth",
+        "A Git hosting service",
+        "A Git extension for Kubernetes"
+      ],
+      "correctIndex": 1,
+      "explanation": "GitOps: all Kubernetes manifests live in Git. ArgoCD or Flux watches the Git repo and automatically applies changes to the cluster. Git is the single source of truth \u2014 every change goes through a PR (reviewable, auditable, reversible). No manual kubectl apply."
+    },
+    {
+      "id": "q5",
+      "question": "By default, can any pod communicate with any other pod in Kubernetes?",
+      "options": [
+        "No \u2014 pods are isolated by default",
+        "Yes \u2014 by default, all pods can reach all other pods. Use NetworkPolicies to restrict traffic",
+        "Only in the same namespace",
+        "Only with a Service"
+      ],
+      "correctIndex": 1,
+      "explanation": "By default, Kubernetes networking is flat \u2014 any pod can reach any other pod by IP. This is a security risk. NetworkPolicies act as a firewall: you specify which pods can communicate with which other pods. Always use them in production for defense in depth."
+    }
+  ],
+  "youtubeUrl": ""
+}
 ];
 
 export const ALL_LANGUAGE_INFO: Record<string, { id: string; name: string; icon: string; color: string }> = {
@@ -183913,6 +187566,12 @@ export const ALL_LANGUAGE_INFO: Record<string, { id: string; name: string; icon:
   nodejs: { id: "nodejs", name: "Node.js", icon: "🟩", color: "#339933" },
   postgresql: { id: "postgresql", name: "PostgreSQL", icon: "🐘", color: "#4169E1" },
   mongodb: { id: "mongodb", name: "MongoDB", icon: "🍃", color: "#47A248" },
+  // Section 30 — Gap languages added to onboarding catalog
+  docker: { id: "docker", name: "Docker", icon: "🐳", color: "#2496ED" },
+  tailwind: { id: "tailwind", name: "Tailwind CSS", icon: "🎨", color: "#06B6D4" },
+  express: { id: "express", name: "Express.js", icon: "🚂", color: "#000000" },
+  graphql: { id: "graphql", name: "GraphQL", icon: "🔗", color: "#E10098" },
+  kubernetes: { id: "kubernetes", name: "Kubernetes", icon: "☸️", color: "#326CE5" },
 };
 
 export function getTrackLessons(trackId: string): Lesson[] {

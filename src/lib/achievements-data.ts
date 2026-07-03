@@ -397,6 +397,60 @@ export const ACHIEVEMENTS: Achievement[] = [
     xp: 2500,
     check: (s: AppState) => Object.keys(s.certificates).length >= 5,
   },
+
+  // NEW (Mega Prompt 3) — Flashcard + SM-2 + bookmark badges
+  {
+    id: "spaced-repeater",
+    title: "Spaced Repeater",
+    description: "Use Review Mode in quizzes 5 times.",
+    icon: "🔁",
+    rarity: "rare",
+    xp: 200,
+    check: (_s: AppState) =>
+      typeof window !== "undefined" &&
+      Number(window.localStorage.getItem("launchpad:review-mode-count") ?? "0") >= 5,
+  },
+  {
+    id: "flashcard-master",
+    title: "Flashcard Master",
+    description: "Master 50 flashcards (correct 3+ times each).",
+    icon: "📇",
+    rarity: "rare",
+    xp: 300,
+    check: (s: AppState) =>
+      (s.flashcards ?? []).filter((f) => f.correctCount >= 3).length >= 50,
+  },
+  {
+    id: "flashcard-addict",
+    title: "Flashcard Addict",
+    description: "Review flashcards 30 days in a row.",
+    icon: "🔥",
+    rarity: "epic",
+    xp: 500,
+    check: (_s: AppState) =>
+      typeof window !== "undefined" &&
+      Number(window.localStorage.getItem("launchpad:flashcard-streak") ?? "0") >= 30,
+  },
+  {
+    id: "bookworm",
+    title: "Bookworm",
+    description: "Bookmark 10 lessons.",
+    icon: "📑",
+    rarity: "common",
+    xp: 75,
+    check: (s: AppState) => (s.bookmarkedLessons ?? []).length >= 10,
+  },
+  {
+    id: "question-explorer",
+    title: "Question Explorer",
+    description: "Use \"I don't understand\" 5 times.",
+    icon: "💬",
+    rarity: "common",
+    xp: 75,
+    check: (_s: AppState) =>
+      typeof window !== "undefined" &&
+      Number(window.localStorage.getItem("launchpad:tutor-from-quiz-count") ?? "0") >= 5,
+  },
 ];
 
 export const ACHIEVEMENT_MAP: Record<string, Achievement> = Object.fromEntries(

@@ -352,7 +352,7 @@ function ShareAchievementsModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-hidden"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm overflow-hidden"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -498,7 +498,7 @@ function buildAchievementsCardInnerHtml(opts: {
     <div class="badges">${badgesHtml}</div>
     <div class="footer">
       <div class="tagline">Learning. Building. Growing.</div>
-      <div class="url">launchpad--pi.vercel.app</div>
+      <div class="url">launchpad--dev.vercel.app</div>
     </div>
   </div>`;
 }

@@ -132,7 +132,11 @@ export function CommunityView() {
     // using "preferred_color_scheme".
     script.setAttribute("data-theme", resolvedTheme === "light" ? "light" : "dark");
     script.setAttribute("data-lang", "en");
-    script.setAttribute("loading", "lazy");
+    // Section 14 — removed `loading="lazy"` (invalid on <script> tags; caused
+    // the Giscus iframe to lazy-load and never fire on desktop viewports
+    // where the iframe's top edge lands below the fold). Giscus supports
+    // `data-loading="eager"` for explicit eager loading.
+    script.setAttribute("data-loading", "eager");
 
     giscusContainerRef.current.appendChild(script);
     setLastRefreshedAt(new Date());
@@ -153,7 +157,7 @@ export function CommunityView() {
         if (document.visibilityState === "visible") {
           setReloadKey((k) => k + 1);
         }
-      }, 60_000); // 60 seconds
+      }, 10_000); // 10 seconds (Section 15)
     };
     const stop = () => {
       if (timer) { clearInterval(timer); timer = null; }
@@ -224,7 +228,7 @@ export function CommunityView() {
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
           <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
         </span>
-        Auto-refreshes every 60s while this tab is visible
+        Auto-refreshes every 10s while this tab is visible
         {lastRefreshedAt && (
           <span className="text-muted-foreground/70">
             · last updated {lastRefreshedAt.toLocaleTimeString()}

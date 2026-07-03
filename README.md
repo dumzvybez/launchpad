@@ -8,10 +8,10 @@
 
 [![Status](https://img.shields.io/badge/status-actively%20developing-orange?style=for-the-badge)](https://github.com/dumzvybez/Launchpad/discussions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](#-license)
-[![Live Demo](https://img.shields.io/badge/demo-live-success?style=for-the-badge)](https://launchpad--pi.vercel.app)
+[![Live Demo](https://img.shields.io/badge/demo-live-success?style=for-the-badge)](https://launchpad--dev.vercel.app)
 [![Privacy](https://img.shields.io/badge/privacy-100%25%20on--device-9cf?style=for-the-badge)](#-100-on-device-privacy)
 
-**[🌐 Live App](https://launchpad--pi.vercel.app)** · **[💬 Discussions](https://github.com/dumzvybez/Launchpad/discussions)** · **[👨‍💻 Developer Portfolio](https://duminduwanasinghe-dev.vercel.app/)**
+**[🌐 Live App](https://launchpad--dev.vercel.app)** · **[💬 Discussions](https://github.com/dumzvybez/Launchpad/discussions)** · **[👨‍💻 Developer Portfolio](https://duminduwanasinghe-dev.vercel.app/)**
 
 </div>
 
@@ -141,10 +141,27 @@ No platform-funded AI costs here — you plug in your own free or paid API key (
 </details>
 
 <details>
+<summary><strong>🔁 Spaced Repetition & Study Tools</strong></summary>
+<br>
+
+- **SM-2 spaced repetition** (the same algorithm Anki uses) tracks every quiz question you get wrong and surfaces it for review at the scientifically optimal interval
+- **Flashcards tab** — auto-generated from lesson key concepts, interview questions, and quiz answers. Flip cards, mark "got it right/wrong", and let SM-2 schedule your reviews
+- **Weak Areas card** on the Learn tab shows your top 5 most-missed questions with one-click "Review Now" deep-links
+- **Quiz review mode** — choose between "Take fresh quiz" (all 10 questions) or "Review difficult questions" (only your due/hard questions)
+- **Lesson bookmarks** — star lessons to revisit later, with a "Bookmarked" filter chip on the Learn tab
+- **Read time estimates** on every lesson card and header (alongside the official curriculum estimate)
+- **Print-friendly lesson view** — one-click print to PDF with a clean print stylesheet
+- **"I don't understand" button** on every quiz question — sends the question + answer + explanation to the AI Tutor for a different explanation
+- **Markdown export of notes** — one-click backup of all notes as a single `.md` file
+- **Time-of-day analytics** — a "When you study" chart showing your peak productivity hours with an Early Bird / Day Sprinter / Evening Coder / Night Owl personality badge
+
+</details>
+
+<details>
 <summary><strong>🎮 Gamification, Community & Daily Habits</strong></summary>
 <br>
 
-- 25+ badges and a 10-level XP curve that rewards lessons, quizzes, projects, streaks, and interviews
+- 30+ badges and a 10-level XP curve that rewards lessons, quizzes, projects, streaks, interviews, flashcards, and bookmarks
 - **1,860+ daily challenges** across all 30 languages, rotating weekly
 - A built-in **Community tab** (GitHub Discussions via Giscus) — Announcements, Help & Questions, Show & Tell, General Chat, and Feature Requests
 - Calendar with recurring study sessions, reminders, and snooze support

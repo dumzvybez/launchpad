@@ -1694,6 +1694,30 @@ function buildTrack(spec: LangSpec): Lesson[] {
   const langId = spec.id;
   const trackId = langId as "typescript" | "java" | "c";
 
+  // Per-language quiz answer lookups — the previous buildTrack hard-coded
+  // correctIndex for all languages, which was only correct for one. Now each
+  // language gets the right answer for "function keyword" and "catch keyword".
+  const funcKeyword: Record<string, string> = {
+    typescript: "function",
+    java: "method", // Java has no standalone keyword — methods are declared inside classes
+    c: "return-type", // C has no keyword — the return type precedes the name
+    cpp: "return-type",
+    csharp: "method",
+    go: "func",
+    rust: "fn",
+  };
+  const catchKeyword: Record<string, string> = {
+    typescript: "catch",
+    java: "catch",
+    c: "none", // C has no try/catch — uses error codes
+    cpp: "catch",
+    csharp: "catch",
+    go: "panic", // Go uses panic/recover, not try/catch
+    rust: "none", // Rust uses Result/?, not try/catch
+  };
+  const funcKw = funcKeyword[langId] ?? "function";
+  const catchKw = catchKeyword[langId] ?? "catch";
+
   const make = (
     n: number,
     title: string,
@@ -1725,7 +1749,7 @@ function buildTrack(spec: LangSpec): Lesson[] {
     make(3, `Control Flow in ${langName}`, `Make decisions and repeat work.`, spec.controlFlow,
       { id: "q1", question: `Which keyword starts a conditional in ${langName}?`, options: ["if", "when", "case", "cond"], correctIndex: 0 }),
     make(4, `Functions in ${langName}`, `Package logic into reusable functions.`, spec.functions,
-      { id: "q1", question: `What's the keyword to define a function in ${langName}?`, options: ["function", "func", "def", "fn"], correctIndex: 1 }),
+      { id: "q1", question: `What's the keyword to define a function in ${langName}?`, options: [funcKw, "def", "sub", "lambda"], correctIndex: 0, explanation: `${langName} uses '${funcKw}' to define functions.` }),
     make(5, `Data Structures in ${langName}`, `Work with collections.`, spec.dataStructures,
       { id: "q1", question: `Which is a collection type in ${langName}?`, options: ["Array", "List", "Map", "All of the above"], correctIndex: 3 }),
     make(6, `OOP and Modules in ${langName}`, `Structure larger programs.`, spec.oop,
@@ -1733,7 +1757,7 @@ function buildTrack(spec: LangSpec): Lesson[] {
     make(7, `File I/O in ${langName}`, `Read and write files.`, spec.fileIO,
       { id: "q1", question: `What should you always do after opening a file?`, options: ["Nothing", "Close it", "Lock it", "Encrypt it"], correctIndex: 1 }),
     make(8, `Error Handling in ${langName}`, `Handle errors gracefully.`, spec.errors,
-      { id: "q1", question: `What's the keyword for catching errors in ${langName}?`, options: ["catch", "rescue", "except", "handle"], correctIndex: 0 }),
+      { id: "q1", question: `What's the keyword for catching errors in ${langName}?`, options: [catchKw, "rescue", "except", "handle"], correctIndex: 0, explanation: `${langName} uses '${catchKw}' for error handling.` }),
     make(9, `Working with APIs in ${langName}`, `Call REST APIs.`, spec.api,
       { id: "q1", question: `What's the standard HTTP status for success?`, options: ["200", "404", "500", "100"], correctIndex: 0 }),
     make(10, `Capstone Project in ${langName}`, `Build a small project.`, spec.capstone,

@@ -503,7 +503,7 @@ function JourneyTimelineModal({ onClose }: { onClose: () => void }) {
     : 1;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm" onClick={onClose}>
       <div className="max-w-2xl w-full max-h-[90vh] bg-card rounded-xl shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-4 border-b border-border/60">
           <div>
@@ -664,7 +664,7 @@ function ShareProgressCardModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-hidden"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm overflow-hidden"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -691,7 +691,7 @@ function ShareProgressCardModal({ onClose }: { onClose: () => void }) {
           <div className="opacity-80 text-[10px] mb-1">Career: {careerLabel}</div>
           <div className="opacity-80 text-[10px] mb-1">Roadmap: {overall.pct}% complete · 🔥 {streak}d · {badgesCount} badges</div>
           <div className="opacity-60 text-[10px] mt-2">Learning. Building. Growing.</div>
-          <div className="opacity-40 text-[9px] font-mono mt-1">launchpad--pi.vercel.app</div>
+          <div className="opacity-40 text-[9px] font-mono mt-1">launchpad--dev.vercel.app</div>
         </div>
 
         {/* 3 export buttons */}
@@ -852,7 +852,7 @@ function buildShareCardInnerHtml(opts: {
     </div>
     <div class="footer">
       <div class="tagline">Learning. Building. Growing.</div>
-      <div class="url">launchpad--pi.vercel.app</div>
+      <div class="url">launchpad--dev.vercel.app</div>
     </div>
   </div>`;
 }

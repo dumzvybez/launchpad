@@ -26,6 +26,7 @@ export const DEFAULT_STATE: AppState = {
     freezes: 2,
   },
   activity: {},
+  hourlyActivity: {},
   preferences: {
     theme: "dark",
     reduceMotion: false,
@@ -60,6 +61,9 @@ export const DEFAULT_STATE: AppState = {
   certificates: {},
   projectSubmissions: [],
   activeNotifications: [],
+  questionRecords: {},
+  flashcards: [],
+  bookmarkedLessons: [],
 };
 
 /** Safely load state from localStorage, with schema migration */
@@ -100,6 +104,7 @@ export function loadState(): AppState {
       bookmarks: parsed.bookmarks ?? [],
       calendarEvents: parsed.calendarEvents ?? [],
       activity: parsed.activity ?? {},
+      hourlyActivity: parsed.hourlyActivity ?? {},
       lessonProgress: parsed.lessonProgress ?? {},
       chatConversations: parsed.chatConversations ?? [],
       aiSettings: { ...DEFAULT_STATE.aiSettings, ...parsed.aiSettings },
@@ -112,6 +117,9 @@ export function loadState(): AppState {
       dailyChallengeWeekIndex: (parsed as Partial<AppState>).dailyChallengeWeekIndex,
       projectSubmissions: (parsed as Partial<AppState>).projectSubmissions ?? [],
       activeNotifications: (parsed as Partial<AppState>).activeNotifications ?? [],
+      questionRecords: (parsed as Partial<AppState>).questionRecords ?? {},
+      flashcards: (parsed as Partial<AppState>).flashcards ?? [],
+      bookmarkedLessons: (parsed as Partial<AppState>).bookmarkedLessons ?? [],
     };
   } catch (e) {
     console.warn("[launchpad] failed to load state, resetting:", e);

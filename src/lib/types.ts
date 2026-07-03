@@ -331,6 +331,43 @@ export type LessonProgress = {
   quizAttempts?: number;
 };
 
+// ============================================================
+// SM-2 Spaced Repetition (Section 1)
+// ============================================================
+
+/** Per-question SM-2 spaced repetition record */
+export type QuestionRecord = {
+  questionId: string;
+  correctCount: number;
+  incorrectCount: number;
+  lastAttemptDate: string;       // ISO timestamp
+  nextReviewDate: string;        // ISO timestamp — when question is "due"
+  interval: number;              // days until next review
+  easinessFactor: number;        // SM-2 EF, starts at 2.5
+  difficulty: "easy" | "medium" | "hard"; // auto-updated based on hit rate
+};
+
+// ============================================================
+// Flashcards (Section 2)
+// ============================================================
+
+export type Flashcard = {
+  id: string;                  // `${lessonId}:${blockKind}:${index}`
+  lessonId: string;
+  trackId: string;             // language id
+  front: string;               // question / prompt
+  back: string;                // answer / explanation
+  hint?: string;
+  source: "keyConcept" | "interviewQuestion" | "quiz";
+  // SM-2 fields (same shape as QuestionRecord)
+  correctCount: number;
+  incorrectCount: number;
+  lastAttemptDate?: string;
+  nextReviewDate?: string;
+  interval: number;
+  easinessFactor: number;
+};
+
 export type ChatMessage = {
   id: string;
   role: "user" | "assistant" | "system";
@@ -399,6 +436,8 @@ export type AppState = {
   };
   /** per-day task completion counts for heatmap */
   activity: Record<string, number>;
+  /** Per-hour task completion counts (0-23) for time-of-day analytics (Section 8) */
+  hourlyActivity: Record<number, number>;
   preferences: {
     theme: "light" | "dark" | "system";
     reduceMotion: boolean;
@@ -470,6 +509,12 @@ export type AppState = {
   activeNotifications: string[];
   /** Auto-backup timestamp */
   lastAutoBackup?: string;
+  /** Per-question SM-2 records, keyed by `${lessonId}:${questionId}` (Section 1) */
+  questionRecords: Record<string, QuestionRecord>;
+  /** Flashcards with SM-2 state (Section 2) */
+  flashcards: Flashcard[];
+  /** Bookmarked lesson IDs (Section 3) */
+  bookmarkedLessons: string[];
 };
 
 // ============================================================
@@ -481,8 +526,8 @@ export type ViewId =
   | "roadmap"
   | "learn"
   | "playground"
-  | "skill-tree"
   | "daily-challenge"
+  | "skill-tree"
   | "notes"
   | "projects"
   | "focus"
@@ -493,7 +538,8 @@ export type ViewId =
   | "community"
   | "tools"
   | "account"
-  | "settings";
+  | "settings"
+  | "flashcards";
 
 export type Bookmark = {
   id: string;

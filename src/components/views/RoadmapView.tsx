@@ -18,6 +18,7 @@ import {
 import { useStore, selectPhaseProgress } from "@/lib/store";
 import { GlassCard, ProgressBar, GlassButton } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
+import { getLessonById } from "@/lib/lessons-data";
 import type { GeneratedPhase } from "@/lib/types";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -404,6 +405,7 @@ function TaskDetailView({
   const isComplete = useStore((s) => !!s.state.tasks[task.id]?.completedAt);
   const toggleTask = useStore((s) => s.toggleTask);
   const setView = useStore((s) => s.setView);
+  const setLearnTabState = useStore((s) => s.setLearnTabState);
 
   // Check if this phase is locked — if so, prevent task completion.
   // Phase 1 is always unlocked. Phase N requires the previous phase to be complete.
@@ -452,7 +454,19 @@ function TaskDetailView({
               <GlassButton
                 variant="ghost"
                 size="sm"
-                onClick={() => setView("learn")}
+                onClick={() => {
+                  // Section 18 — deep-link into the specific lesson, not just
+                  // the Learn tab. Previously this only called setView("learn")
+                  // and the user landed on the generic tracks list.
+                  const lesson = getLessonById(task.lessonId!);
+                  setLearnTabState({
+                    tab: "lesson",
+                    selectedLessonId: task.lessonId!,
+                    selectedTrack: lesson?.track ?? null,
+                  });
+                  setView("learn");
+                  window.scrollTo(0, 0);
+                }}
                 title="Open the corresponding lesson in the Learn tab"
               >
                 <BookOpen className="h-4 w-4" /> Go to lesson

@@ -115,16 +115,18 @@ export function openPrintableHtml(html: string, opts: PrintableOptions = {}): bo
 }
 
 /**
- * Render an HTML snippet in a hidden iframe, rasterize it to a PNG blob,
- * and write that blob to the clipboard.
+ * Render an HTML snippet in a hidden off-screen DOM node, rasterize it to
+ * a PNG blob using `html-to-image`, and write that blob to the clipboard.
  *
- * Uses the SVG <foreignObject> → <canvas> trick (no external dep like
- * html2canvas). Limitations:
- *  - External images / cross-origin resources may taint the canvas.
- *  - Web fonts must be embedded or the canvas will use fallbacks.
- *  - Older Safari (<14) doesn't support ClipboardItem.
+ * Section 12 fix: the previous implementation used the SVG
+ * `<foreignObject>` → `<img>` → `<canvas>` pipeline, which ALWAYS taints
+ * the canvas per the HTML spec (foreignObject content is treated as
+ * untrusted by the canvas security model, regardless of whether the HTML
+ * inside contains external images). This caused
+ * `canvas.toBlob()` to throw "Tainted canvases may not be exported".
  *
- * Returns true on success, false if unsupported or failed.
+ * `html-to-image` avoids the taint by rendering real DOM nodes (not an
+ * SVG-foreignObject) and supports `cacheBust` + `skipFonts` for reliability.
  */
 export async function copyHtmlAsPng(
   html: string,
@@ -139,54 +141,40 @@ export async function copyHtmlAsPng(
 
   const { width = 1200, height = 675 } = opts;
 
-  // Build a full HTML doc that fits in the target dimensions, then
-  // render via SVG <foreignObject> → <img> → <canvas>.
-  const wrappedHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-    html, body { margin: 0; padding: 0; width: ${width}px; height: ${height}px; overflow: hidden; }
-    body { transform-origin: top left; }
-  </style></head><body>${html}</body></html>`;
-
-  const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
-    <foreignObject width="100%" height="100%">${svgEscape(wrappedHtml)}</foreignObject>
-  </svg>`;
-
-  const svgBlob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
-  const svgUrl = URL.createObjectURL(svgBlob);
+  // Build an off-screen host element with the exact target dimensions.
+  const host = document.createElement("div");
+  host.style.cssText = `position:fixed;left:-99999px;top:0;width:${width}px;height:${height}px;overflow:hidden;background:#0d1117;`;
+  host.innerHTML = html;
+  document.body.appendChild(host);
 
   try {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    await new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = () => reject(new Error("Failed to render SVG to image"));
-      img.src = svgUrl;
+    const { toPng } = await import("html-to-image");
+    const dataUrl = await toPng(host, {
+      width,
+      height,
+      cacheBust: true,
+      pixelRatio: 1,
+      backgroundColor: "#0d1117",
     });
-
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return { ok: false, error: "Canvas 2D context unavailable" };
-    ctx.drawImage(img, 0, 0, width, height);
-
-    const pngBlob: Blob = await new Promise((resolve, reject) => {
-      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png");
-    });
-
+    const blob = await (await fetch(dataUrl)).blob();
     await navigator.clipboard.write([
-      new ClipboardItem({ "image/png": pngBlob }),
+      new ClipboardItem({ "image/png": blob }),
     ]);
     return { ok: true };
   } catch (err) {
     return { ok: false, error: (err as Error).message };
   } finally {
-    URL.revokeObjectURL(svgUrl);
+    host.remove();
   }
 }
 
 /**
- * Render an HTML snippet in a hidden iframe, rasterize it to a PNG blob,
- * and trigger a download of the PNG file.
+ * Render an HTML snippet in a hidden off-screen DOM node, rasterize it to
+ * a PNG blob using `html-to-image`, and trigger a download of the PNG file.
+ *
+ * Section 12-13 fix: same root cause as `copyHtmlAsPng` above — replaced
+ * the SVG-foreignObject pipeline (which always tainted the canvas) with
+ * `html-to-image`'s real-DOM rasterization.
  */
 export async function downloadHtmlAsPng(
   html: string,
@@ -198,58 +186,30 @@ export async function downloadHtmlAsPng(
   }
   const { width = 1200, height = 675 } = opts;
 
-  const wrappedHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-    html, body { margin: 0; padding: 0; width: ${width}px; height: ${height}px; overflow: hidden; }
-  </style></head><body>${html}</body></html>`;
-
-  const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
-    <foreignObject width="100%" height="100%">${svgEscape(wrappedHtml)}</foreignObject>
-  </svg>`;
-
-  const svgBlob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
-  const svgUrl = URL.createObjectURL(svgBlob);
+  const host = document.createElement("div");
+  host.style.cssText = `position:fixed;left:-99999px;top:0;width:${width}px;height:${height}px;overflow:hidden;background:#0d1117;`;
+  host.innerHTML = html;
+  document.body.appendChild(host);
 
   try {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    await new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = () => reject(new Error("Failed to render SVG to image"));
-      img.src = svgUrl;
+    const { toPng } = await import("html-to-image");
+    const dataUrl = await toPng(host, {
+      width,
+      height,
+      cacheBust: true,
+      pixelRatio: 1,
+      backgroundColor: "#0d1117",
     });
-
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return { ok: false, error: "Canvas 2D context unavailable" };
-    ctx.drawImage(img, 0, 0, width, height);
-
-    const pngBlob: Blob = await new Promise((resolve, reject) => {
-      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png");
-    });
-
-    const pngUrl = URL.createObjectURL(pngBlob);
     const a = document.createElement("a");
-    a.href = pngUrl;
+    a.href = dataUrl;
     a.download = filename.endsWith(".png") ? filename : `${filename}.png`;
     document.body.appendChild(a);
     a.click();
     a.remove();
-    setTimeout(() => URL.revokeObjectURL(pngUrl), 30_000);
     return { ok: true };
   } catch (err) {
     return { ok: false, error: (err as Error).message };
   } finally {
-    URL.revokeObjectURL(svgUrl);
+    host.remove();
   }
-}
-
-function svgEscape(s: string): string {
-  // SVG foreignObject requires the HTML to be XML-escaped
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }

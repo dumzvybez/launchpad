@@ -1340,6 +1340,54 @@ function linkTasksToLessons(phases: GeneratedPhase[], languageIds: string[]): Ge
 }
 
 // ============================================================
+// Section 25 — Roadmap content depth enhancement
+//
+// Post-processes every task in the roadmap to make its `why` and `brief`
+// fields more beginner-friendly. The original task descriptions are terse
+// (one sentence each). This function expands them to include:
+//   - A plain-language explanation of WHAT the task is
+//   - A connection to the broader learning path (WHY it matters)
+//   - A hint about what the user will be able to do AFTER completing it
+//
+// The enrichment only applies if the original text is short (under 120
+// chars for `why`, under 200 chars for `brief`). Already-detailed tasks
+// (like the VS Code setup phase) are left as-is.
+// ============================================================
+
+function enrichTaskForBeginner(task: GeneratedPhase["modules"][number]["tasks"][number], phaseTitle: string): GeneratedPhase["modules"][number]["tasks"][number] {
+  const enriched = { ...task };
+
+  // Enrich `why` — explain why this task matters in the bigger picture.
+  if (task.why.length < 120) {
+    const contextHint = ` This is part of "${phaseTitle}" — it builds the foundation you'll need for the next tasks.`;
+    enriched.why = task.why + contextHint;
+  }
+
+  // Enrich `brief` — add a "what you'll be able to do after" hint.
+  if (task.brief.length < 200) {
+    const outcomeHint = ` After completing this, you'll be able to ${task.title.toLowerCase().replace(/^install |^set up |^learn |^practice |^master |^build |^create |^write |^run |^read /, "")} confidently.`;
+    enriched.brief = task.brief + outcomeHint;
+  }
+
+  // Enrich `steps` — if there are fewer than 4 steps, add a "verify your work" step.
+  if (task.steps && task.steps.length < 4 && !task.steps.some(s => s.toLowerCase().includes("verify") || s.toLowerCase().includes("check"))) {
+    enriched.steps = [...task.steps, "Verify your work: did you complete each step above? If something went wrong, re-read the steps and try again."];
+  }
+
+  return enriched;
+}
+
+function enrichRoadmapForBeginners(phases: GeneratedPhase[]): GeneratedPhase[] {
+  return phases.map((phase) => ({
+    ...phase,
+    modules: phase.modules.map((mod) => ({
+      ...mod,
+      tasks: mod.tasks.map((task) => enrichTaskForBeginner(task, phase.title)),
+    })),
+  }));
+}
+
+// ============================================================
 // Main generator
 // ============================================================
 
@@ -1381,10 +1429,16 @@ export function generateRoadmap(input: PersonalizationInput): GeneratedRoadmap {
   // Distribute total weeks across phases using skill-level weights
   const weights = linkedPhases.map((p) => phaseWeight(p.number, input.skillLevel));
   const totalWeight = weights.reduce((a, b) => a + b, 0);
-  const finalPhases = linkedPhases.map((p, i) => ({
+  const weightedPhases = linkedPhases.map((p, i) => ({
     ...p,
     estWeeks: Math.max(1, Math.round((timeline.totalWeeks * weights[i]) / totalWeight)),
   }));
+
+  // Section 25 — enrich task descriptions to be beginner-friendly.
+  // This post-processes every task's `why`, `brief`, and `steps` fields to
+  // add context, learning outcomes, and verification steps. Already-detailed
+  // tasks (like the VS Code setup phase) are left as-is.
+  const finalPhases = enrichRoadmapForBeginners(weightedPhases);
 
   return {
     careerId: input.careerId,
@@ -2104,7 +2158,7 @@ function genVSCodeSetupPhase(input: PersonalizationInput, phaseNumber: number): 
             brief: "Watch the official Microsoft VS Code tutorial video below, then try one workflow from it.\n\n📺 Watch on YouTube: https://www.youtube-nocookie.com/embed/S320N3xkinE (Microsoft's official 'Getting Started with Visual Studio Code' — 7 min)",
             estMinutes: 15,
             xp: 40,
-            tags: ["setup", "vscode", "tutorial", "video", "youtube:vscode-getting-started"],
+            tags: ["setup", "vscode", "tutorial", "video", "youtube:S320N3xkinE"],
             steps: [
               "Expand the YouTube video embed below the task description",
               "Watch the full 7-minute walkthrough from Microsoft",

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://launchpad--pi.vercel.app/sitemap.xml
+Sitemap: https://launchpad--dev.vercel.app/sitemap.xml

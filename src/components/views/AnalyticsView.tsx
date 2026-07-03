@@ -291,7 +291,95 @@ export function AnalyticsView() {
           </div>
         </GlassCard>
       )}
+
+      {/* Section 8 — Time-of-day analytics */}
+      <TimeOfDayChart hourlyActivity={state.hourlyActivity ?? {}} />
     </div>
+  );
+}
+
+// ============================================================
+// Section 8 — "When you study" chart
+// ============================================================
+
+function TimeOfDayChart({ hourlyActivity }: { hourlyActivity: Record<number, number> }) {
+  const hours = Array.from({ length: 24 }, (_, h) => h);
+  const counts = hours.map((h) => hourlyActivity[h] ?? 0);
+  const totalActivity = counts.reduce((a, b) => a + b, 0);
+  const maxCount = Math.max(...counts, 1);
+  const peakHour = counts.indexOf(Math.max(...counts));
+
+  // Don't show a misleading chart if the user has too little data.
+  if (totalActivity < 10) {
+    return (
+      <GlassCard className="p-5">
+        <h2 className="text-sm font-semibold mb-2 flex items-center gap-2">
+          <Clock className="h-4 w-4" /> 🕐 When you study
+        </h2>
+        <p className="text-xs text-muted-foreground text-center py-4">
+          Keep studying to unlock your time-of-day pattern! Complete at least 10 tasks to see when you&apos;re most productive.
+        </p>
+      </GlassCard>
+    );
+  }
+
+  // Personality badge based on peak hour.
+  let personality: { emoji: string; label: string };
+  if (peakHour >= 4 && peakHour < 10) {
+    personality = { emoji: "🌅", label: "Early Bird" };
+  } else if (peakHour >= 10 && peakHour < 16) {
+    personality = { emoji: "☀️", label: "Day Sprinter" };
+  } else if (peakHour >= 16 && peakHour < 21) {
+    personality = { emoji: "🌆", label: "Evening Coder" };
+  } else {
+    personality = { emoji: "🦉", label: "Night Owl" };
+  }
+
+  return (
+    <GlassCard className="p-5">
+      <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
+        <Clock className="h-4 w-4" /> 🕐 When you study
+      </h2>
+      {/* Bar chart — 24 bars, one per hour */}
+      <div className="flex items-end gap-0.5 h-24 mb-2">
+        {counts.map((c, h) => {
+          const heightPct = (c / maxCount) * 100;
+          const isPeak = h === peakHour;
+          return (
+            <div
+              key={h}
+              className="flex-1 relative group"
+              title={`${h}:00 · ${c} task${c !== 1 ? "s" : ""}`}
+            >
+              <div
+                className={cn(
+                  "w-full rounded-t-sm transition-all",
+                  isPeak ? "bg-primary" : "bg-primary/30",
+                )}
+                style={{ height: `${Math.max(2, heightPct)}%`, minHeight: "2px" }}
+              />
+            </div>
+          );
+        })}
+      </div>
+      {/* Hour labels */}
+      <div className="flex justify-between text-[9px] text-muted-foreground font-mono">
+        <span>12am</span>
+        <span>6am</span>
+        <span>12pm</span>
+        <span>6pm</span>
+        <span>11pm</span>
+      </div>
+      {/* Summary */}
+      <div className="mt-3 flex items-center justify-between text-xs">
+        <span className="text-muted-foreground">
+          Peak hour: <strong className="text-foreground">{peakHour}:00</strong> ({counts[peakHour]} tasks)
+        </span>
+        <span className="flex items-center gap-1">
+          You&apos;re a {personality.emoji} <strong>{personality.label}</strong>
+        </span>
+      </div>
+    </GlassCard>
   );
 }
 

@@ -22,8 +22,9 @@ import { useStore, selectPhaseProgress, selectOverallProgress, selectCareerProgr
 import { GlassCard, GlassButton, ProgressBar } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
 import { CAREER_MAP, LANGUAGE_MAP } from "@/lib/career-data";
-import { ALL_LANGUAGE_INFO } from "@/lib/lessons-data";
+import { ALL_LANGUAGE_INFO, getLessonById } from "@/lib/lessons-data";
 import { openPrintableHtml } from "@/lib/print-utils";
+import type { AppState, GeneratedRoadmap } from "@/lib/types";
 
 export function CareerView() {
   const state = useStore((s) => s.state);
@@ -282,7 +283,7 @@ export function CareerView() {
                     } else {
                       issueCareerCertificate(career.label, finalName);
                     }
-                    generateCareerCertificate(finalName, career.label, roadmap.languageIds, roadmap.totalHours);
+                    generateCareerCertificate(finalName, career.label, roadmap.languageIds, computeHoursInvested(useStore.getState().state, roadmap));
                   }}
                 >
                   <Download className="h-4 w-4" /> Download Career Certificate (PDF)
@@ -295,7 +296,7 @@ export function CareerView() {
                       if (name === null) return;
                       const finalName = name.trim() || "Learner";
                       updateCareerCertificateName(finalName);
-                      generateCareerCertificate(finalName, career.label, roadmap.languageIds, roadmap.totalHours);
+                      generateCareerCertificate(finalName, career.label, roadmap.languageIds, computeHoursInvested(useStore.getState().state, roadmap));
                     }}
                   >
                     <Pencil className="h-3.5 w-3.5" /> Edit name
@@ -444,7 +445,7 @@ function ResumeBuilderButton() {
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-hidden"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm overflow-hidden"
           onClick={() => setOpen(false)}
           role="dialog"
           aria-modal="true"
@@ -514,6 +515,53 @@ function ResumeBuilderButton() {
       )}
     </>
   );
+}
+
+/**
+ * Section 23 — compute actual hours invested (not the roadmap's total estimate).
+ *
+ * Formula (in priority order):
+ *   1. If the user has tracked focus-session time OR per-task timeSpent, use
+ *      the sum of those (most accurate — real tracked minutes).
+ *   2. Otherwise, fall back to summing `estMinutes` for completed lessons +
+ *      `estMinutes` for completed roadmap tasks + a flat 2h per shipped
+ *      project (reasonable estimate when no real tracking exists).
+ *
+ * Returns hours (1 decimal place). 0 for brand-new users.
+ */
+function computeHoursInvested(state: AppState, roadmap?: GeneratedRoadmap): number {
+  // Tier 1: actual tracked time
+  const focusMinutes = state.focusSessions
+    .filter((s) => s.completed)
+    .reduce((sum, s) => sum + s.durationMinutes, 0);
+  const taskTimeSpentMinutes = Object.values(state.tasks).reduce(
+    (sum, t) => sum + (t.timeSpent ?? 0),
+    0,
+  );
+  const actualMinutes = focusMinutes + taskTimeSpentMinutes;
+  if (actualMinutes > 0) return actualMinutes / 60;
+
+  // Tier 2: estimated time for completed work
+  let fallbackMinutes = 0;
+  for (const [lessonId, progress] of Object.entries(state.lessonProgress)) {
+    if (progress.status === "complete") {
+      fallbackMinutes += getLessonById(lessonId)?.estMinutes ?? 0;
+    }
+  }
+  if (roadmap) {
+    for (const phase of roadmap.phases) {
+      for (const mod of phase.modules) {
+        for (const task of mod.tasks) {
+          if (state.tasks[task.id]?.completedAt) {
+            fallbackMinutes += task.estMinutes ?? 0;
+          }
+        }
+      }
+    }
+  }
+  // Flat 2h per shipped project (reasonable average for a portfolio project)
+  fallbackMinutes += state.projects.filter((p) => p.status === "shipped").length * 120;
+  return fallbackMinutes / 60;
 }
 
 /**
@@ -798,7 +846,7 @@ function generateResumePDF(opts: {
               <strong>Self-taught via Launchpad Coding Education Platform</strong><br/>
               <span style="font-size: 9pt; color: #6B7280;">
                 ${escapeHtml(roadmap?.careerLabel ?? "Developer")} Learning Path · ${startDate} to ${date}<br/>
-                ${completedLessons} structured lessons · ${langs.length} languages · ${Math.round(roadmap?.totalHours ?? 0)} hours invested
+                ${completedLessons} structured lessons · ${langs.length} languages · ${computeHoursInvested(state, roadmap).toFixed(1)} hours invested
               </span>
             </li>
           </ul>
@@ -829,7 +877,7 @@ function generateResumePDF(opts: {
           <div class="stat-row"><span class="label">Projects shipped</span><span class="value">${projects.length}</span></div>
           <div class="stat-row"><span class="label">Certificates</span><span class="value">${Object.keys(certificates).length + (careerCert ? 1 : 0)}</span></div>
           <div class="stat-row"><span class="label">Current streak</span><span class="value">${streak.current}d 🔥</span></div>
-          <div class="stat-row"><span class="label">Hours invested</span><span class="value">${Math.round(roadmap?.totalHours ?? 0)}h</span></div>
+          <div class="stat-row"><span class="label">Hours invested</span><span class="value">${computeHoursInvested(state, roadmap).toFixed(1)}h</span></div>
         </div>
 
         <!-- Badges (optional) -->
@@ -855,7 +903,7 @@ function generateResumePDF(opts: {
 
     ${opts.includeBranding ? `
     <div class="footer">
-      Generated by <strong>Launchpad</strong> — Free AI-personalized coding education · launchpad--pi.vercel.app
+      Generated by <strong>Launchpad</strong> — Free AI-personalized coding education · launchpad--dev.vercel.app
     </div>` : ""}
   </div>
 </body>

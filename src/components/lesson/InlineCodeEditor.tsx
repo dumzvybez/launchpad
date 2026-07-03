@@ -365,9 +365,11 @@ export function InlineCodeEditor({
         </div>
       )}
 
-      {/* Code editor — textarea with line numbers */}
+      {/* Code editor — textarea with line numbers. Section 19 fix: gutter
+          now has a right border and widths are aligned (w-10 gutter + pl-12
+          textarea) so the gutter is visually contained inside the code box. */}
       <div className="relative">
-        <div className="absolute left-0 top-0 bottom-0 w-8 bg-foreground/5 text-right pr-1 pt-3 font-mono text-[10px] text-muted-foreground select-none rounded-l-md pointer-events-none">
+        <div className="absolute left-0 top-0 bottom-0 w-10 bg-foreground/5 text-right pr-2 pt-3 font-mono text-[10px] text-muted-foreground select-none rounded-l-md border-r border-border/40 pointer-events-none">
           {code.split("\n").map((_, i) => (
             <div key={i} className="leading-5">{i + 1}</div>
           ))}
@@ -377,7 +379,7 @@ export function InlineCodeEditor({
           onChange={(e) => setCode(e.target.value)}
           readOnly={!editable && !tryItYourself}
           spellCheck={false}
-          className="w-full pl-10 pr-3 py-3 bg-foreground/5 border border-border/40 rounded-md font-mono text-xs leading-5 focus:outline-none focus:ring-2 focus:ring-primary/40 resize-y min-h-[120px]"
+          className="w-full pl-12 pr-3 py-3 bg-foreground/5 border border-border/40 rounded-md font-mono text-xs leading-5 focus:outline-none focus:ring-2 focus:ring-primary/40 resize-y min-h-[120px]"
           style={{ tabSize: 2 }}
         />
       </div>

@@ -19,6 +19,7 @@ import type {
   ChatMessage,
   AISettings,
   AIProviderKey,
+  Flashcard,
 } from "./types";
 import {
   loadState,
@@ -37,6 +38,8 @@ import { generateCertificateId, generateCareerCertificateId } from "./certificat
 // which can silently fail under Turbopack/Next.js 16 bundling.
 import { ALL_LESSONS } from "./lessons-data";
 import { selectPoolForLanguages } from "./daily-challenges-data-v2";
+import { recordQuestion, recordFlashcard } from "./sm2";
+import { generateFlashcardsForTrack } from "./flashcard-generator";
 
 // ============================================================
 // Derived selectors (work on the personalized roadmap if present)
@@ -125,6 +128,54 @@ export function selectOverallProgress(state: AppState): {
     total: allTasks.length,
     pct: allTasks.length ? Math.round((completed / allTasks.length) * 100) : 0,
   };
+}
+
+// ============================================================
+// SM-2 Weak Areas selector (Section 1.5)
+// ============================================================
+
+/**
+ * Get the user's top-N most-missed questions across all tracks, sorted by
+ * incorrectCount desc then lastAttemptDate desc. Used by the "Weak Areas"
+ * card on the Learn tab.
+ */
+export function selectWeakAreas(state: AppState, limit = 5): Array<{
+  lessonId: string;
+  questionId: string;
+  incorrectCount: number;
+  correctCount: number;
+  lastAttemptDate: string;
+  trackId: string;
+  lessonTitle: string;
+  questionText: string;
+}> {
+  const records = Object.entries(state.questionRecords ?? {});
+  if (records.length === 0) return [];
+  const sorted = records
+    .filter(([, r]) => r.incorrectCount > 0)
+    .sort((a, b) => {
+      if (b[1].incorrectCount !== a[1].incorrectCount) {
+        return b[1].incorrectCount - a[1].incorrectCount;
+      }
+      return (b[1].lastAttemptDate ?? "").localeCompare(a[1].lastAttemptDate ?? "");
+    })
+    .slice(0, limit);
+
+  return sorted.map(([key, r]) => {
+    const [lessonId, questionId] = key.split(":");
+    const lesson = ALL_LESSONS.find((l) => l.id === lessonId);
+    const question = lesson?.quiz.find((q) => q.id === questionId);
+    return {
+      lessonId,
+      questionId,
+      incorrectCount: r.incorrectCount,
+      correctCount: r.correctCount,
+      lastAttemptDate: r.lastAttemptDate,
+      trackId: lesson?.track ?? "",
+      lessonTitle: lesson?.title ?? lessonId,
+      questionText: question?.question ?? questionId,
+    };
+  });
 }
 
 // ============================================================
@@ -492,6 +543,20 @@ type Store = {
   getLessonProgress: (lessonId: string) => LessonProgress | undefined;
   setLearnTabState: (partial: Partial<AppState["learnTabState"]>) => void;
 
+  // SM-2 spaced repetition (Section 1)
+  recordQuestionSM2: (lessonId: string, questionId: string, correct: boolean) => void;
+  /** Open a lesson's quiz in review mode (pre-selects difficult questions). */
+  startQuizReviewMode: (lessonId: string) => void;
+  /** Currently active review-mode lesson ID (null = no review mode active). */
+  reviewModeLessonId: string | null;
+
+  // Flashcards (Section 2)
+  recordFlashcardResult: (cardId: string, correct: boolean) => void;
+  ensureFlashcardsForTrack: (trackId: string) => void;
+
+  // Lesson bookmarks (Section 3)
+  toggleLessonBookmark: (lessonId: string) => void;
+
   // Project submissions (capstone uploads)
   addProjectSubmission: (projectId: string, repoUrl: string, notes?: string) => void;
 
@@ -578,6 +643,7 @@ export const useStore = create<Store>((set, get) => {
     playgroundCode: null,
     playgroundLanguage: "javascript",
     forceOnboarding: false,
+    reviewModeLessonId: null,
 
     hydrate: () => {
       if (get().hydrated) return;
@@ -638,6 +704,12 @@ export const useStore = create<Store>((set, get) => {
           ...s.activity,
           [today]: (s.activity[today] || 0) + 1,
         };
+        // Also track per-hour activity for time-of-day analytics (Section 8).
+        const hour = new Date().getHours();
+        const newHourlyActivity = {
+          ...s.hourlyActivity,
+          [hour]: (s.hourlyActivity[hour] || 0) + 1,
+        };
 
         let newStreak = { ...s.streak };
         const lastDate = s.streak.lastActiveDate;
@@ -659,7 +731,7 @@ export const useStore = create<Store>((set, get) => {
           };
         }
 
-        return { ...s, tasks: newTasks, activity: newActivity, streak: newStreak };
+        return { ...s, tasks: newTasks, activity: newActivity, hourlyActivity: newHourlyActivity, streak: newStreak };
       });
       // Check achievements after task toggle
       setTimeout(() => get().checkAchievements(), 50);
@@ -995,9 +1067,63 @@ export const useStore = create<Store>((set, get) => {
             },
           },
         };
+        // Also record SM-2 state for the question (Section 1).
+        const sm2Key = `${lessonId}:${questionId}`;
+        const prevRecord = s.questionRecords?.[sm2Key];
+        const newRecord = recordQuestion(prevRecord, questionId, correct);
         return {
           ...s,
           lessonProgress: { ...s.lessonProgress, [lessonId]: updated },
+          questionRecords: { ...(s.questionRecords ?? {}), [sm2Key]: newRecord },
+        };
+      }),
+
+    // SM-2 spaced repetition (Section 1)
+    recordQuestionSM2: (lessonId, questionId, correct) =>
+      updateState((s) => {
+        const sm2Key = `${lessonId}:${questionId}`;
+        const prevRecord = s.questionRecords?.[sm2Key];
+        const newRecord = recordQuestion(prevRecord, questionId, correct);
+        return {
+          ...s,
+          questionRecords: { ...(s.questionRecords ?? {}), [sm2Key]: newRecord },
+        };
+      }),
+
+    startQuizReviewMode: (lessonId) => set({ reviewModeLessonId: lessonId }),
+
+    // Flashcards (Section 2)
+    recordFlashcardResult: (cardId, correct) =>
+      updateState((s) => {
+        const existing = s.flashcards.find((f) => f.id === cardId);
+        if (!existing) return s;
+        const updated = recordFlashcard(existing, correct);
+        return {
+          ...s,
+          flashcards: s.flashcards.map((f) => (f.id === cardId ? updated : f)),
+        };
+      }),
+
+    ensureFlashcardsForTrack: (trackId) =>
+      updateState((s) => {
+        // Lazy-populate flashcards for a track the first time the user
+        // visits the Flashcards tab for that track.
+        const generated = generateFlashcardsForTrack(trackId);
+        const existingIds = new Set(s.flashcards.map((f) => f.id));
+        const newCards = generated.filter((f) => !existingIds.has(f.id));
+        if (newCards.length === 0) return s;
+        return { ...s, flashcards: [...s.flashcards, ...newCards] };
+      }),
+
+    // Lesson bookmarks (Section 3)
+    toggleLessonBookmark: (lessonId) =>
+      updateState((s) => {
+        const isBookmarked = (s.bookmarkedLessons ?? []).includes(lessonId);
+        return {
+          ...s,
+          bookmarkedLessons: isBookmarked
+            ? s.bookmarkedLessons.filter((id) => id !== lessonId)
+            : [...s.bookmarkedLessons, lessonId],
         };
       }),
 

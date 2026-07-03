@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   LayoutDashboard,
   Map,
@@ -19,6 +20,9 @@ import {
   Bot,
   Users,
   Wrench,
+  Layers,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { useStore, selectLevel, selectEarnedXP } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -35,6 +39,7 @@ const ALL_NAV: NavItem[] = [
   { id: "daily-challenge", label: "Daily Challenge", icon: Target, hint: "Rotating coding challenges", group: "learn" },
   { id: "projects", label: "Projects", icon: FolderGit2, hint: "Build & track portfolio", group: "learn" },
   { id: "ai-tutor", label: "AI Tutor", icon: Bot, hint: "Ask the AI tutor", group: "learn" },
+  { id: "flashcards", label: "Flashcards", icon: Layers, hint: "Spaced repetition flashcards", group: "learn" },
   { id: "skill-tree", label: "Skill Tree", icon: Workflow, hint: "Dependency graph", group: "main" },
   { id: "tools", label: "Tools", icon: Wrench, hint: "Calendar, notes, focus timer", group: "productivity" },
   { id: "analytics", label: "Analytics", icon: BarChart3, hint: "Heatmaps & insights", group: "productivity" },
@@ -57,11 +62,27 @@ export function getNavItems(roadmap?: { languageIds: string[] } | null): NavItem
   return ALL_NAV;
 }
 
-export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
+export function Sidebar({ collapsed: collapsedProp }: { collapsed?: boolean }) {
   const currentView = useStore((s) => s.currentView);
   const setView = useStore((s) => s.setView);
   const state = useStore((s) => s.state);
   const setCommandOpen = useStore((s) => s.setCommandOpen);
+
+  // Section 27 — collapsible sidebar. Persist the preference in localStorage
+  // so it's remembered across sessions. If a `collapsed` prop is passed
+  // explicitly (e.g. from the mobile drawer), it overrides the local state.
+  const [collapsedInternal, setCollapsedInternal] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return window.localStorage.getItem("launchpad:sidebar-collapsed") === "true";
+    } catch { return false; }
+  });
+  const collapsed = collapsedProp ?? collapsedInternal;
+  const toggleCollapsed = () => {
+    const next = !collapsed;
+    setCollapsedInternal(next);
+    try { window.localStorage.setItem("launchpad:sidebar-collapsed", String(next)); } catch { /* ignore */ }
+  };
 
   const level = selectLevel(state);
   const earnedXP = selectEarnedXP(state);
@@ -184,6 +205,22 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
             <kbd className="font-mono text-[9px]">⌘K</kbd>
           </button>
         </div>
+      )}
+
+      {/* Section 27 — collapse/expand toggle button. Only shown on desktop
+          (the mobile drawer passes collapsedProp so this button is hidden
+          there to avoid confusion). */}
+      {collapsedProp === undefined && (
+        <button
+          onClick={toggleCollapsed}
+          className="shrink-0 mt-2 mx-auto rounded-md hover:bg-foreground/10 p-1.5 transition-colors text-muted-foreground hover:text-foreground"
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed
+            ? <PanelLeftOpen className="h-4 w-4" />
+            : <PanelLeftClose className="h-4 w-4" />}
+        </button>
       )}
     </aside>
   );
