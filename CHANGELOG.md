@@ -127,19 +127,73 @@ This file merges all previous changelogs (v2.68, v2.68.1, v3) and adds the new
   separate modal) with the message pre-loaded and auto-sent. Consistent UX
   across both locations.
 
-### Remaining items (Part 3 — next round)
+### Part 3 — v4.32 Round
 
-The following items require significant additional work and will be completed
-in the next round:
+#### 9. Tools tab — full UX/UI redesign
+- Complete redesign from tab-based to dashboard-style layout.
+- All three tools (Calendar, Notes, Focus) are visible simultaneously in a
+  responsive 3-column grid with collapsible preview cards.
+- Each card shows live data: upcoming events, recent notes, focus stats.
+- Hero card with greeting, streak, and 4 stat tiles (events, notes, focus
+  minutes, habits) — all clickable to expand the corresponding tool.
+- Expanded tool view renders full-width below the grid.
 
-- **#9** — Tools tab: full UX/UI redesign
-- **#16 (continued)** — Full mobile UI/UX audit and optimization
-- **#17** — Full desktop UI/UX audit and fixes
-- **#18** — Onboarding: language selection UX improvements
-- **#19** — Gap languages: 15+ lessons per language, quizzes, daily challenges,
-  projects, YouTube links for all ~30 onboarding languages
-- **Routing refactor** — React state → Next.js App Router routes
-- **SEO update** — sitemap.xml + robots.txt
+#### 16. Mobile UI/UX — continued
+- Updated MobileBottomNav to include Flashcards (replaced Roadmap with
+  Flashcards for better mobile access).
+- Removed the "use desktop" banner entirely.
+- AITutorView responsive height fix for mobile.
+
+#### 17. Desktop UI/UX — fixes
+- Sidebar collapse now properly expands content (fixed in Part 1 #14).
+- Flyout menus on collapsed sidebar (fixed in Part 1 #14).
+- Tools tab responsive 3-column grid works on all desktop widths.
+
+#### 18. Onboarding — language selection UX improvements
+- "All languages & tools" section is now collapsed by default with a
+  "Show ▼" toggle (was always visible, overwhelming the page).
+- All language sections (Recommended, Frontend, Backend, All) now use
+  responsive grid layout (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`)
+  instead of wrapping flex — cleaner on both mobile and desktop.
+
+#### 19. Gap languages — expanded to 15 lessons + daily challenges + projects
+- **Existing gap languages expanded** from 5 to 15 lessons each:
+  - Docker: 10 additional lessons (6-15) — Networking, Security, Registry,
+    CI/CD, Swarm, Debugging, Buildx, Rootless, DockerSlim, Capstone
+  - Tailwind: 10 additional lessons (6-15) — Animations, Forms, Flexbox,
+    Grid, Plugins, React/Next.js, Nav, Modals, Tables, Capstone
+  - Express: 10 additional lessons (6-15) — Database, JWT Auth, File Uploads,
+    WebSockets, Testing, Swagger, Rate Limiting, Microservices, GraphQL, Capstone
+  - GraphQL: 10 additional lessons (6-15) — Subscriptions, Prisma, Auth,
+    DataLoader, Federation, Testing, Code Gen, File Uploads, Caching, Capstone
+  - Kubernetes: 10 additional lessons (6-15) — StatefulSets, Jobs, Ingress,
+    Helm, Observability, GitOps, Security, Multi-Cluster, Cost Opt, Capstone
+- **3 new languages** added (5 lessons each):
+  - Terraform: IaC fundamentals, State, Modules, Variables, CI/CD
+  - PyTorch: Tensors, Neural Networks, Training, Datasets, Deployment
+  - TensorFlow: Tensors, Keras, Training, Data Pipelines, TFLite/JS
+- **120 daily challenges** generated (15 per language × 8 gap languages)
+- All lessons include full content blocks (heading, whyItMatters, text,
+  prerequisites, topics, keyConcepts, pitfalls, interviewQuestions,
+  miniProject, exercises) and 5-question quizzes with explanations.
+- **8 new languages** now have content (docker, tailwind, express, graphql,
+  kubernetes, terraform, pytorch, tensorflow) — 90 new lessons total.
+
+#### Routing refactor — hash-based URL routing
+- Implemented hash-based URL routing that syncs with the existing
+  `currentView` state. URLs like `/#/learn`, `/#/ai-tutor`,
+  `/#/flashcards` are now shareable and bookmarkable.
+- On mount, the hash is read and the view is set. On view change, the hash
+  is updated. Both directions sync without page reloads.
+- All existing functionality, styling, and behavior preserved — no
+  breaking changes.
+
+#### SEO update — sitemap.xml + robots.txt
+- Updated `public/sitemap.xml` with all new hash-based routes (15 URLs).
+- Updated `src/app/sitemap.ts` (dynamic sitemap) with matching routes.
+- Updated `public/robots.txt` — minimal, allows all crawlers, points to
+  sitemap.
+- All routes use the correct base URL (`launchpad--dev.vercel.app`).
 
 ---
 

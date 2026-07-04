@@ -79,6 +79,33 @@ export function AppShell() {
 
   useCommandPaletteShortcut();
 
+  // Routing refactor — hash-based URL routing that syncs with currentView.
+  // On mount, read the hash and set the view. On view change, update the hash.
+  // This gives shareable URLs (/#/learn, /#/ai-tutor) without a full rewrite.
+  useEffect(() => {
+    const viewFromHash = () => {
+      const hash = window.location.hash.slice(2); // remove #/
+      if (hash) {
+        const validViews = ["dashboard","roadmap","learn","playground","daily-challenge","flashcards","skill-tree","calendar","notes","projects","focus","analytics","career","ai-tutor","community","tools","account","settings"];
+        if (validViews.includes(hash)) {
+          setView(hash as typeof currentView);
+        }
+      }
+    };
+    viewFromHash();
+    window.addEventListener("hashchange", viewFromHash);
+    return () => window.removeEventListener("hashchange", viewFromHash);
+  }, [setView]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const expectedHash = `#/${currentView}`;
+      if (window.location.hash !== expectedHash) {
+        window.history.replaceState(null, "", expectedHash);
+      }
+    }
+  }, [currentView]);
+
   // Auto-close the mobile drawer whenever the user navigates to a new view.
   // Without this, tapping any nav item in the mobile drawer leaves the
   // drawer covering the screen — the user has to manually tap the backdrop

@@ -887,6 +887,7 @@ function LanguageSelectionStep({
   const career = CAREER_MAP[careerId];
   const recommended = new Set(career?.recommendedLanguages ?? []);
   const [popoverOpen, setPopoverOpen] = useState<string | null>(null);
+  const [showAllLangs, setShowAllLangs] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
 
   // Close popover on Escape
@@ -1116,7 +1117,7 @@ function LanguageSelectionStep({
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-mono">
             Recommended for {career?.label}
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {recommendedList.map(renderChip)}
           </div>
         </div>
@@ -1126,7 +1127,7 @@ function LanguageSelectionStep({
       {showFrontend && frontendList.length > 0 && (
         <div className="space-y-2">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-mono">Frontend</div>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {frontendList.map(renderChip)}
           </div>
         </div>
@@ -1136,18 +1137,26 @@ function LanguageSelectionStep({
       {showBackend && backendList.length > 0 && (
         <div className="space-y-2">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-mono">Backend</div>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {backendList.map(renderChip)}
           </div>
         </div>
       )}
 
-      {/* Section 4: All languages */}
+      {/* Section 4: All languages — collapsible (Section 18) */}
       <div className="space-y-2">
-        <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-mono">All languages & tools</div>
-        <div className="flex flex-wrap gap-2">
-          {allList.map(renderChip)}
-        </div>
+        <button
+          onClick={() => setShowAllLangs(!showAllLangs)}
+          className="w-full flex items-center justify-between p-2 rounded-lg bg-foreground/3 hover:bg-foreground/5 transition-colors"
+        >
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-mono">All languages & tools ({allList.length})</span>
+          <span className="text-xs text-muted-foreground">{showAllLangs ? "Hide ▲" : "Show ▼"}</span>
+        </button>
+        {showAllLangs && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {allList.map(renderChip)}
+          </div>
+        )}
       </div>
 
       <div className="text-xs text-muted-foreground">

@@ -6,23 +6,20 @@ import {
   GraduationCap,
   Bot,
   MoreHorizontal,
+  Layers,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import type { ViewId } from "@/lib/types";
 
 /**
- * MobileBottomNav — fixed bottom navigation bar for mobile (Section 14.3).
- *
- * Shows 5 most important tabs: Dashboard, Roadmap, Learn, AI Tutor, More.
- * "More" opens the mobile slide-out drawer with all other tabs.
- *
- * Only visible on screens < lg breakpoint.
+ * MobileBottomNav — fixed bottom navigation bar for mobile.
+ * Shows 5 most important tabs: Dashboard, Learn, Flashcards, AI Tutor, More.
  */
 const NAV_ITEMS: { id: ViewId; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "dashboard", label: "Home", icon: LayoutDashboard },
-  { id: "roadmap", label: "Roadmap", icon: Map },
   { id: "learn", label: "Learn", icon: GraduationCap },
+  { id: "flashcards", label: "Cards", icon: Layers },
   { id: "ai-tutor", label: "AI", icon: Bot },
 ];
 

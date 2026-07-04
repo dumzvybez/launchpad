@@ -187532,6 +187532,8851 @@ export const ALL_LESSONS: Lesson[] =
     }
   ],
   "youtubeUrl": ""
+},
+  // ============================================================
+  // Section 19 — Additional gap language lessons (v4.32)
+  // 10 more lessons for existing gap languages (6-15) + 5 lessons for
+  // 3 new languages (terraform, pytorch, tensorflow)
+  // ============================================================
+  {
+  "id": "docker-06",
+  "track": "docker",
+  "title": "Docker Networking \u2014 Connecting Containers",
+  "description": "Connect containers with custom networks and DNS.",
+  "difficulty": "intermediate",
+  "estMinutes": 65,
+  "order": 6,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Docker Networking \u2014 Connecting Containers"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers docker networking \u2014 connecting containers. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Connect containers with custom networks and DNS."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates docker networking \u2014 connecting containers."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Docker Networking \u2014 Connecting Containers?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Docker Networking \u2014 Connecting Containers is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Docker Networking \u2014 Connecting Containers?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Docker Networking \u2014 Connecting Containers?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Docker Networking \u2014 Connecting Containers?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Docker Networking \u2014 Connecting Containers?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "docker-07",
+  "track": "docker",
+  "title": "Docker Security \u2014 Hardening Your Containers",
+  "description": "Secure containers with image scanning, signed images, and runtime protection.",
+  "difficulty": "advanced",
+  "estMinutes": 75,
+  "order": 7,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Docker Security \u2014 Hardening Your Containers"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers docker security \u2014 hardening your containers. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Secure containers with image scanning, signed images, and runtime protection."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates docker security \u2014 hardening your containers."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Docker Security \u2014 Hardening Your Containers?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Docker Security \u2014 Hardening Your Containers is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Docker Security \u2014 Hardening Your Containers?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Docker Security \u2014 Hardening Your Containers?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Docker Security \u2014 Hardening Your Containers?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Docker Security \u2014 Hardening Your Containers?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "docker-08",
+  "track": "docker",
+  "title": "Docker Registry \u2014 Publishing Your Images",
+  "description": "Push images to Docker Hub and private registries.",
+  "difficulty": "intermediate",
+  "estMinutes": 50,
+  "order": 8,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Docker Registry \u2014 Publishing Your Images"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers docker registry \u2014 publishing your images. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Push images to Docker Hub and private registries."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates docker registry \u2014 publishing your images."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Docker Registry \u2014 Publishing Your Images?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Docker Registry \u2014 Publishing Your Images is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Docker Registry \u2014 Publishing Your Images?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Docker Registry \u2014 Publishing Your Images?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Docker Registry \u2014 Publishing Your Images?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Docker Registry \u2014 Publishing Your Images?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "docker-09",
+  "track": "docker",
+  "title": "Docker in CI/CD \u2014 Automated Builds",
+  "description": "Automate Docker image builds in GitHub Actions and GitLab CI.",
+  "difficulty": "advanced",
+  "estMinutes": 80,
+  "order": 9,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Docker in CI/CD \u2014 Automated Builds"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers docker in ci/cd \u2014 automated builds. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Automate Docker image builds in GitHub Actions and GitLab CI."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates docker in ci/cd \u2014 automated builds."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Docker in CI/CD \u2014 Automated Builds?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Docker in CI/CD \u2014 Automated Builds is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Docker in CI/CD \u2014 Automated Builds?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Docker in CI/CD \u2014 Automated Builds?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Docker in CI/CD \u2014 Automated Builds?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Docker in CI/CD \u2014 Automated Builds?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "docker-10",
+  "track": "docker",
+  "title": "Docker Swarm \u2014 Native Orchestration",
+  "description": "Deploy services across a Swarm cluster.",
+  "difficulty": "advanced",
+  "estMinutes": 70,
+  "order": 10,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Docker Swarm \u2014 Native Orchestration"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers docker swarm \u2014 native orchestration. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Deploy services across a Swarm cluster."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates docker swarm \u2014 native orchestration."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Docker Swarm \u2014 Native Orchestration?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Docker Swarm \u2014 Native Orchestration is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Docker Swarm \u2014 Native Orchestration?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Docker Swarm \u2014 Native Orchestration?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Docker Swarm \u2014 Native Orchestration?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Docker Swarm \u2014 Native Orchestration?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "docker-11",
+  "track": "docker",
+  "title": "Docker Debugging \u2014 Inspecting Containers",
+  "description": "Debug running containers with docker exec, docker logs, and docker inspect.",
+  "difficulty": "intermediate",
+  "estMinutes": 55,
+  "order": 11,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Docker Debugging \u2014 Inspecting Containers"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers docker debugging \u2014 inspecting containers. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Debug running containers with docker exec, docker logs, and docker inspect."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates docker debugging \u2014 inspecting containers."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Docker Debugging \u2014 Inspecting Containers?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Docker Debugging \u2014 Inspecting Containers is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Docker Debugging \u2014 Inspecting Containers?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Docker Debugging \u2014 Inspecting Containers?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Docker Debugging \u2014 Inspecting Containers?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Docker Debugging \u2014 Inspecting Containers?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "docker-12",
+  "track": "docker",
+  "title": "Docker Buildx \u2014 Multi-Platform Builds",
+  "description": "Build images for multiple architectures (amd64, arm64).",
+  "difficulty": "advanced",
+  "estMinutes": 60,
+  "order": 12,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Docker Buildx \u2014 Multi-Platform Builds"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers docker buildx \u2014 multi-platform builds. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Build images for multiple architectures (amd64, arm64)."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates docker buildx \u2014 multi-platform builds."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Docker Buildx \u2014 Multi-Platform Builds?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Docker Buildx \u2014 Multi-Platform Builds is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Docker Buildx \u2014 Multi-Platform Builds?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Docker Buildx \u2014 Multi-Platform Builds?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Docker Buildx \u2014 Multi-Platform Builds?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Docker Buildx \u2014 Multi-Platform Builds?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "docker-13",
+  "track": "docker",
+  "title": "Docker Rootless \u2014 Running Without Root",
+  "description": "Run Docker daemon as a non-root user for enhanced security.",
+  "difficulty": "advanced",
+  "estMinutes": 50,
+  "order": 13,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Docker Rootless \u2014 Running Without Root"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers docker rootless \u2014 running without root. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Run Docker daemon as a non-root user for enhanced security."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates docker rootless \u2014 running without root."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Docker Rootless \u2014 Running Without Root?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Docker Rootless \u2014 Running Without Root is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Docker Rootless \u2014 Running Without Root?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Docker Rootless \u2014 Running Without Root?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Docker Rootless \u2014 Running Without Root?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Docker Rootless \u2014 Running Without Root?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "docker-14",
+  "track": "docker",
+  "title": "DockerSlim \u2014 Minimizing Image Size",
+  "description": "Use DockerSlim to reduce image sizes by 10-30x.",
+  "difficulty": "intermediate",
+  "estMinutes": 45,
+  "order": 14,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "DockerSlim \u2014 Minimizing Image Size"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers dockerslim \u2014 minimizing image size. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Use DockerSlim to reduce image sizes by 10-30x."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates dockerslim \u2014 minimizing image size."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of DockerSlim \u2014 Minimizing Image Size?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "DockerSlim \u2014 Minimizing Image Size is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using DockerSlim \u2014 Minimizing Image Size?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning DockerSlim \u2014 Minimizing Image Size?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with DockerSlim \u2014 Minimizing Image Size?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master DockerSlim \u2014 Minimizing Image Size?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "docker-15",
+  "track": "docker",
+  "title": "Docker Capstone \u2014 Production Microservice",
+  "description": "Build and deploy a complete microservice with Docker, Compose, health checks, and monitoring.",
+  "difficulty": "advanced",
+  "estMinutes": 120,
+  "order": 15,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Docker Capstone \u2014 Production Microservice"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers docker capstone \u2014 production microservice. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Build and deploy a complete microservice with Docker, Compose, health checks, and monitoring."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates docker capstone \u2014 production microservice."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Docker Capstone \u2014 Production Microservice?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Docker Capstone \u2014 Production Microservice is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Docker Capstone \u2014 Production Microservice?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Docker Capstone \u2014 Production Microservice?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Docker Capstone \u2014 Production Microservice?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Docker Capstone \u2014 Production Microservice?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tailwind-06",
+  "track": "tailwind",
+  "title": "Tailwind Animations & Transitions",
+  "description": "Add smooth animations and transitions with Tailwind utilities.",
+  "difficulty": "intermediate",
+  "estMinutes": 55,
+  "order": 6,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Tailwind Animations & Transitions"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers tailwind animations & transitions. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Add smooth animations and transitions with Tailwind utilities."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates tailwind animations & transitions."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Tailwind Animations & Transitions?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Tailwind Animations & Transitions is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Tailwind Animations & Transitions?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Tailwind Animations & Transitions?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Tailwind Animations & Transitions?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Tailwind Animations & Transitions?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tailwind-07",
+  "track": "tailwind",
+  "title": "Tailwind Forms & Inputs",
+  "description": "Style forms, inputs, checkboxes, and selects with Tailwind.",
+  "difficulty": "intermediate",
+  "estMinutes": 60,
+  "order": 7,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Tailwind Forms & Inputs"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers tailwind forms & inputs. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Style forms, inputs, checkboxes, and selects with Tailwind."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates tailwind forms & inputs."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Tailwind Forms & Inputs?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Tailwind Forms & Inputs is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Tailwind Forms & Inputs?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Tailwind Forms & Inputs?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Tailwind Forms & Inputs?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Tailwind Forms & Inputs?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tailwind-08",
+  "track": "tailwind",
+  "title": "Tailwind Flexbox Patterns",
+  "description": "Common flexbox layout patterns solved with Tailwind utilities.",
+  "difficulty": "beginner",
+  "estMinutes": 45,
+  "order": 8,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Tailwind Flexbox Patterns"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers tailwind flexbox patterns. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Common flexbox layout patterns solved with Tailwind utilities."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates tailwind flexbox patterns."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Tailwind Flexbox Patterns?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Tailwind Flexbox Patterns is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Tailwind Flexbox Patterns?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Tailwind Flexbox Patterns?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Tailwind Flexbox Patterns?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Tailwind Flexbox Patterns?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tailwind-09",
+  "track": "tailwind",
+  "title": "Tailwind CSS Grid Patterns",
+  "description": "Build complex grid layouts with Tailwind grid utilities.",
+  "difficulty": "intermediate",
+  "estMinutes": 55,
+  "order": 9,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Tailwind CSS Grid Patterns"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers tailwind css grid patterns. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Build complex grid layouts with Tailwind grid utilities."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates tailwind css grid patterns."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Tailwind CSS Grid Patterns?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Tailwind CSS Grid Patterns is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Tailwind CSS Grid Patterns?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Tailwind CSS Grid Patterns?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Tailwind CSS Grid Patterns?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Tailwind CSS Grid Patterns?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tailwind-10",
+  "track": "tailwind",
+  "title": "Tailwind Plugins & Extensions",
+  "description": "Extend Tailwind with official and custom plugins.",
+  "difficulty": "advanced",
+  "estMinutes": 65,
+  "order": 10,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Tailwind Plugins & Extensions"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers tailwind plugins & extensions. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Extend Tailwind with official and custom plugins."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates tailwind plugins & extensions."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Tailwind Plugins & Extensions?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Tailwind Plugins & Extensions is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Tailwind Plugins & Extensions?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Tailwind Plugins & Extensions?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Tailwind Plugins & Extensions?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Tailwind Plugins & Extensions?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tailwind-11",
+  "track": "tailwind",
+  "title": "Tailwind with React/Next.js",
+  "description": "Set up Tailwind in a React or Next.js project with proper configuration.",
+  "difficulty": "intermediate",
+  "estMinutes": 50,
+  "order": 11,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Tailwind with React/Next.js"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers tailwind with react/next.js. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Set up Tailwind in a React or Next.js project with proper configuration."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates tailwind with react/next.js."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Tailwind with React/Next.js?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Tailwind with React/Next.js is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Tailwind with React/Next.js?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Tailwind with React/Next.js?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Tailwind with React/Next.js?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Tailwind with React/Next.js?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tailwind-12",
+  "track": "tailwind",
+  "title": "Tailwind Responsive Navigation",
+  "description": "Build responsive navbars, sidebars, and mobile menus with Tailwind.",
+  "difficulty": "intermediate",
+  "estMinutes": 60,
+  "order": 12,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Tailwind Responsive Navigation"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers tailwind responsive navigation. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Build responsive navbars, sidebars, and mobile menus with Tailwind."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates tailwind responsive navigation."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Tailwind Responsive Navigation?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Tailwind Responsive Navigation is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Tailwind Responsive Navigation?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Tailwind Responsive Navigation?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Tailwind Responsive Navigation?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Tailwind Responsive Navigation?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tailwind-13",
+  "track": "tailwind",
+  "title": "Tailwind Modals & Overlays",
+  "description": "Create accessible modals, dropdowns, and tooltips with Tailwind.",
+  "difficulty": "advanced",
+  "estMinutes": 65,
+  "order": 13,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Tailwind Modals & Overlays"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers tailwind modals & overlays. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Create accessible modals, dropdowns, and tooltips with Tailwind."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates tailwind modals & overlays."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Tailwind Modals & Overlays?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Tailwind Modals & Overlays is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Tailwind Modals & Overlays?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Tailwind Modals & Overlays?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Tailwind Modals & Overlays?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Tailwind Modals & Overlays?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tailwind-14",
+  "track": "tailwind",
+  "title": "Tailwind Tables & Data Display",
+  "description": "Style tables, cards, and data-heavy layouts with Tailwind.",
+  "difficulty": "intermediate",
+  "estMinutes": 50,
+  "order": 14,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Tailwind Tables & Data Display"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers tailwind tables & data display. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Style tables, cards, and data-heavy layouts with Tailwind."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates tailwind tables & data display."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Tailwind Tables & Data Display?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Tailwind Tables & Data Display is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Tailwind Tables & Data Display?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Tailwind Tables & Data Display?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Tailwind Tables & Data Display?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Tailwind Tables & Data Display?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tailwind-15",
+  "track": "tailwind",
+  "title": "Tailwind Capstone \u2014 Full Landing Page",
+  "description": "Build a complete, responsive landing page with hero, features, pricing, and footer.",
+  "difficulty": "advanced",
+  "estMinutes": 90,
+  "order": 15,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Tailwind Capstone \u2014 Full Landing Page"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers tailwind capstone \u2014 full landing page. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Build a complete, responsive landing page with hero, features, pricing, and footer."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates tailwind capstone \u2014 full landing page."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Tailwind Capstone \u2014 Full Landing Page?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Tailwind Capstone \u2014 Full Landing Page is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Tailwind Capstone \u2014 Full Landing Page?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Tailwind Capstone \u2014 Full Landing Page?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Tailwind Capstone \u2014 Full Landing Page?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Tailwind Capstone \u2014 Full Landing Page?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "express-06",
+  "track": "express",
+  "title": "Express + Database Integration",
+  "description": "Connect Express to PostgreSQL and MongoDB with proper connection pooling.",
+  "difficulty": "intermediate",
+  "estMinutes": 70,
+  "order": 6,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Express + Database Integration"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers express + database integration. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Connect Express to PostgreSQL and MongoDB with proper connection pooling."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates express + database integration."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Express + Database Integration?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Express + Database Integration is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Express + Database Integration?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Express + Database Integration?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Express + Database Integration?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Express + Database Integration?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "express-07",
+  "track": "express",
+  "title": "Express Authentication with JWT",
+  "description": "Implement JWT-based authentication with login, register, and protected routes.",
+  "difficulty": "advanced",
+  "estMinutes": 80,
+  "order": 7,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Express Authentication with JWT"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers express authentication with jwt. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Implement JWT-based authentication with login, register, and protected routes."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates express authentication with jwt."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Express Authentication with JWT?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Express Authentication with JWT is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Express Authentication with JWT?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Express Authentication with JWT?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Express Authentication with JWT?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Express Authentication with JWT?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "express-08",
+  "track": "express",
+  "title": "Express File Uploads",
+  "description": "Handle file uploads with multer \u2014 single, multiple, and chunked uploads.",
+  "difficulty": "intermediate",
+  "estMinutes": 55,
+  "order": 8,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Express File Uploads"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers express file uploads. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Handle file uploads with multer \u2014 single, multiple, and chunked uploads."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates express file uploads."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Express File Uploads?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Express File Uploads is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Express File Uploads?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Express File Uploads?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Express File Uploads?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Express File Uploads?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "express-09",
+  "track": "express",
+  "title": "Express WebSockets (Socket.io)",
+  "description": "Add real-time communication to Express with Socket.io.",
+  "difficulty": "advanced",
+  "estMinutes": 75,
+  "order": 9,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Express WebSockets (Socket.io)"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers express websockets (socket.io). Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Add real-time communication to Express with Socket.io."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates express websockets (socket.io)."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Express WebSockets (Socket.io)?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Express WebSockets (Socket.io) is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Express WebSockets (Socket.io)?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Express WebSockets (Socket.io)?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Express WebSockets (Socket.io)?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Express WebSockets (Socket.io)?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "express-10",
+  "track": "express",
+  "title": "Express Testing with Jest",
+  "description": "Write unit and integration tests for Express APIs with Jest and Supertest.",
+  "difficulty": "intermediate",
+  "estMinutes": 70,
+  "order": 10,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Express Testing with Jest"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers express testing with jest. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Write unit and integration tests for Express APIs with Jest and Supertest."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates express testing with jest."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Express Testing with Jest?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Express Testing with Jest is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Express Testing with Jest?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Express Testing with Jest?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Express Testing with Jest?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Express Testing with Jest?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "express-11",
+  "track": "express",
+  "title": "Express API Documentation with Swagger",
+  "description": "Auto-generate API docs with swagger-jsdoc and swagger-ui-express.",
+  "difficulty": "intermediate",
+  "estMinutes": 55,
+  "order": 11,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Express API Documentation with Swagger"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers express api documentation with swagger. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Auto-generate API docs with swagger-jsdoc and swagger-ui-express."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates express api documentation with swagger."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Express API Documentation with Swagger?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Express API Documentation with Swagger is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Express API Documentation with Swagger?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Express API Documentation with Swagger?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Express API Documentation with Swagger?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Express API Documentation with Swagger?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "express-12",
+  "track": "express",
+  "title": "Express Rate Limiting & Caching",
+  "description": "Implement rate limiting, Redis caching, and response compression.",
+  "difficulty": "advanced",
+  "estMinutes": 65,
+  "order": 12,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Express Rate Limiting & Caching"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers express rate limiting & caching. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Implement rate limiting, Redis caching, and response compression."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates express rate limiting & caching."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Express Rate Limiting & Caching?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Express Rate Limiting & Caching is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Express Rate Limiting & Caching?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Express Rate Limiting & Caching?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Express Rate Limiting & Caching?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Express Rate Limiting & Caching?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "express-13",
+  "track": "express",
+  "title": "Express Microservices Pattern",
+  "description": "Split a monolithic Express app into microservices with API gateway.",
+  "difficulty": "advanced",
+  "estMinutes": 90,
+  "order": 13,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Express Microservices Pattern"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers express microservices pattern. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Split a monolithic Express app into microservices with API gateway."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates express microservices pattern."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Express Microservices Pattern?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Express Microservices Pattern is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Express Microservices Pattern?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Express Microservices Pattern?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Express Microservices Pattern?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Express Microservices Pattern?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "express-14",
+  "track": "express",
+  "title": "Express GraphQL Integration",
+  "description": "Add a GraphQL endpoint to an existing Express REST API.",
+  "difficulty": "advanced",
+  "estMinutes": 75,
+  "order": 14,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Express GraphQL Integration"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers express graphql integration. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Add a GraphQL endpoint to an existing Express REST API."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates express graphql integration."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Express GraphQL Integration?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Express GraphQL Integration is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Express GraphQL Integration?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Express GraphQL Integration?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Express GraphQL Integration?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Express GraphQL Integration?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "express-15",
+  "track": "express",
+  "title": "Express Capstone \u2014 Full-Stack API",
+  "description": "Build a production-grade REST API with auth, validation, database, tests, and deployment.",
+  "difficulty": "advanced",
+  "estMinutes": 120,
+  "order": 15,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Express Capstone \u2014 Full-Stack API"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers express capstone \u2014 full-stack api. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Build a production-grade REST API with auth, validation, database, tests, and deployment."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates express capstone \u2014 full-stack api."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Express Capstone \u2014 Full-Stack API?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Express Capstone \u2014 Full-Stack API is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Express Capstone \u2014 Full-Stack API?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Express Capstone \u2014 Full-Stack API?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Express Capstone \u2014 Full-Stack API?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Express Capstone \u2014 Full-Stack API?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "graphql-06",
+  "track": "graphql",
+  "title": "GraphQL Subscriptions \u2014 Real-Time Data",
+  "description": "Implement real-time updates with GraphQL subscriptions and WebSockets.",
+  "difficulty": "advanced",
+  "estMinutes": 75,
+  "order": 6,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "GraphQL Subscriptions \u2014 Real-Time Data"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers graphql subscriptions \u2014 real-time data. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Implement real-time updates with GraphQL subscriptions and WebSockets."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates graphql subscriptions \u2014 real-time data."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of GraphQL Subscriptions \u2014 Real-Time Data?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "GraphQL Subscriptions \u2014 Real-Time Data is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using GraphQL Subscriptions \u2014 Real-Time Data?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning GraphQL Subscriptions \u2014 Real-Time Data?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with GraphQL Subscriptions \u2014 Real-Time Data?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master GraphQL Subscriptions \u2014 Real-Time Data?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "graphql-07",
+  "track": "graphql",
+  "title": "GraphQL with Databases (Prisma)",
+  "description": "Connect GraphQL to a database using Prisma ORM.",
+  "difficulty": "intermediate",
+  "estMinutes": 70,
+  "order": 7,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "GraphQL with Databases (Prisma)"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers graphql with databases (prisma). Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Connect GraphQL to a database using Prisma ORM."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates graphql with databases (prisma)."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of GraphQL with Databases (Prisma)?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "GraphQL with Databases (Prisma) is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using GraphQL with Databases (Prisma)?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning GraphQL with Databases (Prisma)?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with GraphQL with Databases (Prisma)?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master GraphQL with Databases (Prisma)?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "graphql-08",
+  "track": "graphql",
+  "title": "GraphQL Authentication & Authorization",
+  "description": "Implement auth in GraphQL \u2014 context-based, field-level, and directive-based.",
+  "difficulty": "advanced",
+  "estMinutes": 80,
+  "order": 8,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "GraphQL Authentication & Authorization"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers graphql authentication & authorization. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Implement auth in GraphQL \u2014 context-based, field-level, and directive-based."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates graphql authentication & authorization."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of GraphQL Authentication & Authorization?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "GraphQL Authentication & Authorization is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using GraphQL Authentication & Authorization?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning GraphQL Authentication & Authorization?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with GraphQL Authentication & Authorization?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master GraphQL Authentication & Authorization?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "graphql-09",
+  "track": "graphql",
+  "title": "GraphQL DataLoader \u2014 Solving N+1",
+  "description": "Use DataLoader to batch and cache database queries.",
+  "difficulty": "advanced",
+  "estMinutes": 65,
+  "order": 9,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "GraphQL DataLoader \u2014 Solving N+1"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers graphql dataloader \u2014 solving n+1. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Use DataLoader to batch and cache database queries."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates graphql dataloader \u2014 solving n+1."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of GraphQL DataLoader \u2014 Solving N+1?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "GraphQL DataLoader \u2014 Solving N+1 is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using GraphQL DataLoader \u2014 Solving N+1?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning GraphQL DataLoader \u2014 Solving N+1?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with GraphQL DataLoader \u2014 Solving N+1?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master GraphQL DataLoader \u2014 Solving N+1?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "graphql-10",
+  "track": "graphql",
+  "title": "GraphQL Federation \u2014 Microservices",
+  "description": "Combine multiple GraphQL APIs into a single unified graph with Apollo Federation.",
+  "difficulty": "advanced",
+  "estMinutes": 85,
+  "order": 10,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "GraphQL Federation \u2014 Microservices"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers graphql federation \u2014 microservices. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Combine multiple GraphQL APIs into a single unified graph with Apollo Federation."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates graphql federation \u2014 microservices."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of GraphQL Federation \u2014 Microservices?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "GraphQL Federation \u2014 Microservices is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using GraphQL Federation \u2014 Microservices?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning GraphQL Federation \u2014 Microservices?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with GraphQL Federation \u2014 Microservices?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master GraphQL Federation \u2014 Microservices?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "graphql-11",
+  "track": "graphql",
+  "title": "GraphQL Testing Strategies",
+  "description": "Test GraphQL APIs with unit tests, integration tests, and snapshot testing.",
+  "difficulty": "intermediate",
+  "estMinutes": 60,
+  "order": 11,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "GraphQL Testing Strategies"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers graphql testing strategies. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Test GraphQL APIs with unit tests, integration tests, and snapshot testing."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates graphql testing strategies."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of GraphQL Testing Strategies?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "GraphQL Testing Strategies is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using GraphQL Testing Strategies?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning GraphQL Testing Strategies?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with GraphQL Testing Strategies?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master GraphQL Testing Strategies?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "graphql-12",
+  "track": "graphql",
+  "title": "GraphQL Code Generation",
+  "description": "Auto-generate TypeScript types and React hooks from your GraphQL schema.",
+  "difficulty": "intermediate",
+  "estMinutes": 55,
+  "order": 12,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "GraphQL Code Generation"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers graphql code generation. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Auto-generate TypeScript types and React hooks from your GraphQL schema."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates graphql code generation."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of GraphQL Code Generation?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "GraphQL Code Generation is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using GraphQL Code Generation?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning GraphQL Code Generation?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with GraphQL Code Generation?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master GraphQL Code Generation?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "graphql-13",
+  "track": "graphql",
+  "title": "GraphQL File Uploads",
+  "description": "Handle file uploads in GraphQL with multipart mutations.",
+  "difficulty": "advanced",
+  "estMinutes": 60,
+  "order": 13,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "GraphQL File Uploads"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers graphql file uploads. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Handle file uploads in GraphQL with multipart mutations."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates graphql file uploads."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of GraphQL File Uploads?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "GraphQL File Uploads is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using GraphQL File Uploads?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning GraphQL File Uploads?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with GraphQL File Uploads?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master GraphQL File Uploads?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "graphql-14",
+  "track": "graphql",
+  "title": "GraphQL Caching Strategies",
+  "description": "Cache at the HTTP level, Apollo Client level, and with CDNs.",
+  "difficulty": "advanced",
+  "estMinutes": 70,
+  "order": 14,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "GraphQL Caching Strategies"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers graphql caching strategies. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Cache at the HTTP level, Apollo Client level, and with CDNs."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates graphql caching strategies."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of GraphQL Caching Strategies?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "GraphQL Caching Strategies is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using GraphQL Caching Strategies?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning GraphQL Caching Strategies?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with GraphQL Caching Strategies?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master GraphQL Caching Strategies?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "graphql-15",
+  "track": "graphql",
+  "title": "GraphQL Capstone \u2014 Full-Stack App",
+  "description": "Build a complete GraphQL app with server, client, auth, subscriptions, and database.",
+  "difficulty": "advanced",
+  "estMinutes": 120,
+  "order": 15,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "GraphQL Capstone \u2014 Full-Stack App"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers graphql capstone \u2014 full-stack app. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Build a complete GraphQL app with server, client, auth, subscriptions, and database."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates graphql capstone \u2014 full-stack app."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of GraphQL Capstone \u2014 Full-Stack App?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "GraphQL Capstone \u2014 Full-Stack App is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using GraphQL Capstone \u2014 Full-Stack App?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning GraphQL Capstone \u2014 Full-Stack App?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with GraphQL Capstone \u2014 Full-Stack App?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master GraphQL Capstone \u2014 Full-Stack App?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "kubernetes-06",
+  "track": "kubernetes",
+  "title": "Kubernetes StatefulSets \u2014 Stateful Apps",
+  "description": "Deploy stateful applications (databases) with StatefulSets and persistent storage.",
+  "difficulty": "advanced",
+  "estMinutes": 80,
+  "order": 6,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Kubernetes StatefulSets \u2014 Stateful Apps"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers kubernetes statefulsets \u2014 stateful apps. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Deploy stateful applications (databases) with StatefulSets and persistent storage."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates kubernetes statefulsets \u2014 stateful apps."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Kubernetes StatefulSets \u2014 Stateful Apps?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Kubernetes StatefulSets \u2014 Stateful Apps is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Kubernetes StatefulSets \u2014 Stateful Apps?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Kubernetes StatefulSets \u2014 Stateful Apps?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Kubernetes StatefulSets \u2014 Stateful Apps?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Kubernetes StatefulSets \u2014 Stateful Apps?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "kubernetes-07",
+  "track": "kubernetes",
+  "title": "Kubernetes Jobs & CronJobs",
+  "description": "Run batch jobs and scheduled tasks in Kubernetes.",
+  "difficulty": "intermediate",
+  "estMinutes": 55,
+  "order": 7,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Kubernetes Jobs & CronJobs"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers kubernetes jobs & cronjobs. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Run batch jobs and scheduled tasks in Kubernetes."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates kubernetes jobs & cronjobs."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Kubernetes Jobs & CronJobs?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Kubernetes Jobs & CronJobs is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Kubernetes Jobs & CronJobs?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Kubernetes Jobs & CronJobs?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Kubernetes Jobs & CronJobs?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Kubernetes Jobs & CronJobs?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "kubernetes-08",
+  "track": "kubernetes",
+  "title": "Kubernetes Ingress \u2014 HTTP Routing",
+  "description": "Route HTTP traffic to services with Ingress controllers and rules.",
+  "difficulty": "advanced",
+  "estMinutes": 70,
+  "order": 8,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Kubernetes Ingress \u2014 HTTP Routing"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers kubernetes ingress \u2014 http routing. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Route HTTP traffic to services with Ingress controllers and rules."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates kubernetes ingress \u2014 http routing."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Kubernetes Ingress \u2014 HTTP Routing?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Kubernetes Ingress \u2014 HTTP Routing is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Kubernetes Ingress \u2014 HTTP Routing?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Kubernetes Ingress \u2014 HTTP Routing?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Kubernetes Ingress \u2014 HTTP Routing?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Kubernetes Ingress \u2014 HTTP Routing?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "kubernetes-09",
+  "track": "kubernetes",
+  "title": "Kubernetes Helm \u2014 Package Management",
+  "description": "Create, install, and manage Helm charts for reusable deployments.",
+  "difficulty": "intermediate",
+  "estMinutes": 65,
+  "order": 9,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Kubernetes Helm \u2014 Package Management"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers kubernetes helm \u2014 package management. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Create, install, and manage Helm charts for reusable deployments."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates kubernetes helm \u2014 package management."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Kubernetes Helm \u2014 Package Management?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Kubernetes Helm \u2014 Package Management is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Kubernetes Helm \u2014 Package Management?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Kubernetes Helm \u2014 Package Management?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Kubernetes Helm \u2014 Package Management?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Kubernetes Helm \u2014 Package Management?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "kubernetes-10",
+  "track": "kubernetes",
+  "title": "Kubernetes Observability \u2014 Monitoring",
+  "description": "Set up Prometheus, Grafana, and Loki for cluster monitoring and logging.",
+  "difficulty": "advanced",
+  "estMinutes": 85,
+  "order": 10,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Kubernetes Observability \u2014 Monitoring"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers kubernetes observability \u2014 monitoring. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Set up Prometheus, Grafana, and Loki for cluster monitoring and logging."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates kubernetes observability \u2014 monitoring."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Kubernetes Observability \u2014 Monitoring?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Kubernetes Observability \u2014 Monitoring is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Kubernetes Observability \u2014 Monitoring?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Kubernetes Observability \u2014 Monitoring?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Kubernetes Observability \u2014 Monitoring?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Kubernetes Observability \u2014 Monitoring?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "kubernetes-11",
+  "track": "kubernetes",
+  "title": "Kubernetes GitOps with ArgoCD",
+  "description": "Implement GitOps \u2014 declarative deployments synced from Git with ArgoCD.",
+  "difficulty": "advanced",
+  "estMinutes": 75,
+  "order": 11,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Kubernetes GitOps with ArgoCD"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers kubernetes gitops with argocd. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Implement GitOps \u2014 declarative deployments synced from Git with ArgoCD."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates kubernetes gitops with argocd."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Kubernetes GitOps with ArgoCD?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Kubernetes GitOps with ArgoCD is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Kubernetes GitOps with ArgoCD?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Kubernetes GitOps with ArgoCD?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Kubernetes GitOps with ArgoCD?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Kubernetes GitOps with ArgoCD?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "kubernetes-12",
+  "track": "kubernetes",
+  "title": "Kubernetes Security \u2014 RBAC & Policies",
+  "description": "Implement RBAC, NetworkPolicies, and Pod Security Standards.",
+  "difficulty": "advanced",
+  "estMinutes": 80,
+  "order": 12,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Kubernetes Security \u2014 RBAC & Policies"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers kubernetes security \u2014 rbac & policies. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Implement RBAC, NetworkPolicies, and Pod Security Standards."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates kubernetes security \u2014 rbac & policies."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Kubernetes Security \u2014 RBAC & Policies?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Kubernetes Security \u2014 RBAC & Policies is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Kubernetes Security \u2014 RBAC & Policies?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Kubernetes Security \u2014 RBAC & Policies?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Kubernetes Security \u2014 RBAC & Policies?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Kubernetes Security \u2014 RBAC & Policies?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "kubernetes-13",
+  "track": "kubernetes",
+  "title": "Kubernetes Multi-Cluster Management",
+  "description": "Manage multiple clusters with KubeFed, Cluster API, and multi-cluster service mesh.",
+  "difficulty": "advanced",
+  "estMinutes": 90,
+  "order": 13,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Kubernetes Multi-Cluster Management"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers kubernetes multi-cluster management. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Manage multiple clusters with KubeFed, Cluster API, and multi-cluster service mesh."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates kubernetes multi-cluster management."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Kubernetes Multi-Cluster Management?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Kubernetes Multi-Cluster Management is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Kubernetes Multi-Cluster Management?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Kubernetes Multi-Cluster Management?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Kubernetes Multi-Cluster Management?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Kubernetes Multi-Cluster Management?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "kubernetes-14",
+  "track": "kubernetes",
+  "title": "Kubernetes Cost Optimization",
+  "description": "Optimize cluster costs with resource requests/limits, HPA, VPA, and cluster autoscaler.",
+  "difficulty": "advanced",
+  "estMinutes": 70,
+  "order": 14,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Kubernetes Cost Optimization"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers kubernetes cost optimization. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Optimize cluster costs with resource requests/limits, HPA, VPA, and cluster autoscaler."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates kubernetes cost optimization."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Kubernetes Cost Optimization?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Kubernetes Cost Optimization is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Kubernetes Cost Optimization?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Kubernetes Cost Optimization?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Kubernetes Cost Optimization?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Kubernetes Cost Optimization?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "kubernetes-15",
+  "track": "kubernetes",
+  "title": "Kubernetes Capstone \u2014 Production Deployment",
+  "description": "Deploy a complete microservices app with CI/CD, monitoring, scaling, and zero-downtime updates.",
+  "difficulty": "advanced",
+  "estMinutes": 120,
+  "order": 15,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Kubernetes Capstone \u2014 Production Deployment"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers kubernetes capstone \u2014 production deployment. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Deploy a complete microservices app with CI/CD, monitoring, scaling, and zero-downtime updates."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates kubernetes capstone \u2014 production deployment."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Kubernetes Capstone \u2014 Production Deployment?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Kubernetes Capstone \u2014 Production Deployment is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Kubernetes Capstone \u2014 Production Deployment?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Kubernetes Capstone \u2014 Production Deployment?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Kubernetes Capstone \u2014 Production Deployment?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Kubernetes Capstone \u2014 Production Deployment?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "terraform-01",
+  "track": "terraform",
+  "title": "Getting Started with Terraform",
+  "description": "Understand Infrastructure as Code and write your first Terraform configuration.",
+  "difficulty": "beginner",
+  "estMinutes": 60,
+  "order": 1,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Getting Started with Terraform"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers getting started with terraform. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Understand Infrastructure as Code and write your first Terraform configuration."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates getting started with terraform."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Getting Started with Terraform?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Getting Started with Terraform is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Getting Started with Terraform?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Getting Started with Terraform?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Getting Started with Terraform?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Getting Started with Terraform?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "terraform-02",
+  "track": "terraform",
+  "title": "Terraform State & Resources",
+  "description": "Manage infrastructure state and create resources across cloud providers.",
+  "difficulty": "beginner",
+  "estMinutes": 65,
+  "order": 2,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Terraform State & Resources"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers terraform state & resources. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Manage infrastructure state and create resources across cloud providers."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates terraform state & resources."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Terraform State & Resources?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Terraform State & Resources is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Terraform State & Resources?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Terraform State & Resources?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Terraform State & Resources?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Terraform State & Resources?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "terraform-03",
+  "track": "terraform",
+  "title": "Terraform Modules \u2014 Reusable Infrastructure",
+  "description": "Create and use modules for reusable, composable infrastructure.",
+  "difficulty": "intermediate",
+  "estMinutes": 70,
+  "order": 3,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Terraform Modules \u2014 Reusable Infrastructure"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers terraform modules \u2014 reusable infrastructure. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Create and use modules for reusable, composable infrastructure."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates terraform modules \u2014 reusable infrastructure."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Terraform Modules \u2014 Reusable Infrastructure?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Terraform Modules \u2014 Reusable Infrastructure is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Terraform Modules \u2014 Reusable Infrastructure?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Terraform Modules \u2014 Reusable Infrastructure?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Terraform Modules \u2014 Reusable Infrastructure?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Terraform Modules \u2014 Reusable Infrastructure?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "terraform-04",
+  "track": "terraform",
+  "title": "Terraform Variables & Outputs",
+  "description": "Parameterize configurations with variables and share data with outputs.",
+  "difficulty": "intermediate",
+  "estMinutes": 55,
+  "order": 4,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Terraform Variables & Outputs"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers terraform variables & outputs. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Parameterize configurations with variables and share data with outputs."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates terraform variables & outputs."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Terraform Variables & Outputs?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Terraform Variables & Outputs is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Terraform Variables & Outputs?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Terraform Variables & Outputs?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Terraform Variables & Outputs?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Terraform Variables & Outputs?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "terraform-05",
+  "track": "terraform",
+  "title": "Terraform in CI/CD \u2014 Automated Infrastructure",
+  "description": "Automate infrastructure deployment with Terraform in CI/CD pipelines.",
+  "difficulty": "advanced",
+  "estMinutes": 75,
+  "order": 5,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Terraform in CI/CD \u2014 Automated Infrastructure"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers terraform in ci/cd \u2014 automated infrastructure. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Automate infrastructure deployment with Terraform in CI/CD pipelines."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates terraform in ci/cd \u2014 automated infrastructure."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Terraform in CI/CD \u2014 Automated Infrastructure?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Terraform in CI/CD \u2014 Automated Infrastructure is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Terraform in CI/CD \u2014 Automated Infrastructure?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Terraform in CI/CD \u2014 Automated Infrastructure?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Terraform in CI/CD \u2014 Automated Infrastructure?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Terraform in CI/CD \u2014 Automated Infrastructure?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "pytorch-01",
+  "track": "pytorch",
+  "title": "Getting Started with PyTorch",
+  "description": "Understand tensors, the fundamental data structure in PyTorch.",
+  "difficulty": "beginner",
+  "estMinutes": 65,
+  "order": 1,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Getting Started with PyTorch"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers getting started with pytorch. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Understand tensors, the fundamental data structure in PyTorch."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates getting started with pytorch."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Getting Started with PyTorch?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Getting Started with PyTorch is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Getting Started with PyTorch?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Getting Started with PyTorch?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Getting Started with PyTorch?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Getting Started with PyTorch?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "pytorch-02",
+  "track": "pytorch",
+  "title": "Building Neural Networks in PyTorch",
+  "description": "Create and train a neural network with nn.Module and autograd.",
+  "difficulty": "intermediate",
+  "estMinutes": 80,
+  "order": 2,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Building Neural Networks in PyTorch"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers building neural networks in pytorch. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Create and train a neural network with nn.Module and autograd."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates building neural networks in pytorch."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Building Neural Networks in PyTorch?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building Neural Networks in PyTorch is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Building Neural Networks in PyTorch?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Building Neural Networks in PyTorch?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Building Neural Networks in PyTorch?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Building Neural Networks in PyTorch?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "pytorch-03",
+  "track": "pytorch",
+  "title": "PyTorch Training Loops & Optimization",
+  "description": "Master training loops, loss functions, and optimizers (SGD, Adam).",
+  "difficulty": "intermediate",
+  "estMinutes": 75,
+  "order": 3,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "PyTorch Training Loops & Optimization"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers pytorch training loops & optimization. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Master training loops, loss functions, and optimizers (SGD, Adam)."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates pytorch training loops & optimization."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of PyTorch Training Loops & Optimization?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "PyTorch Training Loops & Optimization is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using PyTorch Training Loops & Optimization?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning PyTorch Training Loops & Optimization?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with PyTorch Training Loops & Optimization?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master PyTorch Training Loops & Optimization?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "pytorch-04",
+  "track": "pytorch",
+  "title": "PyTorch Datasets & DataLoaders",
+  "description": "Load and preprocess data efficiently with Dataset and DataLoader.",
+  "difficulty": "intermediate",
+  "estMinutes": 65,
+  "order": 4,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "PyTorch Datasets & DataLoaders"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers pytorch datasets & dataloaders. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Load and preprocess data efficiently with Dataset and DataLoader."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates pytorch datasets & dataloaders."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of PyTorch Datasets & DataLoaders?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "PyTorch Datasets & DataLoaders is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using PyTorch Datasets & DataLoaders?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning PyTorch Datasets & DataLoaders?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with PyTorch Datasets & DataLoaders?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master PyTorch Datasets & DataLoaders?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "pytorch-05",
+  "track": "pytorch",
+  "title": "PyTorch Model Deployment",
+  "description": "Export, optimize, and deploy PyTorch models with TorchScript and ONNX.",
+  "difficulty": "advanced",
+  "estMinutes": 85,
+  "order": 5,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "PyTorch Model Deployment"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers pytorch model deployment. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Export, optimize, and deploy PyTorch models with TorchScript and ONNX."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates pytorch model deployment."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of PyTorch Model Deployment?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "PyTorch Model Deployment is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using PyTorch Model Deployment?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning PyTorch Model Deployment?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with PyTorch Model Deployment?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master PyTorch Model Deployment?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tensorflow-01",
+  "track": "tensorflow",
+  "title": "Getting Started with TensorFlow",
+  "description": "Understand tensors and the TensorFlow execution model.",
+  "difficulty": "beginner",
+  "estMinutes": 60,
+  "order": 1,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Getting Started with TensorFlow"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers getting started with tensorflow. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Understand tensors and the TensorFlow execution model."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates getting started with tensorflow."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Getting Started with TensorFlow?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Getting Started with TensorFlow is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Getting Started with TensorFlow?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Getting Started with TensorFlow?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Getting Started with TensorFlow?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Getting Started with TensorFlow?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tensorflow-02",
+  "track": "tensorflow",
+  "title": "Building Models with Keras",
+  "description": "Create neural networks with the Keras Sequential and Functional APIs.",
+  "difficulty": "intermediate",
+  "estMinutes": 75,
+  "order": 2,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "Building Models with Keras"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers building models with keras. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Create neural networks with the Keras Sequential and Functional APIs."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates building models with keras."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of Building Models with Keras?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building Models with Keras is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using Building Models with Keras?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning Building Models with Keras?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with Building Models with Keras?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master Building Models with Keras?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tensorflow-03",
+  "track": "tensorflow",
+  "title": "TensorFlow Training & Callbacks",
+  "description": "Train models with custom loops, callbacks, and early stopping.",
+  "difficulty": "intermediate",
+  "estMinutes": 70,
+  "order": 3,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "TensorFlow Training & Callbacks"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers tensorflow training & callbacks. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Train models with custom loops, callbacks, and early stopping."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates tensorflow training & callbacks."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of TensorFlow Training & Callbacks?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "TensorFlow Training & Callbacks is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using TensorFlow Training & Callbacks?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning TensorFlow Training & Callbacks?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with TensorFlow Training & Callbacks?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master TensorFlow Training & Callbacks?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tensorflow-04",
+  "track": "tensorflow",
+  "title": "TensorFlow Data Pipelines",
+  "description": "Build efficient data pipelines with tf.data API.",
+  "difficulty": "intermediate",
+  "estMinutes": 65,
+  "order": 4,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "TensorFlow Data Pipelines"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers tensorflow data pipelines. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Build efficient data pipelines with tf.data API."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates tensorflow data pipelines."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of TensorFlow Data Pipelines?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "TensorFlow Data Pipelines is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using TensorFlow Data Pipelines?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning TensorFlow Data Pipelines?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with TensorFlow Data Pipelines?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master TensorFlow Data Pipelines?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
+},
+{
+  "id": "tensorflow-05",
+  "track": "tensorflow",
+  "title": "TensorFlow Lite & JS \u2014 Edge Deployment",
+  "description": "Deploy models to mobile (TFLite) and browser (TFJS).",
+  "difficulty": "advanced",
+  "estMinutes": 80,
+  "order": 5,
+  "blocks": [
+    {
+      "kind": "heading",
+      "content": "TensorFlow Lite & JS \u2014 Edge Deployment"
+    },
+    {
+      "kind": "whyItMatters",
+      "content": "This lesson covers tensorflow lite & js \u2014 edge deployment. Understanding this is essential for real-world proficiency and is commonly asked in technical interviews."
+    },
+    {
+      "kind": "text",
+      "content": "Deploy models to mobile (TFLite) and browser (TFJS)."
+    },
+    {
+      "kind": "prerequisites",
+      "items": [
+        "Basic understanding of the language/tool",
+        "A code editor and terminal"
+      ]
+    },
+    {
+      "kind": "topics",
+      "items": [
+        "Core concepts and theory",
+        "Practical code examples",
+        "Common patterns and best practices",
+        "Common pitfalls and how to avoid them"
+      ]
+    },
+    {
+      "kind": "keyConcepts",
+      "items": [
+        "Fundamental concept 1: understanding the core abstraction",
+        "Fundamental concept 2: how to apply it in practice",
+        "Fundamental concept 3: common patterns and idioms"
+      ]
+    },
+    {
+      "kind": "pitfalls",
+      "items": [
+        "Not understanding the fundamentals before diving into advanced topics",
+        "Skipping hands-on practice \u2014 theory alone isn't enough"
+      ]
+    },
+    {
+      "kind": "interviewQuestions",
+      "items": [
+        "What is the main purpose of this technology?",
+        "How does it compare to alternatives?",
+        "What are the key trade-offs?"
+      ]
+    },
+    {
+      "kind": "miniProject",
+      "content": "Build a small project that demonstrates tensorflow lite & js \u2014 edge deployment."
+    },
+    {
+      "kind": "exercises",
+      "items": [
+        "Exercise 1: Implement a basic example",
+        "Exercise 2: Modify the example to handle edge cases"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q1",
+      "question": "What is the primary purpose of TensorFlow Lite & JS \u2014 Edge Deployment?",
+      "options": [
+        "To replace all other tools",
+        "To solve a specific class of problems efficiently",
+        "To make code run faster",
+        "To reduce code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "TensorFlow Lite & JS \u2014 Edge Deployment is designed to solve a specific class of problems efficiently \u2014 not to replace all other tools."
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following is a key benefit of using TensorFlow Lite & JS \u2014 Edge Deployment?",
+      "options": [
+        "It requires no learning",
+        "It provides standardization and reproducibility",
+        "It's always the fastest option",
+        "It works without configuration"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standardization and reproducibility are key benefits \u2014 the same setup works everywhere."
+    },
+    {
+      "id": "q3",
+      "question": "What is a common mistake when learning TensorFlow Lite & JS \u2014 Edge Deployment?",
+      "options": [
+        "Reading the documentation",
+        "Skipping fundamentals and jumping to advanced topics",
+        "Practicing with real examples",
+        "Asking for help"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skipping fundamentals is a common mistake \u2014 you need a solid foundation before advanced topics."
+    },
+    {
+      "id": "q4",
+      "question": "How should you approach debugging issues with TensorFlow Lite & JS \u2014 Edge Deployment?",
+      "options": [
+        "Guess randomly",
+        "Check logs, read error messages, and consult documentation",
+        "Restart everything",
+        "Give up and try a different tool"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always check logs, read error messages carefully, and consult the documentation \u2014 systematic debugging is key."
+    },
+    {
+      "id": "q5",
+      "question": "What's the best way to master TensorFlow Lite & JS \u2014 Edge Deployment?",
+      "options": [
+        "Read about it only",
+        "Build real projects and practice regularly",
+        "Watch one video",
+        "Memorize commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Building real projects and practicing regularly is the most effective way to master any technology."
+    }
+  ],
+  "youtubeUrl": ""
 }
 ];
 
@@ -187572,6 +196417,10 @@ export const ALL_LANGUAGE_INFO: Record<string, { id: string; name: string; icon:
   express: { id: "express", name: "Express.js", icon: "🚂", color: "#000000" },
   graphql: { id: "graphql", name: "GraphQL", icon: "🔗", color: "#E10098" },
   kubernetes: { id: "kubernetes", name: "Kubernetes", icon: "☸️", color: "#326CE5" },
+  // Section 19 — New gap languages
+  terraform: { id: "terraform", name: "Terraform", icon: "🏗️", color: "#7B42BC" },
+  pytorch: { id: "pytorch", name: "PyTorch", icon: "🔥", color: "#EE4C2C" },
+  tensorflow: { id: "tensorflow", name: "TensorFlow", icon: "🧠", color: "#FF6F00" },
 };
 
 export function getTrackLessons(trackId: string): Lesson[] {
