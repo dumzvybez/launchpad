@@ -141,24 +141,6 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
           >
             Launchpad
           </h1>
-          <p
-            className="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground"
-          >
-            Coding Education Platform
-          </p>
-
-          {/* Cycling subtitle */}
-          <div className="h-5 mt-2 overflow-hidden">
-            <p
-              key={subtitleIdx}
-              className="text-sm text-foreground/80 italic"
-              style={{
-                animation: "splash-subtitle-in 500ms cubic-bezier(0.16, 1, 0.3, 1)",
-              }}
-            >
-              {SUBTITLES[subtitleIdx]}
-            </p>
-          </div>
         </div>
 
         {/* Loading bar */}
