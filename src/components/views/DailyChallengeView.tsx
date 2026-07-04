@@ -53,6 +53,7 @@ export function DailyChallengeView() {
 
   const [showHint, setShowHint] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
+  const [showWeekChallenges, setShowWeekChallenges] = useState(false);
   const [userSolution, setUserSolution] = useState(todayTask?.starterCode ?? "");
   const [output, setOutput] = useState<string[]>([]);
 
@@ -254,11 +255,18 @@ export function DailyChallengeView() {
         </div>
       </GlassCard>
 
-      {/* This week's challenges — 7 from the user's pool */}
+      {/* This week's challenges — collapsed by default (Section 6) */}
       <div>
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-2">
+        <button
+          onClick={() => setShowWeekChallenges(!showWeekChallenges)}
+          className="w-full flex items-center gap-2 text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 hover:text-foreground transition-colors"
+        >
           <Calendar className="h-3.5 w-3.5" /> This week&apos;s challenges (week of {weekStart})
-        </h3>
+          <span className="ml-auto text-[10px] normal-case font-normal">
+            {showWeekChallenges ? "Hide ▲" : "Show ▼"}
+          </span>
+        </button>
+        {showWeekChallenges && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
           {weekTasks.map((c, i) => {
             const dayName = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i];
@@ -283,6 +291,7 @@ export function DailyChallengeView() {
             );
           })}
         </div>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,145 @@
 # Launchpad CHANGELOG
 
-This file merges all previous changelogs (v2.68, v2.68.1) and adds the new
-**v3 (Mega Prompt 3)** entries. Entries are in reverse chronological order.
+This file merges all previous changelogs (v2.68, v2.68.1, v3) and adds the new
+**v4 (UX Redesign Round)** entries. Entries are in reverse chronological order.
+
+---
+
+## v4 — UX Redesign Round (Part 1)
+
+### Bug Fixes & UX Redesigns
+
+#### 1. Splash screen — removed text below animation
+- Removed "Coding Education Platform" subtitle and cycling taglines from the
+  splash screen. Only the animated logo + loading bar remain.
+- Removed unused `SUBTITLES` array and subtitle cycling timers.
+
+#### 2. Shareable PNG export — fixed black background
+- **Root cause:** `html-to-image` was forced to use `backgroundColor: "#0d1117"`
+  and `pixelRatio: 1`, which caused dark-on-dark rendering on cards that
+  already had their own dark background styling.
+- **Fix:** Removed the forced `backgroundColor` (let the card's own styling
+  determine the background), increased `pixelRatio` to 2 for sharper output,
+  and enabled font embedding (`skipFonts: false`).
+
+#### 3. Learn tab — filter tabs now functional
+- **Root cause:** The Bookmarked/In Progress/Completed filter chips existed
+  but the `lessonFilter` state was never used to actually filter the displayed
+  content. Clicking a filter did nothing.
+- **Fix:** Added a filtered lessons view that shows a flat grid of matching
+  lessons when a filter is active (instead of track cards). Each filter shows
+  the correct lessons with bookmark/progress status icons. Empty states show
+  helpful messages. Track cards are only shown when filter is "all".
+
+#### 5. Learn tab — print button produces empty pages
+- **Root cause:** The print CSS (`@media print`) uses `visibility: hidden` on
+  everything except `.lesson-content`. But only the lesson header card had
+  the `lesson-content` class — the actual lesson content blocks (code, text,
+  tips) were in separate cards without the class, so they were hidden in print.
+- **Fix:** Moved `lesson-content` class to the entire lesson view container.
+  Added `no-print` class to the breadcrumb nav, YouTube embed, and action
+  buttons so they're excluded from print output.
+
+#### 6. Daily Challenge — "This Week's Challenges" collapsed by default
+- Added `showWeekChallenges` state (default `false`). The week's challenges
+  section is now collapsed by default with a "Show ▼" / "Hide ▲" toggle.
+
+#### 10. Community tab — auto-refresh flicker fix
+- **Root cause:** Full Giscus iframe re-injection every 10 seconds caused
+  comments to flicker (disappear and reappear).
+- **Fix:** Increased interval to 60 seconds. Added interaction detection —
+  auto-refresh is paused while the user is hovering, typing, or scrolling
+  inside the Giscus area, and resumes 10 seconds after they stop interacting.
+  Updated status text to "Auto-refreshes every 60s (paused while you interact)".
+
+#### 12. Selection menus — theme mismatch fix
+- Added global CSS in `globals.css` for `select`, `select option`, and native
+  date/time inputs. They now inherit background/foreground colors from the
+  active theme instead of using browser defaults.
+
+#### 13. Header — removed yellow triangle (!) button
+- Removed the "Privacy info" button (yellow circle with "!" icon) from the
+  TopBar. Also removed the associated `showPrivacyPopup` state, `privacyRef`,
+  click-outside handler, and `Shield` icon import.
+
+#### 14. Left panel collapse — layout expansion + flyout redesign
+- **Layout fix:** The sidebar container width in AppShell now responds to
+  the collapsed state (`w-[80px]` when collapsed, `w-[244px]` when expanded),
+  with a smooth `transition-all duration-300`. Content correctly fills the
+  freed space when collapsed.
+- **State management:** Moved collapse state from Sidebar to AppShell
+  (`sidebarCollapsed` + `setSidebarCollapsed`), persisted to localStorage.
+  Sidebar receives `collapsedState` and `onToggleCollapse` props.
+- **Flyout redesign:** When collapsed, each group (Learning, Learn,
+  Productivity, System) shows a representative icon (LayoutDashboard,
+  GraduationCap, Wrench, User). Hovering a group icon reveals a flyout
+  menu with all tabs in that group, styled as a glass-elevated card with
+  smooth fade-in animation.
+
+#### 15. Favicon — fixed blurry/unclear
+- **Root cause:** `favicon.ico` was only 16x16 (242 bytes) — too small for
+  modern high-DPI displays.
+- **Fix:** Generated a multi-size ICO (16x16, 32x32, 48x48, 64x64) from the
+  existing 192px icon using PIL. Also regenerated `favicon-16.png` and
+  `favicon-32.png` at higher quality.
+
+#### 16. Mobile banner — removed
+- The "Use desktop for a better experience" banner is now completely removed
+  (MobileBanner returns null). The mobile UI is being optimized to work well
+  on all screen sizes.
+
+### Part 2 — Additional Fixes
+
+#### 4. Learn tab — hide other languages by default (like Projects tab)
+- Added `showExploreMore` state (default `false`). The "Explore More" section
+  is now hidden by default with a "Show ▼" / "Hide ▲" toggle button, matching
+  the Projects tab behavior. Plan languages are always visible.
+
+#### 7. AI Tutor — chat history toggle + layout fix + mobile fix
+- **History toggle:** Changed `showHistory` default from `fullTab` to `false`.
+  The history sidebar is now hidden by default in all modes. A toggle button
+  (MessageSquare icon) is always visible in the chat header — highlighted when
+  active. Clicking it shows/hides the history sidebar, expanding the chat area.
+- **Mobile fix:** The history sidebar uses `hidden md:flex` on desktop and a
+  full-screen overlay on mobile. Updated AITutorView container to use
+  responsive height (`h-[calc(100vh-180px)] min-h-[400px] sm:min-h-[500px]`).
+
+#### 8. Flashcards — design enhancement
+- **Header:** Redesigned with gradient accent background, stats badges (Due /
+  Total / Session ✓), and emoji icon.
+- **Card flip:** Enhanced with gradient borders (primary for front, emerald
+  for back), glow-on-hover, pulsing "Tap to flip" indicator, and decorative
+  diamond markers (◇ Question ◇ / ◆ Answer ◆).
+- **Progress bar:** Added a gradient progress bar showing position in the deck.
+- **Session stats:** Moved from filter bar to the progress row for better
+  visibility.
+
+#### 11. Consolidate AI buttons — unified bubble + fix send bug
+- **Send bug fix:** The "I Don't Understand" button in quizzes previously
+  created a chat and added a user message but never actually sent it to the
+  AI API — the message just sat there. Fixed by adding a
+  `pendingTutorMessage` field to the store and a `useEffect` in AIChat that
+  auto-sends the pending message (creates chat, adds user message, calls the
+  `/api/chat` endpoint, adds the AI response) when one is set.
+- **Unified bubble:** Both "I Don't Understand" (quizzes) and "Get AI Code
+  Review" (Projects) now use the same `setPendingTutorMessage` + `setAiTutorOpen`
+  mechanism. Both open the AI Tutor floating bubble (not a full-screen tab or
+  separate modal) with the message pre-loaded and auto-sent. Consistent UX
+  across both locations.
+
+### Remaining items (Part 3 — next round)
+
+The following items require significant additional work and will be completed
+in the next round:
+
+- **#9** — Tools tab: full UX/UI redesign
+- **#16 (continued)** — Full mobile UI/UX audit and optimization
+- **#17** — Full desktop UI/UX audit and fixes
+- **#18** — Onboarding: language selection UX improvements
+- **#19** — Gap languages: 15+ lessons per language, quizzes, daily challenges,
+  projects, YouTube links for all ~30 onboarding languages
+- **Routing refactor** — React state → Next.js App Router routes
+- **SEO update** — sitemap.xml + robots.txt
 
 ---
 

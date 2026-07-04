@@ -599,6 +599,10 @@ type Store = {
   // Regenerate plan
   startOnboardingAgain: () => void;
   clearForceOnboarding: () => void;
+
+  // Section 11 — unified AI bubble: pending message for auto-send
+  pendingTutorMessage: string | null;
+  setPendingTutorMessage: (msg: string | null) => void;
 };
 
 export const HABIT_DEFINITIONS = [
@@ -644,6 +648,7 @@ export const useStore = create<Store>((set, get) => {
     playgroundLanguage: "javascript",
     forceOnboarding: false,
     reviewModeLessonId: null,
+    pendingTutorMessage: null,
 
     hydrate: () => {
       if (get().hydrated) return;
@@ -1380,6 +1385,9 @@ export const useStore = create<Store>((set, get) => {
     },
 
     clearForceOnboarding: () => set({ forceOnboarding: false }),
+
+    // Section 11 — unified AI bubble
+    setPendingTutorMessage: (msg) => set({ pendingTutorMessage: msg }),
   };
 });
 

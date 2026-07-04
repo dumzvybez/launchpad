@@ -146,29 +146,44 @@ export function CommunityView() {
     injectGiscus();
   }, [injectGiscus, reloadKey]);
 
-  // Auto-refresh: re-inject Giscus every 60 seconds while the tab is visible,
-  // so users see new comments without having to click Reload. Pauses when the
-  // tab is hidden (saves bandwidth + Giscus API quota).
+  // Auto-refresh: re-inject Giscus every 60 seconds while the tab is visible
+  // AND the user is NOT actively interacting (hovering, typing, or scrolling
+  // inside the Giscus area). This fixes the comment flicker issue caused by
+  // the previous 10-second full re-injection cycle. The interval is paused
+  // when the user is hovering over the comment area or has focus inside it.
   useEffect(() => {
     let timer: ReturnType<typeof setInterval> | null = null;
+    let userInteracting = false;
+    let interactionTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    const markInteracting = () => {
+      userInteracting = true;
+      if (interactionTimeout) clearTimeout(interactionTimeout);
+      // Resume auto-refresh 10 seconds after the user stops interacting
+      interactionTimeout = setTimeout(() => { userInteracting = false; }, 10_000);
+    };
+
     const start = () => {
       if (timer) return;
       timer = setInterval(() => {
-        if (document.visibilityState === "visible") {
+        if (document.visibilityState === "visible" && !userInteracting) {
           setReloadKey((k) => k + 1);
         }
-      }, 10_000); // 10 seconds (Section 15)
+      }, 60_000); // 60 seconds — fixes flicker (was 10s)
     };
     const stop = () => {
       if (timer) { clearInterval(timer); timer = null; }
     };
     start();
-    // Single visibilitychange listener that starts the timer when the tab
-    // becomes visible and stops it when hidden. Previously `start` and `stop`
-    // were both registered as separate listeners and fired in registration
-    // order on every visibility change — so `stop` always cleared whatever
-    // `start` had just set up, permanently disabling auto-refresh after the
-    // first tab switch.
+
+    // Pause during user interaction with the Giscus area
+    const giscusContainer = giscusContainerRef.current;
+    if (giscusContainer) {
+      giscusContainer.addEventListener("mouseenter", markInteracting);
+      giscusContainer.addEventListener("focusin", markInteracting);
+      giscusContainer.addEventListener("scroll", markInteracting, { passive: true });
+    }
+
     const onVis = () => {
       if (document.visibilityState === "visible") start();
       else stop();
@@ -177,6 +192,12 @@ export function CommunityView() {
     return () => {
       stop();
       document.removeEventListener("visibilitychange", onVis);
+      if (giscusContainer) {
+        giscusContainer.removeEventListener("mouseenter", markInteracting);
+        giscusContainer.removeEventListener("focusin", markInteracting);
+        giscusContainer.removeEventListener("scroll", markInteracting);
+      }
+      if (interactionTimeout) clearTimeout(interactionTimeout);
     };
   }, []);
 
@@ -228,7 +249,7 @@ export function CommunityView() {
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
           <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
         </span>
-        Auto-refreshes every 10s while this tab is visible
+        Auto-refreshes every 60s (paused while you interact)
         {lastRefreshedAt && (
           <span className="text-muted-foreground/70">
             · last updated {lastRefreshedAt.toLocaleTimeString()}

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   Search,
   Command,
-  Shield,
+
   Maximize,
   Minimize,
   Menu,
@@ -27,10 +27,8 @@ export function TopBar() {
   const setMobileNavOpen = useStore((s) => s.setMobileNavOpen);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showPrivacyPopup, setShowPrivacyPopup] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-  const privacyRef = useRef<HTMLDivElement>(null);
 
   const nav = getNavItems(roadmap);
   const currentNav = nav.find((n) => n.id === currentView);
@@ -47,9 +45,6 @@ export function TopBar() {
     function onClick(e: MouseEvent) {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
         setShowProfileMenu(false);
-      }
-      if (privacyRef.current && !privacyRef.current.contains(e.target as Node)) {
-        setShowPrivacyPopup(false);
       }
     }
     document.addEventListener("mousedown", onClick);
@@ -122,36 +117,6 @@ export function TopBar() {
           >
             <Search className="h-4 w-4" />
           </GlassButton>
-
-          {/* Privacy ! button — yellow */}
-          <div className="relative" ref={privacyRef}>
-            <button
-              onClick={() => setShowPrivacyPopup(!showPrivacyPopup)}
-              className="p-2 rounded-lg hover:bg-foreground/5 transition-colors"
-              aria-label="Privacy info"
-              title="Privacy info"
-            >
-              <div className="h-5 w-5 rounded-full bg-amber-400 flex items-center justify-center">
-                <span className="text-xs font-bold text-amber-950">!</span>
-              </div>
-            </button>
-            {showPrivacyPopup && (
-              <div className="absolute right-0 mt-2 w-80 max-w-[90vw] rounded-xl border border-border bg-popover shadow-2xl p-4 z-50">
-                <div className="flex items-start gap-2 mb-2">
-                  <Shield className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                  <h3 className="text-sm font-semibold">Your privacy</h3>
-                </div>
-                <div className="space-y-2 text-xs text-muted-foreground leading-relaxed">
-                  <p>
-                    <strong className="text-foreground">On-device storage:</strong> All your progress, settings, roadmap, chat history, and badges are saved 100% locally in your browser. Nothing is sent to any server. We don&apos;t have accounts, we don&apos;t sync, and we don&apos;t sell your data.
-                  </p>
-                  <p>
-                    <strong className="text-foreground">AI processing:</strong> Messages you send to the AI Tutor are processed by the AI provider you configure (Gemini, Groq, OpenRouter, OpenAI, Anthropic, or a custom endpoint). Launchpad is BYOK — you provide your own API key. Don&apos;t share sensitive personal information.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
 
           {/* Fullscreen toggle */}
           <GlassButton

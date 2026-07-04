@@ -56,6 +56,7 @@ export function LearnView() {
 
   const [filterLang, setFilterLang] = useState<string | null>(null); // null = show all
   const [lessonFilter, setLessonFilter] = useState<"all" | "bookmarked" | "in-progress" | "completed">("all");
+  const [showExploreMore, setShowExploreMore] = useState(false);
   const lessonProgress = useStore((s) => s.state.lessonProgress);
   const setLessonProgress = useStore((s) => s.setLessonProgress);
   const setPlaygroundCode = useStore((s) => s.setPlaygroundCode);
@@ -169,8 +170,74 @@ export function LearnView() {
           ))}
         </div>
 
-        {/* Section 1: Your Languages (from roadmap) — track cards, no chip buttons */}
-        {planTracks.length > 0 && (
+        {/* Section 3 — Filtered lessons view (when a filter is active) */}
+        {lessonFilter !== "all" && (() => {
+          const filteredLessons = ALL_LESSONS.filter((l) => {
+            if (lessonFilter === "bookmarked") return bookmarkedLessons.includes(l.id);
+            if (lessonFilter === "in-progress") return lessonProgress[l.id]?.status === "in-progress";
+            if (lessonFilter === "completed") return lessonProgress[l.id]?.status === "complete";
+            return true;
+          });
+          return (
+            <div>
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-3 font-mono">
+                {lessonFilter === "bookmarked" && "⭐ Bookmarked lessons"}
+                {lessonFilter === "in-progress" && "🔄 Lessons in progress"}
+                {lessonFilter === "completed" && "✅ Completed lessons"}
+                {" · "}{filteredLessons.length} lesson{filteredLessons.length !== 1 ? "s" : ""}
+              </div>
+              {filteredLessons.length === 0 ? (
+                <GlassCard className="p-8 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    {lessonFilter === "bookmarked" && "No bookmarked lessons yet. Click the bookmark icon on any lesson to save it here."}
+                    {lessonFilter === "in-progress" && "No lessons in progress. Start a lesson and it'll appear here."}
+                    {lessonFilter === "completed" && "No completed lessons yet. Finish a lesson to see it here."}
+                  </p>
+                </GlassCard>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {filteredLessons.map((l) => {
+                    const langInfo = ALL_LANGUAGE_INFO[l.track];
+                    const progress = lessonProgress[l.id];
+                    return (
+                      <GlassCard
+                        key={l.id}
+                        className="p-4 hover:scale-[1.01] transition-transform cursor-pointer"
+                        onClick={() => {
+                          setSelectedTrack(l.track);
+                          setSelectedLessonId(l.id);
+                          setTab("lesson");
+                          window.scrollTo(0, 0);
+                        }}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl">{langInfo?.icon ?? "📘"}</span>
+                            <div>
+                              <h3 className="font-bold text-sm line-clamp-1">{l.title}</h3>
+                              <div className="text-[10px] text-muted-foreground font-mono">{langInfo?.name ?? l.track}</div>
+                            </div>
+                          </div>
+                          {progress?.status === "complete" && (
+                            <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                          )}
+                          {bookmarkedLessons.includes(l.id) && (
+                            <Bookmark className="h-3.5 w-3.5 fill-primary text-primary shrink-0" />
+                          )}
+                        </div>
+                        <p className="text-[11px] text-muted-foreground line-clamp-2">{l.description}</p>
+                        <div className="text-[10px] text-primary mt-2 font-medium">Open lesson →</div>
+                      </GlassCard>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* Section 1: Your Languages (from roadmap) — track cards (only when filter is "all") */}
+        {lessonFilter === "all" && planTracks.length > 0 && (
           <div>
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-3 font-mono">📚 Your languages · {planTracks.length} in your roadmap</div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -215,12 +282,19 @@ export function LearnView() {
           </div>
         )}
 
-        {/* Section 2: Explore More — all other languages, collapsible */}
-        {exploreTracks.length > 0 && (
+        {/* Section 2: Explore More — all other languages, hidden by default (Section 4) */}
+        {lessonFilter === "all" && exploreTracks.length > 0 && (
           <div>
-            <div className="flex items-center justify-between mb-3">
+            <button
+              onClick={() => setShowExploreMore(!showExploreMore)}
+              className="w-full flex items-center justify-between p-3 rounded-xl bg-foreground/3 hover:bg-foreground/5 transition-colors mb-3"
+            >
               <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-mono">🔍 Explore more · {exploreTracks.length} other languages</div>
-            </div>
+              <span className="text-xs text-muted-foreground">
+                {showExploreMore ? "Hide ▲" : "Show ▼"}
+              </span>
+            </button>
+            {showExploreMore && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {exploreTracks.map((t) => {
                 const trackLessons = ALL_LESSONS.filter((l) => l.track === t.id).sort((a, b) => a.order - b.order);
@@ -257,6 +331,7 @@ export function LearnView() {
                 );
               })}
             </div>
+            )}
           </div>
         )}
       </div>
@@ -273,9 +348,9 @@ export function LearnView() {
     const next = idx < trackLessons.length - 1 ? trackLessons[idx + 1] : null;
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 lesson-content">
         {/* Breadcrumb + nav */}
-        <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center justify-between gap-3 flex-wrap no-print">
           <button
             onClick={() => { setSelectedLessonId(null); setTab("tracks"); setSelectedTrack(null); }}
             className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -288,7 +363,7 @@ export function LearnView() {
         </div>
 
         {/* Lesson header */}
-        <GlassCard className="p-5 lesson-content">
+        <GlassCard className="p-5">
           <div className="flex items-start justify-between gap-3 mb-2">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -346,7 +421,9 @@ export function LearnView() {
         </GlassCard>
 
         {/* YouTube tutorial video embed (Section 17.5) */}
-        <YouTubeEmbed lessonId={selectedLesson.id} trackId={track} />
+        <div className="no-print">
+          <YouTubeEmbed lessonId={selectedLesson.id} trackId={track} />
+        </div>
 
         {/* Capstone badge (Section 3.4) */}
         {selectedLesson.isCapstone && (
@@ -403,7 +480,7 @@ export function LearnView() {
         )}
 
         {/* Action: mark in-progress + start quiz */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 no-print">
           <div className="flex gap-2">
             {prev && (
               <GlassButton variant="ghost" size="sm" onClick={() => { setSelectedLessonId(prev.id); window.scrollTo(0, 0); }}>
@@ -1258,16 +1335,14 @@ function QuizView({
     }
   };
 
-  // Section 6 — "I don't understand" button. Opens the AI Tutor in a new
-  // chat pre-loaded with the question, options, correct answer, and
-  // explanation, asking for a different explanation. Also tracks usage
-  // for the question-explorer badge.
+  // Section 6/11 — "I don't understand" button. Opens the AI Tutor floating
+  // bubble with a pending message that auto-sends. This is the unified bubble
+  // style — same interaction as the Projects "Get AI Review" button.
+  const setPendingTutorMessage = useStore((s) => s.setPendingTutorMessage);
   const openTutorWithQuestion = (q: QuizQuestion) => {
-    const chatId = createChatConversation();
     const prompt = `I'm stuck on this quiz question from "${lesson.title}":\n\n**Question:** ${q.question}\n\n**Options:**\n${q.options.map((o, i) => `${i + 1}. ${o}`).join("\n")}\n\n**Correct answer:** ${q.options[q.correctIndex]}\n\n**Explanation:** ${q.explanation ?? "(no explanation provided)"}\n\nCan you explain this in a different way? I don't understand the explanation.`;
-    addChatMessage(chatId, { role: "user", content: prompt });
-    setActiveChat(chatId);
-    setView("ai-tutor");
+    // Set the pending message — the AI Tutor bubble will pick it up and auto-send
+    setPendingTutorMessage(prompt);
     setAiTutorOpen(true);
     if (typeof window !== "undefined") {
       try {

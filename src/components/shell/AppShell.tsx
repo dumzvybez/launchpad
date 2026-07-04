@@ -64,6 +64,14 @@ export function AppShell() {
 
   const [splashDone, setSplashDone] = useState(false);
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  // Section 14 — sidebar collapse state, persisted to localStorage
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try { return window.localStorage.getItem("launchpad:sidebar-collapsed") === "true"; } catch { return false; }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("launchpad:sidebar-collapsed", String(sidebarCollapsed)); } catch { /* ignore */ }
+  }, [sidebarCollapsed]);
 
   useEffect(() => {
     hydrate();
@@ -114,10 +122,13 @@ export function AppShell() {
     >
       <AuroraBackground />
 
-      {/* Desktop sidebar */}
+      {/* Desktop sidebar — width responds to collapsed state */}
       {!focusMode && (
-        <div className="hidden lg:block w-[244px] shrink-0 p-3 sticky top-0 self-start h-screen">
-          <Sidebar />
+        <div className={cn(
+          "hidden lg:block shrink-0 p-3 sticky top-0 self-start h-screen transition-all duration-300",
+          sidebarCollapsed ? "w-[80px]" : "w-[244px]",
+        )}>
+          <Sidebar collapsedState={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />
         </div>
       )}
 

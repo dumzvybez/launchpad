@@ -141,9 +141,11 @@ export async function copyHtmlAsPng(
 
   const { width = 1200, height = 675 } = opts;
 
-  // Build an off-screen host element with the exact target dimensions.
+  // Build an off-screen host element. Don't force a background — let the
+  // card's own styling determine the background. This fixes the "black
+  // background" issue where the forced #0d1117 was hiding dark-on-dark text.
   const host = document.createElement("div");
-  host.style.cssText = `position:fixed;left:-99999px;top:0;width:${width}px;height:${height}px;overflow:hidden;background:#0d1117;`;
+  host.style.cssText = `position:fixed;left:-99999px;top:0;width:${width}px;height:${height}px;overflow:hidden;`;
   host.innerHTML = html;
   document.body.appendChild(host);
 
@@ -153,8 +155,10 @@ export async function copyHtmlAsPng(
       width,
       height,
       cacheBust: true,
-      pixelRatio: 1,
-      backgroundColor: "#0d1117",
+      pixelRatio: 2,
+      // Don't force a backgroundColor — the card HTML includes its own
+      // background styling. Forcing one can cause dark-on-dark issues.
+      skipFonts: false,
     });
     const blob = await (await fetch(dataUrl)).blob();
     await navigator.clipboard.write([
@@ -187,7 +191,7 @@ export async function downloadHtmlAsPng(
   const { width = 1200, height = 675 } = opts;
 
   const host = document.createElement("div");
-  host.style.cssText = `position:fixed;left:-99999px;top:0;width:${width}px;height:${height}px;overflow:hidden;background:#0d1117;`;
+  host.style.cssText = `position:fixed;left:-99999px;top:0;width:${width}px;height:${height}px;overflow:hidden;`;
   host.innerHTML = html;
   document.body.appendChild(host);
 
@@ -197,8 +201,8 @@ export async function downloadHtmlAsPng(
       width,
       height,
       cacheBust: true,
-      pixelRatio: 1,
-      backgroundColor: "#0d1117",
+      pixelRatio: 2,
+      skipFonts: false,
     });
     const a = document.createElement("a");
     a.href = dataUrl;

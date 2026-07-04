@@ -62,26 +62,31 @@ export function getNavItems(roadmap?: { languageIds: string[] } | null): NavItem
   return ALL_NAV;
 }
 
-export function Sidebar({ collapsed: collapsedProp }: { collapsed?: boolean }) {
+export function Sidebar({
+  collapsed: collapsedProp,
+  collapsedState,
+  onToggleCollapse,
+}: {
+  collapsed?: boolean;
+  /** Section 14 — controlled collapse state from AppShell */
+  collapsedState?: boolean;
+  onToggleCollapse?: () => void;
+}) {
   const currentView = useStore((s) => s.currentView);
   const setView = useStore((s) => s.setView);
   const state = useStore((s) => s.state);
   const setCommandOpen = useStore((s) => s.setCommandOpen);
 
-  // Section 27 — collapsible sidebar. Persist the preference in localStorage
-  // so it's remembered across sessions. If a `collapsed` prop is passed
-  // explicitly (e.g. from the mobile drawer), it overrides the local state.
-  const [collapsedInternal, setCollapsedInternal] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    try {
-      return window.localStorage.getItem("launchpad:sidebar-collapsed") === "true";
-    } catch { return false; }
-  });
-  const collapsed = collapsedProp ?? collapsedInternal;
+  // Use controlled state from AppShell if provided, otherwise fall back to
+  // the legacy internal state (for mobile drawer usage).
+  const [collapsedInternal, setCollapsedInternal] = useState(false);
+  const collapsed = collapsedProp ?? collapsedState ?? collapsedInternal;
   const toggleCollapsed = () => {
-    const next = !collapsed;
-    setCollapsedInternal(next);
-    try { window.localStorage.setItem("launchpad:sidebar-collapsed", String(next)); } catch { /* ignore */ }
+    if (onToggleCollapse) {
+      onToggleCollapse();
+    } else {
+      setCollapsedInternal(!collapsed);
+    }
   };
 
   const level = selectLevel(state);
@@ -95,6 +100,16 @@ export function Sidebar({ collapsed: collapsedProp }: { collapsed?: boolean }) {
     acc[item.group].push(item);
     return acc;
   }, {} as Record<string, NavItem[]>);
+
+  // Section 14 — flyout state for collapsed mode. When collapsed, hovering
+  // a group icon shows a flyout with the group's nav items.
+  const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
+  const groupIcons: Record<string, typeof LayoutDashboard> = {
+    main: LayoutDashboard,
+    learn: GraduationCap,
+    productivity: Wrench,
+    system: User,
+  };
 
   return (
     <aside
@@ -120,11 +135,49 @@ export function Sidebar({ collapsed: collapsedProp }: { collapsed?: boolean }) {
 
       <nav className="flex flex-col gap-2.5 mt-1 flex-1 min-h-0 overflow-y-auto no-scrollbar pr-1">
         {Object.entries(grouped).map(([group, items]) => (
-          <div key={group} className="flex flex-col gap-0.5">
+          <div
+            key={group}
+            className="flex flex-col gap-0.5 relative"
+            onMouseEnter={() => collapsed && setHoveredGroup(group)}
+            onMouseLeave={() => collapsed && setHoveredGroup(null)}
+          >
             {!collapsed && (
               <span className="text-eyebrow px-3 mb-0.5">{GROUP_LABELS[group]}</span>
             )}
-            {items.map((item) => {
+            {/* Collapsed: show group icon only, with flyout on hover */}
+            {collapsed && (() => {
+              const GroupIcon = groupIcons[group] ?? LayoutDashboard;
+              return (
+                <div className="flex items-center justify-center py-1.5">
+                  <GroupIcon className="h-4 w-4 text-muted-foreground" />
+                </div>
+              );
+            })()}
+            {/* Flyout menu (collapsed mode) */}
+            {collapsed && hoveredGroup === group && (
+              <div className="absolute left-full ml-2 top-0 z-50 min-w-[180px] glass-elevated rounded-xl border border-border/60 shadow-2xl p-2 animate-in fade-in slide-in-from-left-2 duration-200">
+                <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-mono px-2 py-1 mb-1">{GROUP_LABELS[group]}</div>
+                {items.map((item) => {
+                  const Icon = item.icon;
+                  const active = currentView === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => { setView(item.id); setHoveredGroup(null); }}
+                      className={cn(
+                        "w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs transition-all",
+                        active ? "nav-item-active text-primary" : "text-foreground/70 hover:bg-foreground/5",
+                      )}
+                    >
+                      <Icon className="h-3.5 w-3.5 shrink-0" />
+                      <span className="whitespace-nowrap">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            {/* Expanded: show full nav items */}
+            {!collapsed && items.map((item) => {
               const Icon = item.icon;
               const active = currentView === item.id;
               return (

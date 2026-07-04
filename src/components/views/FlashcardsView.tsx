@@ -115,16 +115,42 @@ export function FlashcardsView() {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-          <Layers className="h-6 w-6 text-primary" />
-          Flashcards
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Spaced repetition for coding concepts — auto-generated from your lessons.
-        </p>
+    <div className="space-y-5">
+      {/* Header — polished with gradient accent */}
+      <div className="relative overflow-hidden rounded-2xl glass-elevated p-5">
+        <div
+          className="absolute inset-0 pointer-events-none opacity-30"
+          style={{
+            background: "radial-gradient(circle at 0% 0%, oklch(0.80 0.18 195 / 0.20) 0%, transparent 50%), radial-gradient(circle at 100% 100%, oklch(0.76 0.2 320 / 0.15) 0%, transparent 50%)",
+          }}
+          aria-hidden="true"
+        />
+        <div className="relative z-10 flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+              <span className="text-2xl">📇</span>
+              Flashcards
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Spaced repetition for coding concepts — auto-generated from your lessons.
+            </p>
+          </div>
+          {/* Stats badges */}
+          <div className="flex items-center gap-3">
+            <div className="text-center px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <div className="text-lg font-bold text-amber-500 tabular-nums">{dueCount}</div>
+              <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-mono">Due</div>
+            </div>
+            <div className="text-center px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
+              <div className="text-lg font-bold text-primary tabular-nums">{allCards.length}</div>
+              <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-mono">Total</div>
+            </div>
+            <div className="text-center px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+              <div className="text-lg font-bold text-emerald-500 tabular-nums">{sessionStats.correct}</div>
+              <div className="text-[9px] uppercase tracking-wide text-muted-foreground font-mono">✓ Session</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Filter bar */}
@@ -176,21 +202,32 @@ export function FlashcardsView() {
       ) : (
         currentCard && (
           <>
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>
-                Card {currentIndex + 1} of {filteredCards.length}
+            {/* Progress bar */}
+            <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+              <span className="flex items-center gap-2">
+                <span className="font-medium">Card {currentIndex + 1} of {filteredCards.length}</span>
+                <span className="text-[10px]">·</span>
+                <span className="capitalize">{currentCard.source === "quiz" ? "📝 Quiz" : currentCard.source === "keyConcept" ? "💡 Concept" : "🎤 Interview"}</span>
+                <span className="text-[10px]">·</span>
+                <span className="font-mono text-[10px]">{ALL_LANGUAGE_INFO[currentCard.trackId]?.name ?? currentCard.trackId}</span>
               </span>
-              <span>
-                {currentCard.source === "quiz" ? "From quiz" : currentCard.source === "keyConcept" ? "Key concept" : "Interview question"}
-                {" · "}
-                {ALL_LANGUAGE_INFO[currentCard.trackId]?.name ?? currentCard.trackId}
+              <span className="flex items-center gap-2">
+                <span className="text-emerald-500 font-medium">{sessionStats.correct} ✓</span>
+                <span className="text-rose-500 font-medium">{sessionStats.incorrect} ✗</span>
               </span>
             </div>
+            {/* Progress bar fill */}
+            <div className="h-1 bg-foreground/8 rounded-full overflow-hidden mb-4">
+              <div
+                className="h-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-300"
+                style={{ width: `${((currentIndex + 1) / filteredCards.length) * 100}%` }}
+              />
+            </div>
 
-            {/* Flip card */}
+            {/* Flip card — enhanced with gradient borders and glow */}
             <div
-              className="relative w-full min-h-[280px] cursor-pointer"
-              style={{ perspective: "1000px" }}
+              className="relative w-full min-h-[300px] cursor-pointer group"
+              style={{ perspective: "1200px" }}
               onClick={() => setFlipped((f) => !f)}
             >
               <div
@@ -198,33 +235,40 @@ export function FlashcardsView() {
                 style={{
                   transformStyle: "preserve-3d",
                   transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
-                  minHeight: "280px",
+                  minHeight: "300px",
                 }}
               >
-                {/* Front */}
+                {/* Front — gradient border + glow on hover */}
                 <div
-                  className="absolute inset-0 glass-elevated rounded-2xl p-6 flex flex-col items-center justify-center text-center"
+                  className="absolute inset-0 rounded-2xl p-[1px] bg-gradient-to-br from-primary/40 via-transparent to-primary/20 group-hover:from-primary/60 group-hover:to-primary/40 transition-all duration-300"
                   style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
                 >
-                  <div className="text-[10px] font-mono uppercase tracking-wide text-muted-foreground mb-3">
-                    Question
+                  <div className="w-full h-full glass-elevated rounded-2xl p-6 flex flex-col items-center justify-center text-center">
+                    <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-primary/60 mb-4">
+                      ◇ Question ◇
+                    </div>
+                    <p className="text-base font-medium leading-relaxed max-w-md">{currentCard.front}</p>
+                    <div className="mt-6 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <span className="inline-block w-1 h-1 rounded-full bg-primary animate-pulse" />
+                      Tap to flip
+                    </div>
                   </div>
-                  <p className="text-base font-medium leading-relaxed">{currentCard.front}</p>
-                  <p className="text-xs text-muted-foreground mt-4">Tap to flip</p>
                 </div>
                 {/* Back */}
                 <div
-                  className="absolute inset-0 glass-elevated rounded-2xl p-6 flex flex-col items-center justify-center text-center"
+                  className="absolute inset-0 rounded-2xl p-[1px] bg-gradient-to-br from-emerald-500/40 via-transparent to-emerald-500/20"
                   style={{
                     backfaceVisibility: "hidden",
                     WebkitBackfaceVisibility: "hidden",
                     transform: "rotateY(180deg)",
                   }}
                 >
-                  <div className="text-[10px] font-mono uppercase tracking-wide text-primary mb-3">
-                    Answer
+                  <div className="w-full h-full glass-elevated rounded-2xl p-6 flex flex-col items-center justify-center text-center">
+                    <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-emerald-500/60 mb-4">
+                      ◆ Answer ◆
+                    </div>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap max-w-md">{currentCard.back}</p>
                   </div>
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{currentCard.back}</p>
                 </div>
               </div>
             </div>

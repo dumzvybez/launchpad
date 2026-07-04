@@ -13,37 +13,21 @@ import { useEffect, useState } from "react";
  * User can disable it permanently in Settings → Appearance.
  * A "Skip" button is shown for accessibility / power users.
  */
-const SUBTITLES = [
-  "Learn to code. For real this time.",
-  "AI-personalized. Completely free. 100% private.",
-  "From zero to job-ready — without leaving this app.",
-  "Open-source. No accounts. No tracking. Ever.",
-];
-
 export function SplashScreen({ onDone }: { onDone: () => void }) {
   const [phase, setPhase] = useState<"draw" | "hold" | "fade">("draw");
-  const [subtitleIdx, setSubtitleIdx] = useState(0);
 
   useEffect(() => {
     // Draw phase: logo animates in (0.8s)
     const t1 = setTimeout(() => setPhase("hold"), 800);
-    // Hold phase: ~2.9s — long enough to read 3 subtitles cycling
+    // Hold phase
     const t2 = setTimeout(() => setPhase("fade"), 3700);
     // Fade phase: 0.8s
     const t3 = setTimeout(() => onDone(), 4500);
-
-    // Cycle subtitles every ~900ms during hold (3 subtitles shown)
-    const sub1 = setTimeout(() => setSubtitleIdx(1), 1700);
-    const sub2 = setTimeout(() => setSubtitleIdx(2), 2600);
-    const sub3 = setTimeout(() => setSubtitleIdx(3), 3300);
 
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
-      clearTimeout(sub1);
-      clearTimeout(sub2);
-      clearTimeout(sub3);
     };
   }, [onDone]);
 

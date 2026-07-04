@@ -700,3 +700,43 @@
     word-break: break-word;
   }
 }
+
+/* ============================================================
+ * Section 12 — Selection menu theme fix
+ * Native <select> elements use browser default styling which
+ * doesn't match the app theme. This forces them to inherit
+ * the background/foreground colors from the theme.
+ * ============================================================ */
+select {
+  background-color: hsl(var(--popover, 240 10% 8%));
+  color: hsl(var(--popover-foreground, 0 0% 95%));
+  border-color: hsl(var(--border, 240 5% 20%));
+}
+
+select option {
+  background-color: hsl(var(--popover, 240 10% 8%));
+  color: hsl(var(--popover-foreground, 0 0% 95%));
+}
+
+/* Light mode override */
+:root:not(.dark) select,
+:root:not(.dark) select option {
+  background-color: hsl(var(--popover, 0 0% 100%));
+  color: hsl(var(--popover-foreground, 240 10% 10%));
+}
+
+/* Also fix native date/time inputs */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  background-color: hsl(var(--background, 240 10% 8%));
+  color: hsl(var(--foreground, 0 0% 95%));
+  border-color: hsl(var(--border, 240 5% 20%));
+}
+
+:root:not(.dark) input[type="date"],
+:root:not(.dark) input[type="time"],
+:root:not(.dark) input[type="datetime-local"] {
+  background-color: hsl(var(--background, 0 0% 100%));
+  color: hsl(var(--foreground, 240 10% 10%));
+}

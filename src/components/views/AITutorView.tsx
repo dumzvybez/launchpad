@@ -16,7 +16,7 @@ export function AITutorView() {
         </p>
       </div>
 
-      <GlassCard className="p-4 h-[calc(100vh-220px)] min-h-[500px]">
+      <GlassCard className="p-3 sm:p-4 h-[calc(100vh-180px)] min-h-[400px] sm:min-h-[500px]">
         <AIChat fullTab onMaximize={() => setMaximized(false)} />
       </GlassCard>
     </div>

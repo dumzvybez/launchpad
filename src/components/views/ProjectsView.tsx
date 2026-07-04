@@ -48,6 +48,9 @@ export function ProjectsView() {
   const state = useStore((s) => s.state);
   const updateProjectTracker = useStore((s) => s.updateProjectTracker);
   const addProjectSubmission = useStore((s) => s.addProjectSubmission);
+  // Section 11 — unified AI bubble
+  const setPendingTutorMessage = useStore((s) => s.setPendingTutorMessage);
+  const setAiTutorOpen = useStore((s) => s.setAiTutorOpen);
   const [filter, setFilter] = useState<"all" | "shipped" | "in_progress" | "planned">("all");
   const [instructionsProjectId, setInstructionsProjectId] = useState<string | null>(null);
   const [reviewProjectId, setReviewProjectId] = useState<string | null>(null);
@@ -315,10 +318,17 @@ export function ProjectsView() {
                     </div>
                   ) : null}
 
-                  {/* AI Code Review button — highly visible, full width, gradient when shipped */}
+                  {/* AI Code Review button — Section 11: uses unified AI bubble */}
                   {status === "shipped" && (
                     <button
-                      onClick={() => setReviewProjectId(proj.id)}
+                      onClick={() => {
+                        // Section 11 — unified AI bubble: set a pending tutor
+                        // message with the code review prompt and open the AI
+                        // Tutor floating bubble (same as "I Don't Understand").
+                        const reviewPrompt = `Please review my code for the project "${proj.title}".\n\nProject description: ${proj.description}\n\nDeliverables:\n${proj.deliverables.map((d, i) => `${i + 1}. ${d}`).join("\n")}\n\nMy GitHub repo: ${tracker?.repoUrl || "(not provided)"}\n\nPlease provide:\n1. Overall code quality score (out of 10)\n2. Strengths\n3. Areas for improvement\n4. Specific suggestions\n5. Security concerns (if any)`;
+                        setPendingTutorMessage(reviewPrompt);
+                        setAiTutorOpen(true);
+                      }}
                       className="w-full px-3 py-2.5 rounded-lg bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white text-xs font-semibold hover:brightness-110 transition-all flex items-center justify-center gap-1.5 shadow-md shadow-violet-500/20"
                     >
                       <Target className="h-3.5 w-3.5" /> Get AI Code Review

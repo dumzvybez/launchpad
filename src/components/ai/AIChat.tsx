@@ -55,7 +55,10 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [showHistory, setShowHistory] = useState(fullTab);
+  const [showHistory, setShowHistory] = useState(false);
+  // Section 11 — read pending tutor message for auto-send
+  const pendingTutorMessage = useStore((s) => s.pendingTutorMessage);
+  const setPendingTutorMessage = useStore((s) => s.setPendingTutorMessage);
   const [showWarning, setShowWarning] = useState(!aiWarningAcknowledged);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -176,6 +179,77 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
       inputRef.current?.focus();
     }
   };
+
+  // Section 11 — auto-send pending tutor message (from "I Don't Understand"
+  // button in quizzes and "Get AI Review" in Projects). The message is set
+  // in the store by the calling component, and this effect picks it up and
+  // sends it directly to the AI provider. This fixes the bug where clicking
+  // "I Don't Understand" only showed the message but never actually sent it.
+  const pendingHandled = useRef<string | null>(null);
+  useEffect(() => {
+    if (!pendingTutorMessage || pendingHandled.current === pendingTutorMessage) return;
+    pendingHandled.current = pendingTutorMessage;
+    const msg = pendingTutorMessage;
+    setPendingTutorMessage(null);
+
+    if (!msg.trim() || !hasUserKey) return;
+
+    // Create a new chat if none active
+    let chatId = useStore.getState().state.activeChatId;
+    if (!chatId) {
+      chatId = useStore.getState().createChatConversation();
+    }
+
+    // Add the user message
+    const userMsg: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      role: "user",
+      content: msg.trim(),
+      timestamp: new Date().toISOString(),
+    };
+    useStore.getState().addChatMessage(chatId, userMsg);
+    // Defer setSending to avoid setState-in-effect lint error
+    setTimeout(() => setSending(true), 0);
+
+    // Send to the AI API
+    (async () => {
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [{ role: "user", content: msg }],
+            apiKey: aiSettings.apiKey,
+            provider: aiSettings.provider,
+            model: aiSettings.model,
+            temperature: aiSettings.temperature,
+            customEndpoint: aiSettings.customEndpoint,
+            ...(activeSystemPrompt ? { systemPrompt: activeSystemPrompt } : {}),
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+        const assistantMessage: ChatMessage = {
+          id: `msg-${Date.now()}-ai`,
+          role: "assistant",
+          content: data.content || "(no response)",
+          timestamp: new Date().toISOString(),
+          provider: data.provider,
+        };
+        useStore.getState().addChatMessage(chatId!, assistantMessage);
+      } catch (err) {
+        const errorMessage: ChatMessage = {
+          id: `msg-${Date.now()}-err`,
+          role: "assistant",
+          content: `Error: ${(err as Error).message}`,
+          timestamp: new Date().toISOString(),
+        };
+        useStore.getState().addChatMessage(chatId!, errorMessage);
+      } finally {
+        setSending(false);
+      }
+    })();
+  }, [pendingTutorMessage]);
 
   // Test Connection — POST-based, sends "Hi" to verify the API key works.
   // The key goes in the request body, never in URL query params.
@@ -350,17 +424,20 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
   }
 
   return (
-    <div className={cn("flex h-full", fullTab ? "flex-row gap-4" : "flex-col")}>
-      {/* History sidebar — only in fullTab or when toggled */}
-      {(fullTab || showHistory) && (
-        <div className={cn(fullTab ? "w-64 shrink-0" : "absolute inset-0 z-10 bg-background p-3", "flex flex-col gap-2")} style={!fullTab ? { position: "absolute" } : undefined}>
+    <div className={cn("flex h-full relative", fullTab ? "flex-row gap-4" : "flex-col")}>
+      {/* History sidebar — togglable in all modes */}
+      {showHistory && (
+        <div className={cn(
+          fullTab
+            ? "w-64 shrink-0 hidden md:flex"
+            : "absolute inset-0 z-20 bg-background/95 backdrop-blur-sm p-3",
+          "flex-col gap-2 transition-all duration-300"
+        )}>
           <div className="flex items-center justify-between mb-1">
             <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">History</h3>
-            {!fullTab && (
-              <button onClick={() => setShowHistory(false)} className="p-1 rounded hover:bg-foreground/10">
-                <X className="h-3.5 w-3.5" />
-              </button>
-            )}
+            <button onClick={() => setShowHistory(false)} className="p-1 rounded hover:bg-foreground/10">
+              <X className="h-3.5 w-3.5" />
+            </button>
           </div>
           <button
             onClick={handleNewChat}
@@ -450,15 +527,17 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
               Code Review
             </button>
           )}
-          {!fullTab && (
-            <button
-              onClick={() => setShowHistory(!showHistory)}
-              className="p-1.5 rounded hover:bg-foreground/10"
-              title="History"
-            >
-              <MessageSquare className="h-3.5 w-3.5" />
-            </button>
-          )}
+          {/* Section 7 — history toggle always visible */}
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className={cn(
+              "p-1.5 rounded hover:bg-foreground/10 transition-colors",
+              showHistory && "bg-primary/10 text-primary"
+            )}
+            title="Toggle chat history"
+          >
+            <MessageSquare className="h-3.5 w-3.5" />
+          </button>
           <button
             onClick={() => setShowSettings(!showSettings)}
             className="p-1.5 rounded hover:bg-foreground/10"
