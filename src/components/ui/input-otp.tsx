@@ -1,3 +1,4 @@
+// v5.84: v5.84: input-otp handles inputmode and pattern internally.
 "use client"
 
 import * as React from "react"

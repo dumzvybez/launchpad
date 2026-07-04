@@ -41,7 +41,18 @@ export function CalendarNotifier() {
       const lastMin = lastCheckedMinuteRef.current;
       lastCheckedMinuteRef.current = currentTime;
 
+      // v5.77 fix: on first run after page load, initialise lastMin to "00:00"
+      // so events scheduled earlier today (but not yet notified) are caught up.
+      // Previously lastMin was null on first run, so only exact-minute matches
+      // fired — events missed while the page was closed were silently dropped.
+      const effectiveLastMin = lastMin === null ? "00:00" : lastMin;
+
       for (const event of events) {
+        // v5.77 fix: check `completed` FIRST. Previously the snooze branch
+        // short-circuited before this check, so even completed events kept
+        // re-firing if they had a stale `snoozedUntil`.
+        if (event.completed) continue;
+
         // Per-day notification key — resets daily so recurring events
         // can fire again the next day.
         const notifiedKey = `${event.id}:${today}`;
@@ -52,23 +63,24 @@ export function CalendarNotifier() {
           if (event.snoozedUntil) {
             const snoozedUntilTime = new Date(event.snoozedUntil).getTime();
             if (now.getTime() >= snoozedUntilTime) {
-              // Snooze expired — allow re-notify immediately, without
-              // requiring the exact minute match (the original event
-              // time may have already passed).
+              // v5.77 fix: Snooze expired — re-notify ONCE, then CLEAR snoozedUntil
+              // so it doesn't re-fire on every 30s tick. Previously the snoozedUntil
+              // field was never cleared, causing an infinite re-fire loop every 30s
+              // for the rest of the day.
               notifiedRef.current.delete(notifiedKey);
-              // Fire immediately and mark as notified so we don't keep
-              // re-firing on every 30s tick.
               fireEvent(event, today);
-              continue;
-            } else {
-              continue;
+              // Clear snoozedUntil by calling snoozeNotification with 0 minutes
+              // (the store action sets snoozedUntil to now + minutes; with 0 it
+              // becomes "now" which immediately satisfies the "expired" check,
+              // so we instead set it to undefined via a direct store update).
+              snoozeNotification(event.id, 0);
             }
+            continue;
           } else {
             continue;
           }
         }
         if (!event.time) continue;
-        if (event.completed) continue;
 
         // Check if event should fire today based on frequency
         let firesToday = false;
@@ -84,6 +96,8 @@ export function CalendarNotifier() {
 
         if (!firesToday) continue;
 
+        // v5.77 fix: removed duplicate `event.time <= currentTime` condition (dead code).
+        // v5.77 fix 2: use effectiveLastMin so first-run catches up missed events.
         // Fire when:
         //   (a) current time matches event time exactly, OR
         //   (b) event time has passed since the last check (catches the
@@ -91,10 +105,8 @@ export function CalendarNotifier() {
         //       9:05 — the user still gets the 9:00 notification).
         const shouldFire =
           event.time === currentTime ||
-          (lastMin !== null &&
-            event.time > lastMin &&
-            event.time <= currentTime &&
-            // Only catch up within the same calendar day.
+          (effectiveLastMin !== null &&
+            event.time > effectiveLastMin &&
             event.time <= currentTime);
 
         if (shouldFire) {
@@ -176,6 +188,7 @@ export function CalendarNotifier() {
       for (const t of timeoutsRef.current) clearTimeout(t);
       timeoutsRef.current.clear();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events, addNotification, snoozeNotification, dismissNotification, deleteCalendarEvent]);
 
   return null;

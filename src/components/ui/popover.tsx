@@ -1,3 +1,4 @@
+// v5.84: Radix Popover handles dialog semantics, focus trap, and Escape internally.
 "use client"
 
 import * as React from "react"

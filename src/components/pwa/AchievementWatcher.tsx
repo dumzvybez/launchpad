@@ -39,6 +39,7 @@ export function AchievementWatcher() {
     if (hasRelevantChange) {
       checkAchievements();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, checkAchievements]);
 
   return null;

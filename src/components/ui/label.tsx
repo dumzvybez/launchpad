@@ -1,3 +1,4 @@
+// v5.84: Radix Label handles htmlFor association internally.
 "use client"
 
 import * as React from "react"

@@ -1,3 +1,4 @@
+// v5.84: v5.84: Badge is presentational. No ARIA needed.
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"

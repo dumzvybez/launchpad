@@ -86,6 +86,9 @@ export function CalendarView() {
   const addEvent = useStore((s) => s.addCalendarEvent);
   const deleteEvent = useStore((s) => s.deleteCalendarEvent);
   const updateEvent = useStore((s) => s.updateCalendarEvent);
+  // v5.77 fix: read the weekStartsOn preference (was ignored — calendar was
+  // always Monday-first). 0 = Sunday, 1 = Monday.
+  const weekStartsOn = useStore((s) => s.state.preferences.weekStartsOn ?? 1);
 
   const [cursor, setCursor] = useState(() => {
     const d = new Date();
@@ -109,8 +112,9 @@ export function CalendarView() {
     const year = cursor.getFullYear();
     const month = cursor.getMonth();
     const firstDay = new Date(year, month, 1);
-    // Monday-first
-    const startOffset = (firstDay.getDay() + 6) % 7;
+    // v5.77 fix: respect weekStartsOn preference (0=Sunday, 1=Monday).
+    // Previously this was hardcoded to Monday-first (`(firstDay.getDay() + 6) % 7`).
+    const startOffset = (firstDay.getDay() - weekStartsOn + 7) % 7;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const daysInPrev = new Date(year, month, 0).getDate();
 
@@ -139,7 +143,8 @@ export function CalendarView() {
       });
     }
     return cells;
-  }, [cursor]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cursor, weekStartsOn]);
 
   // Events for selected date (with recurrence expansion)
   const selectedEvents = useMemo(
@@ -156,6 +161,7 @@ export function CalendarView() {
       map[cell.date] = events.filter((e) => eventOccursOn(e, cell.date));
     }
     return map;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events, grid]);
 
   const handleAdd = () => {
@@ -223,13 +229,19 @@ export function CalendarView() {
               </div>
             </div>
 
-            {/* Weekday headers */}
+            {/* Weekday headers — v5.77 fix: respect weekStartsOn preference */}
             <div className="grid grid-cols-7 gap-1 mb-2">
-              {WEEKDAYS.map((d) => (
-                <div key={d} className="text-center text-[10px] font-mono uppercase tracking-wider text-muted-foreground py-1">
-                  {d}
-                </div>
-              ))}
+              {/* Rotate the WEEKDAYS array based on weekStartsOn (0=Sun, 1=Mon) */}
+              {(() => {
+                const base = weekStartsOn === 0
+                  ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+                  : ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+                return base.map((d) => (
+                  <div key={d} className="text-center text-[10px] font-mono uppercase tracking-wider text-muted-foreground py-1">
+                    {d}
+                  </div>
+                ));
+              })()}
             </div>
 
             {/* Calendar cells */}

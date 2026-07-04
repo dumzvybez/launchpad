@@ -1,3 +1,4 @@
+// v5.84: Radix Select handles listbox, option, aria-expanded, and keyboard navigation internally.
 "use client"
 
 import * as React from "react"

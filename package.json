@@ -1,13 +1,14 @@
 {
   "name": "nextjs_tailwind_shadcn_ts",
-  "version": "0.2.0",
+  "version": "5.84.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000 2>&1 | tee dev.log",
     "build": "next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
     "start": "NODE_ENV=production bun .next/standalone/server.js 2>&1 | tee server.log",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"No tests yet — see CHANGELOG v5.79 for planned test framework\" && exit 0"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -64,6 +65,7 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.60.0",
     "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.0",
     "react-resizable-panels": "^3.0.3",
     "react-syntax-highlighter": "^15.6.1",
     "recharts": "^2.15.4",
@@ -86,5 +88,9 @@
     "tailwindcss": "^4.1.4",
     "tw-animate-css": "^1.3.5",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=20",
+    "bun": ">=1.3"
   }
 }

@@ -13,6 +13,10 @@ function Progress({
   return (
     <ProgressPrimitive.Root
       data-slot="progress"
+      role="progressbar" // v5.79 fix: add ARIA role for screen readers
+      aria-valuenow={value ?? 0} // v5.79 fix: expose current value
+      aria-valuemin={0}
+      aria-valuemax={100}
       className={cn(
         "bg-primary/20 relative h-2 w-full overflow-hidden rounded-full",
         className

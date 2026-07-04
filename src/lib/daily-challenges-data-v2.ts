@@ -16,7 +16,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use the standard print/output function for your language.",
     "solution": "print('Hello, World!')",
     "estMinutes": 5,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-02",
@@ -27,7 +27,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Parse input as numbers, add them, print result.",
     "solution": "a + b",
     "estMinutes": 8,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-03",
@@ -38,7 +38,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use the modulo operator (%).",
     "solution": "n % 2 == 0",
     "estMinutes": 8,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-04",
@@ -49,7 +49,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Most languages have a reverse method or you can use a loop.",
     "solution": "s[::-1]",
     "estMinutes": 10,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-05",
@@ -60,7 +60,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Loop through each char and check if it's a vowel.",
     "solution": "sum(1 for c in s if c in 'aeiou')",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-06",
@@ -71,7 +71,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use nested if-else comparisons.",
     "solution": "if a >= b and a >= c: return a",
     "estMinutes": 10,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-07",
@@ -82,7 +82,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a loop from 1 to 10.",
     "solution": "for i in range(1,11): print(N*i)",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-08",
@@ -93,7 +93,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Formula: C = (F - 32) * 5/9",
     "solution": "(f - 32) * 5/9",
     "estMinutes": 8,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-09",
@@ -104,7 +104,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Compare the string to its reverse.",
     "solution": "s == s[::-1]",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-10",
@@ -115,7 +115,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Convert to string and iterate, or use modulo and division.",
     "solution": "sum(int(d) for d in str(n))",
     "estMinutes": 10,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-11",
@@ -126,7 +126,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Split the string by whitespace.",
     "solution": "len(s.split())",
     "estMinutes": 8,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-12",
@@ -137,7 +137,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Divisible by 4, not by 100 unless also by 400.",
     "solution": "y % 4 == 0 and (y % 100 != 0 or y % 400 == 0)",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-13",
@@ -148,7 +148,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a switch/if-else on the operator.",
     "solution": "if op=='+': a+b",
     "estMinutes": 20,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-14",
@@ -159,7 +159,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a while loop and random number generation.",
     "solution": "while guess != target",
     "estMinutes": 25,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-15",
@@ -170,7 +170,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Nested loops: outer for rows, inner for stars.",
     "solution": "for i in range(1,n+1): print('*'*i)",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-16",
@@ -181,7 +181,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use the ord() function or equivalent.",
     "solution": "ord(c)",
     "estMinutes": 5,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-17",
@@ -192,7 +192,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use arithmetic or tuple unpacking.",
     "solution": "a, b = b, a",
     "estMinutes": 8,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-18",
@@ -203,7 +203,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Area = π * r². Use 3.14159 for π.",
     "solution": "3.14159 * r * r",
     "estMinutes": 8,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-19",
@@ -214,7 +214,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Check divisibility from 2 to sqrt(n).",
     "solution": "all(n % i for i in range(2, int(n**0.5)+1))",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-20",
@@ -225,7 +225,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Loop and count characters.",
     "solution": "count = 0; for _ in s: count += 1",
     "estMinutes": 10,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-21",
@@ -236,7 +236,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Check divisibility in order: 15, 3, 5.",
     "solution": "for i in range(1,101): print('Fizz'*(i%3==0)+'Buzz'*(i%5==0) or i)",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-22",
@@ -247,7 +247,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Start with 1, multiply by each number up to N.",
     "solution": "f = 1; for i in range(2,n+1): f *= i",
     "estMinutes": 10,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-23",
@@ -258,7 +258,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Base case: 0! = 1.",
     "solution": "def f(n): return 1 if n==0 else n*f(n-1)",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-24",
@@ -269,7 +269,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Track two previous values.",
     "solution": "a, b = 0, 1; for _ in range(n): a, b = b, a+b",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-25",
@@ -280,7 +280,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Base cases: F(0)=0, F(1)=1.",
     "solution": "def f(n): return n if n < 2 else f(n-1)+f(n-2)",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-26",
@@ -291,7 +291,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Convert to string, reverse, convert back. Or use modulo.",
     "solution": "int(str(n)[::-1])",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-27",
@@ -302,7 +302,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Sort both strings and compare, or count character frequencies.",
     "solution": "sorted(s1) == sorted(s2)",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-28",
@@ -313,7 +313,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a dictionary/hash map.",
     "solution": "from collections import Counter; Counter(s)",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-29",
@@ -324,7 +324,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a set to track seen items.",
     "solution": "seen = set(); [x for x in lst if not (x in seen or seen.add(x))]",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-30",
@@ -335,7 +335,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Track largest and second-largest in one pass.",
     "solution": "sorted(set(lst))[-2]",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-31",
@@ -346,7 +346,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "gcd(a,b) = gcd(b, a%b); base case b==0.",
     "solution": "while b: a, b = b, a % b; return a",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-32",
@@ -357,7 +357,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Each digit represents a power of 2.",
     "solution": "int(b, 2)",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-33",
@@ -368,7 +368,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Repeatedly divide by 2, collect remainders.",
     "solution": "bin(n)[2:]",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-34",
@@ -379,7 +379,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Loop and accumulate.",
     "solution": "total = 0; for x in arr: total += x",
     "estMinutes": 10,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-35",
@@ -390,7 +390,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Track the max as you iterate.",
     "solution": "m = arr[0]; for x in arr: if x > m: m = x",
     "estMinutes": 10,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-36",
@@ -401,7 +401,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Loop with index.",
     "solution": "for i, x in enumerate(arr): if x == target: return i",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-37",
@@ -412,7 +412,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Repeatedly swap adjacent out-of-order pairs.",
     "solution": "for i in range(n): for j in range(n-i-1): if arr[j]>arr[j+1]: swap",
     "estMinutes": 20,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-38",
@@ -423,7 +423,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Find the min in the unsorted part, swap to the front.",
     "solution": "for i in range(n): m=i; for j in range(i+1,n): if arr[j]<arr[m]: m=j; swap",
     "estMinutes": 20,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-39",
@@ -434,7 +434,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Split, capitalize each, join.",
     "solution": "' '.join(w.capitalize() for w in s.split())",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-40",
@@ -445,7 +445,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a simple regex or string checks.",
     "solution": "re.match(r'[^@]+@[^@]+\\.[^@]+', s)",
     "estMinutes": 18,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-41",
@@ -456,7 +456,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use list comprehension or a loop.",
     "solution": "[item for sub in nested for item in sub]",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-42",
@@ -467,7 +467,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Divide and conquer: compare middle, narrow range.",
     "solution": "lo, hi = 0, len(arr)-1; while lo<=hi: mid=(lo+hi)//2; ...",
     "estMinutes": 20,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-43",
@@ -478,7 +478,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Recursively split, then merge sorted halves.",
     "solution": "def merge(l,r); recursively sort halves",
     "estMinutes": 30,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-44",
@@ -489,7 +489,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Pick pivot, partition, recurse.",
     "solution": "pivot; less, equal, greater; recurse",
     "estMinutes": 30,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-45",
@@ -500,7 +500,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Track prev, curr, next pointers.",
     "solution": "prev=None; while curr: next=curr.next; curr.next=prev; prev=curr; curr=next",
     "estMinutes": 25,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-46",
@@ -511,7 +511,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Two pointers: slow moves 1, fast moves 2.",
     "solution": "slow=fast=head; while fast and fast.next: slow=slow.next; fast=fast.next.next; if slow==fast: return True",
     "estMinutes": 25,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-47",
@@ -522,7 +522,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Push: O(n). Pop: O(1).",
     "solution": "Push to q2, move all from q1 to q2, swap q1 and q2.",
     "estMinutes": 30,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-48",
@@ -533,7 +533,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a stack. Push opens, pop on matching close.",
     "solution": "stack=[]; pairs={')':'(',']':'[','}':'{'}",
     "estMinutes": 25,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-49",
@@ -544,7 +544,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a hash map + doubly linked list.",
     "solution": "OrderedDict in Python; move_to_end on access.",
     "estMinutes": 40,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-50",
@@ -555,7 +555,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Map: emit (word, 1). Reduce: sum by word.",
     "solution": "Counter(map(lambda w: (w,1), text.split()))",
     "estMinutes": 25,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-51",
@@ -566,7 +566,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Hash map of value → index as you iterate.",
     "solution": "seen={}; for i, n in enumerate(arr): if target-n in seen: return [seen[target-n], i]",
     "estMinutes": 20,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-52",
@@ -577,7 +577,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Sliding window with a set.",
     "solution": "left=0; seen=set(); maxlen=0; for right,c in enumerate(s): while c in seen: seen.remove(s[left]); left+=1; seen.add(c); maxlen=max(maxlen,right-left+1)",
     "estMinutes": 30,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-53",
@@ -588,7 +588,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Check each row, column, and 3x3 box for duplicates.",
     "solution": "3 sets of seen per row/col/box",
     "estMinutes": 35,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-54",
@@ -599,7 +599,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Dynamic programming: dp[i] = dp[i-1] + dp[i-2].",
     "solution": "a, b = 1, 1; for _ in range(n): a, b = b, a+b; return a",
     "estMinutes": 20,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-55",
@@ -610,7 +610,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "DP: dp[i] = min(dp[i-coin]+1) for each coin.",
     "solution": "dp = [float('inf')] * (amount+1); dp[0]=0",
     "estMinutes": 30,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-56",
@@ -621,7 +621,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Left → Node → Right. Recursive or iterative with stack.",
     "solution": "def inorder(n): return inorder(n.left)+[n.val]+inorder(n.right) if n else []",
     "estMinutes": 25,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-57",
@@ -632,7 +632,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a queue.",
     "solution": "queue=[root]; while queue: level=[]; for _ in range(len(queue)): ...",
     "estMinutes": 30,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-58",
@@ -643,7 +643,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a queue and a visited set.",
     "solution": "queue=[start]; visited={start}; while queue: n=queue.pop(0); ...",
     "estMinutes": 30,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-59",
@@ -654,7 +654,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a stack (or recursion) and visited set.",
     "solution": "stack=[start]; visited=set(); while stack: n=stack.pop(); ...",
     "estMinutes": 30,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-60",
@@ -665,7 +665,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Priority queue + distances map.",
     "solution": "import heapq; dist={src:0}; pq=[(0,src)]",
     "estMinutes": 40,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-61",
@@ -676,7 +676,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Two pointers: read and write index.",
     "solution": "i=0; result=[]; while i < len(s): ...",
     "estMinutes": 25,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-python-62",
@@ -687,7 +687,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use the built-in JSON parser with indent option.",
     "solution": "json.dumps(json.loads(s), indent=2)",
     "estMinutes": 20,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-javascript-01",
@@ -10246,7 +10246,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use the standard print/output function for your language.",
     "solution": "print('Hello, World!')",
     "estMinutes": 5,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-02",
@@ -10257,7 +10257,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Parse input as numbers, add them, print result.",
     "solution": "a + b",
     "estMinutes": 8,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-03",
@@ -10268,7 +10268,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use the modulo operator (%).",
     "solution": "n % 2 == 0",
     "estMinutes": 8,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-04",
@@ -10279,7 +10279,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Most languages have a reverse method or you can use a loop.",
     "solution": "s[::-1]",
     "estMinutes": 10,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-05",
@@ -10290,7 +10290,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Loop through each char and check if it's a vowel.",
     "solution": "sum(1 for c in s if c in 'aeiou')",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-06",
@@ -10301,7 +10301,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use nested if-else comparisons.",
     "solution": "if a >= b and a >= c: return a",
     "estMinutes": 10,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-07",
@@ -10312,7 +10312,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a loop from 1 to 10.",
     "solution": "for i in range(1,11): print(N*i)",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-08",
@@ -10323,7 +10323,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Formula: C = (F - 32) * 5/9",
     "solution": "(f - 32) * 5/9",
     "estMinutes": 8,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-09",
@@ -10334,7 +10334,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Compare the string to its reverse.",
     "solution": "s == s[::-1]",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-10",
@@ -10345,7 +10345,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Convert to string and iterate, or use modulo and division.",
     "solution": "sum(int(d) for d in str(n))",
     "estMinutes": 10,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-11",
@@ -10356,7 +10356,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Split the string by whitespace.",
     "solution": "len(s.split())",
     "estMinutes": 8,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-12",
@@ -10367,7 +10367,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Divisible by 4, not by 100 unless also by 400.",
     "solution": "y % 4 == 0 and (y % 100 != 0 or y % 400 == 0)",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-13",
@@ -10378,7 +10378,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a switch/if-else on the operator.",
     "solution": "if op=='+': a+b",
     "estMinutes": 20,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-14",
@@ -10389,7 +10389,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a while loop and random number generation.",
     "solution": "while guess != target",
     "estMinutes": 25,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-15",
@@ -10400,7 +10400,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Nested loops: outer for rows, inner for stars.",
     "solution": "for i in range(1,n+1): print('*'*i)",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-16",
@@ -10411,7 +10411,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use the ord() function or equivalent.",
     "solution": "ord(c)",
     "estMinutes": 5,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-17",
@@ -10422,7 +10422,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use arithmetic or tuple unpacking.",
     "solution": "a, b = b, a",
     "estMinutes": 8,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-18",
@@ -10433,7 +10433,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Area = π * r². Use 3.14159 for π.",
     "solution": "3.14159 * r * r",
     "estMinutes": 8,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-19",
@@ -10444,7 +10444,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Check divisibility from 2 to sqrt(n).",
     "solution": "all(n % i for i in range(2, int(n**0.5)+1))",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-20",
@@ -10455,7 +10455,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Loop and count characters.",
     "solution": "count = 0; for _ in s: count += 1",
     "estMinutes": 10,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-21",
@@ -10466,7 +10466,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Check divisibility in order: 15, 3, 5.",
     "solution": "for i in range(1,101): print('Fizz'*(i%3==0)+'Buzz'*(i%5==0) or i)",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-22",
@@ -10477,7 +10477,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Start with 1, multiply by each number up to N.",
     "solution": "f = 1; for i in range(2,n+1): f *= i",
     "estMinutes": 10,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-23",
@@ -10488,7 +10488,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Base case: 0! = 1.",
     "solution": "def f(n): return 1 if n==0 else n*f(n-1)",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-24",
@@ -10499,7 +10499,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Track two previous values.",
     "solution": "a, b = 0, 1; for _ in range(n): a, b = b, a+b",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-25",
@@ -10510,7 +10510,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Base cases: F(0)=0, F(1)=1.",
     "solution": "def f(n): return n if n < 2 else f(n-1)+f(n-2)",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-26",
@@ -10521,7 +10521,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Convert to string, reverse, convert back. Or use modulo.",
     "solution": "int(str(n)[::-1])",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-27",
@@ -10532,7 +10532,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Sort both strings and compare, or count character frequencies.",
     "solution": "sorted(s1) == sorted(s2)",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-28",
@@ -10543,7 +10543,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a dictionary/hash map.",
     "solution": "from collections import Counter; Counter(s)",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-29",
@@ -10554,7 +10554,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a set to track seen items.",
     "solution": "seen = set(); [x for x in lst if not (x in seen or seen.add(x))]",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-30",
@@ -10565,7 +10565,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Track largest and second-largest in one pass.",
     "solution": "sorted(set(lst))[-2]",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-31",
@@ -10576,7 +10576,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "gcd(a,b) = gcd(b, a%b); base case b==0.",
     "solution": "while b: a, b = b, a % b; return a",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-32",
@@ -10587,7 +10587,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Each digit represents a power of 2.",
     "solution": "int(b, 2)",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-33",
@@ -10598,7 +10598,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Repeatedly divide by 2, collect remainders.",
     "solution": "bin(n)[2:]",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-34",
@@ -10609,7 +10609,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Loop and accumulate.",
     "solution": "total = 0; for x in arr: total += x",
     "estMinutes": 10,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-35",
@@ -10620,7 +10620,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Track the max as you iterate.",
     "solution": "m = arr[0]; for x in arr: if x > m: m = x",
     "estMinutes": 10,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-36",
@@ -10631,7 +10631,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Loop with index.",
     "solution": "for i, x in enumerate(arr): if x == target: return i",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-37",
@@ -10642,7 +10642,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Repeatedly swap adjacent out-of-order pairs.",
     "solution": "for i in range(n): for j in range(n-i-1): if arr[j]>arr[j+1]: swap",
     "estMinutes": 20,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-38",
@@ -10653,7 +10653,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Find the min in the unsorted part, swap to the front.",
     "solution": "for i in range(n): m=i; for j in range(i+1,n): if arr[j]<arr[m]: m=j; swap",
     "estMinutes": 20,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-39",
@@ -10664,7 +10664,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Split, capitalize each, join.",
     "solution": "' '.join(w.capitalize() for w in s.split())",
     "estMinutes": 12,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-40",
@@ -10675,7 +10675,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a simple regex or string checks.",
     "solution": "re.match(r'[^@]+@[^@]+\\.[^@]+', s)",
     "estMinutes": 18,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-41",
@@ -10686,7 +10686,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use list comprehension or a loop.",
     "solution": "[item for sub in nested for item in sub]",
     "estMinutes": 15,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-42",
@@ -10697,7 +10697,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Divide and conquer: compare middle, narrow range.",
     "solution": "lo, hi = 0, len(arr)-1; while lo<=hi: mid=(lo+hi)//2; ...",
     "estMinutes": 20,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-43",
@@ -10708,7 +10708,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Recursively split, then merge sorted halves.",
     "solution": "def merge(l,r); recursively sort halves",
     "estMinutes": 30,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-44",
@@ -10719,7 +10719,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Pick pivot, partition, recurse.",
     "solution": "pivot; less, equal, greater; recurse",
     "estMinutes": 30,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-45",
@@ -10730,7 +10730,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Track prev, curr, next pointers.",
     "solution": "prev=None; while curr: next=curr.next; curr.next=prev; prev=curr; curr=next",
     "estMinutes": 25,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-46",
@@ -10741,7 +10741,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Two pointers: slow moves 1, fast moves 2.",
     "solution": "slow=fast=head; while fast and fast.next: slow=slow.next; fast=fast.next.next; if slow==fast: return True",
     "estMinutes": 25,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-47",
@@ -10752,7 +10752,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Push: O(n). Pop: O(1).",
     "solution": "Push to q2, move all from q1 to q2, swap q1 and q2.",
     "estMinutes": 30,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-48",
@@ -10763,7 +10763,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a stack. Push opens, pop on matching close.",
     "solution": "stack=[]; pairs={')':'(',']':'[','}':'{'}",
     "estMinutes": 25,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-49",
@@ -10774,7 +10774,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a hash map + doubly linked list.",
     "solution": "OrderedDict in Python; move_to_end on access.",
     "estMinutes": 40,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-50",
@@ -10785,7 +10785,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Map: emit (word, 1). Reduce: sum by word.",
     "solution": "Counter(map(lambda w: (w,1), text.split()))",
     "estMinutes": 25,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-51",
@@ -10796,7 +10796,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Hash map of value → index as you iterate.",
     "solution": "seen={}; for i, n in enumerate(arr): if target-n in seen: return [seen[target-n], i]",
     "estMinutes": 20,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-52",
@@ -10807,7 +10807,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Sliding window with a set.",
     "solution": "left=0; seen=set(); maxlen=0; for right,c in enumerate(s): while c in seen: seen.remove(s[left]); left+=1; seen.add(c); maxlen=max(maxlen,right-left+1)",
     "estMinutes": 30,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-53",
@@ -10818,7 +10818,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Check each row, column, and 3x3 box for duplicates.",
     "solution": "3 sets of seen per row/col/box",
     "estMinutes": 35,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-54",
@@ -10829,7 +10829,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Dynamic programming: dp[i] = dp[i-1] + dp[i-2].",
     "solution": "a, b = 1, 1; for _ in range(n): a, b = b, a+b; return a",
     "estMinutes": 20,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-55",
@@ -10840,7 +10840,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "DP: dp[i] = min(dp[i-coin]+1) for each coin.",
     "solution": "dp = [float('inf')] * (amount+1); dp[0]=0",
     "estMinutes": 30,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-56",
@@ -10851,7 +10851,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Left → Node → Right. Recursive or iterative with stack.",
     "solution": "def inorder(n): return inorder(n.left)+[n.val]+inorder(n.right) if n else []",
     "estMinutes": 25,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-57",
@@ -10862,7 +10862,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a queue.",
     "solution": "queue=[root]; while queue: level=[]; for _ in range(len(queue)): ...",
     "estMinutes": 30,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-58",
@@ -10873,7 +10873,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a queue and a visited set.",
     "solution": "queue=[start]; visited={start}; while queue: n=queue.pop(0); ...",
     "estMinutes": 30,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-59",
@@ -10884,7 +10884,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use a stack (or recursion) and visited set.",
     "solution": "stack=[start]; visited=set(); while stack: n=stack.pop(); ...",
     "estMinutes": 30,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-60",
@@ -10895,7 +10895,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Priority queue + distances map.",
     "solution": "import heapq; dist={src:0}; pq=[(0,src)]",
     "estMinutes": 40,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-61",
@@ -10906,7 +10906,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Two pointers: read and write index.",
     "solution": "i=0; result=[]; while i < len(s): ...",
     "estMinutes": 25,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-ruby-62",
@@ -10917,7 +10917,7 @@ export const DAILY_CHALLENGE_TASKS: DailyChallengeTask[] =
     "hint": "Use the built-in JSON parser with indent option.",
     "solution": "json.dumps(json.loads(s), indent=2)",
     "estMinutes": 20,
-    "starterCode": "// your code here\n"
+    "starterCode": "# your code here\n"
   },
   {
     "id": "dc-r-01",

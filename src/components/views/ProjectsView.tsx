@@ -68,6 +68,7 @@ export function ProjectsView() {
       state.roadmap.languageIds,
       8,
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.roadmap]);
 
   const projectTrackers: Record<string, ProjectTracker> = {};
@@ -852,6 +853,7 @@ function ExploreMoreProjects({
     const s = new Set<string>();
     for (const p of allProjects) s.add(p.languages[0] ?? "other");
     return [...s].sort();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allProjects]);
 
   // Apply filters
@@ -867,6 +869,7 @@ function ExploreMoreProjects({
       }
       return true;
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allProjects, query, difficultyFilter, languageFilter, hideInPlan, selectedProjectIds]);
 
   // Group the filtered results by primary language (sorted alphabetically)
@@ -878,6 +881,7 @@ function ExploreMoreProjects({
       map.get(lang)!.push(p);
     }
     return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtered]);
 
   const inPlanCount = allProjects.filter((p) => selectedProjectIds.has(p.id)).length;

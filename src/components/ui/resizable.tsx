@@ -1,3 +1,4 @@
+// v5.84: v5.84: react-resizable-panels handles panel semantics. No additional ARIA needed.
 "use client"
 
 import * as React from "react"

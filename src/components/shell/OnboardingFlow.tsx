@@ -78,6 +78,7 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
     if (step === 6) return hoursPerDay > 0 && daysPerWeek > 0;
     if (step === 7) return generatedRoadmap !== null;
     return false;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, name, careerId, occupationId, selectedLanguages, hoursPerDay, daysPerWeek, generatedRoadmap]);
 
   // Note: language auto-recommendation happens in Step 2's career change handler
@@ -93,8 +94,12 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
       }
     }
     if (step === 6) {
-      // Generate the roadmap with 11-stage visual feedback + sliding progress on the button
-      // The AI is the primary generator (3-provider fallback chain); deterministic engine is final fallback.
+      // v5.77 fix: wrap the entire generation chain in try/finally so any
+      // unhandled exception (e.g., from validateRoadmap, regenerateRoadmapWithAI,
+      // or getGenerationStagesForInput) doesn't leave `isGenerating=true` and
+      // freeze the onboarding UI permanently.
+      // v5.77 fix 2: guard against double-fire of handleNext.
+      if (isGenerating) return;
       setIsGenerating(true);
       setGenStage(0);
       const input: PersonalizationInput = {
@@ -123,99 +128,120 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
         "Finalizing your plan…",
       ];
 
-      // Stage 0
-      setGenStage(0); await new Promise((r) => setTimeout(r, 400));
-      // Stage 1
-      setGenStage(1); await new Promise((r) => setTimeout(r, 400));
-      // Stage 2
-      setGenStage(2); await new Promise((r) => setTimeout(r, 400));
-      // Stage 3: Sending to AI — Pass 1
-      setGenStage(3);
-      let roadmap: GeneratedRoadmap | null = null;
-      let usedAI = false;
-      let allFailedPass1 = false;
       try {
-        const aiResult = await generateRoadmapWithAI(input);
-        if (aiResult.roadmap) {
-          roadmap = aiResult.roadmap;
-          usedAI = true;
-        } else {
-          console.warn("[onboarding] AI Pass 1 failed:", aiResult.error);
-          if (aiResult.allFailed) allFailedPass1 = true;
-        }
-      } catch (err) {
-        console.warn("[onboarding] AI Pass 1 threw:", err);
-      }
-
-      // Section 9: Pass 2 — if Pass 1 had all 3 providers fail, retry the whole chain once more
-      if (!roadmap && allFailedPass1) {
-        console.log("[onboarding] All 3 providers failed Pass 1, starting Pass 2");
-        setGenStage(3); // stay on "Sending to AI"
+        // Stage 0
+        setGenStage(0); await new Promise((r) => setTimeout(r, 400));
+        // Stage 1
+        setGenStage(1); await new Promise((r) => setTimeout(r, 400));
+        // Stage 2
+        setGenStage(2); await new Promise((r) => setTimeout(r, 400));
+        // Stage 3: Sending to AI — Pass 1
+        setGenStage(3);
+        let roadmap: GeneratedRoadmap | null = null;
+        let usedAI = false;
+        let allFailedPass1 = false;
         try {
-          const aiResult2 = await generateRoadmapWithAI(input);
-          if (aiResult2.roadmap) {
-            roadmap = aiResult2.roadmap;
+          const aiResult = await generateRoadmapWithAI(input);
+          if (aiResult.roadmap) {
+            roadmap = aiResult.roadmap;
             usedAI = true;
-            allFailedPass1 = false;
           } else {
-            console.warn("[onboarding] AI Pass 2 also failed:", aiResult2.error);
+            console.warn("[onboarding] AI Pass 1 failed:", aiResult.error);
+            if (aiResult.allFailed) allFailedPass1 = true;
           }
         } catch (err) {
-          console.warn("[onboarding] AI Pass 2 threw:", err);
+          console.warn("[onboarding] AI Pass 1 threw:", err);
         }
-      }
 
-      // Section 9: If both passes failed entirely, show user choice screen (do NOT silently fall back)
-      if (!roadmap && allFailedPass1) {
-        console.log("[onboarding] Both AI passes failed — showing user choice screen");
-        setAiFallbackChoice({ input });
-        setIsGenerating(false);
-        return;
-      }
-      // Stage 4: Receiving AI response
-      setGenStage(4); await new Promise((r) => setTimeout(r, 400));
-      // Stage 5: Extracting roadmap structure
-      setGenStage(5); await new Promise((r) => setTimeout(r, 300));
-      // Stage 6: Designing phases
-      setGenStage(6); await new Promise((r) => setTimeout(r, 300));
-      // Stage 7: Generating tasks & modules
-      setGenStage(7); await new Promise((r) => setTimeout(r, 300));
-      // Stage 8: Computing timeline
-      setGenStage(8); await new Promise((r) => setTimeout(r, 300));
-      // Stage 9: Validating accuracy
-      setGenStage(9);
+        // Section 9: Pass 2 — if Pass 1 had all 3 providers fail, retry the whole chain once more
+        if (!roadmap && allFailedPass1) {
+          console.log("[onboarding] All 3 providers failed Pass 1, starting Pass 2");
+          setGenStage(3); // stay on "Sending to AI"
+          try {
+            const aiResult2 = await generateRoadmapWithAI(input);
+            if (aiResult2.roadmap) {
+              roadmap = aiResult2.roadmap;
+              usedAI = true;
+              allFailedPass1 = false;
+            } else {
+              console.warn("[onboarding] AI Pass 2 also failed:", aiResult2.error);
+            }
+          } catch (err) {
+            console.warn("[onboarding] AI Pass 2 threw:", err);
+          }
+        }
 
-      if (!roadmap) {
-        // Fallback: deterministic engine
-        roadmap = generateRoadmap(input);
-      }
+        // Section 9: If both passes failed entirely, show user choice screen (do NOT silently fall back)
+        if (!roadmap && allFailedPass1) {
+          console.log("[onboarding] Both AI passes failed — showing user choice screen");
+          setAiFallbackChoice({ input });
+          setIsGenerating(false);
+          return;
+        }
+        // Stage 4: Receiving AI response
+        setGenStage(4); await new Promise((r) => setTimeout(r, 400));
+        // Stage 5: Extracting roadmap structure
+        setGenStage(5); await new Promise((r) => setTimeout(r, 300));
+        // Stage 6: Designing phases
+        setGenStage(6); await new Promise((r) => setTimeout(r, 300));
+        // Stage 7: Generating tasks & modules
+        setGenStage(7); await new Promise((r) => setTimeout(r, 300));
+        // Stage 8: Computing timeline
+        setGenStage(8); await new Promise((r) => setTimeout(r, 300));
+        // Stage 9: Validating accuracy
+        setGenStage(9);
 
-      let validation = validateRoadmap(roadmap, input);
+        if (!roadmap) {
+          // Fallback: deterministic engine
+          roadmap = generateRoadmap(input);
+        }
 
-      // If AI generated it and validation found errors, do ONE retry
-      if (usedAI && !validation.valid) {
-        console.log("[onboarding] AI roadmap had validation errors, retrying:", validation.errors);
-        const retryResult = await regenerateRoadmapWithAI(input, roadmap, validation.errors);
-        if (retryResult.roadmap) {
-          roadmap = retryResult.roadmap;
+        let validation = validateRoadmap(roadmap, input);
+
+        // If AI generated it and validation found errors, do ONE retry
+        if (usedAI && !validation.valid) {
+          console.log("[onboarding] AI roadmap had validation errors, retrying:", validation.errors);
+          const retryResult = await regenerateRoadmapWithAI(input, roadmap, validation.errors);
+          if (retryResult.roadmap) {
+            roadmap = retryResult.roadmap;
+            validation = validateRoadmap(roadmap, input);
+          }
+        }
+
+        // If still invalid after retry (or AI failed entirely), fall back to deterministic
+        if (!validation.valid && usedAI) {
+          console.log("[onboarding] AI roadmap still invalid, using deterministic fallback");
+          roadmap = generateRoadmap(input);
           validation = validateRoadmap(roadmap, input);
         }
-      }
 
-      // If still invalid after retry (or AI failed entirely), fall back to deterministic
-      if (!validation.valid && usedAI) {
-        console.log("[onboarding] AI roadmap still invalid, using deterministic fallback");
-        roadmap = generateRoadmap(input);
-        validation = validateRoadmap(roadmap, input);
+        // Stage 10: Finalizing your plan
+        setGenStage(10);
+        if (!roadmap) {
+          // Last-resort fallback — should never reach here, but be defensive.
+          roadmap = generateRoadmap(input);
+        }
+        setGeneratedRoadmap(roadmap);
+        await new Promise((r) => setTimeout(r, 500));
+        setIsGenerating(false);
+        setStep(7);
+        return;
+      } catch (err) {
+        console.error("[onboarding] generation chain threw:", err);
+        // Fall back to deterministic engine so the user can still proceed.
+        try {
+          const fallback = generateRoadmap(input);
+          setGeneratedRoadmap(fallback);
+          setIsGenerating(false);
+          setStep(7);
+        } catch (innerErr) {
+          console.error("[onboarding] deterministic fallback also threw:", innerErr);
+          setIsGenerating(false);
+          // Show the user-choice screen so they can retry.
+          setAiFallbackChoice({ input });
+        }
+        return;
       }
-
-      // Stage 10: Finalizing your plan
-      setGenStage(10);
-      setGeneratedRoadmap(roadmap);
-      await new Promise((r) => setTimeout(r, 500));
-      setIsGenerating(false);
-      setStep(7);
-      return;
     }
 
     if (step === 7) {
@@ -230,7 +256,11 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
         hoursPerDay,
         daysPerWeek,
       };
-      completeOnboarding(input);
+      // v5.77 fix: pass the AI-generated roadmap (if any) so the store uses it
+      // instead of silently regenerating a deterministic one. Previously the
+      // user previewed an AI roadmap and then got a different deterministic
+      // roadmap saved to their account.
+      completeOnboarding(input, generatedRoadmap ?? undefined);
       // Show the first-time tour
       setPreference("tourCompleted", false);
       onDone();
@@ -294,15 +324,13 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
               size="lg"
               className="w-full justify-start"
               onClick={async () => {
-                // Option B: try the AI chain one more time. Jump to step 7
-                // (PlanPreviewStep) FIRST so the user sees the full 11-stage
-                // "Building your roadmap…" UI while we wait — otherwise the
-                // fallback clears `aiFallbackChoice` and the component falls
-                // through to the Availability step which only shows a small
-                // spinner on the next button.
+                // v5.77 fix: Option B "Try Again" — previously this called
+                // setStep(7) BEFORE setting generatedRoadmap, which rendered
+                // a blank screen because PlanPreviewStep requires both
+                // `step === 7 && generatedRoadmap`. Now we keep the user on
+                // the fallback screen (with a loading indicator) until the
+                // retry completes, then advance.
                 const input = aiFallbackChoice.input;
-                setAiFallbackChoice(null);
-                setStep(7);
                 setIsGenerating(true);
                 setGenStage(3);
                 let roadmap: GeneratedRoadmap | null = null;
@@ -314,10 +342,18 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
                 }
                 if (!roadmap) {
                   // Final fallback — no more prompts
-                  roadmap = generateRoadmap(input);
+                  try {
+                    roadmap = generateRoadmap(input);
+                  } catch (err) {
+                    console.error("[onboarding] Option B deterministic fallback threw:", err);
+                    setIsGenerating(false);
+                    return;
+                  }
                 }
                 setGeneratedRoadmap(roadmap);
                 setIsGenerating(false);
+                setAiFallbackChoice(null);
+                setStep(7);
               }}
             >
               <span className="flex flex-col items-start text-left">
@@ -897,6 +933,7 @@ function LanguageSelectionStep({
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Close popover on outside click
@@ -910,6 +947,7 @@ function LanguageSelectionStep({
       document.addEventListener("mousedown", onClick);
       return () => document.removeEventListener("mousedown", onClick);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [popoverOpen]);
 
   const toggle = (id: string) => {

@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { AIProviderKey } from "@/lib/types";
 
+// v5.77 fix: explicit runtime + max duration for the BYOK chat proxy.
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
+// v5.77 fix: 60s timeout for upstream AI fetches (BYOK chat can produce long responses).
+const CHAT_FETCH_TIMEOUT_MS = 60_000;
+
 // ============================================================
 // System prompt — Launchpad AI Tutor persona
 // (Section 2.5 — printed for developer reference)
@@ -127,6 +134,7 @@ async function callGemini(apiKey: string, model: string, messages: ChatMsg[], te
       systemInstruction: { parts: [{ text: systemPrompt }] },
       generationConfig: { temperature, maxOutputTokens: 2048 },
     }),
+    signal: AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS),
   });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
@@ -162,6 +170,7 @@ async function callOpenAICompatible(
       temperature,
       max_tokens: 2048,
     }),
+    signal: AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS),
   });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
@@ -187,6 +196,7 @@ async function callAnthropic(apiKey: string, model: string, messages: ChatMsg[],
       temperature,
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
     }),
+    signal: AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS),
   });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
@@ -255,6 +265,7 @@ export async function POST(req: NextRequest) {
       customEndpoint,
       systemPrompt,
       test,
+      stream,
     }: {
       messages?: ChatMsg[];
       provider: AIProviderKey;
@@ -266,6 +277,8 @@ export async function POST(req: NextRequest) {
       systemPrompt?: string;
       /** When truthy, run the "Test Connection" path: send "Hi" instead of messages. */
       test?: boolean;
+      /** v5.78: when truthy, stream the response as SSE (token-by-token). */
+      stream?: boolean;
     } = body;
 
     // BYOK: every user must provide their own API key — no free default
@@ -300,21 +313,205 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Messages array is required" }, { status: 400 });
     }
 
-    // Sanitize messages — keep last 20 to bound cost. Also filter to only
-    // `user` and `assistant` roles: a malicious client could otherwise send
-    // `role: "system"` messages to override our system prompt (prompt
-    // injection). The TypeScript type says `role: "user" | "assistant"`, but
-    // runtime validation is required since the body comes straight from the
-    // request.
-    const trimmed = messages
-      .filter((m: { role?: string }) => m.role === "user" || m.role === "assistant")
+    // v5.77 fix: validate message content shape. Previously a client could send
+    // `{ role: "user", content: null }` or `{ role: "user", content: 123 }` which
+    // passed the role filter but caused cryptic upstream errors.
+    const sanitized = messages
+      .filter((m: { role?: string; content?: unknown }) =>
+        (m.role === "user" || m.role === "assistant") &&
+        typeof m.content === "string" &&
+        m.content.length > 0 &&
+        m.content.length < 100_000, // cap per-message length at 100KB
+      )
+      .map((m: { role: string; content: string }) => ({ role: m.role as "user" | "assistant", content: m.content }))
       .slice(-20);
 
+    if (sanitized.length === 0) {
+      return NextResponse.json({ error: "No valid messages after filtering" }, { status: 400 });
+    }
+
+    // v5.78/v5.79: SSE streaming path. Streams token-by-token for ALL 6 providers.
+    // v5.78 added: OpenAI-compatible (groq, openrouter, openai, custom).
+    // v5.79 added: Gemini (streamGenerateContent + alt=sse) and Anthropic (messages + stream:true).
+    if (stream) {
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder();
+
+      // Build the upstream request based on provider.
+      let upstreamUrl: string;
+      let upstreamHeaders: Record<string, string>;
+      let upstreamBody: string;
+      // Parser type: "openai" | "gemini" | "anthropic"
+      let sseFormat: "openai" | "gemini" | "anthropic";
+
+      if (provider === "groq" || provider === "openrouter" || provider === "openai" || provider === "custom") {
+        sseFormat = "openai";
+        if (provider === "groq") {
+          upstreamUrl = "https://api.groq.com/openai/v1/chat/completions";
+          upstreamHeaders = { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` };
+        } else if (provider === "openrouter") {
+          upstreamUrl = "https://openrouter.ai/api/v1/chat/completions";
+          upstreamHeaders = {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+            "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "https://launchpad--dev.vercel.app",
+            "X-Title": "Launchpad",
+          };
+        } else if (provider === "openai") {
+          upstreamUrl = "https://api.openai.com/v1/chat/completions";
+          upstreamHeaders = { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` };
+        } else {
+          if (!customEndpoint) throw new Error("Custom endpoint URL is required");
+          assertSafeExternalUrl(customEndpoint);
+          upstreamUrl = customEndpoint;
+          upstreamHeaders = { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` };
+        }
+        const fullMessages = [
+          { role: "system", content: systemPrompt ?? SYSTEM_PROMPT },
+          ...sanitized,
+        ];
+        upstreamBody = JSON.stringify({
+          model,
+          messages: fullMessages,
+          temperature: temperature ?? 0.7,
+          max_tokens: 2048,
+          stream: true,
+        });
+      } else if (provider === "gemini") {
+        // v5.79: Gemini streaming via streamGenerateContent?alt=sse
+        sseFormat = "gemini";
+        upstreamUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
+        upstreamHeaders = { "Content-Type": "application/json" };
+        const contents = sanitized.map((m) => ({
+          role: m.role === "assistant" ? "model" : "user",
+          parts: [{ text: m.content }],
+        }));
+        upstreamBody = JSON.stringify({
+          contents,
+          systemInstruction: { parts: [{ text: systemPrompt ?? SYSTEM_PROMPT }] },
+          generationConfig: { temperature: temperature ?? 0.7, maxOutputTokens: 2048 },
+        });
+      } else if (provider === "anthropic") {
+        // v5.79: Anthropic streaming via messages endpoint with stream:true
+        sseFormat = "anthropic";
+        upstreamUrl = "https://api.anthropic.com/v1/messages";
+        upstreamHeaders = {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        };
+        upstreamBody = JSON.stringify({
+          model,
+          max_tokens: 2048,
+          system: systemPrompt ?? SYSTEM_PROMPT,
+          temperature: temperature ?? 0.7,
+          stream: true,
+          messages: sanitized.map((m) => ({ role: m.role, content: m.content })),
+        });
+      } else {
+        // Unknown provider — fall through to non-streaming.
+        sseFormat = "openai"; // unreachable but satisfies TS
+        upstreamUrl = "";
+        upstreamHeaders = {};
+        upstreamBody = "{}";
+      }
+
+      if (sseFormat && upstreamUrl) {
+        const upstreamRes = await fetch(upstreamUrl, {
+          method: "POST",
+          headers: upstreamHeaders,
+          body: upstreamBody,
+          signal: AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS),
+        });
+
+        if (!upstreamRes.ok || !upstreamRes.body) {
+          const txt = await upstreamRes.text().catch(() => "");
+          throw new Error(`${provider} HTTP ${upstreamRes.status}: ${txt.slice(0, 200)}`);
+        }
+
+        const transformedStream = new ReadableStream({
+          async start(controller) {
+            const reader = upstreamRes.body!.getReader();
+            let buffer = "";
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split("\n");
+                buffer = lines.pop() ?? ""; // keep incomplete line
+
+                for (const line of lines) {
+                  const trimmed = line.trim();
+                  if (!trimmed || !trimmed.startsWith("data: ")) continue;
+                  const data = trimmed.slice(6);
+
+                  // OpenAI-compatible: data: [DONE] marks the end.
+                  if (sseFormat === "openai" && data === "[DONE]") {
+                    controller.close();
+                    return;
+                  }
+
+                  try {
+                    const parsed = JSON.parse(data);
+                    let delta: string | undefined;
+
+                    if (sseFormat === "openai") {
+                      // {choices: [{delta: {content: "..."}}]}
+                      delta = parsed?.choices?.[0]?.delta?.content;
+                    } else if (sseFormat === "gemini") {
+                      // v5.79: Gemini SSE format:
+                      // {candidates: [{content: {parts: [{text: "..."}]}}]}
+                      delta = parsed?.candidates?.[0]?.content?.parts
+                        ?.map((p: { text?: string }) => p.text)
+                        .join("");
+                    } else if (sseFormat === "anthropic") {
+                      // v5.79: Anthropic SSE format:
+                      // event: content_block_delta
+                      // data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"..."}}
+                      // We only care about content_block_delta events.
+                      if (parsed?.type === "content_block_delta" && parsed?.delta?.text) {
+                        delta = parsed.delta.text;
+                      }
+                      // message_stop event marks the end.
+                      if (parsed?.type === "message_stop") {
+                        controller.close();
+                        return;
+                      }
+                    }
+
+                    if (delta) {
+                      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: delta })}\n\n`));
+                    }
+                  } catch {
+                    // Skip malformed JSON chunks (keepalive comments, partial data).
+                  }
+                }
+              }
+              controller.close();
+            } catch (err) {
+              controller.error(err);
+            }
+          },
+        });
+
+        return new Response(transformedStream, {
+          headers: {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache, no-transform",
+            Connection: "keep-alive",
+          },
+        });
+      }
+    }
+
+    // Non-streaming path (default, or Gemini/Anthropic which don't support
+    // the OpenAI-compatible SSE format above).
     const content = await fetchProviderChat(
       provider,
       apiKey,
       model,
-      trimmed,
+      sanitized,
       temperature ?? 0.7,
       customEndpoint,
       systemPrompt,
@@ -322,9 +519,20 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ content, provider });
   } catch (err) {
+    // v5.77 fix: don't leak the raw error message to the client (it may
+    // contain API key fragments from upstream error echoes).
     console.error("[chat] error:", err);
+    const errObj = err instanceof Error ? err : new Error(String(err));
+    const msg = errObj.message;
+    // Detect abort/timeout errors and return a clearer message.
+    if (errObj.name === "TimeoutError" || errObj.name === "AbortError" || msg.includes("aborted") || msg.includes("timeout")) {
+      return NextResponse.json(
+        { error: "Request timed out. The AI provider may be slow or unresponsive." },
+        { status: 504 },
+      );
+    }
     return NextResponse.json(
-      { error: (err as Error).message },
+      { error: "The AI provider returned an error. Please check your API key and try again." },
       { status: 502 },
     );
   }

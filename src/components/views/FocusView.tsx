@@ -42,6 +42,17 @@ export function FocusView() {
   const [duration, setDuration] = useState(25 * 60); // 25 min default
   const [remaining, setRemaining] = useState(25 * 60);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // v5.77 fix: capture the real start time so `startedAt` is accurate even
+  // after pause/resume, and use refs for the interval callback to avoid
+  // side-effects inside the `setRemaining` state updater (which React 18
+  // StrictMode double-invokes, causing duplicate `addFocusSession` calls).
+  const startedAtRef = useRef<number | null>(null);
+  const endTimeRef = useRef<number | null>(null);
+  const modeRef = useRef(mode);
+  const durationRef = useRef(duration);
+  const completedRef = useRef(false);
+  modeRef.current = mode;
+  durationRef.current = duration;
 
   // Preset durations
   const presets = mode === "focus"
@@ -59,43 +70,80 @@ export function FocusView() {
     }
   }
 
-  // Tick down
+  // Tick down — v5.77 fix: wall-clock based countdown (no setInterval drift),
+  // and side effects moved OUT of the state updater into a dedicated effect
+  // that watches `remaining === 0`.
   useEffect(() => {
     if (timerState !== "running") return;
+    // Capture the end time when the run starts (or resumes from pause).
+    if (endTimeRef.current === null) {
+      endTimeRef.current = Date.now() + remaining * 1000;
+      startedAtRef.current = startedAtRef.current ?? Date.now();
+    }
     intervalRef.current = setInterval(() => {
-      setRemaining((r) => {
-        if (r <= 1) {
-          // Timer complete
-          clearInterval(intervalRef.current!);
-          setTimerState("idle");
-          if (mode === "focus") {
-            addFocusSession({
-              startedAt: new Date(Date.now() - duration * 1000).toISOString(),
-              durationMinutes: Math.floor(duration / 60),
-              completed: true,
-            });
-            // Auto-switch to break
-            setMode("break");
-            setDuration(5 * 60);
-          } else {
-            setMode("focus");
-            setDuration(25 * 60);
-          }
-          return 0;
-        }
-        return r - 1;
-      });
-    }, 1000);
+      const end = endTimeRef.current;
+      if (end === null) return;
+      const newRemaining = Math.max(0, Math.round((end - Date.now()) / 1000));
+      setRemaining(newRemaining);
+      if (newRemaining <= 0 && !completedRef.current) {
+        completedRef.current = true;
+        if (intervalRef.current) clearInterval(intervalRef.current);
+      }
+    }, 250);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [timerState, mode, duration, addFocusSession]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timerState]);
 
-  const start = () => setTimerState("running");
-  const pause = () => setTimerState("paused");
+  // v5.77 fix: handle completion in a separate effect (NOT inside the state updater).
+  // This avoids StrictMode double-invocation of updaters that caused duplicate
+  // `addFocusSession` calls and incorrect session counts.
+  useEffect(() => {
+    if (remaining === 0 && completedRef.current && timerState === "running") {
+      setTimerState("idle");
+      if (modeRef.current === "focus") {
+        const startMs = startedAtRef.current ?? (Date.now() - durationRef.current * 1000);
+        addFocusSession({
+          startedAt: new Date(startMs).toISOString(),
+          durationMinutes: Math.floor(durationRef.current / 60),
+          completed: true,
+        });
+        setMode("break");
+        setDuration(5 * 60);
+      } else {
+        setMode("focus");
+        setDuration(25 * 60);
+      }
+      // Reset for the next run
+      completedRef.current = false;
+      startedAtRef.current = null;
+      endTimeRef.current = null;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remaining, timerState, addFocusSession]);
+
+  const start = () => {
+    // v5.77 fix: if resuming from pause, keep endTimeRef (don't reset it).
+    if (timerState === "paused") {
+      endTimeRef.current = Date.now() + remaining * 1000;
+    } else if (timerState === "idle") {
+      startedAtRef.current = Date.now();
+      endTimeRef.current = Date.now() + remaining * 1000;
+    }
+    setTimerState("running");
+  };
+  const pause = () => {
+    setTimerState("paused");
+    // Freeze the end time so resume can recompute it from `remaining`.
+    endTimeRef.current = null;
+  };
   const reset = () => {
     setTimerState("idle");
     setRemaining(duration);
+    startedAtRef.current = null;
+    endTimeRef.current = null;
+    completedRef.current = false;
   };
 
   const minutes = Math.floor(remaining / 60);
@@ -123,6 +171,7 @@ export function FocusView() {
       });
     }
     return days;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.habits]);
 
   // Today's focus total
@@ -136,6 +185,7 @@ export function FocusView() {
     return state.focusSessions
       .filter((s) => dateKey(new Date(s.startedAt)) === todayLocal && s.completed)
       .reduce((sum, s) => sum + s.durationMinutes, 0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.focusSessions]);
 
   // This week's focus
@@ -144,6 +194,7 @@ export function FocusView() {
     return state.focusSessions
       .filter((s) => new Date(s.startedAt).getTime() > weekAgo && s.completed)
       .reduce((sum, s) => sum + s.durationMinutes, 0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.focusSessions]);
 
   return (

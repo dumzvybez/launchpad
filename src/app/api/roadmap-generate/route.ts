@@ -2,6 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import type { PersonalizationInput, RoadmapSource } from "@/lib/types";
 import { CAREER_MAP, LANGUAGE_MAP, OCCUPATION_MAP } from "@/lib/career-data";
 
+// v5.77 fix: explicit runtime + max duration so the 3-provider fallback chain
+// doesn't time out on Vercel Hobby (default 10s).
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
+// v5.77 fix: 30s timeout for each upstream AI fetch. Prevents a hanging
+// provider from blocking the entire fallback chain indefinitely.
+const AI_FETCH_TIMEOUT_MS = 30_000;
+function abortAfter(ms: number): AbortSignal {
+  // AbortSignal.timeout is supported in Node 18+ and all modern browsers.
+  return AbortSignal.timeout(ms);
+}
+
 // ============================================================
 // SYSTEM PROMPT — exact lesson ID list (30 technologies × 20 stages + capstone)
 // (Section 2.5 — printed for developer reference)
@@ -217,6 +230,7 @@ async function callGemini(prompt: string): Promise<unknown> {
       contents: [{ parts: [{ text: `${SYSTEM_PROMPT}\n\n${prompt}` }] }],
       generationConfig: { temperature: 0.7, maxOutputTokens: 6000 },
     }),
+    signal: abortAfter(AI_FETCH_TIMEOUT_MS),
   });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
@@ -249,6 +263,7 @@ async function callGroq(prompt: string): Promise<unknown> {
         { role: "user", content: prompt },
       ],
     }),
+    signal: abortAfter(AI_FETCH_TIMEOUT_MS),
   });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
@@ -271,7 +286,7 @@ async function callOpenRouter(prompt: string): Promise<unknown> {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
-      "HTTP-Referer": "https://launchpad--dev.vercel.app",
+      "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "https://launchpad--dev.vercel.app",
       "X-Title": "Launchpad",
     },
     body: JSON.stringify({
@@ -283,6 +298,7 @@ async function callOpenRouter(prompt: string): Promise<unknown> {
         { role: "user", content: prompt },
       ],
     }),
+    signal: abortAfter(AI_FETCH_TIMEOUT_MS),
   });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
@@ -306,6 +322,11 @@ const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 function checkRateLimit(ip: string): { ok: boolean; remaining: number; resetIn: number } {
   const now = Date.now();
+  // v5.77 fix: lazy eviction of expired entries (replaces the setInterval that
+  // leaked intervals in serverless and never actually ran periodically).
+  for (const [k, v] of rateLimitMap) {
+    if (v.resetAt < now) rateLimitMap.delete(k);
+  }
   const entry = rateLimitMap.get(ip);
   if (!entry || entry.resetAt < now) {
     rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
@@ -318,26 +339,27 @@ function checkRateLimit(ip: string): { ok: boolean; remaining: number; resetIn: 
   return { ok: true, remaining: RATE_LIMIT_MAX - entry.count, resetIn: entry.resetAt - now };
 }
 
-// Periodically evict expired entries to prevent memory leak
-if (typeof setInterval !== "undefined") {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [k, v] of rateLimitMap) {
-      if (v.resetAt < now) rateLimitMap.delete(k);
-    }
-  }, 5 * 60 * 1000).unref?.();
-}
+// v5.77 fix: removed module-level setInterval — in Vercel serverless it leaked
+// intervals per cold start and never ran periodically (instances freeze between
+// invocations). Lazy eviction above handles cleanup.
 
 // ============================================================
 // POST handler — runs the 3-provider fallback chain
 // ============================================================
 export async function POST(req: NextRequest) {
   try {
-    // Rate limit by client IP
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      req.headers.get("x-real-ip") ??
-      "unknown";
+    // v5.77 fix: rate limit by client IP — use the LAST entry in x-forwarded-for
+    // (set by Vercel's edge), not the first (which is client-controllable and
+    // allowed trivial rate-limit bypass via `X-Forwarded-For: 1.2.3.4`).
+    // If IP can't be determined, apply a stricter "unknown" bucket.
+    const xff = req.headers.get("x-forwarded-for");
+    let ip: string;
+    if (xff) {
+      const parts = xff.split(",").map((s) => s.trim()).filter(Boolean);
+      ip = parts.length > 0 ? parts[parts.length - 1] : "unknown";
+    } else {
+      ip = req.headers.get("x-real-ip") ?? "unknown";
+    }
     const rl = checkRateLimit(ip);
     if (!rl.ok) {
       return NextResponse.json(

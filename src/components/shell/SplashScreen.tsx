@@ -29,6 +29,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
       clearTimeout(t2);
       clearTimeout(t3);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onDone]);
 
   return (

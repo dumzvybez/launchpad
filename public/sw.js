@@ -4,7 +4,7 @@
 // even when offline (after first load).
 // ============================================================
 
-const CACHE_VERSION = "launchpad-v2-2";
+const CACHE_VERSION = "launchpad-v5-84";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 

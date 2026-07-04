@@ -1,3 +1,4 @@
+// v5.84: Radix HoverCard handles focus management and aria-expanded internally.
 "use client"
 
 import * as React from "react"

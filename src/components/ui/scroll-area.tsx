@@ -1,3 +1,4 @@
+// v5.84: Radix ScrollArea handles scrollbar role and keyboard scroll internally.
 "use client"
 
 import * as React from "react"

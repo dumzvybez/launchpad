@@ -1,3 +1,4 @@
+// v5.84: v5.84: Alert uses role='alert' via Radix. No additional ARIA needed.
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 

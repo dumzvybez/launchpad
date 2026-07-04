@@ -610,12 +610,16 @@ function ShareProgressCardModal({ onClose }: { onClose: () => void }) {
     languageIds: roadmap?.languageIds ?? [],
   });
 
-  const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8" /><title>Launchpad Progress — ${profile.name || "Learner"}</title>
+  // v5.77 SECURITY fix: escape the user name in the <title> tag.
+  const safeName = escapeHtmlAttr(profile.name || "Learner");
+  const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8" /><title>Launchpad Progress — ${safeName}</title>
 <style>${SHARE_CARD_CSS}</style></head><body>${cardInnerHtml}</body></html>`;
 
   const handlePng = async () => {
     setBusy("png"); setStatus(null);
-    const r = await downloadHtmlAsPng(cardInnerHtml, `launchpad-progress-${(profile.name || "learner").replace(/\s+/g, "-").toLowerCase()}`, { width: 1200, height: 675 });
+    // v5.77 fix: sanitize filename to filesystem-safe characters.
+    const safeFilename = (profile.name || "learner").replace(/[^a-zA-Z0-9\s-]/g, "").replace(/\s+/g, "-").toLowerCase() || "learner";
+    const r = await downloadHtmlAsPng(cardInnerHtml, `launchpad-progress-${safeFilename}`, { width: 1200, height: 675 });
     setBusy(null);
     setStatus({ ok: r.ok, msg: r.ok ? "PNG downloaded." : `Failed: ${r.error}` });
     if (r.ok) markShared();

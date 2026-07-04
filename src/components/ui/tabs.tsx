@@ -1,3 +1,4 @@
+// v5.84: Radix Tabs handles tablist, tab, tabpanel, aria-selected, and aria-controls internally.
 "use client"
 
 import * as React from "react"

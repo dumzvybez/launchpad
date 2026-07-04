@@ -21,7 +21,7 @@
  */
 
 import type { Flashcard, Lesson } from "./types";
-import { ALL_LESSONS } from "./lessons-data";
+import { getTrackLessons } from "./lessons-data";
 
 /**
  * Generate flashcards for a single lesson.
@@ -93,7 +93,7 @@ export function generateFlashcardsForLesson(lesson: Lesson): Flashcard[] {
  * Generate flashcards for an entire track (all lessons in that track).
  */
 export function generateFlashcardsForTrack(trackId: string): Flashcard[] {
-  const lessons = ALL_LESSONS.filter((l) => l.track === trackId);
+  const lessons = getTrackLessons(trackId);
   const cards: Flashcard[] = [];
   for (const lesson of lessons) {
     cards.push(...generateFlashcardsForLesson(lesson));

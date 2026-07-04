@@ -45,7 +45,6 @@ Tell it your career goal, and Launchpad generates a custom learning roadmap pull
 - [📖 Course Catalog](#-course-catalog)
 - [📜 Certificates](#-certificates)
 - [🔒 Privacy, By Design](#-100-on-device-privacy)
-- [🗺️ What's Next](#️-whats-next)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
 
@@ -64,7 +63,7 @@ flowchart LR
     A[Your Profile] --> B{Gemini 2.5 Flash}
     B -- fails --> C{Groq Llama 3.3 70B}
     C -- fails --> D{OpenRouter}
-    D -- fails twice --> E[Built-in Engine /<br/>Try Again Choice]
+    D -- fails --> E[Built-in Engine /<br/>Try Again Choice]
     B -- success --> F[12-Point Validated Roadmap]
     C -- success --> F
     D -- success --> F
@@ -200,6 +199,7 @@ flowchart TD
 | Roadmap AI | Gemini 2.5 Flash → Groq Llama 3.3 70B → OpenRouter (server-side fallback chain) |
 | Tutor / Interview / Review AI | BYOK — Gemini, OpenAI, Anthropic, Groq, OpenRouter, or custom endpoint |
 | Code Execution | Sandboxed iframe, Pyodide, sql.js, simulated shell |
+| Certificate Verification | Supabase (Postgres + RLS) |
 | Community | Giscus (GitHub Discussions) |
 | Syntax Highlighting | react-syntax-highlighter (Prism, vscDarkPlus) |
 
@@ -222,11 +222,29 @@ bun install
 GEMINI_API_KEY=your_key
 GROQ_API_KEY=your_key
 OPENROUTER_API_KEY=your_key
+
+# Certificate verification (Supabase) — v5.77+
+# Set these to enable public certificate verification at /verify/[id]
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key  # server-only, never expose
+
+# Self-hosting — v5.77+
+# Set this to your production URL so SEO metadata, sitemap, and OpenRouter
+# attribution point to the right domain. Defaults to the Launchpad dev URL.
+NEXT_PUBLIC_APP_URL=https://your-domain.com
+
+# Certificate forgery protection — v5.77+ (optional but recommended)
+# If set, the /api/certificates/create endpoint requires an HMAC-SHA256
+# completion token signed with this secret. If not set, the endpoint falls
+# back to rate-limit-only protection (less secure).
+CERT_SECRET=your_random_secret_string
 ```
 
-Free keys: [Gemini](https://aistudio.google.com) · [Groq](https://console.groq.com) · [OpenRouter](https://openrouter.ai/keys)
+Free keys: [Gemini](https://aistudio.google.com) · [Groq](https://console.groq.com) · [OpenRouter](https://openrouter.ai/keys) · [Supabase](https://supabase.com)
 
-> If all three keys are missing or every provider fails twice, you'll get a clean fallback screen — continue on the built-in engine or try again.
+> If all three AI keys are missing or every provider fails, you'll get a clean fallback screen — continue on the built-in engine or try again.
 
 **3. Run it**
 
@@ -279,20 +297,6 @@ No accounts. No servers storing your data. No analytics. Everything lives in you
 - Chat history with the AI Tutor stays local
 - Roadmap generation sends only your stated goals to the AI provider — nothing else
 - The Community tab requires a GitHub account to post, but your Launchpad progress is **never** shared there
-
----
-
-## 🗺️ What's Next
-
-This is a living project — here's what's actively being worked on or considered:
-
-- Full spaced-repetition (SM-2) wiring across the quiz system
-- A heavier Monaco-based code editor as an optional upgrade
-- More in-browser SQL execution coverage
-- Continued UI/UX polish across Notes & Calendar tabs
-- Whatever the community asks for next 👇
-
-Got an idea? Head to [Feature Requests](https://github.com/dumzvybez/Launchpad/discussions) — this roadmap is shaped by real feedback, not guesses.
 
 ---
 

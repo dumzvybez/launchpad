@@ -1,3 +1,4 @@
+// v5.84: Radix Menubar handles menu, menuitem, and keyboard navigation internally.
 "use client"
 
 import * as React from "react"

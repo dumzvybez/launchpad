@@ -216,15 +216,10 @@ export const ACHIEVEMENTS: Achievement[] = [
       c.messages.some((m) => m.content?.includes("I'm ready to start my mock interview")),
     ),
   },
-  {
-    id: "spaced-repeater",
-    title: "Spaced Repeater",
-    description: "Use Review Mode 5 times.",
-    icon: "🔁",
-    rarity: "rare",
-    xp: 150,
-    check: (s: AppState) => (typeof window !== "undefined" && (Number(window.localStorage.getItem("launchpad:review-mode-count") ?? "0") >= 5)),
-  },
+  // v5.77 fix: removed duplicate `spaced-repeater` entry that was here.
+  // The newer "Mega Prompt 3" version below (xp: 200) is the canonical one.
+  // Previously both entries existed in ACHIEVEMENTS, causing double-XP awards
+  // and duplicate badge toasts.
   {
     id: "resume-builder",
     title: "Resume Builder",

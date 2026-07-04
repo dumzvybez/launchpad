@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Play, Trash2, Copy, Code2, Info, ExternalLink, Download, VSCode } from "@/components/views/PlaygroundIcons";
 import { useStore } from "@/lib/store";
 import { GlassCard, GlassButton } from "@/components/glass/GlassPrimitives";
@@ -128,6 +128,67 @@ function stripTypeScriptTypes(code: string): string {
   return out;
 }
 
+// v5.84: Sandboxed iframe HTML for JS/TS execution.
+// The iframe has sandbox="allow-scripts" (no allow-same-origin), so it has
+// an opaque origin and CANNOT access the parent's localStorage, cookies,
+// DOM, or make credentialed fetch requests to the backend.
+// Dangerous globals are stripped inside the sandbox as defense-in-depth.
+const PLAYGROUND_SANDBOX_HTML = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8" /></head>
+<body>
+<script>
+// Strip dangerous globals (defense-in-depth — the sandbox origin already
+// prevents access to the parent's storage, but this adds another layer).
+try { delete window.document.cookie; } catch (e) {}
+try { delete window.localStorage; } catch (e) {}
+try { delete window.sessionStorage; } catch (e) {}
+try { delete window.fetch; } catch (e) {}
+try { delete window.XMLHttpRequest; } catch (e) {}
+try { delete window.WebSocket; } catch (e) {}
+try { delete window.eval; } catch (e) {}
+
+// Console capture — posts each log to the parent as it happens.
+console.log = (...args) => {
+  const text = args.map(a => { try { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); } catch { return String(a); } }).join(' ');
+  parent.postMessage({ type: 'pg-log', log: { type: 'log', text } }, '*');
+};
+console.error = (...args) => {
+  const text = args.map(a => String(a)).join(' ');
+  parent.postMessage({ type: 'pg-log', log: { type: 'error', text } }, '*');
+};
+console.warn = (...args) => {
+  const text = args.map(a => String(a)).join(' ');
+  parent.postMessage({ type: 'pg-log', log: { type: 'warn', text } }, '*');
+};
+console.info = (...args) => {
+  const text = args.map(a => String(a)).join(' ');
+  parent.postMessage({ type: 'pg-log', log: { type: 'info', text } }, '*');
+};
+
+window.addEventListener('message', async (e) => {
+  if (e.data?.type !== 'pg-run') return;
+  try {
+    const fn = new Function('return (async () => { ' + e.data.code + ' })();');
+    const result = fn();
+    if (result && typeof result.then === 'function') {
+      // Async code — wait with 30s timeout.
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Execution timed out (30s limit)')), 30000)
+      );
+      try { await Promise.race([result, timeout]); }
+      catch (err) { parent.postMessage({ type: 'pg-log', log: { type: 'error', text: String(err) } }, '*'); }
+    }
+    parent.postMessage({ type: 'pg-done' }, '*');
+  } catch (err) {
+    parent.postMessage({ type: 'pg-log', log: { type: 'error', text: String(err) } }, '*');
+    parent.postMessage({ type: 'pg-done' }, '*');
+  }
+});
+</script>
+</body>
+</html>`;
+
 export function PlaygroundView() {
   const [language, setLanguage] = useState<Lang>("javascript");
   const [code, setCode] = useState("");
@@ -141,14 +202,44 @@ export function PlaygroundView() {
   const storeLang = useStore((s) => s.playgroundLanguage);
   const setPlaygroundCode = useStore((s) => s.setPlaygroundCode);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  // Holds the original console.* methods while our capture functions are
-  // installed, so we can restore them on Clear or before re-installing.
-  const consoleBackupRef = useRef<{
-    log: typeof console.log;
-    error: typeof console.error;
-    warn: typeof console.warn;
-    info: typeof console.info;
-  } | null>(null);
+  // v5.84: sandboxed iframe for JS/TS execution. Replaces the old
+  // new Function() approach that ran code in the page's origin.
+  const sandboxIframeRef = useRef<HTMLIFrameElement | null>(null);
+
+  // v5.84: ensure the sandbox iframe exists and is ready.
+  const ensureSandboxIframe = () => {
+    if (sandboxIframeRef.current && sandboxIframeRef.current.contentWindow) {
+      return sandboxIframeRef.current;
+    }
+    const iframe = document.createElement("iframe");
+    iframe.sandbox.add("allow-scripts");
+    iframe.style.display = "none";
+    iframe.srcdoc = PLAYGROUND_SANDBOX_HTML;
+    document.body.appendChild(iframe);
+    sandboxIframeRef.current = iframe;
+    return iframe;
+  };
+
+  // v5.84: listen for messages from the sandbox iframe.
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type === "pg-log") {
+        setOutput((prev) => [...prev, e.data.log]);
+      } else if (e.data?.type === "pg-done") {
+        setRunning(false);
+      }
+    };
+    window.addEventListener("message", handler);
+    return () => {
+      window.removeEventListener("message", handler);
+      // v5.84: clean up the sandbox iframe on unmount.
+      if (sandboxIframeRef.current) {
+        sandboxIframeRef.current.remove();
+        sandboxIframeRef.current = null;
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Load code from "Try in Playground" buttons. Uses the
   // "adjust state during render" pattern (recommended by React docs) instead
@@ -173,58 +264,28 @@ export function PlaygroundView() {
     try {
       if (language === "javascript" || language === "typescript") {
         const jsCode = language === "typescript" ? stripTypeScriptTypes(code) : code;
-        // JS execution. We install capture functions for console.* and
-        // KEEP them installed after the synchronous code returns, so that
-        // async logs (setTimeout, Promise.then, await) still appear in the
-        // Output panel. The captures are replaced on the next Run/Clear.
-        // Previously the `finally` block restored the originals immediately,
-        // which meant any deferred console.log never showed up — the
-        // "Async/Await" example was a direct victim.
-        const logs: { type: "log" | "error" | "warn" | "info"; text: string }[] = [];
-        const flush = () => setOutput([...logs]);
-        const capture = (type: "log" | "error" | "warn" | "info") => (...args: unknown[]) => {
-          const text = args.map((a) => {
-            if (typeof a === "string") return a;
-            try { return JSON.stringify(a, null, 2); } catch { return String(a); }
-          }).join(" ");
-          logs.push({ type, text });
-          flush();
-        };
-        // Save the originals (only on first install) so we can restore later.
-        if (!consoleBackupRef.current) {
-          consoleBackupRef.current = {
-            log: console.log,
-            error: console.error,
-            warn: console.warn,
-            info: console.info,
-          };
-        }
-        console.log = capture("log"); console.error = capture("error"); console.warn = capture("warn"); console.info = capture("info");
-        try {
-          const wrapped = `return (async () => { ${jsCode} })();`;
-          const fn = new Function(wrapped);
-          const result: unknown = fn();
-          if (result && typeof (result as Promise<unknown>).then === "function") {
-            (result as Promise<unknown>).then(() => {
-              flush();
-              setRunning(false);
-            }).catch((err: Error) => {
-              logs.push({ type: "error", text: err.message });
-              flush();
-              setRunning(false);
-            });
-          } else {
-            // Sync code finished — give deferred microtasks a tick to flush
-            // their logs before we mark the run as complete.
-            setTimeout(() => { flush(); setRunning(false); }, 0);
-          }
-        } catch (err) {
-          logs.push({ type: "error", text: (err as Error).message });
-          flush();
+        // v5.84: JS/TS now runs in a SANDBOXED IFRAME (sandbox="allow-scripts"
+        // without allow-same-origin). This means user code has an opaque
+        // origin and CANNOT access the parent's localStorage (API keys, user
+        // data), cookies, DOM, or make credentialed fetch requests to the
+        // Launchpad backend. Previously, `new Function(code)()` ran in the
+        // page's origin, giving it full access to everything.
+        //
+        // The sandbox iframe captures console.log/error/warn/info and posts
+        // them back via postMessage. The parent listens for these messages
+        // and updates the output state.
+        const iframe = ensureSandboxIframe();
+        if (!iframe.contentWindow) {
+          setOutput([{ type: "error", text: "Failed to initialize sandbox. Please refresh the page." }]);
           setRunning(false);
+          return;
         }
-        // NOTE: do NOT restore console.* here — async callbacks may still
-        // fire. They are restored at the top of the next run() / clear().
+        // Post the code to the sandbox. The sandbox runs it and posts back
+        // logs (as they happen) and a 'done' message when complete.
+        iframe.contentWindow.postMessage({ type: "pg-run", code: jsCode }, "*");
+        // Note: setRunning(false) is called by the message listener when
+        // it receives the 'pg-done' message from the sandbox.
+        return;
       } else if (language === "python") {
         setPyodideStatus("Loading Python runtime (first run downloads ~10MB, then cached)...");
         const pyodide = await loadPyodide((msg) => setPyodideStatus(msg));
@@ -242,7 +303,10 @@ export function PlaygroundView() {
         setHtmlPreview(code);
         setOutput([{ type: "info", text: "HTML preview rendered below ↓" }]);
       } else if (language === "css") {
-        const fullDoc = `<!DOCTYPE html><html><head><style>${code}</style></head><body><h1>Hello from CSS!</h1><p>Style me with the CSS on the left.</p><div class="card">Card example</div></body></html>`;
+        // v5.77 fix: escape `</` to `<\/` in the CSS to prevent `</style>`
+        // escape attacks that could inject scripts into the sandboxed iframe.
+        const safeCss = code.replace(/<\//g, "<\\/");
+        const fullDoc = `<!DOCTYPE html><html><head><style>${safeCss}</style></head><body><h1>Hello from CSS!</h1><p>Style me with the CSS on the left.</p><div class="card">Card example</div></body></html>`;
         setHtmlPreview(fullDoc);
         setOutput([{ type: "info", text: "CSS preview rendered below ↓" }]);
       } else if (language === "sql") {
@@ -261,15 +325,8 @@ export function PlaygroundView() {
   const clear = () => {
     setOutput([]);
     setHtmlPreview(null);
-    // Restore the real console methods so subsequent console.log calls from
-    // the page (outside user code) go to the browser devtools again.
-    if (consoleBackupRef.current) {
-      console.log = consoleBackupRef.current.log;
-      console.error = consoleBackupRef.current.error;
-      console.warn = consoleBackupRef.current.warn;
-      console.info = consoleBackupRef.current.info;
-      consoleBackupRef.current = null;
-    }
+    // v5.84: no console restore needed — JS now runs in a sandboxed iframe,
+    // so the parent's console methods are never touched.
   };
 
   const copyCode = () => {

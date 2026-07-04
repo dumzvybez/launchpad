@@ -35,6 +35,7 @@ export function FirstTimeTour() {
       const t = setTimeout(() => setActive(true), 600);
       return () => clearTimeout(t);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tourCompleted]);
 
   if (!active || tourCompleted === true || tourCompleted === undefined) return null;

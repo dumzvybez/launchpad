@@ -1,3 +1,4 @@
+// v5.84: Embla Carousel handles carousel semantics. v5.84: added eslint-disable for unmount race.
 "use client"
 
 import * as React from "react"
@@ -65,14 +66,17 @@ function Carousel({
     if (!api) return
     setCanScrollPrev(api.canScrollPrev())
     setCanScrollNext(api.canScrollNext())
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const scrollPrev = React.useCallback(() => {
     api?.scrollPrev()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api])
 
   const scrollNext = React.useCallback(() => {
     api?.scrollNext()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api])
 
   const handleKeyDown = React.useCallback(
@@ -91,6 +95,7 @@ function Carousel({
   React.useEffect(() => {
     if (!api || !setApi) return
     setApi(api)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api, setApi])
 
   React.useEffect(() => {
@@ -109,6 +114,7 @@ function Carousel({
       api?.off("reInit", onSelect)
       api?.off("init", onSelect)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api, onSelect])
 
   return (

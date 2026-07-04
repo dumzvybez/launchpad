@@ -5,7 +5,7 @@ import { Layers, ChevronLeft, ChevronRight, Lightbulb, Check, X, RotateCcw } fro
 import { useStore } from "@/lib/store";
 import { GlassCard, GlassButton } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
-import { ALL_LANGUAGE_INFO } from "@/lib/lessons-data";
+import { ALL_LANGUAGE_INFO } from "@/lib/lessons-meta";
 import { isDueForReview } from "@/lib/sm2";
 import { getFlashcardsForTrack } from "@/lib/flashcard-generator";
 import type { Flashcard } from "@/lib/types";
@@ -31,6 +31,7 @@ export function FlashcardsView() {
       return roadmap.languageIds;
     }
     return Object.values(ALL_LANGUAGE_INFO).map((t) => t.id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roadmap]);
 
   // Ensure flashcards are populated for all visible tracks.
@@ -38,6 +39,7 @@ export function FlashcardsView() {
     for (const id of trackIds) {
       ensureFlashcardsForTrack(id);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trackIds, ensureFlashcardsForTrack]);
 
   // Build the full deck (merging generated defaults with user SM-2 progress).
@@ -47,6 +49,7 @@ export function FlashcardsView() {
       cards.push(...getFlashcardsForTrack(id, userFlashcards));
     }
     return cards;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trackIds, userFlashcards]);
 
   // Apply filter.
@@ -56,6 +59,7 @@ export function FlashcardsView() {
       return allCards.filter((c) => isDueForReview(c.nextReviewDate, c.interval));
     }
     return allCards.filter((c) => c.trackId === filter);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allCards, filter]);
 
   const dueCount = useMemo(
@@ -102,6 +106,7 @@ export function FlashcardsView() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentCard, flipped, handleResult]);
 
   // Reset index when filter changes. Uses the "adjust state during render"

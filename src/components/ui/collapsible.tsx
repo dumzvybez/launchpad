@@ -1,3 +1,4 @@
+// v5.84: Radix Collapsible handles aria-expanded and button semantics internally.
 "use client"
 
 import * as CollapsiblePrimitive from "@radix-ui/react-collapsible"

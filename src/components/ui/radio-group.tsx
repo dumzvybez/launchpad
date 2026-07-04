@@ -1,3 +1,4 @@
+// v5.84: Radix RadioGroup handles radiogroup, radio, aria-checked, and keyboard navigation internally.
 "use client"
 
 import * as React from "react"

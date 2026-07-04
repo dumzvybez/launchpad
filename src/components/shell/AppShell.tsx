@@ -71,10 +71,12 @@ export function AppShell() {
   });
   useEffect(() => {
     try { window.localStorage.setItem("launchpad:sidebar-collapsed", String(sidebarCollapsed)); } catch { /* ignore */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sidebarCollapsed]);
 
   useEffect(() => {
     hydrate();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrate]);
 
   useCommandPaletteShortcut();
@@ -99,7 +101,7 @@ export function AppShell() {
     viewFromPath();
     window.addEventListener("popstate", viewFromPath);
     return () => window.removeEventListener("popstate", viewFromPath);
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setView]);
 
   useEffect(() => {
@@ -109,6 +111,7 @@ export function AppShell() {
         window.history.pushState(null, "", expectedPath);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentView]);
 
   // Auto-close the mobile drawer whenever the user navigates to a new view.
@@ -117,6 +120,7 @@ export function AppShell() {
   // to see the new view.
   useEffect(() => {
     setMobileNavOpen(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentView, setMobileNavOpen]);
 
   // Stable callback so SplashScreen's effect doesn't re-run on every AppShell

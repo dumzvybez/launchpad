@@ -66,6 +66,7 @@ export const INTERVIEW_QUESTIONS: InterviewQuestion[] = [
   { id: "react-9", career: "web-dev", language: "react", type: "conceptual", difficulty: "intermediate", question: "What is the difference between controlled and uncontrolled components?", hint: "React state as source of truth vs DOM ref, defaultValue, when to use each." },
   { id: "react-10", career: "web-dev", language: "react", type: "conceptual", difficulty: "advanced", question: "What are React Server Components and how do they differ from Client Components?", hint: "Zero-bundle, async, no state/effects, RSC payload, streaming, App Router." },
   { id: "react-11", career: "web-dev", language: "react", type: "problem-solving", difficulty: "intermediate", question: "Implement a custom `usePrevious(value)` hook that returns the previous value.", hint: "useRef to store value, update in useEffect after render." },
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   { id: "react-12", career: "web-dev", language: "react", type: "code-review", difficulty: "advanced", question: "Review: `const [count, setCount] = useState(0); useEffect(() => { setCount(c => c + 1); }, [count]);` — what's wrong?", hint: "Infinite render loop. count in deps triggers effect that updates count. Use functional update with empty deps or restructure." },
 
   // ============================================================

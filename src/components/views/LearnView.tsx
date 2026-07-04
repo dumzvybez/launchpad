@@ -30,7 +30,8 @@ import { useStore, selectCertificateEligible, selectTrackQuizAverage, selectWeak
 import { GlassCard, GlassButton, ProgressBar } from "@/components/glass/GlassPrimitives";
 import { cn, estimateReadTime } from "@/lib/utils";
 import {
-  ALL_LESSONS,
+  getLessons,
+  getLessonById,
   getLessonsForTrack,
   getAllTracks,
   ALL_LANGUAGE_INFO,
@@ -76,7 +77,7 @@ export function LearnView() {
   const bookmarkedLessons = state.bookmarkedLessons ?? [];
 
   const selectedLesson = useMemo(
-    () => ALL_LESSONS.find((l) => l.id === selectedLessonId),
+    () => getLessonById(selectedLessonId),
     [selectedLessonId],
   );
 
@@ -105,7 +106,7 @@ export function LearnView() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Learn</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {totalCompleted} of {ALL_LESSONS.length} lessons complete across {allTracks.length} languages · Build real coding skills with structured lessons, code examples, and quizzes.
+            {totalCompleted} of {getLessons().length} lessons complete across {allTracks.length} languages · Build real coding skills with structured lessons, code examples, and quizzes.
           </p>
         </div>
 
@@ -150,7 +151,7 @@ export function LearnView() {
         {/* Section 3.3 — Lesson filter chips */}
         <div className="flex flex-wrap gap-1.5">
           {([
-            { id: "all", label: "All", count: ALL_LESSONS.length },
+            { id: "all", label: "All", count: getLessons().length },
             { id: "bookmarked", label: "⭐ Bookmarked", count: bookmarkedLessons.length },
             { id: "in-progress", label: "🔄 In Progress", count: Object.values(lessonProgress).filter((p) => p.status === "in-progress").length },
             { id: "completed", label: "✅ Completed", count: Object.values(lessonProgress).filter((p) => p.status === "complete").length },
@@ -172,7 +173,7 @@ export function LearnView() {
 
         {/* Section 3 — Filtered lessons view (when a filter is active) */}
         {lessonFilter !== "all" && (() => {
-          const filteredLessons = ALL_LESSONS.filter((l) => {
+          const filteredLessons = getLessons().filter((l) => {
             if (lessonFilter === "bookmarked") return bookmarkedLessons.includes(l.id);
             if (lessonFilter === "in-progress") return lessonProgress[l.id]?.status === "in-progress";
             if (lessonFilter === "completed") return lessonProgress[l.id]?.status === "complete";
@@ -242,7 +243,7 @@ export function LearnView() {
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-3 font-mono">📚 Your languages · {planTracks.length} in your roadmap</div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {planTracks.map((t) => {
-                const trackLessons = ALL_LESSONS.filter((l) => l.track === t.id).sort((a, b) => a.order - b.order);
+                const trackLessons = getLessonsForTrack(t.id);
                 const completed = trackLessons.filter((l) => lessonProgress[l.id]?.status === "complete").length;
                 const pct = trackLessons.length ? Math.round((completed / trackLessons.length) * 100) : 0;
                 return (
@@ -297,7 +298,7 @@ export function LearnView() {
             {showExploreMore && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {exploreTracks.map((t) => {
-                const trackLessons = ALL_LESSONS.filter((l) => l.track === t.id).sort((a, b) => a.order - b.order);
+                const trackLessons = getLessonsForTrack(t.id);
                 const completed = trackLessons.filter((l) => lessonProgress[l.id]?.status === "complete").length;
                 const pct = trackLessons.length ? Math.round((completed / trackLessons.length) * 100) : 0;
                 return (
@@ -438,8 +439,11 @@ export function LearnView() {
 
         {/* Lesson content — capstone uses structured layout (Section 3.4) */}
         {selectedLesson.isCapstone ? (
-          <CapstoneLayout blocks={selectedLesson.blocks} onTryInPlayground={(code) => {
-            setPlaygroundCode(code, "javascript");
+          <CapstoneLayout blocks={selectedLesson.blocks} onTryInPlayground={(code, language) => {
+            // v5.77 fix: pass the actual code-block language through to the playground.
+            // Previously this hardcoded "javascript", sending Python/TS/SQL/HTML code
+            // to the JS runner where it failed with confusing syntax errors.
+            setPlaygroundCode(code, language || "javascript");
             setView("playground");
           }} />
         ) : (
@@ -449,8 +453,9 @@ export function LearnView() {
               // fresh when the user navigates to a different lesson/phase.
               // Previously key={i} caused React to reuse the same instance,
               // retaining the previous lesson's code/output.
-              <LessonBlockView key={`${selectedLesson.id}:${i}`} block={block} onTryInPlayground={(code) => {
-                setPlaygroundCode(code, "javascript");
+              <LessonBlockView key={`${selectedLesson.id}:${i}`} block={block} onTryInPlayground={(code, language) => {
+                // v5.77 fix: pass the actual code-block language through.
+                setPlaygroundCode(code, language || "javascript");
                 setView("playground");
               }} />
             ))}
@@ -535,13 +540,18 @@ export function LearnView() {
     const track = selectedLesson.track;
     const trackLessons = getLessonsForTrack(track);
     const idx = trackLessons.findIndex((l) => l.id === selectedLesson.id);
-    const next = idx < trackLessons.length - 1 ? trackLessons[idx + 1] : null;
+    // v5.77 fix: guard against idx === -1 (lesson not found in track) so
+    // "Next lesson" doesn't jump to trackLessons[0].
+    const next = idx >= 0 && idx < trackLessons.length - 1 ? trackLessons[idx + 1] : null;
 
     // Check if entire track is complete
-    const trackComplete = trackLessons.every((l) => lessonProgress[l.id]?.status === "complete");
+    // v5.77 fix: guard against empty trackLessons (every() returns true on []).
+    const trackComplete = trackLessons.length > 0 && trackLessons.every((l) => lessonProgress[l.id]?.status === "complete");
 
     // Certificate eligibility per Section 1.1 (75% average quiz score required)
-    const certEligible = selectCertificateEligible(useStore.getState().state, track, trackLessons);
+    // v5.77 fix: use the subscribed `state` instead of useStore.getState() so
+    // the UI updates reactively when a certificate is issued or quiz scores change.
+    const certEligible = selectCertificateEligible(state, track, trackLessons);
     const trackAverage = certEligible.average;
 
     // Get display name for the track
@@ -806,7 +816,7 @@ function CapstoneLayout({
   onTryInPlayground,
 }: {
   blocks: Lesson["blocks"];
-  onTryInPlayground: (code: string) => void;
+  onTryInPlayground: (code: string, language?: string) => void;
 }) {
   // Walk blocks and group into sections. Each "heading" starts a new section.
   const sections: { title: string; blocks: Lesson["blocks"] }[] = [];
@@ -967,7 +977,7 @@ function LessonBlockView({
   onTryInPlayground,
 }: {
   block: Lesson["blocks"][number];
-  onTryInPlayground: (code: string) => void;
+  onTryInPlayground: (code: string, language?: string) => void;
 }) {
   if (block.kind === "heading") {
     return <h2 className="text-lg font-bold mt-4 first:mt-0">{block.content}</h2>;
@@ -1217,6 +1227,7 @@ function QuizModePicker({
       if (!rec) return false;
       return rec.difficulty === "hard" || new Date(rec.nextReviewDate).getTime() <= Date.now();
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lesson, questionRecords]);
 
   if (mode === "picker") {
@@ -1315,6 +1326,7 @@ function QuizView({
       if (answers[q.id] === q.correctIndex) correct++;
     }
     return Math.round((correct / questions.length) * 100);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [answers, questions]);
 
   const correctCount = useMemo(() => {
@@ -1323,6 +1335,7 @@ function QuizView({
       if (answers[q.id] === q.correctIndex) c++;
     }
     return c;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [answers, questions]);
 
   const passMark = Math.max(1, Math.ceil(questions.length * 0.7)); // 70%

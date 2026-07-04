@@ -140,10 +140,12 @@ export function CommunityView() {
 
     giscusContainerRef.current.appendChild(script);
     setLastRefreshedAt(new Date());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [section, resolvedTheme]);
 
   useEffect(() => {
     injectGiscus();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [injectGiscus, reloadKey]);
 
   // Auto-refresh: re-inject Giscus every 60 seconds while the tab is visible
@@ -199,6 +201,7 @@ export function CommunityView() {
       }
       if (interactionTimeout) clearTimeout(interactionTimeout);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Listen for Giscus iframe messages so we can update the "last refreshed"
@@ -212,6 +215,7 @@ export function CommunityView() {
     };
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

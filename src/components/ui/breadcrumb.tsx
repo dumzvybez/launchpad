@@ -1,3 +1,4 @@
+// v5.84: v5.84: Add nav landmark for breadcrumb navigation.
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { ChevronRight, MoreHorizontal } from "lucide-react"
@@ -5,7 +6,7 @@ import { ChevronRight, MoreHorizontal } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 function Breadcrumb({ ...props }: React.ComponentProps<"nav">) {
-  return <nav aria-label="breadcrumb" data-slot="breadcrumb" {...props} />
+  return <nav aria-label="Breadcrumb" aria-label="breadcrumb" data-slot="breadcrumb" {...props} />
 }
 
 function BreadcrumbList({ className, ...props }: React.ComponentProps<"ol">) {

@@ -65,6 +65,7 @@ export function RoadmapView() {
   const selectedTask = useMemo(() => {
     if (!selectedModule) return null;
     return selectedModule.tasks.find((t) => t.id === selectedTaskId) ?? null;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedModule, selectedTaskId]);
 
   if (!roadmap) {

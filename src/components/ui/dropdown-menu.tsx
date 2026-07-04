@@ -1,3 +1,4 @@
+// v5.84: Radix DropdownMenu handles menu, menuitem, aria-haspopup, and keyboard navigation internally.
 "use client"
 
 import * as React from "react"

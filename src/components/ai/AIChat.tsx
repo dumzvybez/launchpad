@@ -5,6 +5,7 @@ import {
   Send,
   Plus,
   Trash2,
+  Pencil,
   MessageSquare,
   Settings,
   Maximize2,
@@ -27,7 +28,7 @@ import {
   type QuestionDifficulty,
 } from "@/lib/interview-questions";
 import { CAREER_MAP } from "@/lib/career-data";
-import { ALL_LANGUAGE_INFO } from "@/lib/lessons-data";
+import { ALL_LANGUAGE_INFO } from "@/lib/lessons-meta";
 
 interface AIChatProps {
   /** When true, render as a full-page tab (no floating chrome). */
@@ -43,6 +44,7 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
   const activeChatId = useStore((s) => s.state.activeChatId);
   const createChat = useStore((s) => s.createChatConversation);
   const deleteChat = useStore((s) => s.deleteChatConversation);
+  const renameChat = useStore((s) => s.renameChatConversation);
   const setActiveChat = useStore((s) => s.setActiveChat);
   const addMessage = useStore((s) => s.addChatMessage);
   const aiSettings = useStore((s) => s.state.aiSettings);
@@ -94,6 +96,7 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeConversation?.messages]);
 
   // Ensure there's an active conversation
@@ -103,6 +106,7 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
     } else if (!activeChatId && conversations.length > 0) {
       setActiveChat(conversations[0].id);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeChatId, conversations, setActiveChat]);
 
   const handleSend = async () => {
@@ -131,6 +135,10 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
     setSending(true);
 
     try {
+      // v5.78/v5.79: use SSE streaming for ALL providers (groq, openrouter,
+      // openai, custom, gemini, anthropic). v5.79 added Gemini + Anthropic.
+      const useStream = !!activeConversation;
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -150,22 +158,73 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
           // leading to confusing behavior (interview banner still shown
           // but messages sent with the code-review prompt).
           ...(activeSystemPrompt ? { systemPrompt: activeSystemPrompt } : {}),
+          // v5.78: request streaming if the provider supports it.
+          stream: useStream,
         }),
       });
 
-      const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || `HTTP ${response.status}`);
+        const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
       }
 
-      const assistantMessage: ChatMessage = {
-        id: `msg-${Date.now()}-ai`,
-        role: "assistant",
-        content: data.content || "(no response)",
-        timestamp: new Date().toISOString(),
-        provider: data.provider,
-      };
-      addMessage(chatId, assistantMessage);
+      if (useStream && response.body) {
+        // v5.78: consume the SSE stream token-by-token, updating the
+        // assistant message in real time.
+        const assistantMsgId = `msg-${Date.now()}-ai`;
+        const initialAssistantMessage: ChatMessage = {
+          id: assistantMsgId,
+          role: "assistant",
+          content: "",
+          timestamp: new Date().toISOString(),
+          provider: aiSettings.provider,
+        };
+        addMessage(chatId, initialAssistantMessage);
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let accumulated = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n\n");
+          buffer = lines.pop() ?? "";
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith("data: ")) continue;
+            const data = trimmed.slice(6);
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.content) {
+                accumulated += parsed.content;
+                // Update the assistant message with the accumulated content.
+                // We use a direct store update to avoid stale closures.
+                useStore.getState().updateChatMessage(chatId, assistantMsgId, { content: accumulated });
+              }
+            } catch {
+              // Skip malformed chunks.
+            }
+          }
+        }
+        // If nothing was streamed (e.g., empty response), show a fallback.
+        if (!accumulated) {
+          useStore.getState().updateChatMessage(chatId, assistantMsgId, { content: "(no response)" });
+        }
+      } else {
+        // Non-streaming path (Gemini, Anthropic, or stream not requested).
+        const data = await response.json();
+        const assistantMessage: ChatMessage = {
+          id: `msg-${Date.now()}-ai`,
+          role: "assistant",
+          content: data.content || "(no response)",
+          timestamp: new Date().toISOString(),
+          provider: data.provider,
+        };
+        addMessage(chatId, assistantMessage);
+      }
     } catch (err) {
       const errorMessage: ChatMessage = {
         id: `msg-${Date.now()}-err`,
@@ -249,6 +308,7 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
         setSending(false);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingTutorMessage]);
 
   // Test Connection — POST-based, sends "Hi" to verify the API key works.
@@ -460,9 +520,22 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
                 >
                   <MessageSquare className="h-3 w-3 shrink-0" />
                   <span className="flex-1 truncate">{c.title}</span>
+                  {/* v5.79 fix: add rename button (was missing — renameChatConversation existed in store but had no UI) */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const newTitle = window.prompt("Rename conversation:", c.title);
+                      if (newTitle && newTitle.trim()) renameChat(c.id, newTitle.trim());
+                    }}
+                    className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-foreground/10"
+                    aria-label="Rename conversation"
+                  >
+                    <Pencil className="h-3 w-3" />
+                  </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); deleteChat(c.id); }}
                     className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-foreground/10"
+                    aria-label="Delete conversation"
                   >
                     <Trash2 className="h-3 w-3" />
                   </button>

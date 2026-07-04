@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useStore, selectEarnedXP, selectOverallProgress, selectPhaseProgress, selectCareerProgress } from "@/lib/store";
 import { dateKey } from "@/lib/storage";
-import { ALL_LESSONS } from "@/lib/lessons-data";
+import { getTrackLessons } from "@/lib/lessons-data";
 import { GlassCard, ProgressBar } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
 import { LANGUAGE_MAP, CAREER_MAP } from "@/lib/career-data";
@@ -45,6 +45,7 @@ export function AnalyticsView() {
       });
     }
     return days;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.activity]);
 
   const weeks = Array.from(new Set(heatmap.map((d) => d.weekIdx)));
@@ -73,7 +74,7 @@ export function AnalyticsView() {
   const totalLessonsInPlan = Math.max(
     1,
     (roadmap?.languageIds ?? []).reduce(
-      (sum, id) => sum + ALL_LESSONS.filter((l) => l.track === id).length,
+      (sum, id) => sum + getTrackLessons(id).length,
       0,
     ),
   );

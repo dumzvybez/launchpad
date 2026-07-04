@@ -1,3 +1,4 @@
+// v5.84: Radix Checkbox handles role="checkbox", aria-checked, and keyboard activation internally.
 "use client"
 
 import * as React from "react"

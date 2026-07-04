@@ -186,6 +186,7 @@ function useToast() {
     // Previously `[state]` caused the listener to be removed and re-added on
     // every toast dispatch, creating a brief window where rapid dispatches
     // from other components could be missed.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return {

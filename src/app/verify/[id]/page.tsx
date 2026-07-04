@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { createBrowserClient } from "@/lib/supabase";
+import { isValidCertificateFormat, getCertificateType } from "@/lib/certificate-utils";
 
 export const metadata: Metadata = {
   title: "Certificate Verification",
@@ -7,16 +9,22 @@ export const metadata: Metadata = {
 };
 
 const DEV_PORTFOLIO_URL = "https://duminduwanasinghe-dev.vercel.app/";
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://launchpad--dev.vercel.app";
 
 /**
- * Public certificate verification page (v5.76).
+ * Public certificate verification page (v5.77).
  *
- * URL pattern: /verify/LP-ABC12345 (or /verify/LP-CAREER-XXXXXXXX)
+ * URL pattern: /verify/LP-ABCDEFGHIJ (10-char base36) or /verify/LP-CAREER-XXXXXXXXXX
  *
- * Queries the Supabase certificates table via the verify API endpoint.
- * Only displays public fields: holder name, cert type, language/track,
- * issue date, and join date. Never exposes email, phone, or progress data.
+ * Queries the Supabase certificates table directly using the anon (public) key.
+ * Only displays public fields: holder name, cert type, language/track, issue date,
+ * and join date. Never exposes email, phone, or progress data.
+ *
+ * v5.77 fixes:
+ *   - Accepts both 8-char (legacy) and 10+ char (current) language cert IDs.
+ *   - Queries Supabase directly instead of self-fetching the API (saves ~100ms).
+ *   - No longer caches 404 responses (newly issued certs are immediately verifiable).
+ *   - Removes hardcoded BASE_URL fallback to dev deployment.
+ *   - Service-unavailable state is no longer screenshotable as a "valid format" card.
  */
 export default async function VerifyCertificatePage({
   params,
@@ -24,13 +32,16 @@ export default async function VerifyCertificatePage({
   params: Promise<{ id: string }>;
 }) {
   const { id: rawId } = await params;
-  const id = decodeURIComponent(rawId).toUpperCase();
+  let id: string;
+  try {
+    id = decodeURIComponent(rawId).toUpperCase();
+  } catch {
+    // Malformed URL encoding (e.g. /verify/%zz) — treat as invalid ID.
+    id = rawId.toUpperCase();
+  }
 
-  // Basic format validation
-  const isLanguageCert = /^LP-[A-Z0-9]{8}$/.test(id);
-  const isCareerCert = /^LP-CAREER-[A-Z0-9]+$/.test(id);
-
-  if (!isLanguageCert && !isCareerCert) {
+  // Basic format validation — accept both legacy 8-char and current 10+ char IDs.
+  if (!isValidCertificateFormat(id)) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-6">
         <div className="max-w-xl w-full bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
@@ -44,7 +55,7 @@ export default async function VerifyCertificatePage({
               The ID <code className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-xs">{id}</code> does not match the Launchpad certificate format.
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Launchpad certificate IDs follow the format <code className="font-mono">LP-XXXXXXXX</code> (8 alphanumeric characters) for language certificates, or <code className="font-mono">LP-CAREER-XXXXXXXX</code> for Career Master certificates.
+              Launchpad certificate IDs follow the format <code className="font-mono">LP-XXXXXXXXXX</code> (10 alphanumeric characters) for language certificates, or <code className="font-mono">LP-CAREER-XXXXXXXXXX</code> for Career Master certificates.
             </p>
           </div>
         </div>
@@ -52,7 +63,10 @@ export default async function VerifyCertificatePage({
     );
   }
 
-  // Query the verify API
+  const isCareerCert = getCertificateType(id) === "career";
+
+  // Query Supabase directly (server-side) using the anon key.
+  // This avoids the self-fetch anti-pattern and removes the need for BASE_URL.
   let certData: {
     valid: boolean;
     holderName?: string;
@@ -62,51 +76,63 @@ export default async function VerifyCertificatePage({
     joinedDate?: string;
     error?: string;
   } | null = null;
+  let serviceUnavailable = false;
 
-  try {
-    const res = await fetch(`${BASE_URL}/api/certificates/verify?id=${encodeURIComponent(id)}`, {
-      // Cache for 1 hour — certificate data doesn't change
-      next: { revalidate: 3600 },
-    });
-    if (res.ok) {
-      certData = await res.json();
-    } else if (res.status === 404) {
-      certData = { valid: false, error: "Certificate not found" };
-    } else if (res.status === 503) {
-      // Supabase not configured — show the old format-only verification
-      certData = null;
+  const supabase = createBrowserClient();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("certificates")
+        .select("id, holder_name, certificate_type, language_completed, issue_date, joined_date")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (error) {
+        console.error("[verify] query error:", error);
+        serviceUnavailable = true;
+      } else if (!data) {
+        certData = { valid: false, error: "Certificate not found" };
+      } else {
+        certData = {
+          valid: true,
+          holderName: data.holder_name,
+          certificateType: data.certificate_type,
+          languageCompleted: data.language_completed,
+          issueDate: data.issue_date,
+          joinedDate: data.joined_date,
+        };
+      }
+    } catch (err) {
+      console.error("[verify] exception:", err);
+      serviceUnavailable = true;
     }
-  } catch {
-    // Network error — fall back to format-only
-    certData = null;
+  } else {
+    serviceUnavailable = true;
   }
 
-  // If Supabase is not configured (503) or network error, show format-only verification
-  if (!certData) {
-    const certType = isCareerCert ? "Career Master Certificate" : "Language Track Certificate";
+  // If Supabase is not configured or query failed, show a clear "service unavailable" message.
+  // Previously this fell back to a screenshotable "valid format" card — that was a forgery vector.
+  if (serviceUnavailable) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-6">
         <div className="max-w-xl w-full bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-          <div className="bg-gradient-to-r from-teal-500 via-violet-500 to-amber-500 p-1" />
+          <div className="bg-gradient-to-r from-amber-500 to-rose-500 p-1" />
           <div className="p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-teal-400 via-violet-400 to-amber-300 flex items-center justify-center text-2xl shrink-0">🏅</div>
-              <div>
-                <h1 className="text-xl font-bold text-slate-900 dark:text-white">Launchpad Certificate</h1>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">ID format verified</p>
-              </div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-2xl">⏳</div>
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white">Verification Temporarily Unavailable</h1>
             </div>
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 mb-5 border border-slate-200 dark:border-slate-700">
-              <div className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono mb-1">Certificate ID</div>
-              <div className="font-mono text-lg font-bold text-slate-900 dark:text-white break-all">{id}</div>
-              <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                Valid format · {certType}
-              </div>
-            </div>
-            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-              This certificate ID has a valid format. Full database verification will be available once the certificate registry is online.
+            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
+              The Launchpad certificate registry could not be reached. This may be a temporary outage or a configuration issue on the deployment.
             </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              Please try again later. If the problem persists, contact the certificate holder to confirm the ID, or visit the Launchpad GitHub discussions for support.
+            </p>
+            <div className="mt-4">
+              <a href={typeof window !== "undefined" ? window.location.href : "#"} className="inline-block px-3 py-1.5 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-medium">
+                Retry
+              </a>
+            </div>
           </div>
         </div>
       </main>
@@ -114,7 +140,7 @@ export default async function VerifyCertificatePage({
   }
 
   // Certificate not found in database
-  if (!certData.valid) {
+  if (!certData || !certData.valid) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-6">
         <div className="max-w-xl w-full bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
@@ -143,7 +169,7 @@ export default async function VerifyCertificatePage({
 
   const formatDate = (iso: string) => {
     try {
-      return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+      return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
     } catch {
       return iso;
     }

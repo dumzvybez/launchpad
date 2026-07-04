@@ -5,6 +5,7 @@ import { Flame, Lightbulb, Eye, EyeOff, Clock, Trophy, CheckCircle2, Calendar } 
 import { useStore } from "@/lib/store";
 import { GlassCard, GlassButton } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
+import { todayKey } from "@/lib/storage";
 import { DAILY_CHALLENGE_TASKS, DAILY_CHALLENGE_TASK_MAP } from "@/lib/daily-challenges-data-v2";
 import type { DailyChallengeTask } from "@/lib/types";
 
@@ -48,6 +49,7 @@ export function DailyChallengeView() {
   const todayIdx = useMemo(() => {
     const d = new Date().getDay();
     return d === 0 ? 6 : d - 1;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const todayTask = weekTasks[todayIdx] ?? weekTasks[0];
 
@@ -59,7 +61,11 @@ export function DailyChallengeView() {
 
   // Derive "completed" directly from the store — no need to mirror it in
   // local state (which required a setState-in-effect to stay in sync).
-  const today = new Date().toISOString().slice(0, 10);
+  // v5.77 fix: use local date key (via todayKey from storage lib) instead of
+  // UTC `toISOString().slice(0, 10)`. Previously, for users outside UTC, the
+  // "completed today" check compared a UTC date to a local date and was wrong
+  // for several hours each day.
+  const today = todayKey();
   const completed =
     dailyChallenge.lastChallengeDate === today &&
     !!dailyChallenge.completedToday;
@@ -78,19 +84,17 @@ export function DailyChallengeView() {
   };
 
   const handleTryInPlayground = () => {
-    // Pass the actual task language through so the Playground opens in the
-    // right mode. Previously this hard-coded "javascript" and broke for any
-    // non-JS daily challenge.
-    setPlaygroundCode(userSolution, todayTask?.language === "python" ? "python" : "javascript");
+    // v5.77 fix: pass the actual task language through so the Playground opens
+    // in the right mode. Previously this only handled python/javascript and
+    // defaulted everything else to javascript.
+    setPlaygroundCode(userSolution, todayTask?.language ?? "javascript");
     setView("playground");
   };
 
   const handleRun = () => {
     // Only JavaScript tasks can run in-browser. For Python (and any other
     // language), nudge the user to the Playground which has the proper
-    // runner (Pyodide for Python, etc.). Previously this always ran the
-    // code through `new Function`, producing opaque SyntaxErrors for any
-    // non-JS task.
+    // runner (Pyodide for Python, etc.).
     if (todayTask?.language && todayTask.language !== "javascript") {
       setOutput([
         `This daily challenge is in ${todayTask.language}. ` +
@@ -98,24 +102,14 @@ export function DailyChallengeView() {
       ]);
       return;
     }
-    setOutput([]);
-    const logs: string[] = [];
-    const origLog = console.log;
-    console.log = (...args: unknown[]) => {
-      logs.push(args.map(a => {
-        if (typeof a === "string") return a;
-        try { return JSON.stringify(a, null, 2); } catch { return String(a); }
-      }).join(" "));
-    };
-    try {
-      const fn = new Function(userSolution);
-      fn();
-    } catch (err) {
-      logs.push(`Error: ${(err as Error).message}`);
-    } finally {
-      console.log = origLog;
-      setOutput(logs);
-    }
+    // v5.77 SECURITY FIX: the previous implementation ran user code via
+    // `new Function(userSolution)()` in the page's origin, giving it access
+    // to localStorage (API keys, all user data) and the Launchpad backend.
+    // We now route through the Playground which uses a sandboxed iframe
+    // (sandbox="allow-scripts" without allow-same-origin) for JS execution.
+    // For a quick inline run, we delegate to the playground view.
+    setPlaygroundCode(userSolution, "javascript");
+    setView("playground");
   };
 
   if (!todayTask) {

@@ -1,3 +1,4 @@
+// v5.84: v5.84: Card is presentational. No ARIA needed.
 import * as React from "react"
 
 import { cn } from "@/lib/utils"

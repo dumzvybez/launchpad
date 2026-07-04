@@ -16,23 +16,29 @@
 /**
  * Generate a random base36 string of the given length using
  * crypto.getRandomValues for cryptographic-quality randomness.
+ * v5.77 fix: use Uint32Array instead of Uint8Array to eliminate modulo bias
+ * (256 % 36 = 4 with uint8; 2^32 % 36 ≈ 0 with uint32 — negligible bias).
  */
 function randomBase36(length: number): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   const result = new Array<string>(length);
-  // Generate random bytes — 2 bytes per char gives enough entropy
-  const bytes = new Uint8Array(length * 2);
+  // v5.77 fix: allocate only `length` uint32s (was `length * 2` uint8s with
+  // half the bytes unused).
+  const bytes = new Uint32Array(length);
   if (typeof crypto !== "undefined" && crypto.getRandomValues) {
     crypto.getRandomValues(bytes);
   } else {
-    // Fallback for environments without Web Crypto (shouldn't happen in
-    // modern browsers or Node.js 18+, but just in case)
+    // Fallback for environments without Web Crypto.
+    // Note: Math.random is NOT cryptographically secure. In modern browsers
+    // and Node 18+ this branch never runs. If it ever does, the IDs are
+    // predictable — but certificate IDs don't need to be unguessable in a
+    // strong sense (the 36^10 search space is already brute-force-resistant).
     for (let i = 0; i < bytes.length; i++) {
-      bytes[i] = Math.floor(Math.random() * 256);
+      bytes[i] = Math.floor(Math.random() * 0x100000000);
     }
   }
   for (let i = 0; i < length; i++) {
-    result[i] = chars[bytes[i * 2] % chars.length];
+    result[i] = chars[bytes[i] % chars.length];
   }
   return result.join("");
 }

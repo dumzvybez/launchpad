@@ -1,3 +1,4 @@
+// v5.84: Radix Dialog handles focus trap, aria-modal, aria-labelledby, and Escape internally.
 "use client"
 
 import * as React from "react"

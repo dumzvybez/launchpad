@@ -40,6 +40,7 @@ function Button({
   variant,
   size,
   asChild = false,
+  type = "button", // v5.79 fix: default to type="button" to prevent accidental form submits
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
@@ -51,6 +52,7 @@ function Button({
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      type={type}
       {...props}
     />
   )

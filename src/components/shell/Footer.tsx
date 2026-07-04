@@ -26,7 +26,7 @@ We collect nothing, store nothing on our servers, and sell nothing.
 - Your daily challenge streaks
 
 All of this lives in your browser's localStorage. Clearing your browser erases it all.
-Use Settings → Backup to export a JSON copy.
+Use Settings → Data & backup to export a JSON copy.
 
 ## What gets sent to servers
 - AI Chat messages: When you send a message to the AI tutor, it goes to the AI
@@ -162,7 +162,7 @@ export function Footer() {
                   <li>• Your daily challenge streaks</li>
                 </ul>
                 <p className="text-[11px] text-muted-foreground mt-2 italic">
-                  All of this lives in your browser&apos;s localStorage. Clearing your browser erases it all. Use Settings → Backup to export a JSON copy.
+                  All of this lives in your browser&apos;s localStorage. Clearing your browser erases it all. Use Settings → Data & backup to export a JSON copy.
                 </p>
               </div>
 
@@ -216,12 +216,12 @@ export function Footer() {
                 <p className="text-xs text-muted-foreground ml-1">
                   Launchpad is 100% open-source. Every line is auditable at:{" "}
                   <a
-                    href="https://github.com/dumzvybez/launchpad"
+                    href="https://github.com/dumzvybez/Launchpad"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary hover:underline"
                   >
-                    github.com/dumzvybez/launchpad
+                    github.com/dumzvybez/Launchpad
                   </a>
                 </p>
               </div>

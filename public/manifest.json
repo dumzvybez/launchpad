@@ -2,13 +2,13 @@
   "name": "Launchpad — Free Personalized Coding Education Platform",
   "short_name": "Launchpad",
   "description": "A free, privacy-first coding education platform. 630 lessons across 30 languages, personalized AI roadmap, BYOK AI tutor, code playground, daily challenges, and certificates. 100% on-device.",
-  "id": "/",
+  "id": "launchpad",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "orientation": "any",
-  "background_color": "#0d1117",
+  "background_color": "#ffffff",
   "theme_color": "#2DD4BF",
   "categories": ["education", "productivity", "developer"],
   "lang": "en",
@@ -30,38 +30,53 @@
       "name": "Dashboard",
       "short_name": "Home",
       "description": "Your daily overview and stats",
-      "url": "/?view=dashboard",
+      "url": "/dashboard",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Roadmap",
       "short_name": "Roadmap",
       "description": "View your personalized multi-phase roadmap",
-      "url": "/?view=roadmap",
+      "url": "/roadmap",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Learn",
       "short_name": "Learn",
       "description": "Browse 630 lessons across 30 languages",
-      "url": "/?view=learn",
+      "url": "/learn",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "AI Tutor",
       "short_name": "AI Tutor",
       "description": "Ask the AI coding tutor anything",
-      "url": "/?view=ai-tutor",
+      "url": "/ai-tutor",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Playground",
       "short_name": "Code",
       "description": "Run code in 7+ languages in your browser",
-      "url": "/?view=playground",
+      "url": "/playground",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ],
-  "screenshots": [],
+  "screenshots": [
+    {
+      "src": "/screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Launchpad dashboard — coding education platform with personalized roadmap, lessons, and AI tutor"
+    },
+    {
+      "src": "/screenshot-narrow.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Launchpad mobile — dashboard with stats, career readiness, and activity tracking"
+    }
+  ],
   "prefer_related_applications": false
 }

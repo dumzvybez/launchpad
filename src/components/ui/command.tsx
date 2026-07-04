@@ -1,3 +1,4 @@
+// v5.84: Radix Command (cmdk) handles combobox, listbox, option, and type-ahead internally.
 "use client"
 
 import * as React from "react"

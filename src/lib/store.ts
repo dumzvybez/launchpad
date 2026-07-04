@@ -36,7 +36,7 @@ import { ACHIEVEMENTS } from "./achievements-data";
 import { generateCertificateId, generateCareerCertificateId } from "./certificate-utils";
 // ESM imports for data modules — replaces the previous `require()` calls
 // which can silently fail under Turbopack/Next.js 16 bundling.
-import { ALL_LESSONS, ALL_LANGUAGE_INFO } from "./lessons-data";
+import { ALL_LANGUAGE_INFO, getLessons, getLessonById, getTrackLessons, loadAllLessons } from "./lessons-data";
 import { selectPoolForLanguages } from "./daily-challenges-data-v2";
 import { recordQuestion, recordFlashcard } from "./sm2";
 import { generateFlashcardsForTrack } from "./flashcard-generator";
@@ -163,7 +163,7 @@ export function selectWeakAreas(state: AppState, limit = 5): Array<{
 
   return sorted.map(([key, r]) => {
     const [lessonId, questionId] = key.split(":");
-    const lesson = ALL_LESSONS.find((l) => l.id === lessonId);
+    const lesson = getLessonById(lessonId);
     const question = lesson?.quiz.find((q) => q.id === questionId);
     return {
       lessonId,
@@ -275,7 +275,7 @@ export function selectCareerReadinessScore(state: AppState): {
   let quizCount = 0;
   if (userLangs.length > 0) {
     for (const lang of userLangs) {
-      const lessons = ALL_LESSONS.filter((l: { track: string }) => l.track === lang);
+      const lessons = getTrackLessons(lang);
       for (const l of lessons) {
         const prog = state.lessonProgress[l.id];
         if (prog?.bestQuizScore !== undefined && prog.bestQuizScore !== null) {
@@ -311,8 +311,11 @@ export function selectCareerReadinessScore(state: AppState): {
     : null;
 
   // Weighted formula
+  // v5.77 fix: redistributed weights now sum to exactly 1.000 (was 0.999,
+  // which made the `target-locked` achievement (>=100%) unreachable without
+  // interviews due to rounding down).
   const weights = interviewScore === null
-    ? { roadmap: 0.294, quiz: 0.294, projects: 0.235, challenges: 0.176, interviews: 0 }
+    ? { roadmap: 0.294, quiz: 0.294, projects: 0.235, challenges: 0.177, interviews: 0 }
     : { roadmap: 0.25, quiz: 0.25, projects: 0.20, challenges: 0.15, interviews: 0.15 };
 
   const overall = Math.round(
@@ -352,7 +355,7 @@ export function selectCareerProgress(state: AppState): {
   let completedLessons = 0;
   if (userLangs.length > 0) {
     for (const lang of userLangs) {
-      const lessons = ALL_LESSONS.filter((l: { track: string }) => l.track === lang);
+      const lessons = getTrackLessons(lang);
       totalLessons += lessons.length;
       for (const l of lessons) {
         if (state.lessonProgress[l.id]?.status === "complete") completedLessons++;
@@ -533,7 +536,7 @@ type Store = {
   dismissNotification: (eventId: string) => void;
 
   // Onboarding & roadmap
-  completeOnboarding: (input: PersonalizationInput) => GeneratedRoadmap;
+  completeOnboarding: (input: PersonalizationInput, existingRoadmap?: GeneratedRoadmap) => GeneratedRoadmap;
   setRoadmap: (roadmap: GeneratedRoadmap) => void;
   regenerateRoadmap: (input: PersonalizationInput) => GeneratedRoadmap;
 
@@ -575,6 +578,9 @@ type Store = {
   deleteChatConversation: (id: string) => void;
   renameChatConversation: (id: string, title: string) => void;
   addChatMessage: (conversationId: string, message: Omit<ChatMessage, "id" | "timestamp">) => void;
+  // v5.78: update an existing chat message in-place (used for SSE streaming,
+  // where the assistant message is created empty and filled in token-by-token).
+  updateChatMessage: (conversationId: string, messageId: string, patch: Partial<ChatMessage>) => void;
   setActiveChat: (id: string | undefined) => void;
   clearAllChats: () => void;
   setAISettings: (patch: Partial<AISettings>) => void;
@@ -618,9 +624,38 @@ export const HABIT_DEFINITIONS = [
 ];
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
+let lastPersistedState: AppState | null = null;
 function persist(state: AppState) {
+  lastPersistedState = state;
   if (saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => saveState(state), 200);
+  saveTimer = setTimeout(() => {
+    saveState(state);
+    saveTimer = null;
+  }, 200);
+}
+
+// v5.77 fix: flush pending saves on page hide / unload. Previously, if a user
+// completed an action and closed the tab within 200ms, the debounced save
+// never fired and the change was lost.
+if (typeof window !== "undefined") {
+  const flushPendingSave = () => {
+    if (saveTimer && lastPersistedState) {
+      clearTimeout(saveTimer);
+      saveTimer = null;
+      try {
+        saveState(lastPersistedState);
+      } catch (err) {
+        console.warn("[launchpad] flush on unload failed:", err);
+      }
+    }
+  };
+  window.addEventListener("beforeunload", flushPendingSave);
+  window.addEventListener("pagehide", flushPendingSave);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      flushPendingSave();
+    }
+  });
 }
 
 export const useStore = create<Store>((set, get) => {
@@ -673,6 +708,18 @@ export const useStore = create<Store>((set, get) => {
       }
       // Check achievements on hydrate (in case state changed externally)
       setTimeout(() => get().checkAchievements(), 100);
+      // v5.79: lazily load the 6MB ALL_LESSONS array in the background.
+      // This is a separate webpack chunk that downloads after the app mounts,
+      // so it doesn't block the initial page render. Selectors that need
+      // lessons return [] until the load completes, then re-render with data.
+      if (typeof window !== "undefined") {
+        loadAllLessons().then(() => {
+          // Trigger a re-render by updating state (selectors will now return data).
+          updateState((s) => ({ ...s }));
+        }).catch((err) => {
+          console.warn("[launchpad] failed to load lessons content:", err);
+        });
+      }
     },
 
     setView: (v) => set({ currentView: v, selectedPhaseId: null, selectedTaskId: null, selectedModuleId: null, mobileNavOpen: false }),
@@ -912,7 +959,11 @@ export const useStore = create<Store>((set, get) => {
 
     snoozeNotification: (eventId, minutes) =>
       updateState((s) => {
-        const snoozedUntil = new Date(Date.now() + minutes * 60 * 1000).toISOString();
+        // v5.77 fix: if minutes === 0, CLEAR the snooze (used by CalendarNotifier
+        // after a snooze-expired re-fire to prevent the infinite re-fire loop).
+        const snoozedUntil = minutes <= 0
+          ? undefined
+          : new Date(Date.now() + minutes * 60 * 1000).toISOString();
         return {
           ...s,
           calendarEvents: s.calendarEvents.map((e) =>
@@ -924,30 +975,35 @@ export const useStore = create<Store>((set, get) => {
 
     dismissNotification: (eventId) =>
       updateState((s) => {
-        const event = s.calendarEvents.find((e) => e.id === eventId);
+        // v5.77 fix: no longer marks the underlying event as `completed: true`.
+        // Dismissal is a UI action — it should only stop the notification, not
+        // mark the event itself as done. Also clears snoozedUntil.
         return {
           ...s,
           calendarEvents: s.calendarEvents.map((e) =>
             e.id === eventId
-              ? { ...e, notifiedFor: new Date().toISOString(), completed: true }
+              ? { ...e, notifiedFor: new Date().toISOString(), snoozedUntil: undefined }
               : e,
           ),
           activeNotifications: s.activeNotifications.filter((n) => n !== eventId),
         };
       }),
 
-    completeOnboarding: (input) => {
-      const roadmap = generateRoadmap(input);
+    completeOnboarding: (input, existingRoadmap?) => {
+      // v5.77 fix: if OnboardingFlow already generated an AI roadmap, use it
+      // instead of silently replacing it with the deterministic one.
+      const roadmap = existingRoadmap ?? generateRoadmap(input);
       // Validate
       const validation = validateRoadmap(roadmap, input);
       if (!validation.valid) {
         console.warn("[launchpad] roadmap validation issues:", validation.errors);
       }
-      // Assign daily challenge pool based on selected languages (Section 7)
+      // Assign daily challenge pool based on selected languages.
+      // v5.77 fix: use the already-imported ESM `selectPoolForLanguages` instead
+      // of a dynamic `require()` that throws under Turbopack and silently broke
+      // daily challenges for every new user.
       let dailyPool: string[] = [];
       try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const { selectPoolForLanguages } = require("./daily-challenges-data-v2");
         dailyPool = selectPoolForLanguages(input.selectedLanguageIds);
       } catch (e) {
         console.warn("[launchpad] could not load daily challenge pool:", e);
@@ -1061,6 +1117,11 @@ export const useStore = create<Store>((set, get) => {
       // decision and the "should we issue?" logic are synchronous.
       if (status === "complete") {
         get().tryAutoIssueCertificates();
+        // v5.77 fix: trigger achievement check after auto-completing linked
+        // roadmap tasks. Previously, badges like `first-task`, `code-veteran`,
+        // and `all-6-phases` wouldn't fire from lesson-completion cascades
+        // until the next external trigger.
+        setTimeout(() => get().checkAchievements(), 50);
       }
     },
 
@@ -1137,12 +1198,14 @@ export const useStore = create<Store>((set, get) => {
     // Lesson bookmarks (Section 3)
     toggleLessonBookmark: (lessonId) =>
       updateState((s) => {
-        const isBookmarked = (s.bookmarkedLessons ?? []).includes(lessonId);
+        // v5.77 fix: use `?? []` consistently to avoid crash if bookmarkedLessons is undefined.
+        const current = s.bookmarkedLessons ?? [];
+        const isBookmarked = current.includes(lessonId);
         return {
           ...s,
           bookmarkedLessons: isBookmarked
-            ? s.bookmarkedLessons.filter((id) => id !== lessonId)
-            : [...s.bookmarkedLessons, lessonId],
+            ? current.filter((id) => id !== lessonId)
+            : [...current, lessonId],
         };
       }),
 
@@ -1178,6 +1241,21 @@ export const useStore = create<Store>((set, get) => {
         return existing.certId;
       }
 
+      // v5.84: build the progress proof from the user's actual lesson progress.
+      // The server validates this against deterministic completion rules.
+      const trackLessons = getTrackLessons(trackId);
+      const completedLessonIds: string[] = [];
+      const quizScores: Record<string, number> = {};
+      for (const lesson of trackLessons) {
+        const prog = state.lessonProgress[lesson.id];
+        if (prog?.status === "complete") {
+          completedLessonIds.push(lesson.id);
+        }
+        if (prog?.bestQuizScore !== undefined && prog.bestQuizScore !== null) {
+          quizScores[lesson.id] = prog.bestQuizScore;
+        }
+      }
+
       let certId = "";
 
       // Try Supabase (server-side, guaranteed-unique random ID).
@@ -1190,6 +1268,11 @@ export const useStore = create<Store>((set, get) => {
             certificateType: "language",
             languageCompleted: trackId,
             joinedDate: state.profile.startDate || new Date().toISOString(),
+            // v5.84: send progress proof so the server can validate completion
+            progressProof: {
+              completedLessonIds,
+              quizScores,
+            },
           }),
         });
         if (res.ok) {
@@ -1227,6 +1310,9 @@ export const useStore = create<Store>((set, get) => {
         return state.careerCertificate.certId;
       }
 
+      // v5.84: build the progress proof — career certs require 100% readiness.
+      const readinessScore = selectCareerReadinessScore(state).overall;
+
       let certId = "";
 
       // Try Supabase first.
@@ -1239,6 +1325,10 @@ export const useStore = create<Store>((set, get) => {
             certificateType: "career",
             languageCompleted: null,
             joinedDate: state.profile.startDate || new Date().toISOString(),
+            // v5.84: send progress proof so the server validates 100% readiness
+            progressProof: {
+              careerReadinessScore: readinessScore,
+            },
           }),
         });
         if (res.ok) {
@@ -1279,7 +1369,7 @@ export const useStore = create<Store>((set, get) => {
         if (s.certificates[langId]) continue;
 
         // Get lessons for this track
-        const trackLessons = ALL_LESSONS.filter((l) => l.track === langId);
+        const trackLessons = getTrackLessons(langId);
         if (trackLessons.length === 0) continue;
 
         const { eligible } = selectCertificateEligible(s, langId, trackLessons);
@@ -1344,7 +1434,10 @@ export const useStore = create<Store>((set, get) => {
         return {
           ...s,
           chatConversations: filtered,
-          activeChatId: s.activeChatId === id ? filtered[0]?.id ?? null : s.activeChatId,
+          // v5.77 fix: use `undefined` instead of `null` to match the AppState type
+          // (`activeChatId: string | undefined`). `null` caused type-check failures
+          // and broke `=== undefined` comparisons elsewhere.
+          activeChatId: s.activeChatId === id ? (filtered[0]?.id ?? undefined) : s.activeChatId,
         };
       }),
 
@@ -1377,6 +1470,24 @@ export const useStore = create<Store>((set, get) => {
                   c.title === "New chat" && message.role === "user"
                     ? message.content.slice(0, 50) + (message.content.length > 50 ? "…" : "")
                     : c.title,
+              }
+            : c,
+        ),
+      })),
+
+    // v5.78: update an existing chat message in-place. Used by the SSE
+    // streaming consumer to append tokens to the assistant message.
+    updateChatMessage: (conversationId, messageId, patch) =>
+      updateState((s) => ({
+        ...s,
+        chatConversations: s.chatConversations.map((c) =>
+          c.id === conversationId
+            ? {
+                ...c,
+                messages: c.messages.map((m) =>
+                  m.id === messageId ? { ...m, ...patch } : m,
+                ),
+                updatedAt: new Date().toISOString(),
               }
             : c,
         ),
@@ -1468,10 +1579,27 @@ export const useStore = create<Store>((set, get) => {
       set({ pendingBadgeToasts: get().pendingBadgeToasts.filter((id) => id !== badgeId) }),
 
     resetAll: () => {
+      // v5.77 fix: clear any pending debounced save BEFORE removing localStorage
+      // keys. Previously, if a state update happened within 200ms before reset,
+      // the pending save would fire AFTER the reset and write the pre-reset
+      // state back to localStorage — undoing the reset.
+      if (saveTimer) {
+        clearTimeout(saveTimer);
+        saveTimer = null;
+      }
       if (typeof window !== "undefined") {
-        window.localStorage.removeItem("launchpad:v4:state");
-        window.localStorage.removeItem("launchpad:v4:auto-backup");
-        window.localStorage.removeItem("launchpad:v4:last-auto-backup");
+        // v5.77 fix: clear ALL launchpad:* keys, not just the main state key.
+        // Previously, achievement-flag keys (launchpad:code-reviewed,
+        // launchpad:progress-shared, launchpad:review-mode-count, etc.) survived
+        // reset, causing badges to remain unlocked after a fresh start.
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const key = window.localStorage.key(i);
+          if (key && (key.startsWith("launchpad:") || key.startsWith("launchpad-") || key.startsWith("lp-"))) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach((key) => window.localStorage.removeItem(key));
       }
       set({ state: DEFAULT_STATE });
     },
@@ -1479,8 +1607,16 @@ export const useStore = create<Store>((set, get) => {
     exportBackup: () => exportState(get().state),
 
     importBackup: (imported) => {
-      persist(imported);
-      set({ state: imported });
+      // v5.77 fix: clear any pending save before importing to avoid races.
+      if (saveTimer) {
+        clearTimeout(saveTimer);
+        saveTimer = null;
+      }
+      // v5.77 fix: defensively merge with DEFAULT_STATE so missing fields
+      // don't crash the next hydration.
+      const safe = { ...DEFAULT_STATE, ...imported };
+      persist(safe);
+      set({ state: safe });
     },
 
     runAutoBackup: () => {

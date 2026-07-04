@@ -92,7 +92,7 @@ export function CommandPalette() {
   const state = useStore((s) => s.state);
   const exportBackup = useStore((s) => s.exportBackup);
   const resetAll = useStore((s) => s.resetAll);
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
 
   const [search, setSearch] = React.useState("");
   // Reset the search field whenever the dialog opens. We use the
@@ -144,6 +144,7 @@ export function CommandPalette() {
           t.moduleTitle.toLowerCase().includes(q),
       )
       .slice(0, 12);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, state.roadmap]);
 
   const filteredProjects = React.useMemo(() => {
@@ -156,7 +157,8 @@ export function CommandPalette() {
           .map((t) => ({
             id: t.id,
             title: t.title,
-            technologies: state.roadmap!.languageIds,
+            // v5.79 fix: use `languages` to match the Project type from projects-data.ts
+            languages: state.roadmap!.languageIds,
           })),
       ),
     );
@@ -164,9 +166,11 @@ export function CommandPalette() {
       .filter(
         (p) =>
           p.title.toLowerCase().includes(q) ||
-          p.technologies.some((tech) => tech.toLowerCase().includes(q)),
+          // v5.79 fix: use p.languages (the projects-data.ts Project type field) instead of p.technologies
+          p.languages.some((tech) => tech.toLowerCase().includes(q)),
       )
       .slice(0, 5);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, state.roadmap]);
 
   const handleExport = () => {
@@ -275,7 +279,8 @@ export function CommandPalette() {
                   <div className="flex-1 min-w-0">
                     <div className="truncate text-sm">{p.title}</div>
                     <div className="text-[10px] text-muted-foreground">
-                      {p.technologies.length} language{p.technologies.length !== 1 ? "s" : ""}
+                      {/* v5.79 fix: use p.languages instead of p.technologies */}
+                      {p.languages.length} language{p.languages.length !== 1 ? "s" : ""}
                     </div>
                   </div>
                   <ExternalLink className="h-3 w-3 text-muted-foreground" />
@@ -290,14 +295,21 @@ export function CommandPalette() {
           <>
             <CommandSeparator />
             <CommandGroup heading="Actions">
-              <CommandItem onSelect={() => { setTheme(theme === "dark" ? "light" : "dark"); handleClose(); }}>
-                {theme === "dark" ? (
+              <CommandItem onSelect={() => {
+                // v5.77 fix: use resolvedTheme (not theme) so toggling from
+                // "system" works correctly. Previously, if the user had
+                // selected "system", `theme === "system"` and the toggle
+                // forced "dark", discarding the system preference.
+                setTheme(resolvedTheme === "dark" ? "light" : "dark");
+                handleClose();
+              }}>
+                {resolvedTheme === "dark" ? (
                   <Sun className="mr-2 h-4 w-4" />
                 ) : (
                   <Moon className="mr-2 h-4 w-4" />
                 )}
                 Toggle theme
-                <CommandShortcut>⌘D</CommandShortcut>
+                {/* v5.77 fix: removed misleading ⌘D shortcut hint (was never implemented and conflicted with browser bookmark shortcut) */}
               </CommandItem>
               <CommandItem onSelect={handleExport}>
                 <Download className="mr-2 h-4 w-4" />
@@ -332,20 +344,18 @@ export function useCommandPaletteShortcut() {
       if (cmd && e.key === "k") {
         e.preventDefault();
         setCommandOpen(true);
-      } else if (cmd && !e.shiftKey && /^[1-9]$/.test(e.key)) {
-        e.preventDefault();
-        const viewId = VIEWS[parseInt(e.key) - 1]?.id;
-        if (viewId) setView(viewId);
-      } else if (cmd && e.key === "0") {
-        e.preventDefault();
-        const viewId = VIEWS[9]?.id;
-        if (viewId) setView(viewId);
-      } else if (cmd && e.shiftKey && e.key.toLowerCase() === "f") {
+      }
+      // v5.77 fix: removed Cmd+1-9 and Cmd+0 shortcuts — they hijacked the
+      // universal browser tab-switching shortcuts (Cmd+1 = first tab, etc.).
+      // Users who habitually use Cmd+1 to switch tabs were instead navigated
+      // to a different in-app view. Use the command palette (Cmd+K) instead.
+      else if (cmd && e.shiftKey && e.key.toLowerCase() === "f") {
         e.preventDefault();
         setFocusMode(!focusMode);
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setCommandOpen, setView, setFocusMode, focusMode]);
 }

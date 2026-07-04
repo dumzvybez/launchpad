@@ -22,7 +22,10 @@ export type SM2Quality = 0 | 1 | 2 | 3 | 4 | 5;
 export const SM2_DEFAULT_EF = 2.5;
 export const SM2_MIN_EF = 1.3;
 export const SM2_MAX_EF = 2.5;
-export const SM2_MAX_INTERVAL_DAYS = 30;
+// v5.77 fix: raised from 30 to 365 days. A 30-day cap forced users to review
+// easy cards every month forever, defeating long-term retention. 365 days
+// allows mature cards to graduate to yearly reviews.
+export const SM2_MAX_INTERVAL_DAYS = 365;
 
 /**
  * Compute the next SM-2 state given the previous state and a quality grade.
@@ -57,6 +60,9 @@ export function sm2Update(
   ef = Math.max(SM2_MIN_EF, Math.min(SM2_MAX_EF, ef));
 
   // Compute the new interval.
+  // v5.77 fix: second interval is now 6 days per the published SM-2 spec
+  // (was 3, which halved the review spacing and doubled review load in the
+  // first week). Reference: https://www.supermemo.com/en/blog/application-of-a-computer-to-improve-the-results-obtained-in-working-with-the-supermemo-method
   let interval: number;
   if (quality < 3) {
     // Incorrect — reset to 1 day (immediate re-review).
@@ -64,11 +70,12 @@ export function sm2Update(
   } else if (prevInterval === 0) {
     interval = 1;
   } else if (prevInterval === 1) {
-    interval = 3;
+    interval = 6;
   } else {
     interval = Math.max(1, Math.round(prevInterval * ef));
   }
-  // Cap at SM2_MAX_INTERVAL_DAYS.
+  // v5.77 fix: raised cap from 30 to 365 days. The 30-day cap forced users to
+  // review easy cards every month forever, defeating long-term retention.
   interval = Math.min(interval, SM2_MAX_INTERVAL_DAYS);
 
   const nextReview = new Date(now);

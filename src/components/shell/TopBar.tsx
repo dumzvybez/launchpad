@@ -38,6 +38,7 @@ export function TopBar() {
     const onChange = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", onChange);
     return () => document.removeEventListener("fullscreenchange", onChange);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Click outside to close popovers
@@ -49,6 +50,7 @@ export function TopBar() {
     }
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggleFullscreen = () => {

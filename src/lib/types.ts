@@ -58,20 +58,12 @@ export type Milestone = {
   xp: number;
 };
 
-export type Project = {
-  id: string;
-  title: string;
-  description: string;
-  /** Tech the project exercises */
-  technologies: string[];
-  /** What "done" looks like */
-  deliverables: string[];
-  /** Which module unlocks this project */
-  unlockedBy: string;
-  tier: "foundational" | "core" | "capstone";
-  /** Optional stretch goals for advanced learners */
-  stretchGoals?: string[];
-};
+// v5.79 fix: Project type is now defined in projects-data.ts (the authoritative
+// source) and re-exported here for backward compatibility. Previously both
+// files defined their own `Project` type with different shapes, causing type
+// mismatches that required `ignoreBuildErrors: true`.
+export type { Project } from "./projects-data";
+export type { ProjectDifficulty } from "./projects-data";
 
 export type Phase = {
   id: string;

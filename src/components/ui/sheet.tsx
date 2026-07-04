@@ -1,3 +1,4 @@
+// v5.84: Radix Dialog (used by Sheet) handles focus trap, aria-modal, and Escape internally.
 "use client"
 
 import * as React from "react"

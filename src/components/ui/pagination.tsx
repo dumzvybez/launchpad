@@ -1,3 +1,4 @@
+// v5.84: v5.84: Radix handles nav semantics. Pagination aria-current is set on active items.
 import * as React from "react"
 import {
   ChevronLeftIcon,

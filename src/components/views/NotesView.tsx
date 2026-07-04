@@ -12,7 +12,7 @@ import {
   Smile,
   Frown,
   Meh,
-  Sparkles,
+  Pencil,
   Save,
   Download,
 } from "lucide-react";
@@ -84,6 +84,7 @@ function NotesTab() {
         n.body.toLowerCase().includes(q) ||
         n.tags.some((t) => t.toLowerCase().includes(q)),
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notes, search]);
 
   const startNew = () => {
@@ -247,8 +248,19 @@ function NotesTab() {
                   )}
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <GlassButton size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(note)}>
-                    <Sparkles className="h-3 w-3" />
+                  {/* v5.79 fix: add pin toggle button (was missing — Pin icon imported but never used) */}
+                  <GlassButton
+                    size="icon"
+                    variant="ghost"
+                    className={cn("h-7 w-7", note.pinned && "text-primary opacity-100")}
+                    onClick={() => updateNote(note.id, { pinned: !note.pinned })}
+                    aria-label={note.pinned ? "Unpin note" : "Pin note"}
+                  >
+                    <Pin className="h-3 w-3" />
+                  </GlassButton>
+                  <GlassButton size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(note)} aria-label="Edit note">
+                    {/* v5.79 fix: use Pencil icon for edit (was Sparkles which implies AI/magic) */}
+                    <Pencil className="h-3 w-3" />
                   </GlassButton>
                   <GlassButton
                     size="icon"

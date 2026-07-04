@@ -28,6 +28,7 @@ export function BadgeToastContainer() {
     );
 
     return () => timers.forEach(clearTimeout);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingToasts, visibleToasts]);
 
   // Auto-dismiss after 5.5s (visible time). Per-toast timers — each toast
@@ -52,6 +53,7 @@ export function BadgeToastContainer() {
         dismissTimersRef.current.delete(id);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visibleToasts, dismissBadgeToast]);
 
   // Clean up all timers on unmount.
@@ -60,6 +62,7 @@ export function BadgeToastContainer() {
       for (const [, t] of dismissTimersRef.current) clearTimeout(t);
       dismissTimersRef.current.clear();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (visibleToasts.length === 0) return null;

@@ -116,7 +116,7 @@ const QA = [
   },
   {
     q: "Why can't I see the Playground tab?",
-    a: "The Playground tab only appears if you have JavaScript or TypeScript in your learning plan. This is intentional — the playground runs JavaScript in your browser only. If you're learning Python or another language exclusively, use an external environment like Replit or Google Colab. To unlock the Playground, regenerate your plan and add JavaScript or TypeScript to your languages.",
+    a: "The Playground tab is always visible in the sidebar. It supports JavaScript, TypeScript, Python (via Pyodide), HTML/CSS live preview, SQL (via DB Fiddle link), and Bash (simulated). Compiled languages like Java, C++, Go, and Rust link to external playgrounds (Replit, OneCompiler). If you don't see it, check that you've completed onboarding — the sidebar only appears after onboarding is finished.",
   },
   {
     q: "How is my roadmap generated?",
@@ -132,7 +132,7 @@ const QA = [
   },
   {
     q: "How are projects chosen for me?",
-    a: "Launchpad has a database of 55+ projects covering all careers and languages. When your roadmap is generated, the engine scores each project by career match and language overlap, then selects 8 projects with tier diversity: 2-3 beginner (foundational), 2-3 intermediate (core), and 1-2 advanced (capstone). Visit the Projects tab to see your personalized selection. Each project shows the reason it was selected for you.",
+    a: "Launchpad has a database of 207 projects covering all careers and languages. When your roadmap is generated, the engine scores each project by career match and language overlap, then selects 8 projects with tier diversity: 2-3 beginner (foundational), 2-3 intermediate (core), and 1-2 advanced (capstone). Visit the Projects tab to see your personalized selection. Each project shows the reason it was selected for you.",
   },
   {
     q: "What is the AI Bonus Track at the end of my roadmap?",

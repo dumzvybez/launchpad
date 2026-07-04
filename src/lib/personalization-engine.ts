@@ -66,7 +66,11 @@ function computeTimeline(input: PersonalizationInput): {
   const occupation = OCCUPATION_MAP[input.occupationId];
   const paceMultiplier = occupation ? PACE_MULTIPLIER[occupation.pace] : 1.0;
 
-  const timelineMultiplier = skillMultiplier * paceMultiplier * availabilityMultiplier;
+  // v5.77 fix: clamp the timeline multiplier to [0.25, 4.0] so extreme inputs
+  // (e.g. 0 hours/day → availabilityMultiplier = 14) don't produce 728-week
+  // roadmaps. 4.0 × 52 weeks = 208 weeks (4 years) is the practical max.
+  const rawTimelineMultiplier = skillMultiplier * paceMultiplier * availabilityMultiplier;
+  const timelineMultiplier = Math.max(0.25, Math.min(4.0, rawTimelineMultiplier));
 
   // Base roadmap = 52 weeks (1 year) at 14 hr/week
   const baseWeeks = 52;
@@ -108,8 +112,13 @@ function primaryLanguage(input: PersonalizationInput): LanguageInfo | null {
 }
 
 function secondaryLanguages(input: PersonalizationInput): LanguageInfo[] {
+  // v5.77 fix: filter OUT the primary language instead of using positional slice(1).
+  // Previously, if the user selected [react, python], primaryLanguage() returned
+  // python (index 1), but slice(1) returned [python] — duplicating the primary
+  // as a "secondary" language and creating a redundant "Second Language: Python" phase.
+  const primary = primaryLanguage(input);
   return input.selectedLanguageIds
-    .slice(1)
+    .filter((id) => !primary || id !== primary.id)
     .map((id) => LANGUAGE_MAP[id])
     .filter(Boolean);
 }
@@ -1301,9 +1310,16 @@ const LESSON_TOPIC_MAP: Record<string, { keywords: string[]; lessonId: string }[
 };
 
 function linkTasksToLessons(phases: GeneratedPhase[], languageIds: string[]): GeneratedPhase[] {
-  // Pick the language to match against (first language that has lessons)
-  const langWithLessons = languageIds.find((id) => LESSON_TOPIC_MAP[id]) ?? "python";
-  const topicMap = LESSON_TOPIC_MAP[langWithLessons] ?? LESSON_TOPIC_MAP.python;
+  // v5.77 fix: previously, if none of the user's languages had a topic map,
+  // this fell back to "python" and linked Python lessons to non-Python tasks
+  // (e.g. a Swift task "Master variables" got linked to lesson py-02).
+  // Now we skip lesson linking entirely when no map is available.
+  const langWithLessons = languageIds.find((id) => LESSON_TOPIC_MAP[id]);
+  if (!langWithLessons) {
+    // No topic map for any of the user's languages — return phases unchanged.
+    return phases;
+  }
+  const topicMap = LESSON_TOPIC_MAP[langWithLessons];
 
   // Pre-compile keyword regexes with word boundaries so that short keywords
   // like "if", "for", "type", "match" don't match substrings of unrelated
@@ -1435,10 +1451,13 @@ export function generateRoadmap(input: PersonalizationInput): GeneratedRoadmap {
   }));
 
   // Section 25 — enrich task descriptions to be beginner-friendly.
-  // This post-processes every task's `why`, `brief`, and `steps` fields to
-  // add context, learning outcomes, and verification steps. Already-detailed
-  // tasks (like the VS Code setup phase) are left as-is.
-  const finalPhases = enrichRoadmapForBeginners(weightedPhases);
+  // v5.77 fix: only apply beginner enrichment to beginners. Previously this
+  // was called unconditionally, so intermediate and advanced learners got
+  // condescending "After completing this, you'll be able to..." appended to
+  // every task's `why` field.
+  const finalPhases = input.skillLevel === "beginner"
+    ? enrichRoadmapForBeginners(weightedPhases)
+    : weightedPhases;
 
   return {
     careerId: input.careerId,

@@ -31,6 +31,7 @@ export function AITutorFloating() {
       clearTimeout(timer);
       document.removeEventListener("mousedown", onClick);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, setOpen]);
 
   // We are "on the AI Tutor tab" when either the user is on the ai-tutor view,

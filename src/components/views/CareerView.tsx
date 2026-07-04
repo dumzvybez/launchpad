@@ -22,7 +22,8 @@ import { useStore, selectPhaseProgress, selectOverallProgress, selectCareerProgr
 import { GlassCard, GlassButton, ProgressBar } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
 import { CAREER_MAP, LANGUAGE_MAP } from "@/lib/career-data";
-import { ALL_LANGUAGE_INFO, getLessonById } from "@/lib/lessons-data";
+import { ALL_LANGUAGE_INFO } from "@/lib/lessons-meta";
+import { getLessonById } from "@/lib/lessons-data";
 import { openPrintableHtml } from "@/lib/print-utils";
 import type { AppState, GeneratedRoadmap } from "@/lib/types";
 
@@ -111,7 +112,7 @@ export function CareerView() {
             <ProgressBar value={readiness.overall} className="h-3" />
             <p className="text-[10px] text-muted-foreground mt-1">
               {readiness.overall >= 100
-                ? "🎉 You're interview-ready! Consider applying to your first role."
+                ? "🏆 100% Career Readiness — claim your Career Master Certificate below!"
                 : readiness.overall >= 90
                   ? "🎉 You're interview-ready! Consider applying to your first role."
                   : readiness.overall >= 71
@@ -629,7 +630,7 @@ function generateResumePDF(opts: {
   const projectsHtml = projects.length > 0
     ? projects.map((p) => {
         const projTitle = p.repoUrl ? p.repoUrl.split("/").pop() ?? p.projectId : p.projectId;
-        return `<li><strong>${escapeHtml(projTitle)}</strong> — ${p.notes ? escapeHtml(p.notes) : "Shipped project"} ${p.repoUrl ? `· <a href="${escapeHtml(p.repoUrl)}">${escapeHtml(p.repoUrl)}</a>` : ""}</li>`;
+        return `<li><strong>${escapeHtml(projTitle)}</strong> — ${p.notes ? escapeHtml(p.notes) : "Shipped project"} ${p.repoUrl ? `· <a href="${escapeHtml(safeUrl(p.repoUrl))}" target="_blank" rel="noopener noreferrer">${escapeHtml(p.repoUrl)}</a>` : ""}</li>`;
       }).join("")
     : "<li><em>No projects shipped yet — visit the Projects tab to start your first one.</em></li>";
 
@@ -829,8 +830,8 @@ function generateResumePDF(opts: {
       <div class="career">${escapeHtml(roadmap?.careerLabel ?? "Developer")}</div>
       <div class="contact">
         ${opts.email ? `<span>✉ <a href="mailto:${escapeHtml(opts.email)}">${escapeHtml(opts.email)}</a></span>` : ""}
-        ${opts.github ? `<span>🔗 <a href="${escapeHtml(opts.github)}" target="_blank">GitHub</a></span>` : ""}
-        ${opts.linkedin ? `<span>in <a href="${escapeHtml(opts.linkedin)}" target="_blank">LinkedIn</a></span>` : ""}
+        ${opts.github ? `<span>🔗 <a href="${escapeHtml(safeUrl(opts.github))}" target="_blank" rel="noopener noreferrer">GitHub</a></span>` : ""}
+        ${opts.linkedin ? `<span>in <a href="${escapeHtml(safeUrl(opts.linkedin))}" target="_blank" rel="noopener noreferrer">LinkedIn</a></span>` : ""}
         <span>📅 ${date}</span>
       </div>
     </div>
@@ -1057,6 +1058,18 @@ function escapeHtml(s: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+// v5.77 SECURITY fix: validate URL scheme before rendering as `href`.
+// Previously, user-controlled URLs (repoUrl, github, linkedin) were
+// HTML-escaped but not scheme-validated. A `javascript:` URL would pass
+// the escape (no HTML special chars) and execute when clicked in the
+// printable resume page.
+function safeUrl(url: string): string {
+  if (!url) return "#";
+  const trimmed = url.trim();
+  if (/^(https?:\/\/|mailto:)/i.test(trimmed)) return trimmed;
+  return "#";
 }
 
 function Stat({ label, value }: { label: string; value: string }) {

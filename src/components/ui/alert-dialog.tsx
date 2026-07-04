@@ -1,3 +1,4 @@
+// v5.84: Radix AlertDialog handles focus return, aria-labelledby, and aria-modal internally.
 "use client"
 
 import * as React from "react"

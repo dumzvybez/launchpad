@@ -305,10 +305,14 @@ function ShareAchievementsModal({
     badges: earnedBadges.map((b) => ({ icon: b.icon, title: b.title })),
   });
 
-  const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8" /><title>Launchpad Achievements — ${state.profile.name || "Learner"}</title>
+  // v5.77 SECURITY fix: escape the user name in the <title> tag. Previously
+  // it was interpolated raw, allowing `</title><script>...` injection.
+  const safeName = escapeHtmlAttr2(state.profile.name || "Learner");
+  const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8" /><title>Launchpad Achievements — ${safeName}</title>
 <style>${ACHIEVEMENTS_CARD_CSS}</style></head><body>${cardInnerHtml}</body></html>`;
 
-  const filename = `launchpad-achievements-${(state.profile.name || "learner").replace(/\s+/g, "-").toLowerCase()}`;
+  // v5.77 fix: sanitize filename to filesystem-safe characters.
+  const filename = `launchpad-achievements-${(state.profile.name || "learner").replace(/[^a-zA-Z0-9\s-]/g, "").replace(/\s+/g, "-").toLowerCase() || "learner"}`;
 
   const markShared = () => {
     if (typeof window !== "undefined") {

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createBrowserClient } from "@/lib/supabase";
 
+// v5.77 fix: explicit runtime + this is a read-only public lookup.
+export const runtime = "nodejs";
+
 /**
  * GET /api/certificates/verify?id=LP-XXXXXXXX
  *
@@ -20,6 +23,14 @@ export async function GET(req: NextRequest) {
   if (!id) {
     return NextResponse.json(
       { error: "Missing certificate ID" },
+      { status: 400 },
+    );
+  }
+
+  // v5.77 fix: validate ID length to prevent abuse (megabyte-long IDs forwarded to Supabase).
+  if (id.length > 64) {
+    return NextResponse.json(
+      { error: "Certificate ID too long" },
       { status: 400 },
     );
   }

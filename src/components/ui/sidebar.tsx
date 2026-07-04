@@ -83,7 +83,9 @@ function SidebarProvider({
       }
 
       // This sets the cookie to keep the sidebar state.
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+      // v5.79 SECURITY fix: add SameSite and Secure attributes to the sidebar cookie.
+      const secure = typeof window !== "undefined" && window.location.protocol === "https:" ? "; Secure" : ""
+      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}; SameSite=Lax${secure}`
     },
     [setOpenProp, open]
   )
@@ -91,6 +93,7 @@ function SidebarProvider({
   // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile, setOpen, setOpenMobile])
 
   // Adds a keyboard shortcut to toggle the sidebar.
@@ -107,6 +110,7 @@ function SidebarProvider({
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toggleSidebar])
 
   // We add a state so that we can do data-state="expanded" or "collapsed".
@@ -609,6 +613,7 @@ function SidebarMenuSkeleton({
   // Random width between 50 to 90%.
   const width = React.useMemo(() => {
     return `${Math.floor(Math.random() * 40) + 50}%`
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (

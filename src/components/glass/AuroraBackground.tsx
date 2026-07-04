@@ -25,6 +25,7 @@ export function AuroraBackground() {
     } else {
       themeRef.current.style.background = "";
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [backgroundTheme, customBackground]);
 
   useEffect(() => {
@@ -59,6 +60,7 @@ export function AuroraBackground() {
       window.removeEventListener("mousemove", onMove);
       if (rafId) cancelAnimationFrame(rafId);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

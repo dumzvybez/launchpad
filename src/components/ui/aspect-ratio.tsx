@@ -1,3 +1,4 @@
+// v5.84: v5.84: Radix AspectRatio handles aspect-ratio layout. No ARIA needed.
 "use client"
 
 import * as AspectRatioPrimitive from "@radix-ui/react-aspect-ratio"
