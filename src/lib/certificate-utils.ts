@@ -1,69 +1,82 @@
 /**
- * Certificate utilities — deterministic ID generation + verification helpers.
+ * Certificate utilities — random ID generation + verification helpers.
  *
- * Per Section 3.1 of Prompt-2-updated.txt:
- * - ID format: `LP-XXXXXXXX` (8 chars, base36, uppercased)
- * - Deterministic hash of `userId-trackId-completionDate`
- * - Bug fix: original simpleHash could return 1-2 char strings for small
- *   inputs (e.g. `Math.abs(0).toString(36) === "0"`). This version pads
- *   to 8 chars and slices to guarantee the length.
+ * v5.76: Switched from deterministic hash to crypto.getRandomValues for
+ * true randomness. IDs are now 10 chars (base36: A-Z + 0-9), giving
+ * 36^10 ≈ 3.6 × 10^15 possible combinations — collision is virtually
+ * impossible even without the database uniqueness check.
  *
- * Browser-compatible — no Node crypto needed.
+ * ID format:
+ *   Language cert: LP-XXXXXXXXXX (10 random base36 chars)
+ *   Career cert:   LP-CAREER-XXXXXXXXXX (10 random base36 chars)
+ *
+ * Both browser and Node.js compatible (uses Web Crypto API).
  */
 
-export function generateCertificateId(
-  userId: string,
-  trackId: string,
-  completionDate: string,
-): string {
-  const raw = `${userId}-${trackId}-${completionDate}`;
-  const hash = simpleHash(raw);
-  // Pad to ensure 8 chars even for short hash outputs
-  const padded = hash.padStart(8, "0").slice(0, 8);
-  return `LP-${padded.toUpperCase()}`;
+/**
+ * Generate a random base36 string of the given length using
+ * crypto.getRandomValues for cryptographic-quality randomness.
+ */
+function randomBase36(length: number): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const result = new Array<string>(length);
+  // Generate random bytes — 2 bytes per char gives enough entropy
+  const bytes = new Uint8Array(length * 2);
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+    crypto.getRandomValues(bytes);
+  } else {
+    // Fallback for environments without Web Crypto (shouldn't happen in
+    // modern browsers or Node.js 18+, but just in case)
+    for (let i = 0; i < bytes.length; i++) {
+      bytes[i] = Math.floor(Math.random() * 256);
+    }
+  }
+  for (let i = 0; i < length; i++) {
+    result[i] = chars[bytes[i * 2] % chars.length];
+  }
+  return result.join("");
 }
 
 /**
- * Generate a Career Master certificate ID — `LP-CAREER-XXXXXXXX`.
- * Same hashing rules as `generateCertificateId` (padded to 8 chars).
+ * Generate a random Language Track certificate ID: LP-XXXXXXXXXX
+ * (10 random base36 characters after the LP- prefix).
+ */
+export function generateCertificateId(
+  _userId?: string,
+  _trackId?: string,
+  _completionDate?: string,
+): string {
+  // Parameters are accepted for backward compatibility but ignored —
+  // IDs are now fully random, not derived from user/track/date.
+  return `LP-${randomBase36(10)}`;
+}
+
+/**
+ * Generate a random Career Master certificate ID: LP-CAREER-XXXXXXXXXX
+ * (10 random base36 characters after the LP-CAREER- prefix).
  */
 export function generateCareerCertificateId(
-  userId: string,
-  careerId: string,
-  completionDate: string,
+  _userId?: string,
+  _careerId?: string,
+  _completionDate?: string,
 ): string {
-  const raw = `CAREER-${userId}-${careerId}-${completionDate}`;
-  const hash = simpleHash(raw);
-  const padded = hash.padStart(8, "0").slice(0, 8);
-  return `LP-CAREER-${padded.toUpperCase()}`;
-}
-
-/**
- * Browser-compatible simple hash (returns a base36 string).
- * Uses the classic djb2-style hash. Returns variable-length string —
- * callers must pad if they need a fixed width.
- */
-function simpleHash(str: string): string {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit int
-  }
-  return Math.abs(hash).toString(36);
+  return `LP-CAREER-${randomBase36(10)}`;
 }
 
 /**
  * Validate the format of a certificate ID.
- * Accepts: `LP-XXXXXXXX` (8 base36 chars) or `LP-CAREER-XXXXXXXX`.
+ * Accepts: `LP-XXXXXXXXXX` (10+ base36 chars) or `LP-CAREER-XXXXXXXXXX`.
  */
 export function isValidCertificateFormat(id: string): boolean {
   if (!id) return false;
   const upper = id.toUpperCase();
-  // Standard format: LP-XXXXXXXX (8 base36 chars)
+  // Standard format: LP-XXXXXXXXXX (10+ base36 chars)
+  if (/^LP-[A-Z0-9]{10,}$/.test(upper)) return true;
+  // Career Master format: LP-CAREER-XXXXXXXXXX
+  if (/^LP-CAREER-[A-Z0-9]{10,}$/.test(upper)) return true;
+  // Also accept 8-char legacy format (for backwards compat with existing certs)
   if (/^LP-[A-Z0-9]{8}$/.test(upper)) return true;
-  // Career Master format: LP-CAREER-XXXXXXXX
-  if (/^LP-CAREER-[A-Z0-9]{8,}$/.test(upper)) return true;
+  if (/^LP-CAREER-[A-Z0-9]{8}$/.test(upper)) return true;
   return false;
 }
 

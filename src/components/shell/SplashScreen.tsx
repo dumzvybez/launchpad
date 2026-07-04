@@ -141,6 +141,15 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
           >
             Launchpad
           </h1>
+          <p
+            className="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground"
+            style={{
+              opacity: phase === "draw" ? 0 : 1,
+              transition: "opacity 500ms 1000ms",
+            }}
+          >
+            Coding Education Platform
+          </p>
         </div>
 
         {/* Loading bar */}

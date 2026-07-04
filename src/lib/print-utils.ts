@@ -141,11 +141,12 @@ export async function copyHtmlAsPng(
 
   const { width = 1200, height = 675 } = opts;
 
-  // Build an off-screen host element. Don't force a background — let the
-  // card's own styling determine the background. This fixes the "black
-  // background" issue where the forced #0d1117 was hiding dark-on-dark text.
+  // Build an off-screen host element. Inherit the theme class from <html>
+  // so CSS variables (--background, --foreground, etc.) are available.
   const host = document.createElement("div");
-  host.style.cssText = `position:fixed;left:-99999px;top:0;width:${width}px;height:${height}px;overflow:hidden;`;
+  const themeClass = document.documentElement.className;
+  host.className = themeClass;
+  host.style.cssText = `position:fixed;left:-99999px;top:0;width:${width}px;height:${height}px;overflow:hidden;background:var(--background,#0d1117);color:var(--foreground,#fff);`;
   host.innerHTML = html;
   document.body.appendChild(host);
 
@@ -191,7 +192,9 @@ export async function downloadHtmlAsPng(
   const { width = 1200, height = 675 } = opts;
 
   const host = document.createElement("div");
-  host.style.cssText = `position:fixed;left:-99999px;top:0;width:${width}px;height:${height}px;overflow:hidden;`;
+  const themeClass = document.documentElement.className;
+  host.className = themeClass;
+  host.style.cssText = `position:fixed;left:-99999px;top:0;width:${width}px;height:${height}px;overflow:hidden;background:var(--background,#0d1117);color:var(--foreground,#fff);`;
   host.innerHTML = html;
   document.body.appendChild(host);
 

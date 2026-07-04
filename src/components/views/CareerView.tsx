@@ -278,12 +278,19 @@ export function CareerView() {
                     const name = window.prompt("Edit your name for the Career Master Certificate:", defaultName);
                     if (name === null) return;
                     const finalName = name.trim() || "Learner";
+                    // v5.76 — The career cert was auto-issued when career
+                    // readiness hit 100%. Download only renders the stored cert.
                     if (careerCert) {
-                      updateCareerCertificateName(finalName);
+                      if (careerCert.name !== finalName) {
+                        updateCareerCertificateName(finalName);
+                      }
+                      generateCareerCertificate(finalName, career.label, roadmap.languageIds, computeHoursInvested(useStore.getState().state, roadmap));
                     } else {
-                      issueCareerCertificate(career.label, finalName);
+                      // Fallback: issue now (should rarely happen)
+                      issueCareerCertificate(career.label, finalName).then(() => {
+                        generateCareerCertificate(finalName, career.label, roadmap.languageIds, computeHoursInvested(useStore.getState().state, roadmap));
+                      });
                     }
-                    generateCareerCertificate(finalName, career.label, roadmap.languageIds, computeHoursInvested(useStore.getState().state, roadmap));
                   }}
                 >
                   <Download className="h-4 w-4" /> Download Career Certificate (PDF)
@@ -416,6 +423,18 @@ function ResumeBuilderButton() {
   const [includeQuizScores, setIncludeQuizScores] = useState(true);
   const [includeBadges, setIncludeBadges] = useState(true);
   const [includeBranding, setIncludeBranding] = useState(true);
+
+  // v5.76 — reset form fields when the modal opens so stale data from a
+  // previous session doesn't persist. The useState initializers only run
+  // once (on mount), so we need to explicitly refresh on each open.
+  const [prevOpen, setPrevOpen] = useState(false);
+  if (open && !prevOpen) {
+    setPrevOpen(true);
+    setName(profile.name || "");
+    setObjective(`Aspiring ${profile.careerId ? (careerLabel ?? "Developer") : "Developer"}`);
+  } else if (!open && prevOpen) {
+    setPrevOpen(false);
+  }
 
   const handleGenerate = () => {
     setOpen(false);

@@ -144,13 +144,22 @@ export function Sidebar({
             {!collapsed && (
               <span className="text-eyebrow px-3 mb-0.5">{GROUP_LABELS[group]}</span>
             )}
-            {/* Collapsed: show group icon only, with flyout on hover */}
+            {/* Collapsed: show group icon (clickable → first item) with flyout on hover */}
             {collapsed && (() => {
               const GroupIcon = groupIcons[group] ?? LayoutDashboard;
+              const firstItem = items[0];
+              const anyActive = items.some((i) => i.id === currentView);
               return (
-                <div className="flex items-center justify-center py-1.5">
-                  <GroupIcon className="h-4 w-4 text-muted-foreground" />
-                </div>
+                <button
+                  onClick={() => firstItem && setView(firstItem.id)}
+                  className={cn(
+                    "flex items-center justify-center py-1.5 rounded-lg transition-colors w-full",
+                    anyActive ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-foreground/5",
+                  )}
+                  title={GROUP_LABELS[group]}
+                >
+                  <GroupIcon className="h-4 w-4" />
+                </button>
               );
             })()}
             {/* Flyout menu (collapsed mode) */}

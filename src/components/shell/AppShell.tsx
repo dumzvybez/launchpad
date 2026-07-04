@@ -79,29 +79,34 @@ export function AppShell() {
 
   useCommandPaletteShortcut();
 
-  // Routing refactor — hash-based URL routing that syncs with currentView.
-  // On mount, read the hash and set the view. On view change, update the hash.
-  // This gives shareable URLs (/#/learn, /#/ai-tutor) without a full rewrite.
+  // v5.76 — Clean URL routing (pathname-based, no hash).
+  // Syncs currentView with the browser URL: /dashboard, /learn, /ai-tutor, etc.
+  // On mount: read the pathname and set the view.
+  // On view change: update the URL via pushState (no page reload).
+  // On popstate (back/forward): read the URL and set the view.
+  const VALID_VIEWS = ["dashboard","roadmap","learn","playground","daily-challenge","flashcards","skill-tree","calendar","notes","projects","focus","analytics","career","ai-tutor","community","tools","account","settings"];
+
   useEffect(() => {
-    const viewFromHash = () => {
-      const hash = window.location.hash.slice(2); // remove #/
-      if (hash) {
-        const validViews = ["dashboard","roadmap","learn","playground","daily-challenge","flashcards","skill-tree","calendar","notes","projects","focus","analytics","career","ai-tutor","community","tools","account","settings"];
-        if (validViews.includes(hash)) {
-          setView(hash as typeof currentView);
-        }
+    const viewFromPath = () => {
+      const path = window.location.pathname.slice(1); // remove leading /
+      if (path && VALID_VIEWS.includes(path)) {
+        setView(path as typeof currentView);
+      } else if (!path || path === "") {
+        // Root path → dashboard (don't redirect, just set the view)
+        if (currentView !== "dashboard") setView("dashboard" as typeof currentView);
       }
     };
-    viewFromHash();
-    window.addEventListener("hashchange", viewFromHash);
-    return () => window.removeEventListener("hashchange", viewFromHash);
+    viewFromPath();
+    window.addEventListener("popstate", viewFromPath);
+    return () => window.removeEventListener("popstate", viewFromPath);
+
   }, [setView]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const expectedHash = `#/${currentView}`;
-      if (window.location.hash !== expectedHash) {
-        window.history.replaceState(null, "", expectedHash);
+      const expectedPath = `/${currentView}`;
+      if (window.location.pathname !== expectedPath) {
+        window.history.pushState(null, "", expectedPath);
       }
     }
   }, [currentView]);

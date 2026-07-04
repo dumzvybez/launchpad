@@ -36,7 +36,7 @@ import { ACHIEVEMENTS } from "./achievements-data";
 import { generateCertificateId, generateCareerCertificateId } from "./certificate-utils";
 // ESM imports for data modules — replaces the previous `require()` calls
 // which can silently fail under Turbopack/Next.js 16 bundling.
-import { ALL_LESSONS } from "./lessons-data";
+import { ALL_LESSONS, ALL_LANGUAGE_INFO } from "./lessons-data";
 import { selectPoolForLanguages } from "./daily-challenges-data-v2";
 import { recordQuestion, recordFlashcard } from "./sm2";
 import { generateFlashcardsForTrack } from "./flashcard-generator";
@@ -561,8 +561,12 @@ type Store = {
   addProjectSubmission: (projectId: string, repoUrl: string, notes?: string) => void;
 
   // Certificates
-  issueCertificate: (trackId: string, trackName: string, name: string) => string;
-  issueCareerCertificate: (careerLabel: string, name: string) => string;
+  issueCertificate: (trackId: string, trackName: string, name: string) => Promise<string>;
+  issueCareerCertificate: (careerLabel: string, name: string) => Promise<string>;
+  /** v5.76 — Auto-issue certificates when eligibility is met. Called from
+   * setLessonProgress and checkAchievements. Idempotent — skips tracks
+   * that already have a cert. */
+  tryAutoIssueCertificates: () => void;
   updateCertificateName: (trackId: string, name: string) => void;
   updateCareerCertificateName: (name: string) => void;
 
@@ -982,7 +986,7 @@ export const useStore = create<Store>((set, get) => {
       return roadmap;
     },
 
-    setLessonProgress: (lessonId, status, quizScore) =>
+    setLessonProgress: (lessonId, status, quizScore) => {
       updateState((s) => {
         const existing = s.lessonProgress[lessonId] ?? {
           lessonId,
@@ -1048,7 +1052,17 @@ export const useStore = create<Store>((set, get) => {
           activity: newActivity,
           streak: newStreak,
         };
-      }),
+      });
+      // v5.76 — Synchronously check for certificate eligibility after the
+      // state has been committed by updateState above. No setTimeout —
+      // get().state is already updated, so the eligibility check runs
+      // against the freshest data. The actual Supabase API call inside
+      // issueCertificate is async (fire-and-forget), but the eligibility
+      // decision and the "should we issue?" logic are synchronous.
+      if (status === "complete") {
+        get().tryAutoIssueCertificates();
+      }
+    },
 
     getLessonProgress: (lessonId) => get().state.lessonProgress[lessonId],
 
@@ -1154,16 +1168,43 @@ export const useStore = create<Store>((set, get) => {
         learnTabState: { ...s.learnTabState, ...partial },
       })),
 
-    issueCertificate: (trackId, trackName, name) => {
-      // Deterministic ID from user+track+date hash
+    issueCertificate: async (trackId, trackName, name) => {
       const state = get().state;
-      const seed = `${state.profile.name || "learner"}-${trackId}-${new Date().toISOString().slice(0, 10)}`;
-      let hash = 0;
-      for (let i = 0; i < seed.length; i++) {
-        hash = ((hash << 5) - hash) + seed.charCodeAt(i);
-        hash |= 0;
+
+      // v5.76 — IDEMPOTENT: if a cert already exists for this track, return
+      // the existing ID. Never issue a duplicate.
+      const existing = state.certificates[trackId];
+      if (existing) {
+        return existing.certId;
       }
-      const certId = `LP-${Math.abs(hash).toString(36).toUpperCase().slice(0, 8)}`;
+
+      let certId = "";
+
+      // Try Supabase (server-side, guaranteed-unique random ID).
+      try {
+        const res = await fetch("/api/certificates/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            holderName: name,
+            certificateType: "language",
+            languageCompleted: trackId,
+            joinedDate: state.profile.startDate || new Date().toISOString(),
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          certId = data.certId;
+        }
+      } catch {
+        // Fall through to local generation
+      }
+
+      // Fallback: local random ID generation (crypto.getRandomValues)
+      if (!certId) {
+        certId = generateCertificateId();
+      }
+
       const cert = {
         certId,
         issuedAt: new Date().toISOString(),
@@ -1178,15 +1219,41 @@ export const useStore = create<Store>((set, get) => {
       return certId;
     },
 
-    issueCareerCertificate: (careerLabel, name) => {
+    issueCareerCertificate: async (careerLabel, name) => {
       const state = get().state;
-      const seed = `CAREER-${state.profile.name || "learner"}-${state.profile.careerId || "x"}-${new Date().toISOString().slice(0, 10)}`;
-      let hash = 0;
-      for (let i = 0; i < seed.length; i++) {
-        hash = ((hash << 5) - hash) + seed.charCodeAt(i);
-        hash |= 0;
+
+      // v5.76 — IDEMPOTENT: if a career cert already exists, return it.
+      if (state.careerCertificate) {
+        return state.careerCertificate.certId;
       }
-      const certId = `LP-CAREER-${Math.abs(hash).toString(36).toUpperCase().slice(0, 8)}`;
+
+      let certId = "";
+
+      // Try Supabase first.
+      try {
+        const res = await fetch("/api/certificates/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            holderName: name,
+            certificateType: "career",
+            languageCompleted: null,
+            joinedDate: state.profile.startDate || new Date().toISOString(),
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          certId = data.certId;
+        }
+      } catch {
+        // Fall through to local generation
+      }
+
+      // Fallback: local random ID generation
+      if (!certId) {
+        certId = generateCareerCertificateId();
+      }
+
       const cert = {
         certId,
         issuedAt: new Date().toISOString(),
@@ -1195,6 +1262,46 @@ export const useStore = create<Store>((set, get) => {
       };
       updateState((s) => ({ ...s, careerCertificate: cert }));
       return certId;
+    },
+
+    // v5.76 — Auto-issue certificates when eligibility is met.
+    // Called from setLessonProgress (after quiz completion) and
+    // checkAchievements (after career readiness hits 100%).
+    // Idempotent: skips tracks that already have a cert.
+    tryAutoIssueCertificates: () => {
+      const s = get().state;
+      if (!s.roadmap) return;
+      const holderName = s.profile.name || "Learner";
+
+      // Check each roadmap language for certificate eligibility
+      for (const langId of s.roadmap.languageIds) {
+        // Skip if cert already exists
+        if (s.certificates[langId]) continue;
+
+        // Get lessons for this track
+        const trackLessons = ALL_LESSONS.filter((l) => l.track === langId);
+        if (trackLessons.length === 0) continue;
+
+        const { eligible } = selectCertificateEligible(s, langId, trackLessons);
+        if (eligible) {
+          // Auto-issue — fire and forget (async, doesn't block the UI)
+          const trackName = ALL_LANGUAGE_INFO[langId]?.name ?? langId;
+          get().issueCertificate(langId, trackName, holderName).catch(() => {
+            // Silent failure — will retry on next eligibility check
+          });
+        }
+      }
+
+      // Check career certificate eligibility (100% career readiness)
+      if (!s.careerCertificate) {
+        const { overall } = selectCareerReadinessScore(s);
+        if (overall >= 100) {
+          const careerLabel = s.roadmap.careerLabel;
+          get().issueCareerCertificate(careerLabel, holderName).catch(() => {
+            // Silent failure
+          });
+        }
+      }
     },
 
     updateCertificateName: (trackId, name) =>
@@ -1350,6 +1457,10 @@ export const useStore = create<Store>((set, get) => {
         updateState((s) => ({ ...s, badges: newBadges }));
         set({ pendingBadgeToasts: [...get().pendingBadgeToasts, ...newlyEarned] });
       }
+      // v5.76 — Synchronously check career cert eligibility. The state
+      // has already been committed by updateState above (if badges changed),
+      // so selectCareerReadinessScore runs against fresh data.
+      get().tryAutoIssueCertificates();
       return newlyEarned;
     },
 

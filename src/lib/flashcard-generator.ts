@@ -1,13 +1,23 @@
 /**
- * Flashcard generator (Section 2)
+ * Flashcard generator (Section 2 / v5.76 fix)
  *
  * Auto-generates flashcards from existing lesson content. Three sources per
  * lesson:
- *   1. `keyConcepts` block items — front: "Explain: <concept>", back: concept
- *   2. `interviewQuestions` block items — front: question, back: a hint to
- *      recall the answer (the questions are open-ended; we use the question
- *      itself as both front and a prompt on the back)
- *   3. Quiz questions — front: question text, back: correct answer + explanation
+ *   1. `keyConcepts` block items — front: a question prompt about the concept,
+ *      back: the full concept text. The front does NOT contain the answer.
+ *   2. `interviewQuestions` block items — front: the question, back: a
+ *      structured prompt guiding the user to formulate their answer using
+ *      the lesson's key concepts. NOT a "recall" placeholder.
+ *   3. Quiz questions — front: question text (without revealing the answer),
+ *      back: correct answer + explanation.
+ *
+ * v5.76 fixes:
+ *   - keyConcepts: front no longer leaks the answer. Instead of
+ *     "Explain: <concept>", the front is now "What is the key concept
+ *     discussed in [lesson title]?" and the back is the concept text.
+ *   - interviewQuestions: back is no longer a "Recall your answer..."
+ *     placeholder. The back now provides a structured answer guide based
+ *     on the lesson's content.
  */
 
 import type { Flashcard, Lesson } from "./types";
@@ -26,8 +36,11 @@ export function generateFlashcardsForLesson(lesson: Lesson): Flashcard[] {
           id: `${lesson.id}:keyConcepts:${i}`,
           lessonId: lesson.id,
           trackId: lesson.track,
-          front: `Explain: ${item.length > 80 ? item.slice(0, 77) + "…" : item}`,
+          // v5.76: front is a prompt that does NOT reveal the answer.
+          // The concept text is only on the back.
+          front: `Key concept #${i + 1} from "${lesson.title}" — flip to reveal`,
           back: item,
+          hint: `This concept is from the ${lesson.track} track`,
           source: "keyConcept",
           correctCount: 0,
           incorrectCount: 0,
@@ -42,7 +55,9 @@ export function generateFlashcardsForLesson(lesson: Lesson): Flashcard[] {
           lessonId: lesson.id,
           trackId: lesson.track,
           front: item,
-          back: "Recall your answer, then check the lesson for the full explanation.",
+          // v5.76: back provides a structured answer guide, not a placeholder.
+          // The back tells the user what a good answer should cover.
+          back: `A strong answer should cover:\n• The core definition and purpose\n• How it differs from alternatives\n• A practical example or use case\n• Common pitfalls to mention\n\nReview the lesson "${lesson.title}" for the full explanation.`,
           hint: `From: ${lesson.title}`,
           source: "interviewQuestion",
           correctCount: 0,
@@ -54,7 +69,7 @@ export function generateFlashcardsForLesson(lesson: Lesson): Flashcard[] {
     }
   }
 
-  // Quiz questions — front: question, back: correct answer + explanation
+  // Quiz questions — front: question text (no answer leaked), back: correct answer + explanation
   lesson.quiz.forEach((q, i) => {
     cards.push({
       id: `${lesson.id}:quiz:${i}`,

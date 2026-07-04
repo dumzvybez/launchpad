@@ -1,7 +1,96 @@
 # Launchpad CHANGELOG
 
-This file merges all previous changelogs (v2.68, v2.68.1, v3) and adds the new
-**v4 (UX Redesign Round)** entries. Entries are in reverse chronological order.
+This file merges all previous changelogs (v2.68, v2.68.1, v3, v4) and adds the new
+**v5.76 (Certificate Verification + Clean URLs + UX Fixes)** entries. Entries are in reverse chronological order.
+
+---
+
+## v5.76 — Certificate Verification + Clean URLs + UX Fixes
+
+### 1. Splash Screen — Platform Name Restored
+- Re-added "Coding Education Platform" text below the "Launchpad" title,
+  synced with the existing animation timing (fades in during the hold phase
+  at 1000ms delay, matching the loading bar).
+
+### 2. Sidebar — Collapsed-State Icons Now Functional
+- The 4 group icons (Learning, Learn, Productivity, System) in the collapsed
+  sidebar are now clickable buttons. Clicking navigates to the first item
+  in that group. Active group is highlighted with primary color.
+- Hover still reveals the flyout menu with all items in the group.
+
+### 3. Image Download & Copy — Theme-Aware Rendering Fix
+- Fixed the off-screen host element to inherit the theme class (`dark`/light)
+  from `<html>`, so CSS variables (`--background`, `--foreground`, etc.) are
+  available during rendering. Previously the host had no theme class, causing
+  `html-to-image` to render with browser defaults (black background).
+- Both `copyHtmlAsPng` and `downloadHtmlAsPng` now set `background: var(--background)`
+  and `color: var(--foreground)` on the host element as fallbacks.
+
+### 4. Flashcards — Answer Leakage + Recall Bug Fixed
+- **Answer leakage (keyConcepts):** The front of keyConcept flashcards
+  previously contained the concept text (`"Explain: <concept>"`), leaking
+  the answer. Fixed: front is now `"Key concept #N from '<lesson>' — flip
+  to reveal"` — the concept text only appears on the back.
+- **Recall bug (interviewQuestions):** The back was a placeholder
+  `"Recall your answer..."` string. Fixed: back now provides a structured
+  answer guide listing what a strong answer should cover (core definition,
+  alternatives, example, pitfalls).
+- Applied across ALL flashcards, ALL languages — the fix is in
+  `flashcard-generator.ts` which generates cards for every lesson in every track.
+
+### 5. Selection Menus — Theme Mismatch Fixed
+- Fixed CSS to use CSS variables directly (`var(--popover)`,
+  `var(--popover-foreground)`, `var(--border)`) instead of wrapping them in
+  `hsl()` (which broke because the variables are OKLCH values, not HSL).
+- Removed the separate light-mode override — the CSS variables already adapt
+  to the active theme automatically.
+
+### 7. Code Box — Line Numbers Leaking Outside Fixed
+- The parent container of the line-number gutter + textarea now has
+  `overflow-hidden` and `rounded-md`, so the absolutely-positioned gutter
+  can never render outside the code box boundary.
+- The border is now on the parent container (not the textarea), ensuring
+  consistent visual containment. The gutter has `z-10` to stay above the
+  textarea's content.
+
+### 8. Resume Builder — Stale Modal Content Fixed
+- Added a "render-time reset" pattern: when the modal opens (`open` transitions
+  from false to true), the form fields (`name`, `objective`) are refreshed
+  from the latest store values. Previously the `useState` initializers only
+  ran once on mount, so stale data from a previous session persisted.
+
+### 10. Certificate Verification — Real Database-Backed Verification
+- **Supabase integration** built from scratch:
+  - `src/lib/supabase.ts` — server client (service role key) + browser client
+    (anon key) factories.
+  - `src/app/api/certificates/create/route.ts` — server-side certificate
+    creation with guaranteed-unique ID generation (generate → check → retry
+    loop, max 10 attempts). Uses the service role key.
+  - `src/app/api/certificates/verify/route.ts` — public read-only
+    verification endpoint using the anon key.
+  - `supabase/schema.sql` — SQL migration with table definition, RLS policies
+    (public SELECT, service-role-only INSERT/UPDATE/DELETE), and documentation.
+- **Verify page** (`/verify/[id]`) rewritten to query the API:
+  - ✅ Match → displays holder name, cert type, track, issue date, join date,
+    and a "Valid Certificate" badge.
+  - ❌ No match → shows "Certificate not found" with a clear error message.
+  - Falls back to format-only verification if Supabase is not configured.
+- **Store** (`issueCertificate`, `issueCareerCertificate`) now async — calls
+  the Supabase API first, falls back to local ID generation if the API is
+  unavailable.
+- **Privacy disclosure:** The verify page shows a privacy notice explaining
+  that only public fields are displayed (similar to university degrees).
+- **Environment variables** (set by user in Vercel):
+  `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
+
+### 11. Clean URLs — Hash Routing Removed
+- Switched from hash-based routing (`/#/learn`) to pathname-based routing
+  (`/learn`). URLs are now clean and shareable.
+- Added `vercel.json` with a rewrite rule that redirects all non-file paths
+  to `/` (the SPA entry point), so client-side routing works on direct
+  visits, refreshes, and shared links.
+- Updated `public/sitemap.xml` and `src/app/sitemap.ts` to use clean URLs.
+- Updated `public/robots.txt` (unchanged — already minimal).
 
 ---
 

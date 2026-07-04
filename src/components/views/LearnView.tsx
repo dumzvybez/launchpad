@@ -592,12 +592,23 @@ export function LearnView() {
                         const name = window.prompt("Edit your name for the certificate:", defaultName);
                         if (name === null) return;
                         const finalName = name.trim() || "Learner";
+                        // v5.76 — The certificate was auto-issued when the
+                        // track was completed. The Download button only
+                        // renders the already-stored cert (never generates
+                        // a new one). If somehow no cert exists yet (e.g.
+                        // auto-issue failed), issue it now as a fallback.
                         if (existing) {
-                          updateCertificateName(track, finalName);
+                          if (existing.name !== finalName) {
+                            updateCertificateName(track, finalName);
+                          }
+                          generateCertificate(finalName, trackName, track, trackLessons);
                         } else {
-                          issueCertificate(track, trackName, finalName);
+                          // Fallback: issue now (should rarely happen since
+                          // tryAutoIssueCertificates runs on lesson completion)
+                          issueCertificate(track, trackName, finalName).then(() => {
+                            generateCertificate(finalName, trackName, track, trackLessons);
+                          });
                         }
-                        generateCertificate(finalName, trackName, track, trackLessons);
                       }}
                     >
                       <Award className="h-4 w-4" /> Download certificate (PDF)
