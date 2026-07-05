@@ -308,7 +308,6 @@ Pull requests, issues, and ideas are all welcome.
 - **Developer:** Dumindu Dulara Wanasinghe — [Portfolio](https://duminduwanasinghe-dev.vercel.app/)
 
 
-
 <div align="center">
 
 **Built solo, built free, built for everyone learning to code.** 💙
