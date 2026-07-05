@@ -46,7 +46,6 @@ Tell it your career goal, and Launchpad generates a custom learning roadmap pull
 - [📜 Certificates](#-certificates)
 - [🔒 Privacy, By Design](#-100-on-device-privacy)
 - [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
 
 ---
 
@@ -308,11 +307,6 @@ Pull requests, issues, and ideas are all welcome.
 - **Discussions:** [Share feedback, report bugs, request features](https://github.com/dumzvybez/Launchpad/discussions)
 - **Developer:** Dumindu Dulara Wanasinghe — [Portfolio](https://duminduwanasinghe-dev.vercel.app/)
 
----
-
-## 📄 License
-
-MIT — free for personal and commercial use.
 
 <div align="center">
 
