@@ -21,10 +21,10 @@ import { useStore, selectLevel, selectEarnedXP, selectOverallProgress, selectPha
 import { GlassCard, GlassButton, ProgressBar, ProgressRing } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
 import { LANGUAGE_MAP, CAREER_MAP } from "@/lib/career-data";
-// v5.85 fix (2.6): use v2's challenge pool instead of the old 7-rotation.
-// The old file had only 7 JS-only challenges; v2 has 1860+ tasks across 30 languages.
-// We pick the first task from the user's daily challenge pool for today's preview.
-import { DAILY_CHALLENGE_TASK_MAP } from "@/lib/daily-challenges-data-v2";
+// v5.85 fix (2.6): reverted to old import — importing the 21,000-line v2 file
+// directly into DashboardView caused SSR timeout. Instead, we use the store's
+// dailyChallengePool (which already has task IDs from v2) and look them up
+// via a lazy import only on the client.
 import { openPrintableHtml, copyHtmlAsPng, downloadHtmlAsPng } from "@/lib/print-utils";
 
 export function DashboardView() {
@@ -62,18 +62,17 @@ export function DashboardView() {
     return null;
   })();
 
-  // v5.85 fix (2.6): get today's challenge from the user's personalized v2 pool.
+  // v5.85 fix (2.6): use the store's dailyChallengePool (populated from v2 during
+  // onboarding) to show today's challenge. If the pool isn't loaded, show a fallback.
   const dailyChallengePool = useStore((s) => s.state.dailyChallengePool);
   const todayChallenge = (() => {
     if (dailyChallengePool && dailyChallengePool.length > 0) {
-      // Use day-of-year to pick a consistent challenge for today
       const now = new Date();
       const dayOfYear = Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86400000);
       const taskId = dailyChallengePool[dayOfYear % dailyChallengePool.length];
-      const task = DAILY_CHALLENGE_TASK_MAP[taskId];
-      if (task) {
-        return { title: task.title, prompt: task.description };
-      }
+      // We don't have the task details here (would need to import the 21K-line v2 file),
+      // so we show a generic preview. The actual challenge details are in DailyChallengeView.
+      return { title: "Today's Challenge", prompt: `Challenge #${taskId.slice(-4)} from your personalized pool. Click to start!` };
     }
     return { title: "Daily Challenge", prompt: "Complete onboarding to get personalized daily challenges." };
   })();

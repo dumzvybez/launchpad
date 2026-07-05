@@ -185,8 +185,7 @@ export function CalendarNotifier() {
     // v5.85 fix (7.7): pause interval when tab is hidden to save battery/CPU
     let interval: ReturnType<typeof setInterval> | null = null;
     const startInterval = () => { if (!interval) interval = setInterval(check, 30000); };
-    const stopInterval = () => { if (interval) { stopInterval();
-      document.removeEventListener("visibilitychange", onVisChange); interval = null; } };
+    const stopInterval = () => { if (interval) { clearInterval(interval); interval = null; } };
     startInterval();
     const onVisChange = () => { if (document.hidden) stopInterval(); else { startInterval(); check(); } };
     document.addEventListener("visibilitychange", onVisChange);

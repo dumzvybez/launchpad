@@ -135,7 +135,7 @@ async function callGemini(apiKey: string, model: string, messages: ChatMsg[], te
       systemInstruction: { parts: [{ text: systemPrompt }] },
       generationConfig: { temperature, maxOutputTokens: 2048 },
     }),
-    signal: AbortSignal.any([AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS), req.signal]),
+    signal: AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS),
   });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
@@ -171,7 +171,7 @@ async function callOpenAICompatible(
       temperature,
       max_tokens: 2048,
     }),
-    signal: AbortSignal.any([AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS), req.signal]),
+    signal: AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS),
   });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
@@ -197,7 +197,7 @@ async function callAnthropic(apiKey: string, model: string, messages: ChatMsg[],
       temperature,
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
     }),
-    signal: AbortSignal.any([AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS), req.signal]),
+    signal: AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS),
   });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
@@ -423,7 +423,7 @@ export async function POST(req: NextRequest) {
           method: "POST",
           headers: upstreamHeaders,
           body: upstreamBody,
-          signal: AbortSignal.any([AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS), req.signal]),
+          signal: AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS),
         });
 
         if (!upstreamRes.ok || !upstreamRes.body) {

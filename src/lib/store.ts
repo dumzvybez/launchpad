@@ -629,14 +629,12 @@ export const HABIT_DEFINITIONS = [
 let isResetting = false;
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 let lastPersistedState: AppState | null = null;
-// v5.85 fix (6.10): strip ephemeral UI-only state before persisting.
-  function persist(state: AppState) {
+function persist(state: AppState) {
     if (isResetting) return;
-    const { pendingBadgeToasts, reviewModeLessonId, pendingTutorMessage, mobileNavOpen, ...persistent } = state;
-  lastPersistedState = state;
+    lastPersistedState = state;
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
-    saveState(persistent as AppState);
+    saveState(state);
     saveTimer = null;
   }, 200);
 }
