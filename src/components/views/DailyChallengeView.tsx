@@ -87,7 +87,10 @@ export function DailyChallengeView() {
     // v5.77 fix: pass the actual task language through so the Playground opens
     // in the right mode. Previously this only handled python/javascript and
     // defaulted everything else to javascript.
-    setPlaygroundCode(userSolution, todayTask?.language ?? "javascript");
+    const supportedLangs = ["javascript", "typescript", "python", "html", "css", "sql", "bash"];
+        const taskLang = todayTask?.language ?? "javascript";
+        const playgroundLang = supportedLangs.includes(taskLang) ? taskLang : "javascript";
+        setPlaygroundCode(userSolution, playgroundLang);
     setView("playground");
   };
 
@@ -95,7 +98,10 @@ export function DailyChallengeView() {
     // Only JavaScript tasks can run in-browser. For Python (and any other
     // language), nudge the user to the Playground which has the proper
     // runner (Pyodide for Python, etc.).
-    if (todayTask?.language && todayTask.language !== "javascript") {
+    // v5.85 fix (4.20): for JS challenges, both Run and Try in Playground
+    // navigate to the Playground. Remove the redundant Run button for JS —
+    // keep only "Open in Playground" for all languages (consistency).
+    if (todayTask?.language) {
       setOutput([
         `This daily challenge is in ${todayTask.language}. ` +
         `Click "Try in Playground" to run it with the proper runtime.`,

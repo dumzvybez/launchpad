@@ -39,9 +39,15 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "🌅",
     rarity: "common",
     xp: 40,
+    // v5.85 fix (2.5): check hourlyActivity for genuine early-morning activity
+    // instead of checking the current clock hour (which fires whenever
+    // checkAchievements runs, not when the user actually studied).
     check: (s: AppState) => {
-      const hour = new Date().getHours();
-      return hour < 8 && Object.keys(s.tasks).length > 0;
+      if (Object.keys(s.tasks).length === 0) return false;
+      // Check if any activity was logged in hours 0-7
+      return Object.entries(s.hourlyActivity ?? {}).some(
+        ([hour, count]) => parseInt(hour) < 8 && count > 0,
+      );
     },
   },
   {
@@ -51,9 +57,12 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "🦉",
     rarity: "common",
     xp: 40,
+    // v5.85 fix (2.5): same pattern — check hourlyActivity for late-night hours.
     check: (s: AppState) => {
-      const hour = new Date().getHours();
-      return hour >= 22 && Object.keys(s.tasks).length > 0;
+      if (Object.keys(s.tasks).length === 0) return false;
+      return Object.entries(s.hourlyActivity ?? {}).some(
+        ([hour, count]) => parseInt(hour) >= 22 && count > 0,
+      );
     },
   },
   {
@@ -268,9 +277,12 @@ export const ACHIEVEMENTS: Achievement[] = [
     check: (s: AppState) => s.streak.current >= 100,
   },
   {
+    // v5.85 fix (2.4): renamed from "All 6 Phases" to "All Phases" since
+    // roadmaps now have 8-9 phases, not 6. The check is correct (.every()
+    // on however many phases exist) — only the title/description were stale.
     id: "all-6-phases",
-    title: "All 6 Phases",
-    description: "Complete at least one task in all 6 phases.",
+    title: "All Phases",
+    description: "Complete at least one task in every phase of your roadmap.",
     icon: "🗺️",
     rarity: "epic",
     xp: 500,
@@ -368,9 +380,25 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "🌟",
     rarity: "legendary",
     xp: 1500,
+    // v5.85 fix (2.3): count tracks where ALL lessons are completed, not just
+    // total completed lesson count. Previously checked `completed.length >= 30`
+    // which could be satisfied by completing 30 lessons in a single track.
     check: (s: AppState) => {
-      const completed = Object.values(s.lessonProgress).filter((p) => p.status === "complete");
-      return completed.length >= 30; // 30 lessons = 2 tracks done
+      if (!s.roadmap) return false;
+      const userLangs = s.roadmap.languageIds ?? [];
+      let fullyCompletedTracks = 0;
+      for (const langId of userLangs) {
+        // Check if all lessons in this track are complete
+        const trackLessonIds = Object.keys(s.lessonProgress).filter((id) => {
+          // Lesson IDs follow the pattern `${trackId}-NN`
+          return id.startsWith(langId + "-") || id.startsWith(langId.replace(/[^a-z]/g, "") + "-");
+        });
+        if (trackLessonIds.length >= 21) {
+          const allComplete = trackLessonIds.every((id) => s.lessonProgress[id]?.status === "complete");
+          if (allComplete) fullyCompletedTracks++;
+        }
+      }
+      return fullyCompletedTracks >= 2;
     },
   },
   // NEW (Section 13.1) — Legendary badges

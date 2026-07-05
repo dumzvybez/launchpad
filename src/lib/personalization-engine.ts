@@ -371,7 +371,7 @@ function genPhase1(input: PersonalizationInput, _timeline: { totalWeeks: number 
     subtitle: tpl.subtitle,
     color: tpl.color,
     icon: tpl.icon,
-    estWeeks: 0, // filled in below
+    estWeeks: 1, // v5.85 fix (4.14): minimum 1 week to avoid confusing '0w' display // filled in below
     objectives: [
       `Install and run ${langName} on your machine`,
       "Understand variables, types, and operators",
@@ -393,7 +393,7 @@ function genPhase2(input: PersonalizationInput): GeneratedPhase {
     subtitle: tpl.subtitle,
     color: tpl.color,
     icon: tpl.icon,
-    estWeeks: 0,
+    estWeeks: 1, // v5.85 fix (4.14): minimum 1 week to avoid confusing '0w' display
     objectives: [
       "Master functions and modular code",
       "Work with collections (lists, dicts/maps, sets)",
@@ -518,7 +518,7 @@ function genPhase3(input: PersonalizationInput): GeneratedPhase {
     subtitle: tpl.subtitle,
     color: tpl.color,
     icon: tpl.icon,
-    estWeeks: 0,
+    estWeeks: 1, // v5.85 fix (4.14): minimum 1 week to avoid confusing '0w' display
     objectives: [
       "Master Git and GitHub workflow",
       `Build a CLI tool or small project in ${langName}`,
@@ -865,7 +865,7 @@ function genPhase4(input: PersonalizationInput): GeneratedPhase {
     subtitle: tpl.subtitle,
     color: tpl.color,
     icon: tpl.icon,
-    estWeeks: 0,
+    estWeeks: 1, // v5.85 fix (4.14): minimum 1 week to avoid confusing '0w' display
     objectives: [
       `Master key ${career?.label ?? "career"} frameworks and tools`,
       "Build a non-trivial project in your specialization",
@@ -884,7 +884,7 @@ function genPhase5(input: PersonalizationInput): GeneratedPhase {
     subtitle: tpl.subtitle,
     color: tpl.color,
     icon: tpl.icon,
-    estWeeks: 0,
+    estWeeks: 1, // v5.85 fix (4.14): minimum 1 week to avoid confusing '0w' display
     objectives: [
       "Understand system design and architecture",
       "Learn performance optimization",
@@ -978,7 +978,7 @@ function genPhase6(_input: PersonalizationInput): GeneratedPhase {
     subtitle: tpl.subtitle,
     color: tpl.color,
     icon: tpl.icon,
-    estWeeks: 0,
+    estWeeks: 1, // v5.85 fix (4.14): minimum 1 week to avoid confusing '0w' display
     objectives: [
       "Build a portfolio capstone project",
       "Prepare your resume and online presence",
@@ -1486,7 +1486,7 @@ function genExtraLanguagePhase(input: PersonalizationInput, lang: LanguageInfo, 
     subtitle: `Add ${lang.name} to your toolkit`,
     color,
     icon: lang.icon,
-    estWeeks: 0,
+    estWeeks: 1, // v5.85 fix (4.14): minimum 1 week to avoid confusing '0w' display
     objectives: [
       `Learn ${lang.name} syntax and core idioms`,
       `Translate concepts from your first language`,
@@ -1854,7 +1854,7 @@ function genAIBonusPhase(input: PersonalizationInput, phaseNumber: number): Gene
     subtitle,
     color: "violet",
     icon: "🎁",
-    estWeeks: 0,
+    estWeeks: 1, // v5.85 fix (4.14): minimum 1 week to avoid confusing '0w' display
     objectives,
     modules,
   };

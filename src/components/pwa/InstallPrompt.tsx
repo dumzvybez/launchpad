@@ -10,7 +10,8 @@ type BeforeInstallPromptEvent = Event & {
 };
 
 const DISMISS_KEY = "launchpad:pwa-install-dismissed";
-const DISMISS_DURATION = 1000 * 60 * 60 * 24 * 7; // 7 days
+// v5.85 note (4.18): 'Never show again' would set localStorage['launchpad:install-never']='1'
+  const DISMISS_DURATION = 1000 * 60 * 60 * 24 * 7; // 7 days
 const SHOW_DELAY = 18000; // Show after 18s on page (less disruptive)
 const AUTO_DISMISS = 12000; // Auto-hide after 12s if no interaction
 

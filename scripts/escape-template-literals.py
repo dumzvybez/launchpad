@@ -1,3 +1,6 @@
+"""v5.85: This script was a one-off tool for escaping template literals in
+now-deleted lesson generator files. It is kept for reference but is not
+part of the build pipeline. Safe to remove if no longer needed."""
 #!/usr/bin/env python3
 """
 Fast escape of ${ inside template literals using regex.

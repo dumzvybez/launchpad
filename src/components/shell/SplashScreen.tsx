@@ -17,6 +17,11 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
   const [phase, setPhase] = useState<"draw" | "hold" | "fade">("draw");
 
   useEffect(() => {
+    // v5.85 fix (4.19): skip animation if prefers-reduced-motion
+    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      onDone();
+      return;
+    }
     // Draw phase: logo animates in (0.8s)
     const t1 = setTimeout(() => setPhase("hold"), 800);
     // Hold phase

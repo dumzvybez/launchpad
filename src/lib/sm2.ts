@@ -22,9 +22,8 @@ export type SM2Quality = 0 | 1 | 2 | 3 | 4 | 5;
 export const SM2_DEFAULT_EF = 2.5;
 export const SM2_MIN_EF = 1.3;
 export const SM2_MAX_EF = 2.5;
-// v5.77 fix: raised from 30 to 365 days. A 30-day cap forced users to review
-// easy cards every month forever, defeating long-term retention. 365 days
-// allows mature cards to graduate to yearly reviews.
+// v5.85: SM2_MAX_INTERVAL_DAYS = 365 (raised from 30 in v5.77).
+// Allows mature cards to graduate to yearly reviews.
 export const SM2_MAX_INTERVAL_DAYS = 365;
 
 /**

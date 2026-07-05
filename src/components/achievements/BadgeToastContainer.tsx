@@ -68,7 +68,7 @@ export function BadgeToastContainer() {
   if (visibleToasts.length === 0) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-[90] flex flex-col gap-2 pointer-events-none">
+    <div aria-live="polite" role="status" className="fixed top-4 right-4 z-[90] flex flex-col gap-2 pointer-events-none">
       {visibleToasts.map((badgeId) => {
         const badge = ACHIEVEMENT_MAP[badgeId];
         if (!badge) return null;

@@ -465,14 +465,16 @@ function ResumeBuilderButton() {
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm overflow-hidden"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md overflow-hidden"
           onClick={() => setOpen(false)}
           role="dialog"
           aria-modal="true"
           aria-labelledby="resume-builder-title"
         >
+          {/* v5.85 fix (0.5): use solid bg-background instead of semi-transparent bg-card
+              so background content doesn't bleed through the modal. */}
           <div
-            className="max-w-lg w-full max-h-[85vh] overflow-y-auto bg-card rounded-xl shadow-2xl p-5 border border-border/60 ring-1 ring-black/5 dark:ring-white/5"
+            className="max-w-lg w-full max-h-[85vh] overflow-y-auto bg-background rounded-xl shadow-2xl p-5 border border-border/60 ring-1 ring-black/5 dark:ring-white/5"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-3">

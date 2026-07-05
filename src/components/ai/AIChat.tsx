@@ -137,13 +137,16 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
     try {
       // v5.78/v5.79: use SSE streaming for ALL providers (groq, openrouter,
       // openai, custom, gemini, anthropic). v5.79 added Gemini + Anthropic.
-      const useStream = !!activeConversation;
+      // v5.85 fix (4.5): always use streaming — the first message in a new chat
+    // was non-streaming because activeConversation was null. Now always streams.
+    const useStream = true;
 
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [...(activeConversation?.messages ?? []), userMessage].map((m) => ({
+          // v5.85 fix (4.4): truncate to last 20 messages client-side to save bandwidth.
+          messages: [...(activeConversation?.messages ?? []), userMessage].slice(-20).map((m) => ({
             role: m.role,
             content: m.content,
           })),

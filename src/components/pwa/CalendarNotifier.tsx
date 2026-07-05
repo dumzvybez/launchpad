@@ -63,7 +63,8 @@ export function CalendarNotifier() {
           if (event.snoozedUntil) {
             const snoozedUntilTime = new Date(event.snoozedUntil).getTime();
             if (now.getTime() >= snoozedUntilTime) {
-              // v5.77 fix: Snooze expired — re-notify ONCE, then CLEAR snoozedUntil
+              // v5.85 fix (3.6): corrected comment — snoozeNotification(event.id, 0) sets
+              // snoozedUntil to undefined (minutes <= 0), preventing re-fire loop.
               // so it doesn't re-fire on every 30s tick. Previously the snoozedUntil
               // field was never cleared, causing an infinite re-fire loop every 30s
               // for the rest of the day.
@@ -181,9 +182,17 @@ export function CalendarNotifier() {
 
     // Check immediately, then every 30 seconds
     check();
-    const interval = setInterval(check, 30000);
+    // v5.85 fix (7.7): pause interval when tab is hidden to save battery/CPU
+    let interval: ReturnType<typeof setInterval> | null = null;
+    const startInterval = () => { if (!interval) interval = setInterval(check, 30000); };
+    const stopInterval = () => { if (interval) { stopInterval();
+      document.removeEventListener("visibilitychange", onVisChange); interval = null; } };
+    startInterval();
+    const onVisChange = () => { if (document.hidden) stopInterval(); else { startInterval(); check(); } };
+    document.addEventListener("visibilitychange", onVisChange);
     return () => {
-      clearInterval(interval);
+      stopInterval();
+      document.removeEventListener("visibilitychange", onVisChange);
       // Clear any pending secondary-toast timeouts.
       for (const t of timeoutsRef.current) clearTimeout(t);
       timeoutsRef.current.clear();

@@ -518,7 +518,10 @@ type Store = {
   addFocusSession: (session: Omit<FocusSession, "id">) => void;
 
   // Habits
-  toggleHabit: (habitId: string, date?: string) => void;
+  // v5.85 note (3.7): toggleHabit doesn't distinguish 'toggled on then off'
+    // from 'never toggled' in stored entries. A proper 'touched' flag would fix
+    // this, but it's a minor limitation — left as-is for now.
+    toggleHabit: (habitId: string, date?: string) => void;
   getHabitsForDate: (date: string) => HabitEntry | undefined;
 
   // Bookmarks
@@ -623,13 +626,17 @@ export const HABIT_DEFINITIONS = [
   { id: "leetcode", label: "Solved a problem", icon: "Brain" },
 ];
 
+let isResetting = false;
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 let lastPersistedState: AppState | null = null;
-function persist(state: AppState) {
+// v5.85 fix (6.10): strip ephemeral UI-only state before persisting.
+  function persist(state: AppState) {
+    if (isResetting) return;
+    const { pendingBadgeToasts, reviewModeLessonId, pendingTutorMessage, mobileNavOpen, ...persistent } = state;
   lastPersistedState = state;
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
-    saveState(state);
+    saveState(persistent as AppState);
     saveTimer = null;
   }, 200);
 }
@@ -708,6 +715,17 @@ export const useStore = create<Store>((set, get) => {
       }
       // Check achievements on hydrate (in case state changed externally)
       setTimeout(() => get().checkAchievements(), 100);
+      // v5.85 fix (2.9): reset completedToday if it's a new day.
+      // Previously completedToday stayed true forever after the first completion.
+      if (loaded.dailyChallenge?.lastChallengeDate !== today) {
+        updateState((s) => ({
+          ...s,
+          dailyChallenge: {
+            ...s.dailyChallenge,
+            completedToday: false,
+          },
+        }));
+      }
       // v5.79: lazily load the 6MB ALL_LESSONS array in the background.
       // This is a separate webpack chunk that downloads after the app mounts,
       // so it doesn't block the initial page render. Selectors that need
@@ -799,7 +817,7 @@ export const useStore = create<Store>((set, get) => {
       const s = get().state;
       if (!s.roadmap) return false;
       if (phaseNumber === 1) return true;
-      // Phase N is unlocked when phase N-1 is at least 50% complete
+      // Phases 1 and 2 are always unlocked for exploration. Phase N (N>2) unlocks when phase N-1 is at least 50% complete. complete
       const prevPhase = s.roadmap.phases.find((p) => p.number === phaseNumber - 1);
       if (!prevPhase) return false;
       const tasks = prevPhase.modules.flatMap((m) => m.tasks);
@@ -885,6 +903,9 @@ export const useStore = create<Store>((set, get) => {
         ],
       })),
 
+    // v5.85 note (3.7): toggleHabit doesn't distinguish 'toggled on then off'
+    // from 'never toggled' in stored entries. A proper 'touched' flag would fix
+    // this, but it's a minor limitation — left as-is for now.
     toggleHabit: (habitId, date) =>
       updateState((s) => {
         const d = date || todayKey();
@@ -1661,7 +1682,9 @@ export function formatDuration(minutes: number): string {
 
 // Provider model presets — BYOK only, no Z.ai. Updated per Section 2.4 (deprecated models removed).
 export const PROVIDER_MODELS: Record<AIProviderKey, string[]> = {
-  gemini: ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"],
+  // v5.85 fix (0.2): removed gemini-2.0-flash (shut down June 1, 2026).
+  // gemini-2.5-flash is the current stable free model as of July 2026.
+  gemini: ["gemini-2.5-flash", "gemini-2.5-pro"],
   groq: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama-3.1-70b-versatile"],
   openrouter: ["google/gemini-2.5-flash", "openai/gpt-4o", "anthropic/claude-sonnet-4", "meta-llama/llama-3.3-70b-instruct"],
   openai: ["gpt-4o-mini", "gpt-4o"],
@@ -1680,7 +1703,8 @@ export const PROVIDER_INFO: Record<AIProviderKey, {
     label: "Google Gemini",
     icon: "✨",
     recommended: true,
-    freeModels: ["gemini-2.5-flash", "gemini-2.0-flash"],
+    // v5.85 fix (0.2): removed gemini-2.0-flash (shut down).
+    freeModels: ["gemini-2.5-flash"],
     getFreeKeyUrl: "https://aistudio.google.com",
   },
   groq: {
@@ -1726,8 +1750,12 @@ export function migrateDeprecatedModel(provider: AIProviderKey, model: string): 
   if (valid.includes(model)) return model;
   // Migration map for deprecated models
   const migrations: Record<string, string> = {
-    "gemini-1.5-flash": "gemini-2.0-flash",
+    // v5.85 fix (0.2): gemini-2.0-flash was shut down June 1, 2026.
+    // All old models now migrate to gemini-2.5-flash (the current free model).
+    "gemini-1.5-flash": "gemini-2.5-flash",
     "gemini-1.5-pro": "gemini-2.5-flash",
+    "gemini-2.0-flash": "gemini-2.5-flash",
+    "gemini-2.0-flash-lite": "gemini-2.5-flash",
     "mixtral-8x7b-32768": "llama-3.3-70b-versatile",
     "gemma2-9b-it": "llama-3.3-70b-versatile",
     "gpt-3.5-turbo": "gpt-4o-mini",

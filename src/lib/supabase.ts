@@ -37,14 +37,16 @@ export function createServerClient() {
  * We read from both names for flexibility.
  */
 export function createBrowserClient() {
-  const url =
-    process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    process.env.SUPABASE_URL;
-  const anonKey =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    process.env.SUPABASE_ANON_KEY;
+  // v5.85 fix (1.7): require NEXT_PUBLIC_ prefix only — do NOT fall back to
+  // the server-only SUPABASE_URL, which masks misconfiguration.
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !anonKey) {
+    // v5.85: warn in dev so misconfiguration is visible
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[supabase] NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY not set. Certificate verification will not work.");
+    }
     return null;
   }
 

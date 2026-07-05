@@ -75,6 +75,8 @@ export function getLanguageInfo(trackId: string): LanguageInfo {
  * This is hardcoded to avoid importing ALL_LESSONS (6MB) just to count lessons.
  * v5.78 fix: this is the 30 core tracks that have full 21-lesson content.
  */
+export const GAP_LANGUAGES = ["docker", "tailwind", "express", "graphql", "kubernetes", "terraform", "pytorch", "tensorflow"];
+
 export const TRACKS_WITH_CONTENT: string[] = [
   "python", "javascript", "typescript", "html", "css", "sql",
   "java", "c", "cpp", "csharp", "go", "rust", "swift", "kotlin",

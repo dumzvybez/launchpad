@@ -33,7 +33,7 @@ type NavItem = { id: ViewId; label: string; icon: typeof LayoutDashboard; hint: 
 
 const ALL_NAV: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, hint: "Overview & today", group: "main" },
-  { id: "roadmap", label: "Roadmap", icon: Map, hint: "6 phases, modules, tasks", group: "main" },
+  { id: "roadmap", label: "Roadmap", icon: Map, hint: "Multi-phase plan with tasks", group: "main" },
   { id: "learn", label: "Learn", icon: GraduationCap, hint: "Lessons & quizzes", group: "learn" },
   { id: "playground", label: "Playground", icon: Code2, hint: "Run code in 10+ languages in your browser", group: "learn" },
   { id: "daily-challenge", label: "Daily Challenge", icon: Target, hint: "Rotating coding challenges", group: "learn" },

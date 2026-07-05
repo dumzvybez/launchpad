@@ -30,13 +30,13 @@ could still mint fake certificates if the deployer forgot to set CERT_SECRET.
     averaging ≥75%).
   - For career certs: `careerReadinessScore` must equal 100.
 - The server validates this data against deterministic rules BEFORE creating
-  the certificate. Forgery is now impossible without actually completing the work.
+  the certificate. Forgery requires fabricating valid progress data — harder than before but not impossible for a determined attacker (the app is accountless, so full server-side verification isn't feasible without redesigning the architecture).
 - The `issueCertificate` and `issueCareerCertificate` store actions now build
   and send the progress proof from the user's actual lesson progress data.
 
 **The CERT_SECRET to add to Vercel env vars:**
 ```
-CERT_SECRET=hD+(k|3r=Zbix3=4%W9#7JfuVXCJHc|VgT)grozamm[$BK+R@snrNY_vp[w)X!L]AoNlLSuaspN33qTW2&2ISB}8U6#ACRIw!&A@{]h!jlZAyrU$xymg(I9%G-_b{!xc_s!42icPvI]Y@*]neH89SWxy4lnHZk!bd[uV7mScKIOa2v{Jj[Up1}ARrLVSI%)rploj1Oza66!brimpHV4&286$&3G]t6f2zLg(UdfNRl-}dXTQEd}{tJ^*4FXI5Va7
+CERT_SECRET=<generate with: openssl rand -hex 128>
 ```
 This is a 256-character cryptographic-quality random string. Add it to
 Vercel → Project Settings → Environment Variables as `CERT_SECRET`.

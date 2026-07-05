@@ -10,6 +10,9 @@ const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://launchpad--dev.verc
 const LAST_MODIFIED = new Date("2026-07-04");
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  // v5.85 fix (4.2): All routes except / and /verify/[id] are SPA-rendered
+  // (identical HTML). We keep them for completeness but search engines should
+  // focus on / and /verify/[id] which have distinct server-rendered content.
   return [
     { url: BASE_URL, lastModified: LAST_MODIFIED, priority: 1, changeFrequency: "weekly" },
     { url: `${BASE_URL}/dashboard`, lastModified: LAST_MODIFIED, priority: 0.9, changeFrequency: "weekly" },

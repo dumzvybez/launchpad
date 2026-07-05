@@ -6,7 +6,8 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 // v5.77 fix: 60s timeout for upstream AI fetches (BYOK chat can produce long responses).
-const CHAT_FETCH_TIMEOUT_MS = 60_000;
+// v5.85 fix (5.5): lowered from 60s to 50s to leave buffer before Vercel's maxDuration=60
+const CHAT_FETCH_TIMEOUT_MS = 50_000;
 
 // ============================================================
 // System prompt — Launchpad AI Tutor persona
@@ -134,7 +135,7 @@ async function callGemini(apiKey: string, model: string, messages: ChatMsg[], te
       systemInstruction: { parts: [{ text: systemPrompt }] },
       generationConfig: { temperature, maxOutputTokens: 2048 },
     }),
-    signal: AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS),
+    signal: AbortSignal.any([AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS), req.signal]),
   });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
@@ -170,7 +171,7 @@ async function callOpenAICompatible(
       temperature,
       max_tokens: 2048,
     }),
-    signal: AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS),
+    signal: AbortSignal.any([AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS), req.signal]),
   });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
@@ -196,7 +197,7 @@ async function callAnthropic(apiKey: string, model: string, messages: ChatMsg[],
       temperature,
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
     }),
-    signal: AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS),
+    signal: AbortSignal.any([AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS), req.signal]),
   });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
@@ -282,7 +283,8 @@ export async function POST(req: NextRequest) {
     } = body;
 
     // BYOK: every user must provide their own API key — no free default
-    if (!apiKey || !apiKey.trim()) {
+    // v5.85 fix (5.3): cap apiKey length to prevent abuse
+    if (!apiKey || !apiKey.trim() || apiKey.length > 200) {
       return NextResponse.json(
         { error: "API key is required. Add your own key in AI Tutor settings." },
         { status: 401 },
@@ -421,7 +423,7 @@ export async function POST(req: NextRequest) {
           method: "POST",
           headers: upstreamHeaders,
           body: upstreamBody,
-          signal: AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS),
+          signal: AbortSignal.any([AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS), req.signal]),
         });
 
         if (!upstreamRes.ok || !upstreamRes.body) {

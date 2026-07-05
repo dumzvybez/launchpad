@@ -21,7 +21,10 @@ import { useStore, selectLevel, selectEarnedXP, selectOverallProgress, selectPha
 import { GlassCard, GlassButton, ProgressBar, ProgressRing } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
 import { LANGUAGE_MAP, CAREER_MAP } from "@/lib/career-data";
-import { getTodayChallenge } from "@/lib/daily-challenges-data";
+// v5.85 fix (2.6): use v2's challenge pool instead of the old 7-rotation.
+// The old file had only 7 JS-only challenges; v2 has 1860+ tasks across 30 languages.
+// We pick the first task from the user's daily challenge pool for today's preview.
+import { DAILY_CHALLENGE_TASK_MAP } from "@/lib/daily-challenges-data-v2";
 import { openPrintableHtml, copyHtmlAsPng, downloadHtmlAsPng } from "@/lib/print-utils";
 
 export function DashboardView() {
@@ -59,7 +62,21 @@ export function DashboardView() {
     return null;
   })();
 
-  const todayChallenge = getTodayChallenge();
+  // v5.85 fix (2.6): get today's challenge from the user's personalized v2 pool.
+  const dailyChallengePool = useStore((s) => s.state.dailyChallengePool);
+  const todayChallenge = (() => {
+    if (dailyChallengePool && dailyChallengePool.length > 0) {
+      // Use day-of-year to pick a consistent challenge for today
+      const now = new Date();
+      const dayOfYear = Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86400000);
+      const taskId = dailyChallengePool[dayOfYear % dailyChallengePool.length];
+      const task = DAILY_CHALLENGE_TASK_MAP[taskId];
+      if (task) {
+        return { title: task.title, prompt: task.description };
+      }
+    }
+    return { title: "Daily Challenge", prompt: "Complete onboarding to get personalized daily challenges." };
+  })();
   const career = profile.careerId ? CAREER_MAP[profile.careerId] : null;
 
   // Section 11 — Compare Yourself (anonymous benchmarks)
@@ -356,53 +373,9 @@ export function DashboardView() {
         </div>
       </GlassCard>
 
-      {/* Section 11 — How do others learn? (anonymous benchmark card) */}
-      <GlassCard className="p-5">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" /> How do others learn?
-          </h2>
-          <div className="relative group">
-            <Info className="h-3 w-3 text-muted-foreground cursor-help" />
-            <div className="absolute right-0 top-5 z-10 w-56 p-2 rounded-md bg-popover border border-border shadow-lg text-[10px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-              These are estimated benchmarks to motivate you. Launchpad collects zero user data.
-            </div>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-          <div className="rounded-lg bg-foreground/5 p-2">
-            <div className="text-[10px] uppercase text-muted-foreground">Most popular career</div>
-            <div className="font-medium">Software Engineering (38%)</div>
-          </div>
-          <div className="rounded-lg bg-foreground/5 p-2">
-            <div className="text-[10px] uppercase text-muted-foreground">Most popular 1st language</div>
-            <div className="font-medium">Python (67%)</div>
-          </div>
-          <div className="rounded-lg bg-foreground/5 p-2">
-            <div className="text-[10px] uppercase text-muted-foreground">Avg time to first phase</div>
-            <div className="font-medium">12 days</div>
-          </div>
-          <div className="rounded-lg bg-foreground/5 p-2">
-            <div className="text-[10px] uppercase text-muted-foreground">Avg daily study time</div>
-            <div className="font-medium">45 minutes</div>
-          </div>
-          <div className="rounded-lg bg-foreground/5 p-2">
-            <div className="text-[10px] uppercase text-muted-foreground">% who finish 1st cert</div>
-            <div className="font-medium">34%</div>
-          </div>
-          <div className="rounded-lg bg-foreground/5 p-2">
-            <div className="text-[10px] uppercase text-muted-foreground">% who stick past 30d</div>
-            <div className="font-medium">28%</div>
-          </div>
-        </div>
-        <div className="mt-3 pt-3 border-t border-border/30 text-xs">
-          <div className="font-medium mb-1">Your stats vs average:</div>
-          <div className="space-y-1 text-muted-foreground">
-            <div>Streak: 🔥 {streak} days {streakPercentile <= 50 ? `(top ${streakPercentile}% of learners 🎉)` : `(bottom ${100 - streakPercentile}% — keep going!)`}</div>
-            <div>Roadmap: {overall.pct}% {overall.pct >= 50 ? "(above average ✅)" : "(climbing — keep pushing)"}</div>
-          </div>
-        </div>
-      </GlassCard>
+      {/* v5.85 fix (0.8): REMOVED "How do others learn?" section entirely.
+          This section displayed fabricated/static benchmark data presented as
+          if it reflected real aggregate user behavior. Removed per directive. */}
 
       {/* Section 12 — Zero to Hero Journey modal */}
       {showJourney && <JourneyTimelineModal onClose={() => setShowJourney(false)} />}

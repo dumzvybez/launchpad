@@ -141,25 +141,27 @@ export async function copyHtmlAsPng(
 
   const { width = 1200, height = 675 } = opts;
 
-  // Build an off-screen host element. Inherit the theme class from <html>
-  // so CSS variables (--background, --foreground, etc.) are available.
+  // v5.85 fix (0.6): use opacity:0 instead of left:-99999px — html-to-image
+  // can't render elements that are off-screen in some browsers.
   const host = document.createElement("div");
   const themeClass = document.documentElement.className;
   host.className = themeClass;
-  host.style.cssText = `position:fixed;left:-99999px;top:0;width:${width}px;height:${height}px;overflow:hidden;background:var(--background,#0d1117);color:var(--foreground,#fff);`;
+  host.style.cssText = `position:fixed;left:0;top:0;width:${width}px;height:${height}px;overflow:hidden;opacity:0;pointer-events:none;z-index:-1;background:var(--background,#0d1117);color:var(--foreground,#fff);`;
   host.innerHTML = html;
   document.body.appendChild(host);
 
   try {
+    // v5.85 fix (0.6): skipFonts:true avoids CORS font-loading issues that
+    // cause empty/broken images. Add a small delay to let layout settle.
+    await new Promise((r) => setTimeout(r, 100));
     const { toPng } = await import("html-to-image");
     const dataUrl = await toPng(host, {
       width,
       height,
       cacheBust: true,
       pixelRatio: 2,
-      // Don't force a backgroundColor — the card HTML includes its own
-      // background styling. Forcing one can cause dark-on-dark issues.
-      skipFonts: false,
+      skipFonts: true,
+      backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--background").trim() || "#0d1117",
     });
     const blob = await (await fetch(dataUrl)).blob();
     await navigator.clipboard.write([
@@ -191,21 +193,25 @@ export async function downloadHtmlAsPng(
   }
   const { width = 1200, height = 675 } = opts;
 
+  // v5.85 fix (0.6): same fixes as copyHtmlAsPng — opacity:0 instead of off-screen,
+  // skipFonts:true, explicit backgroundColor, layout-settle delay.
   const host = document.createElement("div");
   const themeClass = document.documentElement.className;
   host.className = themeClass;
-  host.style.cssText = `position:fixed;left:-99999px;top:0;width:${width}px;height:${height}px;overflow:hidden;background:var(--background,#0d1117);color:var(--foreground,#fff);`;
+  host.style.cssText = `position:fixed;left:0;top:0;width:${width}px;height:${height}px;overflow:hidden;opacity:0;pointer-events:none;z-index:-1;background:var(--background,#0d1117);color:var(--foreground,#fff);`;
   host.innerHTML = html;
   document.body.appendChild(host);
 
   try {
+    await new Promise((r) => setTimeout(r, 100));
     const { toPng } = await import("html-to-image");
     const dataUrl = await toPng(host, {
       width,
       height,
       cacheBust: true,
       pixelRatio: 2,
-      skipFonts: false,
+      skipFonts: true,
+      backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--background").trim() || "#0d1117",
     });
     const a = document.createElement("a");
     a.href = dataUrl;

@@ -180,7 +180,7 @@ export type PersonalizationInput = {
   name: string;
   careerId: CareerId;
   subPath?: string;
-  occupationId: string;
+  occupationId: string; // v5.85 (6.4): should be keyof typeof OCCUPATION_MAP
   selectedLanguageIds: string[];
   skillLevel: SkillLevel;
   hoursPerDay: number;

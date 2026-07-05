@@ -276,7 +276,11 @@ async function callGroq(prompt: string): Promise<unknown> {
 }
 
 // ============================================================
-// Provider 3: OpenRouter (google/gemini-2.5-flash)
+// Provider 3: OpenRouter (meta-llama/llama-3.3-70b-instruct)
+// v5.85 fix (0.3): changed from google/gemini-2.5-flash to a genuinely
+// different model family (Llama 3.3 70B) so a Gemini outage doesn't kill
+// 2 of 3 fallback layers. Verified free on OpenRouter as of July 2026.
+// NOTE: OpenRouter's free model roster changes — re-check if it breaks.
 // ============================================================
 async function callOpenRouter(prompt: string): Promise<unknown> {
   const apiKey = process.env.OPENROUTER_API_KEY;
@@ -290,7 +294,7 @@ async function callOpenRouter(prompt: string): Promise<unknown> {
       "X-Title": "Launchpad",
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+      model: "meta-llama/llama-3.3-70b-instruct",
       temperature: 0.7,
       max_tokens: 6000,
       messages: [
@@ -311,6 +315,9 @@ async function callOpenRouter(prompt: string): Promise<unknown> {
 }
 
 // ============================================================
+// v5.85 note (5.1): This rate limiter is per-serverless-instance — on Vercel,
+// different function instances have separate counters, so the effective limit
+// is instances × 5/hour. For true distributed rate limiting, use Vercel KV or Upstash.
 // Simple in-memory rate limiter — protects the deployer's AI quota
 // from public abuse. 5 roadmap generations per IP per hour.
 // (Production deployments should swap this for a Redis-backed limiter

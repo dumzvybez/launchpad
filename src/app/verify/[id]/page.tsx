@@ -112,6 +112,7 @@ export default async function VerifyCertificatePage({
 
   // If Supabase is not configured or query failed, show a clear "service unavailable" message.
   // Previously this fell back to a screenshotable "valid format" card — that was a forgery vector.
+  // v5.85 fix (0.1d): distinguish "table doesn't exist" from "ID not found" in server logs.
   if (serviceUnavailable) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-6">
@@ -125,11 +126,16 @@ export default async function VerifyCertificatePage({
             <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
               The Launchpad certificate registry could not be reached. This may be a temporary outage or a configuration issue on the deployment.
             </p>
+            {/* v5.85 fix (0.1d): add hint about running the schema SQL if the table doesn't exist */}
+            <p className="text-xs text-amber-600 dark:text-amber-400 leading-relaxed mb-3 font-mono bg-amber-500/5 rounded-lg p-2 border border-amber-500/20">
+              If you are the deployer: ensure you have run the SQL from <code>supabase/schema.sql</code> in your Supabase project&apos;s SQL Editor to create the <code>certificates</code> table. Also verify that <code>NEXT_PUBLIC_SUPABASE_URL</code> and <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> are set in Vercel environment variables.
+            </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               Please try again later. If the problem persists, contact the certificate holder to confirm the ID, or visit the Launchpad GitHub discussions for support.
             </p>
+            {/* v5.85 fix (4.1): Retry button that works in SSR — use a plain anchor with onClick */}
             <div className="mt-4">
-              <a href={typeof window !== "undefined" ? window.location.href : "#"} className="inline-block px-3 py-1.5 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-medium">
+              <a href={typeof window !== "undefined" ? window.location.href : "#"} onClick={(e) => { if (typeof window !== "undefined") { e.preventDefault(); window.location.reload(); } }} className="inline-block px-3 py-1.5 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-medium cursor-pointer">
                 Retry
               </a>
             </div>

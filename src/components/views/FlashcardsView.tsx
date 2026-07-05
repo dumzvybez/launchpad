@@ -88,7 +88,7 @@ export function FlashcardsView() {
   // Keyboard shortcuts: Space (flip), ← (wrong), → (right), H (hint).
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement || (e.target as HTMLElement).isContentEditable) return;
       if (!currentCard) return;
       if (e.code === "Space") {
         e.preventDefault();
@@ -112,7 +112,11 @@ export function FlashcardsView() {
   // Reset index when filter changes. Uses the "adjust state during render"
   // pattern (recommended by React docs) instead of setState-in-useEffect.
   const [prevFilter, setPrevFilter] = useState(filter);
-  if (filter !== prevFilter) {
+  // v5.85 fix (4.9): clamp currentIndex after filter change to prevent blank cards
+    if (filteredCards.length > 0 && currentIndex >= filteredCards.length) {
+      setCurrentIndex(filteredCards.length - 1);
+    }
+    if (filter !== prevFilter) {
     setPrevFilter(filter);
     setCurrentIndex(0);
     setFlipped(false);

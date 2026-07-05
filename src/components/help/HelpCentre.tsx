@@ -24,7 +24,7 @@ const QA = [
   },
   {
     q: "How do certificates work?",
-    a: "There are two types of certificates:\n\n1. Per-language certificate: Earned when you complete all lessons in a track AND have an average quiz score of 75% or higher. Open the Learn tab → click any completed track → 'Generate Certificate'. You can edit your name on the certificate before downloading it as a PDF.\n\n2. Career Master Certificate: Unlocked when your entire career roadmap reaches 100% completion (40% tasks + 40% lessons + 20% projects). Visit the Career tab to claim and download your gold Career Master Certificate (ID prefix: LP-CAREER-).",
+    a: "There are two types of certificates:\n\n1. Per-language certificate: Earned when you complete all lessons in a track AND have an average quiz score of 75% or higher. Open the Learn tab → click any completed track → 'Generate Certificate'. You can edit your name on the certificate before downloading it as a PDF.\n\n2. Career Master Certificate: Unlocked when your entire career roadmap reaches 100% completion (25% roadmap progress + 25% quiz scores + 20% projects + 15% daily challenges + 15% interviews). Visit the Career tab to claim and download your gold Career Master Certificate (ID prefix: LP-CAREER-).",
   },
   {
     q: "How do I reset my progress?",
@@ -68,7 +68,7 @@ const QA = [
   },
   {
     q: "How does the inline code editor work?",
-    a: "Every code example in every lesson has a 'Edit & Run' button. Click it to switch the example into an editable Monaco editor (the same engine powering VS Code). JavaScript and TypeScript run inside a sandboxed iframe in your browser — no server needed. HTML/CSS render in a live preview iframe. SQL runs via sql.js (SQLite compiled to WebAssembly). Python runs via Pyodide (Python in WebAssembly, ~10MB loaded lazily). Bash is simulated with a fake virtual filesystem. Other compiled languages (Java, C, C++, Go, Rust, etc.) open in Replit or OneCompiler via 'Open in Online IDE' — they need a server, so we don't pretend to run them in-browser. Frameworks (Svelte, Vue, Angular) link to their official playgrounds.",
+    a: "Every code example in every lesson has a 'Edit & Run' button. Click it to switch the example into an editable an editable code editor with line numbers editor (the same engine powering VS Code). JavaScript and TypeScript run inside a sandboxed iframe in your browser — no server needed. HTML/CSS render in a live preview iframe. SQL runs via DB Fiddle (external) (SQLite compiled to WebAssembly). Python runs via Pyodide (Python in WebAssembly, ~10MB loaded lazily). Bash is simulated with a fake virtual filesystem. Other compiled languages (Java, C, C++, Go, Rust, etc.) open in Replit or OneCompiler via 'Open in Online IDE' — they need a server, so we don't pretend to run them in-browser. Frameworks (Svelte, Vue, Angular) link to their official playgrounds.",
   },
   {
     q: "How do I do a mock interview?",

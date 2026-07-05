@@ -221,8 +221,16 @@ export function PlaygroundView() {
   };
 
   // v5.84: listen for messages from the sandbox iframe.
+  // v5.85 fix (1.3): verify origin and source like InlineCodeEditor does.
   useEffect(() => {
     const handler = (e: MessageEvent) => {
+      // v5.85 fix (1.3): Only accept messages from our sandbox iframe.
+      // Sandboxed iframes with no allow-same-origin have origin "null" (string).
+      if (e.origin !== "null") return;
+      // Double-check source identity if available.
+      if (e.source !== null && sandboxIframeRef.current && e.source !== sandboxIframeRef.current.contentWindow) {
+        return;
+      }
       if (e.data?.type === "pg-log") {
         setOutput((prev) => [...prev, e.data.log]);
       } else if (e.data?.type === "pg-done") {
@@ -294,7 +302,15 @@ export function PlaygroundView() {
         pyodide.setStdout({ batched: (s: string) => logs.push({ type: "log", text: s }) });
         pyodide.setStderr({ batched: (s: string) => logs.push({ type: "error", text: s }) });
         try {
-          await pyodide.runPythonAsync(code);
+          // v5.85 fix (1.5): 10s timeout for Python execution (same as InlineCodeEditor).
+          // Pyodide runs on the main thread — without a timeout, `while True: pass`
+          // freezes the entire tab with no recovery.
+          await Promise.race([
+            pyodide.runPythonAsync(code),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("Python execution timed out (10s limit)")), 10_000)
+            ),
+          ]);
         } catch (err) {
           logs.push({ type: "error", text: String(err) });
         }
@@ -429,10 +445,10 @@ export function PlaygroundView() {
             <GlassButton variant="primary" size="sm" onClick={run} disabled={running || !code.trim()}>
               <Play className="h-3.5 w-3.5" /> {running ? (pyodideStatus ? "Loading..." : "Running...") : "Run"}
             </GlassButton>
-            <GlassButton variant="ghost" size="sm" onClick={copyCode} disabled={!code.trim()}>
+            <GlassButton variant="ghost" size="sm" onClick={copyCode} aria-label="Copy code" // v5.85 fix (8.9) disabled={!code.trim()}>
               <Copy className="h-3.5 w-3.5" /> Copy
             </GlassButton>
-            <GlassButton variant="ghost" size="sm" onClick={clear}>
+            <GlassButton variant="ghost" size="sm" onClick={clear} aria-label="Clear output" // v5.85 fix (8.9)>
               <Trash2 className="h-3.5 w-3.5" /> Clear
             </GlassButton>
             {language === "sql" && (
