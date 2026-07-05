@@ -445,10 +445,10 @@ export function PlaygroundView() {
             <GlassButton variant="primary" size="sm" onClick={run} disabled={running || !code.trim()}>
               <Play className="h-3.5 w-3.5" /> {running ? (pyodideStatus ? "Loading..." : "Running...") : "Run"}
             </GlassButton>
-            <GlassButton variant="ghost" size="sm" onClick={copyCode} aria-label="Copy code" // v5.85 fix (8.9) disabled={!code.trim()}>
+            <GlassButton variant="ghost" size="sm" onClick={copyCode} aria-label="Copy code" disabled={!code.trim()}>
               <Copy className="h-3.5 w-3.5" /> Copy
             </GlassButton>
-            <GlassButton variant="ghost" size="sm" onClick={clear} aria-label="Clear output" // v5.85 fix (8.9)>
+            <GlassButton variant="ghost" size="sm" onClick={clear} aria-label="Clear output">
               <Trash2 className="h-3.5 w-3.5" /> Clear
             </GlassButton>
             {language === "sql" && (

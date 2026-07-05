@@ -70,14 +70,14 @@ export function FirstTimeTour() {
     }
     const nextIdx = safeStep + 1;
     setStep(nextIdx);
-    setView(steps[nextIdx].view as ViewId // v5.85 fix (4.11): properly typed);
+    setView(steps[nextIdx].view as ViewId);
   };
 
   const prev = () => {
     if (safeStep === 0) return;
     const prevIdx = safeStep - 1;
     setStep(prevIdx);
-    setView(steps[prevIdx].view as ViewId // v5.85 fix (4.11): properly typed);
+    setView(steps[prevIdx].view as ViewId);
   };
 
   return (

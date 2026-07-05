@@ -541,7 +541,8 @@ function TaskDetailView({
           <div className="mb-3">
             <div className="flex items-center justify-between mb-2">
               <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Code example</div>
-              {false // v5.85 fix (4.10): Python IS supported via Pyodide — removed exclusion && (
+              {/* v5.85 fix (4.10): Python IS supported via Pyodide — removed the exclusion check */}
+              {task.codeExample && (
                 <button
                   onClick={() => onTryInPlayground(task.codeExample!.code, task.codeExample!.language as "javascript" | "typescript")}
                   className="flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-primary/15 text-primary hover:bg-primary/25 transition-colors"
