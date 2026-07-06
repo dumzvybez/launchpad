@@ -6,6 +6,6 @@ export function GET() {
   return NextResponse.json({
     ok: true,
     service: "launchpad-api",
-    version: "5.865.0",
+    version: "5.867.0",
   });
 }

@@ -594,48 +594,65 @@ export function LearnView() {
               <div className="flex items-center justify-center gap-2 flex-wrap">
                 {certEligible.eligible ? (
                   <>
-                    <GlassButton
-                      variant="primary"
-                      onClick={() => {
-                        const existing = certificates[track];
-                        const defaultName = existing?.name ?? profile.name ?? "Learner";
-                        const name = window.prompt("Edit your name for the certificate:", defaultName);
-                        if (name === null) return;
-                        const finalName = name.trim() || "Learner";
-                        // v5.76 — The certificate was auto-issued when the
-                        // track was completed. The Download button only
-                        // renders the already-stored cert (never generates
-                        // a new one). If somehow no cert exists yet (e.g.
-                        // auto-issue failed), issue it now as a fallback.
-                        if (existing) {
-                          if (existing.name !== finalName) {
-                            updateCertificateName(track, finalName);
-                          }
-                          generateCertificate(finalName, trackName, track, trackLessons);
-                        } else {
-                          // Fallback: issue now (should rarely happen since
-                          // tryAutoIssueCertificates runs on lesson completion)
-                          issueCertificate(track, trackName, finalName).then(() => {
+                    {/* v5.866 BUG 1B FIX: Only show "Download" if a cert was actually
+                        issued (stored in state with a real certId from Supabase).
+                        If no cert is stored, show "Issue certificate" instead,
+                        which calls issueCertificate and handles failure properly. */}
+                    {certificates[track] ? (
+                      <>
+                        <GlassButton
+                          variant="primary"
+                          onClick={() => {
+                            const existing = certificates[track];
+                            const name = window.prompt("Edit your name for the certificate:", existing.name);
+                            if (name === null) return;
+                            const finalName = name.trim() || "Learner";
+                            if (existing.name !== finalName) {
+                              updateCertificateName(track, finalName);
+                            }
                             generateCertificate(finalName, trackName, track, trackLessons);
-                          });
-                        }
-                      }}
-                    >
-                      <Award className="h-4 w-4" /> Download certificate (PDF)
-                    </GlassButton>
-                    {certificates[track] && (
+                          }}
+                        >
+                          <Award className="h-4 w-4" /> Download certificate (PDF)
+                        </GlassButton>
+                        <GlassButton
+                          variant="ghost"
+                          onClick={() => {
+                            const existing = certificates[track];
+                            const name = window.prompt("Edit your name on this certificate:", existing.name);
+                            if (name === null) return;
+                            const finalName = name.trim() || "Learner";
+                            updateCertificateName(track, finalName);
+                            generateCertificate(finalName, trackName, track, trackLessons);
+                          }}
+                        >
+                          Edit name
+                        </GlassButton>
+                      </>
+                    ) : (
                       <GlassButton
-                        variant="ghost"
-                        onClick={() => {
-                          const existing = certificates[track];
-                          const name = window.prompt("Edit your name on this certificate:", existing.name);
+                        variant="primary"
+                        onClick={async () => {
+                          const defaultName = profile.name ?? "Learner";
+                          const name = window.prompt("Edit your name for the certificate:", defaultName);
                           if (name === null) return;
                           const finalName = name.trim() || "Learner";
-                          updateCertificateName(track, finalName);
+                          // v5.866 BUG 1B FIX: await the result and check for failure.
+                          // If issueCertificate returns "", the cert was NOT issued.
+                          // Show an error and do NOT generate a PDF with a fake ID.
+                          const resultCertId = await issueCertificate(track, trackName, finalName);
+                          if (!resultCertId) {
+                            alert(
+                              "Certificate could not be issued. This may be a temporary server issue — please try again in a moment.\n\n" +
+                              "Your progress is saved. The certificate will be issued automatically on your next visit or when you complete another quiz."
+                            );
+                            return;
+                          }
+                          // Success — generate the PDF with the real certId
                           generateCertificate(finalName, trackName, track, trackLessons);
                         }}
                       >
-                        Edit name
+                        <Award className="h-4 w-4" /> Issue certificate
                       </GlassButton>
                     )}
                   </>
@@ -1517,9 +1534,19 @@ function generateCertificate(
   trackId: string,
   trackLessons: Lesson[],
 ) {
-  // Use stored certificate if available (for accurate issue date + cert ID)
+  // v5.866 BUG 1B FIX: ONLY use the stored certId from Supabase.
+  // NEVER generate a fake fallback ID — if no cert is stored, the cert
+  // was not issued, and we should not produce an unverifiable PDF.
   const stored = useStore.getState().state.certificates[trackId];
-  const certId = stored?.certId ?? `LP-${Date.now().toString(36).toUpperCase()}`;
+  if (!stored?.certId) {
+    console.error("[generateCertificate] no stored certId for track:", trackId);
+    alert(
+      "Certificate has not been issued yet. Click 'Issue certificate' first.\n\n" +
+      "If you already clicked it and got an error, please try again."
+    );
+    return;
+  }
+  const certId = stored.certId;
   const issuedAt = stored?.issuedAt ?? new Date().toISOString();
   const date = new Date(issuedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
   const trackInfo = ALL_LANGUAGE_INFO[trackId];

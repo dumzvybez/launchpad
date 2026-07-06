@@ -1262,7 +1262,12 @@ export const useStore = create<Store>((set, get) => {
       }
 
       // v5.84: build the progress proof from the user's actual lesson progress.
-      // The server validates this against deterministic completion rules.
+      // v5.866 BUG 1A FIX: the old code only used `bestQuizScore`, which is set
+      // by setLessonProgress but NOT by recordQuizAnswer. If a lesson was
+      // completed via the quiz flow but bestQuizScore wasn't persisted (e.g.
+      // older state, race condition), the server would reject with 403
+      // "Insufficient quiz data". Now we compute the quiz score from
+      // `questionAnswers` as a fallback, matching the eligibility check logic.
       const trackLessons = getTrackLessons(trackId);
       const completedLessonIds: string[] = [];
       const quizScores: Record<string, number> = {};
@@ -1271,15 +1276,45 @@ export const useStore = create<Store>((set, get) => {
         if (prog?.status === "complete") {
           completedLessonIds.push(lesson.id);
         }
+        // v5.866: prefer bestQuizScore, but fall back to computing from
+        // questionAnswers (same data the eligibility check uses).
         if (prog?.bestQuizScore !== undefined && prog.bestQuizScore !== null) {
           quizScores[lesson.id] = prog.bestQuizScore;
+        } else if (prog?.questionAnswers && lesson.quiz.length > 0) {
+          // Compute score from per-question answers
+          let correct = 0;
+          let answered = 0;
+          for (const q of lesson.quiz) {
+            const key = `${lesson.id}:${q.id}`;
+            const ans = prog.questionAnswers[key];
+            if (ans) {
+              answered++;
+              if (ans.correct) correct++;
+            }
+          }
+          if (answered > 0) {
+            const computedScore = Math.round((correct / lesson.quiz.length) * 100);
+            quizScores[lesson.id] = computedScore;
+          }
         }
       }
 
-      // v5.865 (B.CERT.3): NO local fallback. If Supabase insert fails,
-      // return an empty string and let the caller handle the error.
-      // Previously, the code fell back to a local random ID that wasn't
-      // in Supabase, producing unverifiable certificates.
+      // v5.866 BUG 1A FIX: client-side pre-validation. Don't send the request
+      // if the progress proof is obviously incomplete — this avoids a 403
+      // and lets the user know something is wrong.
+      if (completedLessonIds.length < 21) {
+        console.error("[issueCertificate] client-side validation: not enough completed lessons", {
+          trackId, completed: completedLessonIds.length, required: 21,
+        });
+        return "";
+      }
+      if (Object.keys(quizScores).length < 21) {
+        console.error("[issueCertificate] client-side validation: not enough quiz scores", {
+          trackId, scores: Object.keys(quizScores).length, required: 21,
+        });
+        return "";
+      }
+
       let certId = "";
       let issueError: string | undefined;
 
@@ -1310,8 +1345,6 @@ export const useStore = create<Store>((set, get) => {
       }
 
       if (!certId) {
-        // v5.865 (B.CERT.3/B.CERT.4): do NOT store a local-fallback cert.
-        // Return empty string to signal failure. The caller can retry.
         console.error("[issueCertificate] failed:", issueError);
         return "";
       }

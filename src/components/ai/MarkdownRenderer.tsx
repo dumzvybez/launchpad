@@ -9,22 +9,15 @@ import { cn } from "@/lib/utils";
 /**
  * Markdown renderer for AI chat messages (v5.78).
  *
+ * v5.866 BUG 3 FIX: replaced all `prose` classes (which require
+ * @tailwindcss/typography — NOT installed in this project) with explicit
+ * Tailwind classes. The assistant's text now uses `text-sm` (14px) to
+ * match the user's message text size exactly.
+ *
  * v5.78 fix: replaced the hand-rolled regex-based renderer with `react-markdown`
  * + `remark-gfm`. The old renderer didn't support headings, lists, tables,
  * blockquotes, or horizontal rules — all of which the AI system prompts
- * explicitly request (e.g., Code Review asks for `## Overall Impression`,
- * `## Issues Found (list each issue)`, etc.). The old renderer showed these
- * as literal `## ...` and `- ...` text.
- *
- * Now supports the full GitHub-flavored Markdown spec:
- *   - Headings (h1-h6)
- *   - Bold, italic, strikethrough
- *   - Inline code + fenced code blocks (with copy button + language label)
- *   - Ordered/unordered lists + nested lists
- *   - Tables (with GFM)
- *   - Blockquotes
- *   - Horizontal rules
- *   - Links (with URL sanitization — only http/https/mailto allowed)
+ * explicitly request.
  *
  * XSS safety: react-markdown does NOT render raw HTML by default (no
  * `rehype-raw`), so injected `<script>` tags in AI output are escaped, not
@@ -32,51 +25,58 @@ import { cn } from "@/lib/utils";
  */
 export const MarkdownRenderer = memo(function MarkdownRenderer({ content }: { content: string }) {
   return (
-    <div className="prose prose-sm dark:prose-invert max-w-none break-words
-      prose-headings:mt-3 prose-headings:mb-1.5 prose-headings:first:mt-0
-      prose-h1:text-base prose-h1:font-bold
-      prose-h2:text-sm prose-h2:font-bold prose-h2:mt-4
-      prose-h3:text-sm prose-h3:font-semibold
-      prose-p:my-1 prose-p:leading-relaxed
-      prose-ul:my-1 prose-ul:list-disc prose-ul:pl-5
-      prose-ol:my-1 prose-ol:list-decimal prose-ol:pl-5
-      prose-li:my-0.5
-      prose-blockquote:border-l-2 prose-blockquote:border-primary/40 prose-blockquote:pl-3 prose-blockquote:italic prose-blockquote:text-muted-foreground
-      prose-code:before:content-none prose-code:after:content-none
-      prose-code:bg-primary/10 prose-code:text-primary prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[0.85em] prose-code:font-mono
-      prose-pre:bg-zinc-950 prose-pre:p-0 prose-pre:my-2
-      prose-a:text-primary prose-a:underline prose-a:underline-offset-2
-      prose-hr:my-3 prose-hr:border-border/60
-      prose-table:my-2 prose-table:w-full prose-table:text-xs
-      prose-th:border prose-th:border-border/60 prose-th:px-2 prose-th:py-1 prose-th:bg-foreground/5 prose-th:font-semibold prose-th:text-left
-      prose-td:border prose-td:border-border/60 prose-td:px-2 prose-td:py-1
-    ">
+    <div className="text-sm max-w-none break-words leading-relaxed">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         urlTransform={sanitizeUrl}
         components={{
+          // v5.866: explicit styling for each element — no `prose` dependency.
+          h1: ({ children }) => <h1 className="text-base font-bold mt-3 mb-1.5 first:mt-0">{children}</h1>,
+          h2: ({ children }) => <h2 className="text-sm font-bold mt-4 mb-1.5 first:mt-0">{children}</h2>,
+          h3: ({ children }) => <h3 className="text-sm font-semibold mt-3 mb-1 first:mt-0">{children}</h3>,
+          h4: ({ children }) => <h4 className="text-sm font-semibold mt-2 mb-1">{children}</h4>,
+          p: ({ children }) => <p className="my-1 leading-relaxed">{children}</p>,
+          ul: ({ children }) => <ul className="my-1 list-disc pl-5">{children}</ul>,
+          ol: ({ children }) => <ol className="my-1 list-decimal pl-5">{children}</ol>,
+          li: ({ children }) => <li className="my-0.5">{children}</li>,
+          blockquote: ({ children }) => (
+            <blockquote className="border-l-2 border-primary/40 pl-3 italic text-muted-foreground my-2">
+              {children}
+            </blockquote>
+          ),
+          hr: ({ }) => <hr className="my-3 border-border/60" />,
+          table: ({ children }) => (
+            <table className="my-2 w-full text-xs border-collapse">{children}</table>
+          ),
+          th: ({ children }) => (
+            <th className="border border-border/60 px-2 py-1 bg-foreground/5 font-semibold text-left">
+              {children}
+            </th>
+          ),
+          td: ({ children }) => (
+            <td className="border border-border/60 px-2 py-1">{children}</td>
+          ),
+          a: ({ href, children, ...props }) => (
+            <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2" {...props}>
+              {children}
+            </a>
+          ),
           // Render fenced code blocks with our custom CodeBlock (copy button + language label).
           pre: ({ children }) => <>{children}</>,
           code: ({ className, children, ...props }) => {
-            // react-markdown v9+ passes `inline` via className for inline code.
-            // Fenced code blocks are wrapped in <pre><code class="language-xxx">.
             const match = /language-(\w+)/.exec(className || "");
             const isInline = !match && !String(children).includes("\n");
             if (isInline) {
               return (
-                <code className={className} {...props}>{children}</code>
+                <code className="bg-primary/10 text-primary px-1 py-0.5 rounded text-[0.85em] font-mono" {...props}>
+                  {children}
+                </code>
               );
             }
             return (
               <CodeBlock code={String(children).replace(/\n$/, "")} language={match?.[1]} />
             );
           },
-          // Open links in a new tab with noopener.
-          a: ({ href, children, ...props }) => (
-            <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
-              {children}
-            </a>
-          ),
         }}
       >
         {content}

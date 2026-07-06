@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import type { AIProviderKey } from "@/lib/types";
 
 // v5.77 fix: explicit runtime + max duration for the BYOK chat proxy.
+// v5.866 BUG 2A FIX: added `dynamic = "force-dynamic"` to ensure Vercel
+// doesn't cache or buffer the streaming response.
 export const runtime = "nodejs";
 export const maxDuration = 60;
+export const dynamic = "force-dynamic";
 
 // v5.77 fix: 60s timeout for upstream AI fetches (BYOK chat can produce long responses).
 // v5.85 fix (5.5): lowered from 60s to 50s to leave buffer before Vercel's maxDuration=60
@@ -463,23 +466,28 @@ export async function POST(req: NextRequest) {
       }
 
       if (sseFormat && upstreamUrl) {
-        // v5.865 fix (5.4): pass req.signal to the upstream fetch so that
-        // when the client disconnects (closes the tab), the upstream request
-        // is aborted too — saving tokens and bandwidth.
+        // v5.866 BUG 2A FIX: replaced AbortSignal.any() (which may not exist
+        // in all Node.js versions on Vercel) with a simple timeout signal.
+        // AbortSignal.any() was added in Node v20.3.0 — if the Vercel
+        // deployment uses an older v20.x, it would throw TypeError
+        // "AbortSignal.any is not a function", which was caught by the
+        // outer try/catch and returned a 502 — but the client had already
+        // created an empty assistant message, producing the "static bubble
+        // with no content" symptom.
         const upstreamRes = await fetch(upstreamUrl, {
           method: "POST",
           headers: upstreamHeaders,
           body: upstreamBody,
-          signal: AbortSignal.any([
-            AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS),
-            req.signal,
-          ]),
+          signal: AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS),
         });
 
         if (!upstreamRes.ok || !upstreamRes.body) {
           const txt = await upstreamRes.text().catch(() => "");
+          console.error("[chat] upstream error:", { provider, status: upstreamRes.status, body: txt.slice(0, 200) });
           throw new Error(`${provider} HTTP ${upstreamRes.status}: ${txt.slice(0, 200)}`);
         }
+
+        console.log("[chat] streaming started:", { provider, sseFormat, model });
 
         const transformedStream = new ReadableStream({
           async start(controller) {

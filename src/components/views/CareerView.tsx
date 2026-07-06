@@ -272,42 +272,60 @@ export function CareerView() {
                 You have reached 100% career readiness — completing {readiness.roadmapProgress}% of roadmap tasks, {lessonProgress} lessons, and {state.projects.filter((p) => p.status === "shipped").length} shipped projects. Claim your gold Career Master Certificate (ID prefix LP-CAREER-) and add it to your portfolio.
               </p>
               <div className="flex flex-wrap items-center gap-2">
-                <GlassButton
-                  variant="primary"
-                  onClick={() => {
-                    const defaultName = careerCert?.name ?? profile.name ?? "Learner";
-                    const name = window.prompt("Edit your name for the Career Master Certificate:", defaultName);
-                    if (name === null) return;
-                    const finalName = name.trim() || "Learner";
-                    // v5.76 — The career cert was auto-issued when career
-                    // readiness hit 100%. Download only renders the stored cert.
-                    if (careerCert) {
-                      if (careerCert.name !== finalName) {
-                        updateCareerCertificateName(finalName);
-                      }
-                      generateCareerCertificate(finalName, career.label, roadmap.languageIds, computeHoursInvested(useStore.getState().state, roadmap));
-                    } else {
-                      // Fallback: issue now (should rarely happen)
-                      issueCareerCertificate(career.label, finalName).then(() => {
+                {/* v5.866 BUG 1B FIX (career cert): Only show "Download" if a cert
+                    was actually issued. If no cert is stored, show "Issue certificate"
+                    which calls issueCareerCertificate and handles failure properly. */}
+                {careerCert ? (
+                  <>
+                    <GlassButton
+                      variant="primary"
+                      onClick={() => {
+                        const name = window.prompt("Edit your name for the Career Master Certificate:", careerCert.name);
+                        if (name === null) return;
+                        const finalName = name.trim() || "Learner";
+                        if (careerCert.name !== finalName) {
+                          updateCareerCertificateName(finalName);
+                        }
                         generateCareerCertificate(finalName, career.label, roadmap.languageIds, computeHoursInvested(useStore.getState().state, roadmap));
-                      });
-                    }
-                  }}
-                >
-                  <Download className="h-4 w-4" /> Download Career Certificate (PDF)
-                </GlassButton>
-                {careerCert && (
+                      }}
+                    >
+                      <Download className="h-4 w-4" /> Download Career Certificate (PDF)
+                    </GlassButton>
+                    <GlassButton
+                      variant="ghost"
+                      onClick={() => {
+                        const name = window.prompt("Edit your name on this certificate:", careerCert.name);
+                        if (name === null) return;
+                        const finalName = name.trim() || "Learner";
+                        updateCareerCertificateName(finalName);
+                        generateCareerCertificate(finalName, career.label, roadmap.languageIds, computeHoursInvested(useStore.getState().state, roadmap));
+                      }}
+                    >
+                      <Pencil className="h-3.5 w-3.5" /> Edit name
+                    </GlassButton>
+                  </>
+                ) : (
                   <GlassButton
-                    variant="ghost"
-                    onClick={() => {
-                      const name = window.prompt("Edit your name on this certificate:", careerCert.name);
+                    variant="primary"
+                    onClick={async () => {
+                      const defaultName = profile.name ?? "Learner";
+                      const name = window.prompt("Edit your name for the Career Master Certificate:", defaultName);
                       if (name === null) return;
                       const finalName = name.trim() || "Learner";
-                      updateCareerCertificateName(finalName);
+                      // v5.866 BUG 1B FIX: await the result and check for failure.
+                      const resultCertId = await issueCareerCertificate(career.label, finalName);
+                      if (!resultCertId) {
+                        alert(
+                          "Career Master Certificate could not be issued. This may be a temporary server issue — please try again in a moment.\n\n" +
+                          "Your progress is saved. The certificate will be issued automatically on your next visit."
+                        );
+                        return;
+                      }
+                      // Success — generate the PDF with the real certId
                       generateCareerCertificate(finalName, career.label, roadmap.languageIds, computeHoursInvested(useStore.getState().state, roadmap));
                     }}
                   >
-                    <Pencil className="h-3.5 w-3.5" /> Edit name
+                    <Download className="h-4 w-4" /> Issue Career Certificate
                   </GlassButton>
                 )}
               </div>
@@ -942,9 +960,19 @@ function generateResumePDF(opts: {
 // Career Master Certificate generator
 // ============================================================
 function generateCareerCertificate(name: string, careerLabel: string, languageIds: string[], totalHours: number) {
+  // v5.866 BUG 1B FIX (career cert): ONLY use the stored certId from Supabase.
+  // NEVER generate a fake fallback ID — same fix as the language cert in LearnView.
   const stored = useStore.getState().state.careerCertificate;
-  const certId = stored?.certId ?? `LP-CAREER-${Date.now().toString(36).toUpperCase()}`;
-  const issuedAt = stored?.issuedAt ?? new Date().toISOString();
+  if (!stored?.certId) {
+    console.error("[generateCareerCertificate] no stored certId");
+    alert(
+      "Career Master Certificate has not been issued yet. Click 'Issue certificate' first.\n\n" +
+      "If you already clicked it and got an error, please try again."
+    );
+    return;
+  }
+  const certId = stored.certId;
+  const issuedAt = stored.issuedAt;
   const date = new Date(issuedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
   const langs = languageIds.map((id) => ALL_LANGUAGE_INFO[id]?.name ?? id);
   const langsList = langs.map((l) => `<span class="lang-chip">${escapeHtml(l)}</span>`).join("");
