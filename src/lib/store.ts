@@ -1299,18 +1299,29 @@ export const useStore = create<Store>((set, get) => {
         }
       }
 
+      // v5.868 BUG B FIX: handle gap languages (tracks with no lessons).
+      // Gap languages (docker, tailwind, express, graphql, kubernetes,
+      // terraform, pytorch, tensorflow) have NO lessons in ALL_LESSONS.
+      // The server requires 21 lesson IDs + 21 quiz scores, which can never
+      // be satisfied for a gap language. Return a SPECIFIC error instead of
+      // a misleading "temporary server issue".
+      if (trackLessons.length === 0) {
+        console.error("[issueCertificate] track has no lessons (gap language):", trackId);
+        return "";
+      }
+
       // v5.866 BUG 1A FIX: client-side pre-validation. Don't send the request
       // if the progress proof is obviously incomplete — this avoids a 403
       // and lets the user know something is wrong.
-      if (completedLessonIds.length < 21) {
+      if (completedLessonIds.length < trackLessons.length) {
         console.error("[issueCertificate] client-side validation: not enough completed lessons", {
-          trackId, completed: completedLessonIds.length, required: 21,
+          trackId, completed: completedLessonIds.length, expected: trackLessons.length,
         });
         return "";
       }
-      if (Object.keys(quizScores).length < 21) {
+      if (Object.keys(quizScores).length < trackLessons.length) {
         console.error("[issueCertificate] client-side validation: not enough quiz scores", {
-          trackId, scores: Object.keys(quizScores).length, required: 21,
+          trackId, scores: Object.keys(quizScores).length, expected: trackLessons.length,
         });
         return "";
       }
@@ -1525,8 +1536,14 @@ export const useStore = create<Store>((set, get) => {
                   ...c.messages,
                   {
                     ...message,
-                    id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-                    timestamp: new Date().toISOString(),
+                    // v5.868 BUG A FIX: preserve the caller-provided id if it exists.
+                    // Previously this ALWAYS overwrote the id with a new random one.
+                    // The streaming code creates an assistant message with a specific id
+                    // (assistantMsgId), then calls updateChatMessage(chatId, assistantMsgId, ...).
+                    // But addChatMessage was overriding that id, so updateChatMessage could
+                    // never find the message — the bubble stayed empty forever.
+                    id: (message as ChatMessage).id || `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                    timestamp: (message as ChatMessage).timestamp || new Date().toISOString(),
                   },
                 ],
                 updatedAt: new Date().toISOString(),

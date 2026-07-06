@@ -260,7 +260,14 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
     const msg = pendingTutorMessage;
     setPendingTutorMessage(null);
 
-    if (!msg.trim() || !hasUserKey) return;
+    // v5.868 BUG C FIX: if no API key is set, show a toast instead of
+    // silently doing nothing. The user needs to know they need an API key.
+    if (!msg.trim()) return;
+    if (!hasUserKey) {
+      // Show settings so the user can add their API key
+      setShowSettings(true);
+      return;
+    }
 
     // Create a new chat if none active
     let chatId = useStore.getState().state.activeChatId;
@@ -279,7 +286,10 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
     // Defer setSending to avoid setState-in-effect lint error
     setTimeout(() => setSending(true), 0);
 
-    // Send to the AI API
+    // v5.868 BUG C FIX: use streaming (same as handleSend) instead of
+    // non-streaming response.json(). The old code used non-streaming which
+    // would work but had a separate code path that could diverge. Now uses
+    // the same streaming path as the main chat.
     (async () => {
       try {
         const response = await fetch("/api/chat", {
@@ -293,18 +303,72 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
             temperature: aiSettings.temperature,
             customEndpoint: aiSettings.customEndpoint,
             ...(activeSystemPrompt ? { systemPrompt: activeSystemPrompt } : {}),
+            stream: true,  // v5.868: use streaming
           }),
         });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
-        const assistantMessage: ChatMessage = {
-          id: `msg-${Date.now()}-ai`,
-          role: "assistant",
-          content: data.content || "(no response)",
-          timestamp: new Date().toISOString(),
-          provider: data.provider,
-        };
-        useStore.getState().addChatMessage(chatId!, assistantMessage);
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data.error || `HTTP ${response.status}`);
+        }
+
+        if (response.body) {
+          // v5.868: streaming path — same logic as handleSend
+          const assistantMsgId = `msg-${Date.now()}-ai`;
+          const initialAssistantMessage: ChatMessage = {
+            id: assistantMsgId,
+            role: "assistant",
+            content: "",
+            timestamp: new Date().toISOString(),
+            provider: aiSettings.provider,
+          };
+          useStore.getState().addChatMessage(chatId!, initialAssistantMessage);
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+          let accumulated = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n\n");
+            buffer = lines.pop() ?? "";
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed.startsWith("data: ")) continue;
+              const data = trimmed.slice(6);
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed.error) {
+                  accumulated = `⚠️ Error: ${parsed.error}`;
+                  useStore.getState().updateChatMessage(chatId!, assistantMsgId, { content: accumulated });
+                  break;
+                }
+                if (parsed.content) {
+                  accumulated += parsed.content;
+                  useStore.getState().updateChatMessage(chatId!, assistantMsgId, { content: accumulated });
+                }
+              } catch {
+                // Skip malformed chunks.
+              }
+            }
+          }
+          if (!accumulated) {
+            useStore.getState().updateChatMessage(chatId!, assistantMsgId, { content: "(no response)" });
+          }
+        } else {
+          // Non-streaming fallback
+          const data = await response.json();
+          const assistantMessage: ChatMessage = {
+            id: `msg-${Date.now()}-ai`,
+            role: "assistant",
+            content: data.content || "(no response)",
+            timestamp: new Date().toISOString(),
+            provider: data.provider,
+          };
+          useStore.getState().addChatMessage(chatId!, assistantMessage);
+        }
       } catch (err) {
         const errorMessage: ChatMessage = {
           id: `msg-${Date.now()}-err`,

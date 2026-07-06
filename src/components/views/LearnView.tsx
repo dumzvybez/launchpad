@@ -642,10 +642,21 @@ export function LearnView() {
                           // Show an error and do NOT generate a PDF with a fake ID.
                           const resultCertId = await issueCertificate(track, trackName, finalName);
                           if (!resultCertId) {
-                            alert(
-                              "Certificate could not be issued. This may be a temporary server issue — please try again in a moment.\n\n" +
-                              "Your progress is saved. The certificate will be issued automatically on your next visit or when you complete another quiz."
-                            );
+                            // v5.868 BUG B FIX: show a specific error message based on the cause.
+                            // If the track has no lessons (gap language), explain that.
+                            // Otherwise, it's likely a server issue or incomplete progress.
+                            const trackLessonsCheck = getLessonsForTrack(track);
+                            if (trackLessonsCheck.length === 0) {
+                              alert(
+                                "Certificates are not available for this technology yet — it doesn't have a full lesson track.\n\n" +
+                                "Try completing a track from the 30 core languages (Python, JavaScript, etc.) that have full 21-lesson content."
+                              );
+                            } else {
+                              alert(
+                                "Certificate could not be issued. This may be a temporary server issue — please try again in a moment.\n\n" +
+                                "Your progress is saved. The certificate will be issued automatically on your next visit or when you complete another quiz."
+                              );
+                            }
                             return;
                           }
                           // Success — generate the PDF with the real certId
