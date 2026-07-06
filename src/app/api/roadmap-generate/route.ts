@@ -404,9 +404,19 @@ export async function POST(req: NextRequest) {
     if (!input || !input.careerId) {
       return NextResponse.json({ error: "input with careerId is required" }, { status: 400 });
     }
+    // v5.865 fix (5.2): validate careerId against known CareerId values.
+    const knownCareerIds = Object.keys(CAREER_MAP);
+    if (!knownCareerIds.includes(input.careerId)) {
+      return NextResponse.json(
+        { error: `Invalid careerId "${input.careerId}". Must be one of: ${knownCareerIds.join(", ")}` },
+        { status: 400 },
+      );
+    }
 
     // Cap the size of previousRoadmap to prevent oversized payloads from
     // being forwarded to the AI provider (DoS / cost protection).
+    // v5.865 fix (B.1): declare sanitizedRoadmap BEFORE use, fix TDZ crash.
+    let sanitizedRoadmap: Record<string, unknown> | null = null;
     if (previousRoadmap) {
       const size = JSON.stringify(previousRoadmap).length;
       if (size > 100_000) {
@@ -414,6 +424,40 @@ export async function POST(req: NextRequest) {
           { error: `previousRoadmap payload too large (${size} bytes, max 100KB)` },
           { status: 413 },
         );
+      }
+      const pr = previousRoadmap as Record<string, unknown>;
+      if (typeof pr !== "object" || pr === null) {
+        return NextResponse.json(
+          { error: "previousRoadmap must be an object" },
+          { status: 400 },
+        );
+      }
+      // Check for instruction-like patterns in stringified roadmap
+      const roadmapStr = JSON.stringify(pr);
+      const injectionPatterns = [
+        /ignore (all )?previous instructions/i,
+        /you are (now )?a/i,
+        /system prompt/i,
+        /forget everything/i,
+        /do not follow/i,
+        /disregard the above/i,
+        /new instructions/i,
+        /\[INST\]/i,
+        /<\|im_start\|>/i,
+      ];
+      for (const pattern of injectionPatterns) {
+        if (pattern.test(roadmapStr)) {
+          return NextResponse.json(
+            { error: "previousRoadmap contains suspicious content" },
+            { status: 400 },
+          );
+        }
+      }
+      // Only allow known roadmap fields — strip anything else
+      const allowedFields = ["phases", "totalWeeks", "totalHours", "careerId", "careerLabel", "source", "languageIds"];
+      sanitizedRoadmap = {};
+      for (const field of allowedFields) {
+        if (field in pr) sanitizedRoadmap[field] = pr[field];
       }
     }
 
@@ -445,9 +489,11 @@ export async function POST(req: NextRequest) {
       name: input.name,
     };
 
+    // v5.865 fix (B.1): prompt is now declared BEFORE any use, and uses
+    // sanitizedRoadmap (not the raw previousRoadmap) to prevent injection.
     let prompt: string;
-    if (issues && previousRoadmap) {
-      prompt = `Previous roadmap had these validation issues:\n${JSON.stringify(issues, null, 2)}\n\nPrevious roadmap JSON:\n${JSON.stringify(previousRoadmap, null, 2)}\n\nPlease return a CORRECTED JSON roadmap that fixes ALL the listed issues. Same format. Output ONLY the JSON.`;
+    if (issues && sanitizedRoadmap) {
+      prompt = `Previous roadmap had these validation issues:\n${JSON.stringify(issues, null, 2)}\n\nPrevious roadmap JSON:\n${JSON.stringify(sanitizedRoadmap, null, 2)}\n\nPlease return a CORRECTED JSON roadmap that fixes ALL the listed issues. Same format. Output ONLY the JSON.`;
     } else {
       prompt = `Design a personalized coding learning roadmap for this learner. Choose the right number of phases (4-10) based on the profile complexity. Output ONLY the JSON roadmap.\n\nLearner profile:\n${JSON.stringify(userContext, null, 2)}`;
     }

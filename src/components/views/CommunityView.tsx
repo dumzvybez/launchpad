@@ -311,7 +311,7 @@ export function CommunityView() {
             <strong className="text-foreground">How this works:</strong>{" "}
             Comments you post here appear in{" "}
             <a
-              href={`https://github.com/dumzvybez/launchpad/discussions/categories/${section.categoryName.toLowerCase().replace(/ /g, "-")}`}
+              href={`https://github.com/dumzvybez/launchpad/discussions/categories/${section.categoryName.toLowerCase().replace(/ /g, "-").replace(/&/g, "a")}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary hover:underline inline-flex items-center gap-0.5"

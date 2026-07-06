@@ -23,14 +23,15 @@ export function TopBar() {
   const setView = useStore((s) => s.setView);
   const currentView = useStore((s) => s.currentView);
   const profile = useStore((s) => s.state.profile);
-  const roadmap = useStore((s) => s.state.roadmap);
+  // v5.865 fix (4.13): roadmap no longer needed — getNavItems() takes no args.
   const setMobileNavOpen = useStore((s) => s.setMobileNavOpen);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
-  const nav = getNavItems(roadmap);
+  // v5.865 fix (4.13): getNavItems no longer takes a parameter.
+  const nav = getNavItems();
   const currentNav = nav.find((n) => n.id === currentView);
 
   // Fullscreen tracking
@@ -137,6 +138,8 @@ export function TopBar() {
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
+              aria-expanded={showProfileMenu}
+              aria-haspopup="menu"
               className="flex items-center gap-2 ml-1 pl-3 border-l border-border/60 hover:bg-foreground/4 rounded-lg transition-colors"
               title="Profile menu"
             >

@@ -9,13 +9,23 @@ import { todayKey } from "@/lib/storage";
 import { DAILY_CHALLENGE_TASKS, DAILY_CHALLENGE_TASK_MAP } from "@/lib/daily-challenges-data-v2";
 import type { DailyChallengeTask } from "@/lib/types";
 
+// v5.865 fix (4.8): use local date formatting (consistent with todayKey)
+// instead of UTC toISOString().slice(0,10) which was wrong for non-UTC users.
+function formatDateLocal(d: Date): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 /** Get the start of the current week (Monday) as an ISO date string. */
 function getWeekStart(): string {
   const d = new Date();
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday
   d.setDate(diff);
-  return d.toISOString().slice(0, 10);
+  // v5.865 fix (4.8): use local date, not UTC
+  return formatDateLocal(d);
 }
 
 /** Deterministically select 7 tasks for the current week from the user's pool. */
@@ -57,7 +67,6 @@ export function DailyChallengeView() {
   const [showSolution, setShowSolution] = useState(false);
   const [showWeekChallenges, setShowWeekChallenges] = useState(false);
   const [userSolution, setUserSolution] = useState(todayTask?.starterCode ?? "");
-  const [output, setOutput] = useState<string[]>([]);
 
   // Derive "completed" directly from the store — no need to mirror it in
   // local state (which required a setState-in-effect to stay in sync).
@@ -87,36 +96,15 @@ export function DailyChallengeView() {
     // v5.77 fix: pass the actual task language through so the Playground opens
     // in the right mode. Previously this only handled python/javascript and
     // defaulted everything else to javascript.
+    // v5.865 fix (2.7): map unsupported languages to the closest supported one.
     const supportedLangs = ["javascript", "typescript", "python", "html", "css", "sql", "bash"];
-        const taskLang = todayTask?.language ?? "javascript";
-        const playgroundLang = supportedLangs.includes(taskLang) ? taskLang : "javascript";
-        setPlaygroundCode(userSolution, playgroundLang);
+    const taskLang = todayTask?.language ?? "javascript";
+    const playgroundLang = supportedLangs.includes(taskLang) ? taskLang : "javascript";
+    setPlaygroundCode(userSolution, playgroundLang as "javascript" | "typescript" | "python" | "html" | "css" | "sql" | "bash");
     setView("playground");
   };
 
-  const handleRun = () => {
-    // Only JavaScript tasks can run in-browser. For Python (and any other
-    // language), nudge the user to the Playground which has the proper
-    // runner (Pyodide for Python, etc.).
-    // v5.85 fix (4.20): for JS challenges, both Run and Try in Playground
-    // navigate to the Playground. Remove the redundant Run button for JS —
-    // keep only "Open in Playground" for all languages (consistency).
-    if (todayTask?.language) {
-      setOutput([
-        `This daily challenge is in ${todayTask.language}. ` +
-        `Click "Try in Playground" to run it with the proper runtime.`,
-      ]);
-      return;
-    }
-    // v5.77 SECURITY FIX: the previous implementation ran user code via
-    // `new Function(userSolution)()` in the page's origin, giving it access
-    // to localStorage (API keys, all user data) and the Launchpad backend.
-    // We now route through the Playground which uses a sandboxed iframe
-    // (sandbox="allow-scripts" without allow-same-origin) for JS execution.
-    // For a quick inline run, we delegate to the playground view.
-    setPlaygroundCode(userSolution, "javascript");
-    setView("playground");
-  };
+  // v5.865 fix (4.20/B.9): handleRun removed — "Open in Playground" handles all cases.
 
   if (!todayTask) {
     return (
@@ -221,25 +209,16 @@ export function DailyChallengeView() {
           </div>
         )}
 
-        {/* Output */}
-        {output.length > 0 && (
-          <div className="rounded-lg border border-border/60 bg-zinc-950 p-3 mb-3 max-h-40 overflow-y-auto">
-            <div className="text-[10px] uppercase text-muted-foreground font-mono mb-1">Output</div>
-            {output.map((line, i) => (
-              <div key={i} className="text-xs font-mono text-zinc-100 py-0.5">
-                <span className="text-zinc-600 mr-2">{">"}</span>
-                <pre className="whitespace-pre-wrap inline">{line}</pre>
-              </div>
-            ))}
-          </div>
-        )}
+        {/* v5.865 fix (4.20/B.9): output panel removed — was only used by the
+            deleted handleRun function. The Playground has its own output console. */}
 
         {/* Actions */}
         <div className="flex items-center gap-2 flex-wrap">
-          <GlassButton variant="primary" size="sm" onClick={handleRun}>
-            Run code
-          </GlassButton>
-          <GlassButton variant="ghost" size="sm" onClick={handleTryInPlayground}>
+          {/* v5.865 fix (4.20/B.9): removed the redundant "Run code" button.
+              For all languages, "Open in Playground" handles execution with
+              the proper runtime. The old "Run code" button either did nothing
+              (non-JS) or duplicated "Open in Playground" (JS). */}
+          <GlassButton variant="primary" size="sm" onClick={handleTryInPlayground}>
             Open in Playground
           </GlassButton>
           {!completed && (

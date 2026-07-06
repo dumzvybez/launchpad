@@ -201,6 +201,12 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
             const data = trimmed.slice(6);
             try {
               const parsed = JSON.parse(data);
+              // v5.86 fix (B.1): handle error events from the server stream
+              if (parsed.error) {
+                accumulated = `⚠️ Error: ${parsed.error}`;
+                useStore.getState().updateChatMessage(chatId, assistantMsgId, { content: accumulated });
+                break;
+              }
               if (parsed.content) {
                 accumulated += parsed.content;
                 // Update the assistant message with the accumulated content.

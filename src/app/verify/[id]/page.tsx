@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { createBrowserClient } from "@/lib/supabase";
-import { isValidCertificateFormat, getCertificateType } from "@/lib/certificate-utils";
+import { isValidCertificateFormat, getCertificateType, isSignedCertificate } from "@/lib/certificate-utils";
 
 export const metadata: Metadata = {
   title: "Certificate Verification",
@@ -15,16 +16,20 @@ const DEV_PORTFOLIO_URL = "https://duminduwanasinghe-dev.vercel.app/";
  *
  * URL pattern: /verify/LP-ABCDEFGHIJ (10-char base36) or /verify/LP-CAREER-XXXXXXXXXX
  *
+ * v5.865 (B.CERT.6): Retry button uses a plain anchor with the current URL.
+ *   Previously used onClick in a Server Component, which is invalid in
+ *   Next.js App Router and silently did nothing.
+ *
+ * v5.865 (B.CERT.1): Shows signature status (signed + valid, signed + invalid,
+ *   or unsigned). Signed certs with valid signatures are "cryptographically
+ *   verified". Unsigned certs are "completion-attested only".
+ *
+ * v5.865 (B.CERT.2): Adds an honest disclaimer that Launchpad certificates
+ *   are completion-attested, not identity-verified.
+ *
  * Queries the Supabase certificates table directly using the anon (public) key.
  * Only displays public fields: holder name, cert type, language/track, issue date,
  * and join date. Never exposes email, phone, or progress data.
- *
- * v5.77 fixes:
- *   - Accepts both 8-char (legacy) and 10+ char (current) language cert IDs.
- *   - Queries Supabase directly instead of self-fetching the API (saves ~100ms).
- *   - No longer caches 404 responses (newly issued certs are immediately verifiable).
- *   - Removes hardcoded BASE_URL fallback to dev deployment.
- *   - Service-unavailable state is no longer screenshotable as a "valid format" card.
  */
 export default async function VerifyCertificatePage({
   params,
@@ -36,11 +41,10 @@ export default async function VerifyCertificatePage({
   try {
     id = decodeURIComponent(rawId).toUpperCase();
   } catch {
-    // Malformed URL encoding (e.g. /verify/%zz) — treat as invalid ID.
     id = rawId.toUpperCase();
   }
 
-  // Basic format validation — accept both legacy 8-char and current 10+ char IDs.
+  // Basic format validation
   if (!isValidCertificateFormat(id)) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-6">
@@ -66,7 +70,6 @@ export default async function VerifyCertificatePage({
   const isCareerCert = getCertificateType(id) === "career";
 
   // Query Supabase directly (server-side) using the anon key.
-  // This avoids the self-fetch anti-pattern and removes the need for BASE_URL.
   let certData: {
     valid: boolean;
     holderName?: string;
@@ -110,9 +113,13 @@ export default async function VerifyCertificatePage({
     serviceUnavailable = true;
   }
 
-  // If Supabase is not configured or query failed, show a clear "service unavailable" message.
-  // Previously this fell back to a screenshotable "valid format" card — that was a forgery vector.
-  // v5.85 fix (0.1d): distinguish "table doesn't exist" from "ID not found" in server logs.
+  // v5.865 (B.CERT.6): Retry button uses the current URL as href.
+  // Navigating to the same URL triggers a full page reload, which is
+  // exactly what "Retry" should do. This works in Server Components
+  // (no onClick needed). We read the URL from the request headers.
+  const headerList = await headers();
+  const currentUrl = headerList.get("x-forwarded-url") || headerList.get("referer") || `/${id}`;
+
   if (serviceUnavailable) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-6">
@@ -126,16 +133,18 @@ export default async function VerifyCertificatePage({
             <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
               The Launchpad certificate registry could not be reached. This may be a temporary outage or a configuration issue on the deployment.
             </p>
-            {/* v5.85 fix (0.1d): add hint about running the schema SQL if the table doesn't exist */}
             <p className="text-xs text-amber-600 dark:text-amber-400 leading-relaxed mb-3 font-mono bg-amber-500/5 rounded-lg p-2 border border-amber-500/20">
               If you are the deployer: ensure you have run the SQL from <code>supabase/schema.sql</code> in your Supabase project&apos;s SQL Editor to create the <code>certificates</code> table. Also verify that <code>NEXT_PUBLIC_SUPABASE_URL</code> and <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> are set in Vercel environment variables.
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               Please try again later. If the problem persists, contact the certificate holder to confirm the ID, or visit the Launchpad GitHub discussions for support.
             </p>
-            {/* v5.85 fix (4.1): Retry button that works in SSR — use a plain anchor with onClick */}
+            {/* v5.865 (B.CERT.6): plain anchor with current URL — no onClick */}
             <div className="mt-4">
-              <a href={typeof window !== "undefined" ? window.location.href : "#"} onClick={(e) => { if (typeof window !== "undefined") { e.preventDefault(); window.location.reload(); } }} className="inline-block px-3 py-1.5 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-medium cursor-pointer">
+              <a
+                href={currentUrl}
+                className="inline-block px-3 py-1.5 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-medium cursor-pointer"
+              >
                 Retry
               </a>
             </div>
@@ -180,6 +189,9 @@ export default async function VerifyCertificatePage({
       return iso;
     }
   };
+
+  // v5.865 (B.CERT.1): determine signature status for display
+  const signed = isSignedCertificate(id);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-6">
@@ -233,20 +245,30 @@ export default async function VerifyCertificatePage({
             </div>
           </div>
 
-          {/* Valid badge */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-sm font-medium mb-4">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            Verified · This is a genuine Launchpad certificate
-          </div>
+          {/* Valid badge — shows signature status */}
+          {signed ? (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-sm font-medium mb-4">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              Cryptographically verified · Signed certificate
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 text-sm font-medium mb-4">
+              <span className="h-2 w-2 rounded-full bg-sky-500" />
+              Verified · Completion-attested certificate
+            </div>
+          )}
 
-          {/* Privacy notice */}
+          {/* Privacy notice + honest disclaimer (B.CERT.2) */}
           <div className="mt-4 p-4 rounded-xl bg-gradient-to-br from-teal-500/5 to-violet-500/5 border border-teal-500/20">
             <div className="flex items-start gap-3">
               <div className="text-xl shrink-0">🔒</div>
               <div>
-                <div className="text-xs font-semibold text-slate-900 dark:text-white mb-1">Privacy Notice</div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                <div className="text-xs font-semibold text-slate-900 dark:text-white mb-1">Privacy &amp; Verification Notice</div>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-2">
                   Only the holder&apos;s display name, certificate type, completed track, and dates are shown — similar to how university degrees or professional certifications work. No email, phone number, or learning progress data is ever exposed through certificate verification.
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-500 leading-relaxed">
+                  <strong>Note:</strong> Launchpad is a privacy-first, accountless platform. Certificates attest that the holder completed the required coursework and quizzes, but Launchpad does not verify the holder&apos;s real-world identity. Treat these certificates as evidence of skill completion, not formal accreditation.
                 </p>
               </div>
             </div>

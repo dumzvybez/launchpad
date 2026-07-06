@@ -385,14 +385,10 @@ function ShareAchievementsModal({
           <div className="opacity-60 text-[10px] mt-2">Learning. Building. Growing.</div>
         </div>
 
+        {/* v5.86 fix (C.1): REMOVED PNG/clipboard buttons — html-to-image produces blank
+            images with glass-morphism CSS. Only the printable page (PDF) option remains. */}
         <div className="space-y-2">
-          <GlassButton variant="primary" className="w-full justify-center" onClick={handlePng} disabled={busy !== null}>
-            <Trophy className="h-3.5 w-3.5" /> {busy === "png" ? "Rendering PNG…" : "Download as PNG image"}
-          </GlassButton>
-          <GlassButton variant="ghost" className="w-full justify-center" onClick={handleCopyClipboard} disabled={busy !== null}>
-            <Trophy className="h-3.5 w-3.5" /> {busy === "clipboard" ? "Copying…" : "Copy to clipboard (PNG)"}
-          </GlassButton>
-          <GlassButton variant="ghost" className="w-full justify-center" onClick={handlePdf} disabled={busy !== null}>
+          <GlassButton variant="primary" className="w-full justify-center" onClick={handlePdf} disabled={busy !== null}>
             <Trophy className="h-3.5 w-3.5" /> {busy === "pdf" ? "Opening…" : "Open printable page (Save as PDF)"}
           </GlassButton>
         </div>

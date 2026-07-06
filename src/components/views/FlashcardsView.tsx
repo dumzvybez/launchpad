@@ -79,8 +79,16 @@ export function FlashcardsView() {
       }));
       setFlipped(false);
       setShowHint(false);
-      // Advance to next card (wrap around).
-      setCurrentIndex((i) => (i + 1) % Math.max(1, filteredCards.length));
+      // v5.865 fix (4.9/B.6): clamp index INSIDE handleResult, not on every
+      // render. This prevents the race condition where the render-path clamp
+      // and the handleResult index update fight each other.
+      setCurrentIndex((i) => {
+        const newLen = Math.max(1, filteredCards.length);
+        // If the deck shrank (card removed from "due" after correct answer),
+        // wrap properly instead of pointing beyond the array.
+        const next = (i + 1) % newLen;
+        return Math.min(next, newLen - 1);
+      });
     },
     [currentCard, recordFlashcardResult, filteredCards.length],
   );
@@ -112,11 +120,9 @@ export function FlashcardsView() {
   // Reset index when filter changes. Uses the "adjust state during render"
   // pattern (recommended by React docs) instead of setState-in-useEffect.
   const [prevFilter, setPrevFilter] = useState(filter);
-  // v5.85 fix (4.9): clamp currentIndex after filter change to prevent blank cards
-    if (filteredCards.length > 0 && currentIndex >= filteredCards.length) {
-      setCurrentIndex(filteredCards.length - 1);
-    }
-    if (filter !== prevFilter) {
+  // v5.865 fix (4.9/B.6): removed the render-path clamp — it raced with
+  // handleResult's index update. The clamp is now inside handleResult.
+  if (filter !== prevFilter) {
     setPrevFilter(filter);
     setCurrentIndex(0);
     setFlipped(false);

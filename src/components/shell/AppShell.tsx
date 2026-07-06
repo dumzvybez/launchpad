@@ -5,7 +5,8 @@ import dynamic from "next/dynamic";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { AuroraBackground } from "@/components/glass/AuroraBackground";
-import { Sidebar, getNavItems } from "./Sidebar";
+// v5.865 fix (4.13): getNavItems import removed — unused in AppShell.
+import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { CommandPalette, useCommandPaletteShortcut } from "./CommandPalette";
 import { SplashScreen } from "./SplashScreen";
@@ -40,7 +41,7 @@ const SettingsView = dynamic(() => import("@/components/views/SettingsView").the
 import { AITutorFloating } from "@/components/ai/AITutorFloating";
 import { BadgeToastContainer } from "@/components/achievements/BadgeToastContainer";
 import { FirstTimeTour } from "@/components/tour/FirstTimeTour";
-import { MobileBanner } from "@/components/shell/MobileBanner";
+// v5.865 fix (10.2): MobileBanner import removed — dead no-op component.
 import { MobileBottomNav } from "@/components/shell/MobileBottomNav";
 import { OfflineBanner } from "@/components/pwa/OfflineBanner";
 import { Footer } from "@/components/shell/Footer";
@@ -62,7 +63,12 @@ export function AppShell() {
   const setView = useStore((s) => s.setView);
   const roadmap = useStore((s) => s.state.roadmap);
 
-  const [splashDone, setSplashDone] = useState(false);
+  // v5.865 fix (4.3): persist splashDone in sessionStorage so the splash
+  // only plays once per browser session (not on every page reload).
+  const [splashDone, setSplashDone] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try { return window.sessionStorage.getItem("launchpad:splash-done") === "1"; } catch { return false; }
+  });
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
   // Section 14 — sidebar collapse state, persisted to localStorage
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
@@ -127,7 +133,11 @@ export function AppShell() {
   // re-render. Previously the inline arrow broke SplashScreen's effect deps,
   // causing its timers to reset (and the splash to extend) whenever any
   // subscribed store value changed mid-splash.
-  const onSplashDone = useCallback(() => setSplashDone(true), []);
+  // v5.865 fix (4.3): also persist to sessionStorage so reloads skip splash.
+  const onSplashDone = useCallback(() => {
+    setSplashDone(true);
+    try { window.sessionStorage.setItem("launchpad:splash-done", "1"); } catch { /* ignore */ }
+  }, []);
 
   if (hydrated && showSplash && !splashDone) {
     return <SplashScreen onDone={onSplashDone} />;
@@ -195,8 +205,7 @@ export function AppShell() {
         {/* Offline banner (Section 14.2) */}
         {!focusMode && <OfflineBanner />}
 
-        {/* Mobile banner */}
-        {!focusMode && <MobileBanner />}
+        {/* v5.865 fix (10.2): MobileBanner removed — was a no-op dead component. */}
 
         <main className={focusMode ? "flex-1 p-3 sm:p-6" : "flex-1 p-3 sm:p-6 pt-4 pb-24 lg:pb-6"}>
           <div className="max-w-6xl mx-auto">

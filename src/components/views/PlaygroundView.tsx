@@ -5,6 +5,8 @@ import { Play, Trash2, Copy, Code2, Info, ExternalLink, Download, VSCode } from 
 import { useStore } from "@/lib/store";
 import { GlassCard, GlassButton } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
+// v5.865 fix (6.9): import shared bash simulator instead of duplicating.
+import { simulateBash } from "@/lib/bash-simulator";
 
 /**
  * PlaygroundView — multi-language code playground.
@@ -90,6 +92,10 @@ async function loadPyodide(onProgress?: (msg: string) => void): Promise<any> {
       await new Promise<void>((resolve, reject) => {
         const script = document.createElement("script");
         script.src = "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js";
+        // v5.865 fix (1.4): add SRI hash + crossorigin (matches InlineCodeEditor).
+        // Hash verified via: curl -s <url> | openssl dgst -sha384 -binary | openssl base64 -A
+        script.crossOrigin = "anonymous";
+        script.integrity = "sha384-b4IZetZNE8bVncsQqlcH4ZZFC58BslGU2LVj47xUtIMOw72axMESbPe8spBylXnd";
         script.onload = () => resolve();
         script.onerror = () => reject(new Error("Failed to load Pyodide from CDN. Check your internet connection."));
         document.head.appendChild(script);
@@ -616,42 +622,4 @@ export function PlaygroundView() {
   );
 }
 
-// ============================================================
-// Simulated bash — reuse from InlineCodeEditor
-// ============================================================
-function simulateBash(code: string): string[] {
-  const lines = code.split("\n").filter((l) => l.trim() && !l.trim().startsWith("#"));
-  const fs: Record<string, string> = {
-    "/": "home  etc  usr  var  tmp",
-    "/home": "user",
-    "/home/user": "README.md  project.txt",
-    "/home/user/README.md": "Welcome to Launchpad's simulated bash!",
-    "/home/user/project.txt": "Project ideas:\n1. Build a CLI\n2. Make a web app",
-  };
-  let cwd = "/home/user";
-  const output: string[] = [];
-  for (const line of lines) {
-    const parts = line.trim().split(/\s+/);
-    const cmd = parts[0];
-    const args = parts.slice(1);
-    switch (cmd) {
-      case "echo": output.push(args.join(" ").replace(/['"]/g, "")); break;
-      case "pwd": output.push(cwd); break;
-      case "ls": output.push(fs[cwd] ?? ""); break;
-      case "cat": {
-        const fp = args[0]?.startsWith("/") ? args[0] : `${cwd}/${args[0]}`;
-        output.push(fs[fp] ?? `cat: ${args[0]}: No such file`);
-        break;
-      }
-      case "mkdir": output.push(`(simulated) created directory: ${args[0] ?? ""}`); break;
-      case "touch": output.push(`(simulated) created file: ${args[0] ?? ""}`); break;
-      case "grep": output.push(`(simulated) grep pattern: ${args[0] ?? ""}`); break;
-      case "cd":
-        if (args[0] === ".." || args[0] === "/") cwd = args[0] === "/" ? "/" : cwd.split("/").slice(0, -1).join("/") || "/";
-        else if (args[0]) cwd = args[0].startsWith("/") ? args[0] : `${cwd}/${args[0]}`;
-        break;
-      default: output.push(`(simulated) command not recognized: ${cmd}. Supported: echo, pwd, ls, cat, mkdir, touch, grep, cd`);
-    }
-  }
-  return output;
-}
+// v5.865 fix (6.9): local simulateBash removed — imported from @/lib/bash-simulator.

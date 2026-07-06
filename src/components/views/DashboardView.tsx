@@ -670,15 +670,13 @@ function ShareProgressCardModal({ onClose }: { onClose: () => void }) {
           <div className="opacity-40 text-[9px] font-mono mt-1">launchpad--dev.vercel.app</div>
         </div>
 
-        {/* 3 export buttons */}
+        {/* v5.86 fix (C.1): REMOVED "Download as PNG" and "Copy to clipboard (PNG)" buttons.
+            html-to-image could not reliably render glass-morphism/CSS-variable-heavy cards
+            (produced blank/transparent images). The "Open printable page" (Save as PDF) option
+            still works correctly via openPrintableHtml — that's a different code path that
+            opens a new browser tab with the HTML, bypassing html-to-image entirely. */}
         <div className="space-y-2">
-          <GlassButton variant="primary" className="w-full justify-center" onClick={handlePng} disabled={busy !== null}>
-            <Share2 className="h-3.5 w-3.5" /> {busy === "png" ? "Rendering PNG…" : "Download as PNG image"}
-          </GlassButton>
-          <GlassButton variant="ghost" className="w-full justify-center" onClick={handleCopyClipboard} disabled={busy !== null}>
-            <Share2 className="h-3.5 w-3.5" /> {busy === "clipboard" ? "Copying…" : "Copy to clipboard (PNG)"}
-          </GlassButton>
-          <GlassButton variant="ghost" className="w-full justify-center" onClick={handlePdf} disabled={busy !== null}>
+          <GlassButton variant="primary" className="w-full justify-center" onClick={handlePdf} disabled={busy !== null}>
             <Share2 className="h-3.5 w-3.5" /> {busy === "pdf" ? "Opening…" : "Open printable page (Save as PDF)"}
           </GlassButton>
         </div>
@@ -694,7 +692,7 @@ function ShareProgressCardModal({ onClose }: { onClose: () => void }) {
         )}
 
         <p className="text-[10px] text-muted-foreground text-center mt-3">
-          PNG / clipboard best for social posts. PDF best for keeping a record.
+          Open the printable page and use your browser&apos;s Save as PDF option.
         </p>
       </div>
     </div>

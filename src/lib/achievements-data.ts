@@ -383,16 +383,19 @@ export const ACHIEVEMENTS: Achievement[] = [
     // v5.85 fix (2.3): count tracks where ALL lessons are completed, not just
     // total completed lesson count. Previously checked `completed.length >= 30`
     // which could be satisfied by completing 30 lessons in a single track.
+    // v5.865 fix (B.15): removed the unnecessary langId.replace() fallback
+    // that could cause false matches. Lesson IDs now use the real format
+    // (python-01, javascript-01, etc.) since the LESSON_TOPIC_MAP was fixed.
     check: (s: AppState) => {
       if (!s.roadmap) return false;
       const userLangs = s.roadmap.languageIds ?? [];
       let fullyCompletedTracks = 0;
       for (const langId of userLangs) {
-        // Check if all lessons in this track are complete
-        const trackLessonIds = Object.keys(s.lessonProgress).filter((id) => {
-          // Lesson IDs follow the pattern `${trackId}-NN`
-          return id.startsWith(langId + "-") || id.startsWith(langId.replace(/[^a-z]/g, "") + "-");
-        });
+        // Check if all lessons in this track are complete.
+        // Lesson IDs follow the pattern `${trackId}-NN` (e.g. python-01).
+        const trackLessonIds = Object.keys(s.lessonProgress).filter((id) =>
+          id.startsWith(langId + "-"),
+        );
         if (trackLessonIds.length >= 21) {
           const allComplete = trackLessonIds.every((id) => s.lessonProgress[id]?.status === "complete");
           if (allComplete) fullyCompletedTracks++;

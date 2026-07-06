@@ -10,8 +10,9 @@ type BeforeInstallPromptEvent = Event & {
 };
 
 const DISMISS_KEY = "launchpad:pwa-install-dismissed";
-// v5.85 note (4.18): 'Never show again' would set localStorage['launchpad:install-never']='1'
-  const DISMISS_DURATION = 1000 * 60 * 60 * 24 * 7; // 7 days
+// v5.865 fix (4.18): added a permanent "never show again" flag.
+const NEVER_KEY = "launchpad:pwa-install-never";
+const DISMISS_DURATION = 1000 * 60 * 60 * 24 * 7; // 7 days
 const SHOW_DELAY = 18000; // Show after 18s on page (less disruptive)
 const AUTO_DISMISS = 12000; // Auto-hide after 12s if no interaction
 
@@ -34,6 +35,13 @@ export function InstallPrompt() {
         true);
 
     if (standalone) return;
+
+    // v5.865 fix (4.18): check the permanent "never" flag first.
+    try {
+      if (localStorage.getItem(NEVER_KEY) === "1") return;
+    } catch {
+      // ignore
+    }
 
     // Check if user dismissed recently
     try {
@@ -101,6 +109,16 @@ export function InstallPrompt() {
     }
   };
 
+  // v5.865 fix (4.18): permanent "never show again" handler.
+  const handleNever = () => {
+    setVisible(false);
+    try {
+      localStorage.setItem(NEVER_KEY, "1");
+    } catch {
+      // ignore
+    }
+  };
+
   if (!visible) return null;
 
   return (
@@ -122,7 +140,7 @@ export function InstallPrompt() {
             <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
               Add to desktop for offline access.
             </p>
-            <div className="mt-2 flex items-center gap-1.5">
+            <div className="mt-2 flex items-center gap-1.5 flex-wrap">
               <button
                 onClick={handleInstall}
                 className="inline-flex items-center gap-1 rounded-md bg-primary text-primary-foreground px-2 py-1 text-[10px] font-medium hover:brightness-110 transition-all"
@@ -134,6 +152,13 @@ export function InstallPrompt() {
                 className="inline-flex items-center rounded-md px-2 py-1 text-[10px] font-medium text-muted-foreground hover:bg-foreground/5 transition-colors"
               >
                 Not now
+              </button>
+              {/* v5.865 fix (4.18): permanent "Never" button */}
+              <button
+                onClick={handleNever}
+                className="inline-flex items-center rounded-md px-2 py-1 text-[10px] font-medium text-muted-foreground/70 hover:text-rose-500 transition-colors"
+              >
+                Never
               </button>
             </div>
           </div>

@@ -95,10 +95,37 @@ function isPrivateOrLoopbackHost(host: string): boolean {
       return isPrivateOrLoopbackHost(`${a}.${b}.${c}.${d}`);
     }
   }
+  // v5.865 fix (B.5): block octal IP forms (0177.0.0.1 = 127.0.0.1)
+  if (/^0[0-7]+\.\d+\.\d+\.\d+$/.test(h)) {
+    const parts = h.split(".");
+    const octal = parseInt(parts[0], 8);
+    if (octal <= 255) {
+      return isPrivateOrLoopbackHost(`${octal}.${parts[1]}.${parts[2]}.${parts[3]}`);
+    }
+  }
+  // v5.865 fix (B.5): block mixed octal/decimal forms (127.0.0.0177 etc.)
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(h)) {
+    const parts = h.split(".");
+    // If any part has a leading zero and is more than 1 char, it might be octal
+    for (const part of parts) {
+      if (part.length > 1 && part.startsWith("0")) {
+        const octal = parseInt(part, 8);
+        if (!isNaN(octal) && octal <= 255) {
+          const decoded = parts.map((p) => parseInt(p, 8).toString(10)).join(".");
+          return isPrivateOrLoopbackHost(decoded);
+        }
+      }
+    }
+  }
   return false;
 }
 
-function assertSafeExternalUrl(rawUrl: string): URL {
+// v5.86 fix (D.5): DNS resolution + re-check since we're on Node.js runtime.
+// This guards against DNS-rebinding attacks where a hostname resolves to a
+// public IP initially but later resolves to a private IP.
+import { lookup as dnsLookup } from "node:dns/promises";
+
+async function assertSafeExternalUrl(rawUrl: string): Promise<URL> {
   let url: URL;
   try {
     url = new URL(rawUrl);
@@ -108,9 +135,26 @@ function assertSafeExternalUrl(rawUrl: string): URL {
   if (url.protocol !== "https:" && url.protocol !== "http:") {
     throw new Error(`Custom endpoint must use http(s) protocol, got ${url.protocol}`);
   }
-  // Block internal/private IPs and localhost
+  // Block internal/private IPs and localhost (literal hostname check)
   if (isPrivateOrLoopbackHost(url.hostname)) {
     throw new Error(`Custom endpoint hostname "${url.hostname}" is blocked (SSRF protection)`);
+  }
+  // v5.86 fix (D.5): DNS-resolve the hostname and re-check the resolved IP.
+  // This catches DNS-rebinding where a hostname like "evil.com" initially
+  // resolves to a public IP but later resolves to 127.0.0.1 or 169.254.169.254.
+  try {
+    const addresses = await dnsLookup(url.hostname, { all: true });
+    for (const addr of addresses) {
+      if (isPrivateOrLoopbackHost(addr.address)) {
+        throw new Error(`Custom endpoint hostname "${url.hostname}" resolves to blocked IP ${addr.address} (SSRF protection)`);
+      }
+    }
+  } catch (err) {
+    // If DNS lookup fails for a non-blocking reason, let the fetch handle it.
+    // But if it's our own throw, re-throw.
+    if (err instanceof Error && err.message.includes("blocked IP")) {
+      throw err;
+    }
   }
   return url;
 }
@@ -241,7 +285,7 @@ async function fetchProviderChat(
     case "custom": {
       if (!customEndpoint) throw new Error("Custom endpoint URL is required");
       // SSRF: validate the custom endpoint before fetching it
-      assertSafeExternalUrl(customEndpoint);
+      await assertSafeExternalUrl(customEndpoint);
       return callOpenAICompatible(customEndpoint, apiKey, model, messages, temperature, {}, systemPrompt);
     }
     default:
@@ -364,7 +408,7 @@ export async function POST(req: NextRequest) {
           upstreamHeaders = { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` };
         } else {
           if (!customEndpoint) throw new Error("Custom endpoint URL is required");
-          assertSafeExternalUrl(customEndpoint);
+          await assertSafeExternalUrl(customEndpoint);
           upstreamUrl = customEndpoint;
           upstreamHeaders = { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` };
         }
@@ -419,11 +463,17 @@ export async function POST(req: NextRequest) {
       }
 
       if (sseFormat && upstreamUrl) {
+        // v5.865 fix (5.4): pass req.signal to the upstream fetch so that
+        // when the client disconnects (closes the tab), the upstream request
+        // is aborted too — saving tokens and bandwidth.
         const upstreamRes = await fetch(upstreamUrl, {
           method: "POST",
           headers: upstreamHeaders,
           body: upstreamBody,
-          signal: AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS),
+          signal: AbortSignal.any([
+            AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS),
+            req.signal,
+          ]),
         });
 
         if (!upstreamRes.ok || !upstreamRes.body) {
@@ -440,59 +490,79 @@ export async function POST(req: NextRequest) {
                 const { done, value } = await reader.read();
                 if (done) break;
                 buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split("\n");
-                buffer = lines.pop() ?? ""; // keep incomplete line
 
-                for (const line of lines) {
-                  const trimmed = line.trim();
-                  if (!trimmed || !trimmed.startsWith("data: ")) continue;
-                  const data = trimmed.slice(6);
+                // v5.86 fix (B.1): SSE messages are delimited by \n\n (double newline),
+                // NOT single \n. Splitting on \n caused partial/mangled parsing that
+                // broke streaming for ALL providers.
+                const messages = buffer.split("\n\n");
+                buffer = messages.pop() ?? ""; // keep incomplete message
 
-                  // OpenAI-compatible: data: [DONE] marks the end.
-                  if (sseFormat === "openai" && data === "[DONE]") {
-                    controller.close();
-                    return;
-                  }
+                for (const message of messages) {
+                  // An SSE message can have multiple lines (event:, data:, id:, etc.)
+                  // We only care about data: lines.
+                  const lines = message.split("\n");
+                  for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed || !trimmed.startsWith("data: ")) continue;
+                    const data = trimmed.slice(6);
 
-                  try {
-                    const parsed = JSON.parse(data);
-                    let delta: string | undefined;
-
-                    if (sseFormat === "openai") {
-                      // {choices: [{delta: {content: "..."}}]}
-                      delta = parsed?.choices?.[0]?.delta?.content;
-                    } else if (sseFormat === "gemini") {
-                      // v5.79: Gemini SSE format:
-                      // {candidates: [{content: {parts: [{text: "..."}]}}]}
-                      delta = parsed?.candidates?.[0]?.content?.parts
-                        ?.map((p: { text?: string }) => p.text)
-                        .join("");
-                    } else if (sseFormat === "anthropic") {
-                      // v5.79: Anthropic SSE format:
-                      // event: content_block_delta
-                      // data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"..."}}
-                      // We only care about content_block_delta events.
-                      if (parsed?.type === "content_block_delta" && parsed?.delta?.text) {
-                        delta = parsed.delta.text;
-                      }
-                      // message_stop event marks the end.
-                      if (parsed?.type === "message_stop") {
-                        controller.close();
-                        return;
-                      }
+                    // OpenAI-compatible: data: [DONE] marks the end.
+                    if (sseFormat === "openai" && data === "[DONE]") {
+                      controller.close();
+                      return;
                     }
 
-                    if (delta) {
-                      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: delta })}\n\n`));
+                    // Skip non-JSON data lines (some providers send comments)
+                    if (data === "[DONE]" || data === "") continue;
+
+                    try {
+                      const parsed = JSON.parse(data);
+                      let delta: string | undefined;
+
+                      if (sseFormat === "openai") {
+                        // {choices: [{delta: {content: "..."}}]}
+                        delta = parsed?.choices?.[0]?.delta?.content;
+                      } else if (sseFormat === "gemini") {
+                        // Gemini SSE format:
+                        // {candidates: [{content: {parts: [{text: "..."}]}}]}
+                        delta = parsed?.candidates?.[0]?.content?.parts
+                          ?.map((p: { text?: string }) => p.text)
+                          .join("");
+                      } else if (sseFormat === "anthropic") {
+                        // Anthropic SSE format:
+                        // data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"..."}}
+                        if (parsed?.type === "content_block_delta" && parsed?.delta?.text) {
+                          delta = parsed.delta.text;
+                        }
+                        // message_stop event marks the end.
+                        if (parsed?.type === "message_stop") {
+                          controller.close();
+                          return;
+                        }
+                      }
+
+                      if (delta) {
+                        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: delta })}\n\n`));
+                      }
+                    } catch {
+                      // Skip malformed JSON chunks (keepalive comments, partial data).
                     }
-                  } catch {
-                    // Skip malformed JSON chunks (keepalive comments, partial data).
                   }
                 }
               }
               controller.close();
             } catch (err) {
-              controller.error(err);
+              // v5.865 fix (B.12): sanitize the error before sending to the client.
+              // The raw error may contain upstream HTTP response bodies with API
+              // key fragments or internal URLs. Log the full error server-side,
+              // send a safe message to the client.
+              console.error("[chat] streaming error:", err);
+              try {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: "The AI provider returned an error during streaming. Please check your API key and try again." })}\n\n`));
+              } catch {
+                // controller already closed
+              }
+              controller.close();
             }
           },
         });

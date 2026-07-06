@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { X, ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+// v5.865 fix (6.5): import ViewId type for the cast below.
+import type { ViewId } from "@/lib/types";
 
 const TOUR_STEPS = [
   { view: "dashboard", title: "Dashboard", body: "Your home base — see today's tasks, streak, XP, Career Readiness Score, shareable progress cards, and a 'How do others learn?' benchmark card.", targetSelector: "nav" },

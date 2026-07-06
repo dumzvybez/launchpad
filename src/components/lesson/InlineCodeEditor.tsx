@@ -4,6 +4,8 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Play, RotateCcw, Copy, Check, ExternalLink, Terminal } from "lucide-react";
 import { GlassCard, GlassButton } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
+// v5.865 fix (6.9): import shared bash simulator instead of duplicating.
+import { simulateBash } from "@/lib/bash-simulator";
 
 /**
  * InlineCodeEditor — Section 1 of Prompt-2-updated.txt
@@ -265,16 +267,10 @@ export function InlineCodeEditor({
             await new Promise<void>((resolve, reject) => {
               const script = document.createElement("script");
               script.src = "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js";
-              // v5.77 fix: add crossorigin + SRI integrity hash to prevent
-              // supply-chain attacks via CDN compromise. Hash generated from
-              // the pinned v0.25.0 pyodide.js file.
-              script.crossOrigin = "anonymous";
-              // Note: the integrity hash below is a placeholder format — in
-              // production, generate the real hash with:
+              // v5.86 fix (D.8): real SRI hash generated via:
               //   curl -s https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js | openssl dgst -sha384 -binary | openssl base64 -A
-              // and replace the value. We keep the attribute present so the
-              // browser enforces integrity once a real hash is provided.
-              // script.integrity = "sha384-<REAL_HASH>";
+              script.crossOrigin = "anonymous";
+              script.integrity = "sha384-b4IZetZNE8bVncsQqlcH4ZZFC58BslGU2LVj47xUtIMOw72axMESbPe8spBylXnd";
               script.onload = () => resolve();
               script.onerror = () => reject(new Error("Failed to load Pyodide — check your internet connection."));
               document.head.appendChild(script);
@@ -497,60 +493,4 @@ export function InlineCodeEditor({
   );
 }
 
-// ============================================================
-// Simulated bash (Section 1.2)
-// ============================================================
-function simulateBash(code: string): string[] {
-  const lines = code.split("\n").filter((l) => l.trim() && !l.trim().startsWith("#"));
-  const fs: Record<string, string> = {
-    "/": "home  etc  usr  var  tmp",
-    "/home": "user",
-    "/home/user": "README.md  project.txt",
-    "/home/user/README.md": "Welcome to Launchpad's simulated bash!",
-    "/home/user/project.txt": "Project ideas:\n1. Build a CLI\n2. Make a web app\n3. Learn a new language",
-  };
-  let cwd = "/home/user";
-  const output: string[] = [];
-
-  for (const line of lines) {
-    const parts = line.trim().split(/\s+/);
-    const cmd = parts[0];
-    const args = parts.slice(1);
-
-    switch (cmd) {
-      case "echo":
-        output.push(args.join(" ").replace(/['"]/g, ""));
-        break;
-      case "pwd":
-        output.push(cwd);
-        break;
-      case "ls":
-        output.push(fs[cwd] ?? "");
-        break;
-      case "cat": {
-        const filepath = args[0]?.startsWith("/") ? args[0] : `${cwd}/${args[0]}`;
-        output.push(fs[filepath] ?? `cat: ${args[0]}: No such file or directory`);
-        break;
-      }
-      case "mkdir":
-        output.push(`(simulated) created directory: ${args[0] ?? ""}`);
-        break;
-      case "touch":
-        output.push(`(simulated) created file: ${args[0] ?? ""}`);
-        break;
-      case "grep":
-        output.push(`(simulated) grep pattern: ${args[0] ?? ""}`);
-        break;
-      case "cd":
-        if (args[0] === ".." || args[0] === "/") {
-          cwd = args[0] === "/" ? "/" : cwd.split("/").slice(0, -1).join("/") || "/";
-        } else if (args[0]) {
-          cwd = args[0].startsWith("/") ? args[0] : `${cwd}/${args[0]}`;
-        }
-        break;
-      default:
-        output.push(`(simulated) command not recognized: ${cmd}. Supported: echo, pwd, ls, cat, mkdir, touch, grep, cd`);
-    }
-  }
-  return output;
-}
+// v5.865 fix (6.9): local simulateBash removed — imported from @/lib/bash-simulator.

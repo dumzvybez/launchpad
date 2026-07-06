@@ -56,9 +56,9 @@ const GROUP_LABELS: Record<string, string> = {
   system: "System",
 };
 
-export function getNavItems(roadmap?: { languageIds: string[] } | null): NavItem[] {
-  // Playground supports all 30+ languages now, so always show it.
-  void roadmap;
+// v5.865 fix (4.13): removed the unused `roadmap` parameter.
+// The function always returns ALL_NAV regardless of roadmap.
+export function getNavItems(): NavItem[] {
   return ALL_NAV;
 }
 
@@ -94,7 +94,8 @@ export function Sidebar({
   const streak = state.streak.current;
   const freezes = state.streak.freezes;
 
-  const nav = getNavItems(state.roadmap);
+  // v5.865 fix (4.13): getNavItems takes no args now.
+  const nav = getNavItems();
   const grouped = nav.reduce((acc, item) => {
     if (!acc[item.group]) acc[item.group] = [];
     acc[item.group].push(item);
@@ -152,6 +153,7 @@ export function Sidebar({
               return (
                 <button
                   onClick={() => firstItem && setView(firstItem.id)}
+                  aria-label={GROUP_LABELS[group]}
                   className={cn(
                     "flex items-center justify-center py-1.5 rounded-lg transition-colors w-full",
                     anyActive ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-foreground/5",
@@ -320,6 +322,6 @@ export function LogoMark({ size = 36 }: { size?: number }) {
 }
 
 export { ALL_NAV as NAV };
-export function totalPhases() {
-  return 6;
-}
+// v5.865 fix (6.6): totalPhases() removed — it always returned 6, but
+// roadmaps can have 8-9 phases. Callers should use state.roadmap.phases.length
+// if they need the actual count.

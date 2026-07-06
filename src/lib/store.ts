@@ -815,7 +815,8 @@ export const useStore = create<Store>((set, get) => {
       const s = get().state;
       if (!s.roadmap) return false;
       if (phaseNumber === 1) return true;
-      // Phases 1 and 2 are always unlocked for exploration. Phase N (N>2) unlocks when phase N-1 is at least 50% complete. complete
+      // Phases 1 and 2 are always unlocked for exploration.
+      // Phase N (N>2) unlocks when phase N-1 is at least 50% complete.
       const prevPhase = s.roadmap.phases.find((p) => p.number === phaseNumber - 1);
       if (!prevPhase) return false;
       const tasks = prevPhase.modules.flatMap((m) => m.tasks);
@@ -1275,9 +1276,13 @@ export const useStore = create<Store>((set, get) => {
         }
       }
 
+      // v5.865 (B.CERT.3): NO local fallback. If Supabase insert fails,
+      // return an empty string and let the caller handle the error.
+      // Previously, the code fell back to a local random ID that wasn't
+      // in Supabase, producing unverifiable certificates.
       let certId = "";
+      let issueError: string | undefined;
 
-      // Try Supabase (server-side, guaranteed-unique random ID).
       try {
         const res = await fetch("/api/certificates/create", {
           method: "POST",
@@ -1287,7 +1292,6 @@ export const useStore = create<Store>((set, get) => {
             certificateType: "language",
             languageCompleted: trackId,
             joinedDate: state.profile.startDate || new Date().toISOString(),
-            // v5.84: send progress proof so the server can validate completion
             progressProof: {
               completedLessonIds,
               quizScores,
@@ -1297,14 +1301,19 @@ export const useStore = create<Store>((set, get) => {
         if (res.ok) {
           const data = await res.json();
           certId = data.certId;
+        } else {
+          const data = await res.json().catch(() => ({}));
+          issueError = data.error || `HTTP ${res.status}`;
         }
-      } catch {
-        // Fall through to local generation
+      } catch (err) {
+        issueError = (err as Error).message;
       }
 
-      // Fallback: local random ID generation (crypto.getRandomValues)
       if (!certId) {
-        certId = generateCertificateId();
+        // v5.865 (B.CERT.3/B.CERT.4): do NOT store a local-fallback cert.
+        // Return empty string to signal failure. The caller can retry.
+        console.error("[issueCertificate] failed:", issueError);
+        return "";
       }
 
       const cert = {
@@ -1332,9 +1341,11 @@ export const useStore = create<Store>((set, get) => {
       // v5.84: build the progress proof — career certs require 100% readiness.
       const readinessScore = selectCareerReadinessScore(state).overall;
 
+      // v5.865 (B.CERT.3): NO local fallback. If Supabase insert fails,
+      // return empty string to signal failure.
       let certId = "";
+      let issueError: string | undefined;
 
-      // Try Supabase first.
       try {
         const res = await fetch("/api/certificates/create", {
           method: "POST",
@@ -1344,7 +1355,6 @@ export const useStore = create<Store>((set, get) => {
             certificateType: "career",
             languageCompleted: null,
             joinedDate: state.profile.startDate || new Date().toISOString(),
-            // v5.84: send progress proof so the server validates 100% readiness
             progressProof: {
               careerReadinessScore: readinessScore,
             },
@@ -1353,14 +1363,17 @@ export const useStore = create<Store>((set, get) => {
         if (res.ok) {
           const data = await res.json();
           certId = data.certId;
+        } else {
+          const data = await res.json().catch(() => ({}));
+          issueError = data.error || `HTTP ${res.status}`;
         }
-      } catch {
-        // Fall through to local generation
+      } catch (err) {
+        issueError = (err as Error).message;
       }
 
-      // Fallback: local random ID generation
       if (!certId) {
-        certId = generateCareerCertificateId();
+        console.error("[issueCareerCertificate] failed:", issueError);
+        return "";
       }
 
       const cert = {
@@ -1598,29 +1611,33 @@ export const useStore = create<Store>((set, get) => {
       set({ pendingBadgeToasts: get().pendingBadgeToasts.filter((id) => id !== badgeId) }),
 
     resetAll: () => {
-      // v5.77 fix: clear any pending debounced save BEFORE removing localStorage
-      // keys. Previously, if a state update happened within 200ms before reset,
-      // the pending save would fire AFTER the reset and write the pre-reset
-      // state back to localStorage — undoing the reset.
-      if (saveTimer) {
-        clearTimeout(saveTimer);
-        saveTimer = null;
-      }
-      if (typeof window !== "undefined") {
-        // v5.77 fix: clear ALL launchpad:* keys, not just the main state key.
-        // Previously, achievement-flag keys (launchpad:code-reviewed,
-        // launchpad:progress-shared, launchpad:review-mode-count, etc.) survived
-        // reset, causing badges to remain unlocked after a fresh start.
-        const keysToRemove: string[] = [];
-        for (let i = 0; i < window.localStorage.length; i++) {
-          const key = window.localStorage.key(i);
-          if (key && (key.startsWith("launchpad:") || key.startsWith("launchpad-") || key.startsWith("lp-"))) {
-            keysToRemove.push(key);
-          }
+      // v5.865 fix (3.3/B.8): set isResetting BEFORE clearing, clear AFTER.
+      // This prevents any in-flight debounced save from writing the pre-reset
+      // state back to localStorage AFTER the reset.
+      isResetting = true;
+      try {
+        if (saveTimer) {
+          clearTimeout(saveTimer);
+          saveTimer = null;
         }
-        keysToRemove.forEach((key) => window.localStorage.removeItem(key));
+        if (typeof window !== "undefined") {
+          // v5.77 fix: clear ALL launchpad:* keys, not just the main state key.
+          // v5.865 fix (3.4): use the same prefix filter as SettingsView
+          // ("launchpad" prefix covers "launchpad:" and "launchpad-")
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < window.localStorage.length; i++) {
+            const key = window.localStorage.key(i);
+            if (key && (key.startsWith("launchpad") || key.startsWith("lp-"))) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach((key) => window.localStorage.removeItem(key));
+        }
+        set({ state: DEFAULT_STATE });
+      } finally {
+        // Allow saves again after a short delay (let React settle).
+        setTimeout(() => { isResetting = false; }, 500);
       }
-      set({ state: DEFAULT_STATE });
     },
 
     exportBackup: () => exportState(get().state),

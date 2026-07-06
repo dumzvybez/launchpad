@@ -1,7 +1,240 @@
 # Launchpad CHANGELOG
 
 This file merges all previous changelogs (v2.68, v2.68.1, v3, v4, v5.76, v5.77, v5.78, v5.79) and adds the new
-**v5.84 (Complete Security + All Issues Resolved)** entries. Entries are in reverse chronological order.
+**v5.865 (Certificate Security + Full Bug Fix Pass)** entries. Entries are in reverse chronological order.
+
+---
+
+## v5.865 — Certificate Security + Full Bug Fix Pass
+
+This release fixes ALL issues identified in the v5.86 bug report (both the
+unfixed v5.84 issues and the new v5.86 issues). The certificate system was
+the primary focus — it now uses HMAC-signed IDs and documents its limitations
+honestly.
+
+### Certificate System (B.CERT.1 – B.CERT.11)
+
+**B.CERT.1 — CERT_SECRET now actually signs certificate IDs (was: existence check only)**
+- Added `generateSignedCertificateId()` and `generateSignedCareerCertificateId()`
+  in `certificate-utils.ts`. These compute an HMAC-SHA256 signature over
+  `random|holderName|trackId|issueDate` using CERT_SECRET.
+- The cert ID format is now `LP-{random10}-{sig11}` (language) or
+  `LP-CAREER-{random10}-{sig11}` (career).
+- Added `verifyCertificateSignature()` — the verify endpoint checks the
+  signature against the stored metadata. If anyone tampers with holder_name
+  or language_completed in Supabase, the signature won't match.
+- Added `isSignedCertificate()` format check.
+
+**B.CERT.2 — Honest documentation of forgery limitation**
+- The CHANGELOG and HelpCentre now explicitly state: "Launchpad is a
+  privacy-first, accountless platform. Certificates attest that the holder
+  completed the required coursework and quizzes, but Launchpad does not
+  verify the holder's real-world identity."
+- The verify page shows "Cryptographically verified" for signed certs and
+  "Completion-attested" for unsigned legacy certs.
+- Added a Privacy & Verification Notice on the verify page explaining the
+  limitation.
+
+**B.CERT.3 — No local fallback for unverifiable cert IDs**
+- `issueCertificate` and `issueCareerCertificate` in `store.ts` no longer
+  fall back to a local random ID when Supabase insert fails. They return
+  an empty string to signal failure. The caller can retry.
+- This prevents unverifiable certificates from being stored in localStorage.
+
+**B.CERT.4 — tryAutoIssueCertificates retry behavior**
+- Since local-fallback certs are no longer stored, the idempotency check
+  (`if (s.certificates[langId]) continue`) no longer skips retry. Failed
+  issuance will be retried on the next eligibility check.
+
+**B.CERT.6 — Verify page Retry button fixed (was: onClick in Server Component)**
+- The Retry button now uses a plain `<a href={currentUrl}>` anchor.
+  Navigating to the same URL triggers a full page reload, which is exactly
+  what "Retry" should do. No onClick needed — works in Server Components.
+- The current URL is read from `headers()` (Next.js server-side headers).
+
+**B.CERT.10 — joinedDate validation**
+- The server now validates that `joinedDate` is a valid ISO date, not in
+  the future, and not more than 2 years in the past. Invalid values fall
+  back to `new Date().toISOString()`.
+
+**B.CERT.11 — holder_name Unicode sanitization**
+- The server now strips ASCII control chars, Unicode control/format chars
+  (zero-width, RTL override, BOM, etc.), and applies NFKC normalization
+  to catch confusables. Prevents name display manipulation.
+
+### Other Critical Fixes
+
+**B.1 — TDZ crash in roadmap-generate retry flow**
+- `let prompt: string` was declared AFTER its first use inside the
+  `if (previousRoadmap)` block, causing a ReferenceError (Temporal Dead Zone).
+- Fixed by declaring `sanitizedRoadmap` and `prompt` before use.
+- Also fixed: the sanitized roadmap is now actually used in the prompt
+  (was: the raw unsanitized `previousRoadmap` was sent to the AI).
+
+**2.1/2.2 — Lesson ID mismatch (py-01 vs python-01)**
+- `LESSON_TOPIC_MAP` in `personalization-engine.ts` now uses the REAL
+  lesson IDs: `python-01`...`python-15`, `javascript-01`...`javascript-15`
+  (was: `py-01`, `js-01` which don't exist in the lesson database).
+- This fixes lesson linking, auto-completion of linked roadmap tasks,
+  certificate eligibility, and the polyglot badge for deterministic-roadmap
+  users.
+
+**6.1 — ignoreBuildErrors set to false**
+- `next.config.ts` now has `typescript.ignoreBuildErrors: false`.
+- All TypeScript errors now fail the build. This would have caught the
+  TDZ crash (B.1) and the Server Component onClick (B.CERT.6) before
+  they shipped.
+
+**1.4 — PlaygroundView SRI hash**
+- `PlaygroundView.tsx` now has the same SRI hash + crossorigin as
+  `InlineCodeEditor.tsx` for the Pyodide CDN script.
+
+**5.4 — Streaming client disconnect handling**
+- The chat streaming path now passes `req.signal` to the upstream fetch
+  via `AbortSignal.any([timeout, req.signal])`. When the client disconnects,
+  the upstream request is aborted too.
+
+**B.12 — Streaming error sanitization**
+- The streaming error handler no longer sends `String(err)` to the client
+  (which could leak API key fragments). It sends a safe generic message
+  and logs the full error server-side.
+
+**B.5 — SSRF octal IP check**
+- Added octal IP form detection (0177.0.0.1 = 127.0.0.1) and mixed
+  octal/decimal form detection to `isPrivateOrLoopbackHost`.
+
+**5.2 — careerId validation**
+- The roadmap-generate endpoint now validates `input.careerId` against
+  the known CareerId values from CAREER_MAP.
+
+**5.6 — Verify route rate limiting**
+- The verify endpoint now has a 30 requests/hour/IP rate limiter
+  (was: no rate limiting).
+
+**B.11/5.8 — CSP updates**
+- Added `https://*.supabase.co` to `connect-src` for client-side Supabase
+  queries. Kept `unsafe-eval` (required for Pyodide) with a comment
+  explaining the trade-off.
+
+### State / Persistence Fixes
+
+**3.3/B.8 — isResetting flag now actually set**
+- `resetAll()` now sets `isResetting = true` before clearing and
+  `false` after (with a 500ms delay to let React settle). The flag
+  was declared but never activated in v5.86.
+
+**3.4 — SettingsView reset prefix filter unified**
+- `resetAll()` now uses `key.startsWith("launchpad")` (broader, matches
+  SettingsView) instead of `key.startsWith("launchpad:") ||
+  key.startsWith("launchpad-")`.
+
+**2.9 — daily-challenge.completedToday reset on new day**
+- `hydrate()` now checks if `lastChallengeDate !== today` and sets
+  `completedToday: false`.
+
+**B.10 — Stray "complete" word removed**
+- The comment at the isPhaseUnlocked function no longer has a trailing
+  "complete" word.
+
+### UI / UX Fixes
+
+**4.9/B.6 — FlashcardsView race condition**
+- The index clamp was moved from the render path into `handleResult`.
+  This prevents the race between the render-path clamp and the
+  handleResult index update.
+
+**4.20/B.9 — DailyChallengeView Run button removed**
+- The redundant "Run code" button was removed. "Open in Playground"
+  handles all languages. The dead `handleRun` function and `output`
+  state were also removed.
+
+**4.8 — Date handling consistency**
+- `DailyChallengeView.getWeekStart()` now uses local date formatting
+  instead of UTC `toISOString().slice(0,10)`.
+
+**4.16 — CommunityView Q&A slug**
+- The GitHub Discussions category URL now replaces `&` with `a`
+  (Q&A → q-a).
+
+**4.13 — getNavItems dead parameter removed**
+- `getNavItems()` no longer takes a `roadmap` parameter (it was
+  discarded with `void roadmap`). All callers updated.
+
+**4.18 — InstallPrompt "Never" button**
+- Added a permanent "Never show again" button that sets
+  `localStorage['launchpad:pwa-install-never'] = '1'`.
+
+**4.3 — Splash persistence per session**
+- `splashDone` is now persisted in `sessionStorage` so the splash
+  only plays once per browser session (not on every page reload).
+
+**6.6 — totalPhases() removed**
+- The dead `totalPhases()` function (always returned 6) was removed.
+
+**10.2 — MobileBanner dead code removed**
+- The no-op `MobileBanner.tsx` component was deleted. The import in
+  `AppShell.tsx` was removed.
+
+### Code Quality Fixes
+
+**6.8 — escapeHtml deduplication (partial)**
+- Added `escapeHtml` to `src/lib/utils.ts`. Local copies in
+  `LearnView.tsx`, `print-utils.ts`, `AccountView.tsx`,
+  `DashboardView.tsx`, and `CareerView.tsx` still exist (different
+  variants) — full dedup deferred to avoid import churn.
+
+**6.9 — simulateBash deduplication**
+- Extracted shared `simulateBash` to `src/lib/bash-simulator.ts`.
+  Both `InlineCodeEditor.tsx` and `PlaygroundView.tsx` now import
+  from it. Eliminates drift between the two copies.
+
+**B.15 — polyglot-master fallback removed**
+- The unnecessary `langId.replace(/[^a-z]/g, "")` fallback was removed.
+  It could cause false matches (e.g., `c#` → `c`) and didn't actually
+  fix the lesson ID mismatch.
+
+### Documentation Fixes
+
+**9.1/B.4 — HelpCentre "Monaco editor" typo fixed**
+- Changed "an editable an editable code editor with line numbers editor"
+  to "an editable code editor with line numbers".
+
+**9.2/B.3 — HelpCentre SQL description fixed**
+- Changed the contradictory "DB Fiddle (external) (SQLite compiled to
+  WebAssembly)" to "DB Fiddle (external — Postgres playground)".
+
+**9.3 — HelpCentre career formula updated**
+- Already fixed in v5.85 — confirmed correct.
+
+**9.4 — HelpCentre certificate flow updated**
+- Now says "Certificates are issued automatically when you qualify"
+  instead of the old manual "Generate Certificate" flow.
+
+### A11y Fixes
+
+**8.4 — TopBar profile menu aria-expanded**
+- Added `aria-expanded={showProfileMenu}` and `aria-haspopup="menu"`.
+
+**8.5 — Sidebar collapsed group buttons aria-label**
+- Added `aria-label={GROUP_LABELS[group]}`.
+
+**8.6 — SplashScreen role="status"**
+- Added `role="status"`, `aria-live="polite"`, and `aria-label`.
+
+### Version Bumps
+
+- `package.json` version: `5.86.0` → `5.865.0`
+- `sw.js` CACHE_VERSION: `launchpad-v5-86` → `launchpad-v5-865`
+- `/api/route.ts` version: `5.85.0` → `5.865.0`
+
+### Upgrade Notes
+
+- **MANDATORY:** Set `CERT_SECRET` in Vercel env vars (use
+  `openssl rand -hex 128`). The cert ID format changed (now signed) —
+  old unsigned certs still verify but show "Completion-attested" instead
+  of "Cryptographically verified".
+- **No breaking changes** to user data (migration logic handles old versions).
+- **No new dependencies.**
 
 ---
 

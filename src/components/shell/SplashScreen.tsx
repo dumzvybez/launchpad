@@ -39,6 +39,9 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
 
   return (
     <div
+      role="status"
+      aria-live="polite"
+      aria-label="Loading Launchpad"
       className="fixed inset-0 z-[100] flex items-center justify-center"
       style={{
         background: "oklch(0.11 0.012 250)",
