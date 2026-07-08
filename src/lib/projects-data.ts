@@ -4407,6 +4407,13 @@ export function selectProjectsForRoadmap(
   languageIds: string[],
   maxProjects: number = 8,
 ): SelectedProject[] {
+  // v5.88: Scale maxProjects dynamically based on the number of selected
+  // languages. Previously hardcoded to 8 regardless of language count, so
+  // users who selected 30+ languages had most languages with zero project
+  // coverage. Now: max(8, min(24, languageIds.length * 2)).
+  // Cap at 24 to keep the Projects tab manageable.
+  const dynamicMax = Math.max(maxProjects, Math.min(24, languageIds.length * 2));
+
   // Section 4.2 — STRICT language matching rule:
   // A project only shows if EVERY required language is in the user's selected plan.
   const userLangSet = new Set(languageIds);
@@ -4444,6 +4451,7 @@ export function selectProjectsForRoadmap(
   relevant.sort((a, b) => b.score - a.score);
 
   // Ensure tier diversity: pick 2-3 beginner, 2-3 intermediate, 1-2 capstone
+  // v5.88: scale tier caps with dynamicMax too.
   const byTier: Record<string, typeof relevant> = {
     foundational: relevant.filter((s) => s.project.tier === "foundational"),
     core: relevant.filter((s) => s.project.tier === "core"),
@@ -4452,16 +4460,16 @@ export function selectProjectsForRoadmap(
 
   const result: SelectedProject[] = [];
   const targetPerTier = {
-    foundational: Math.min(3, byTier.foundational.length),
-    core: Math.min(3, byTier.core.length),
-    capstone: Math.min(2, byTier.capstone.length),
+    foundational: Math.min(Math.ceil(dynamicMax * 0.4), byTier.foundational.length),
+    core: Math.min(Math.ceil(dynamicMax * 0.4), byTier.core.length),
+    capstone: Math.min(Math.ceil(dynamicMax * 0.2), byTier.capstone.length),
   };
 
-  // Take from each tier, capped at maxProjects total
+  // Take from each tier, capped at dynamicMax total
   let total = 0;
   for (const tier of ["foundational", "core", "capstone"] as const) {
     const target = targetPerTier[tier];
-    for (let i = 0; i < target && total < maxProjects; i++) {
+    for (let i = 0; i < target && total < dynamicMax; i++) {
       const item = byTier[tier][i];
       if (item) {
         result.push({ ...item.project, matchReason: item.reason });
@@ -4471,12 +4479,35 @@ export function selectProjectsForRoadmap(
   }
 
   // If we still have room, add more from any tier
-  if (result.length < maxProjects) {
+  if (result.length < dynamicMax) {
     const used = new Set(result.map((r) => r.id));
     for (const s of relevant) {
-      if (result.length >= maxProjects) break;
+      if (result.length >= dynamicMax) break;
       if (used.has(s.project.id)) continue;
       result.push({ ...s.project, matchReason: s.reason });
+    }
+  }
+
+  // v5.88: Language coverage guarantee — ensure every selected language has
+  // at least one project that uses it. If any language is uncovered, find
+  // the best-matching project for it (single-language projects first, then
+  // multi-language projects that include it).
+  const coveredLangs = new Set<string>();
+  for (const proj of result) {
+    for (const lang of proj.languages) coveredLangs.add(lang);
+  }
+  const uncoveredLangs = languageIds.filter((l) => !coveredLangs.has(l));
+  for (const langId of uncoveredLangs) {
+    // Find projects that use this language, sorted by score
+    const candidates = relevant
+      .filter((s) => s.project.languages.includes(langId))
+      .filter((s) => !result.some((r) => r.id === s.project.id))
+      .sort((a, b) => b.score - a.score);
+    if (candidates.length > 0 && result.length < 30) {
+      const best = candidates[0];
+      result.push({ ...best.project, matchReason: `${best.reason}; ensures ${langId} coverage` });
+      // Mark this language's other potential matches as covered
+      for (const l of best.project.languages) coveredLangs.add(l);
     }
   }
 

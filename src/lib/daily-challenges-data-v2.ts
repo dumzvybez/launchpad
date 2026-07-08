@@ -21807,12 +21807,29 @@ export function getTaskById(id: string): DailyChallengeTask | undefined {
 }
 
 /** Select a pool of tasks for a user based on their selected languages.
- * Returns up to 60 tasks per language, shuffled into a single pool. */
-export function selectPoolForLanguages(languageIds: string[], seed?: number): string[] {
-  const all: DailyChallengeTask[] = [];
+ * Returns up to 60 tasks per language, shuffled into a single pool.
+ * v5.88: Now accepts an optional skillLevel to filter difficulty.
+ *   - "beginner": only "beginner" difficulty tasks (true start for new users)
+ *   - "intermediate": "beginner" + "intermediate" tasks
+ *   - "advanced": all tasks (beginner + intermediate + advanced)
+ *   - undefined (backwards compat): all tasks (original behavior)
+ * This ensures a new user never gets an "advanced" challenge on day 1. */
+export function selectPoolForLanguages(
+  languageIds: string[],
+  seed?: number,
+  skillLevel?: "beginner" | "intermediate" | "advanced",
+): string[] {
+  let all: DailyChallengeTask[] = [];
   for (const lang of languageIds) {
     all.push(...getTasksForLanguage(lang));
   }
+  // v5.88: Filter by skill level if provided
+  if (skillLevel === "beginner") {
+    all = all.filter((t) => t.difficulty === "beginner");
+  } else if (skillLevel === "intermediate") {
+    all = all.filter((t) => t.difficulty === "beginner" || t.difficulty === "intermediate");
+  }
+  // "advanced" or undefined: no filtering (all tasks)
   // Simple deterministic shuffle based on seed (or Date.now())
   const rng = seed ?? Date.now();
   const shuffled = [...all].sort((a, b) => {

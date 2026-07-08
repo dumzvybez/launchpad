@@ -88,19 +88,25 @@ function abortAfter(ms: number): AbortSignal {
 // ─────────────────────────────────────────────────────────────
 const SYSTEM_PROMPT = `You are Launchpad's roadmap architect. Design personalized coding learning roadmaps.
 
-Given a learner's profile, output a JSON learning roadmap with the RIGHT number of phases
-(4-10) — choose based on profile complexity. Do NOT force exactly 6.
+Given a learner's profile, output a JSON learning roadmap. The number of phases MUST SCALE with the number of selected languages:
+- 1-2 languages: 6-8 phases
+- 3-5 languages: 8-12 phases
+- 6-10 languages: 12-16 phases
+- 11-20 languages: 16-22 phases
+- 21+ languages: 22-30 phases (one phase per language group, grouped by ecosystem)
+Do NOT cap at 10 phases if the user selected many languages. EVERY selected language MUST appear in at least one phase's modules or tasks.
 
 PERSONALIZATION RULES:
 - Phase 1: ALWAYS "Foundations" — basics of the user's PRIMARY language
-- If multiple languages: dedicate phases to each (easiest first)
+- For each additional language: dedicate a phase (or group related languages like React+Next.js into one phase)
 - Last phase: ALWAYS "Capstone & Career" — portfolio + interview prep
+- Second-to-last phase: ALWAYS "AI Bonus Track" (customize per career)
 - Beginners: expand early phases (more time on syntax, types, flow)
 - Intermediate/Advanced: compress early phases (they know the basics)
 - Students: add depth and projects
 - Professionals: condense, focus on practical shortcuts
 - Compute totalWeeks from: weeklyHours × totalWeeks ≈ totalHours
-  (Beginner ≈ 600h, Intermediate ≈ 400h, Advanced ≈ 250h)
+  (Beginner ≈ 600h + 50h per additional language, Intermediate ≈ 400h + 30h per language, Advanced ≈ 250h + 20h per language)
 
 LESSON LINKING (CRITICAL — use these EXACT IDs):
 - python-01 to python-20 | javascript-01 to javascript-20 | typescript-01 to typescript-20
@@ -115,8 +121,8 @@ LESSON LINKING (CRITICAL — use these EXACT IDs):
 Use lessonId: "python-03" to link roadmap tasks to Learn tab lessons.
 
 CONTENT RULES:
-- 4-10 phases total (choose based on complexity)
-- 2-4 modules per phase
+- Scale phase count with language count (see above — do NOT cap at 10)
+- 2-4 modules per phase (use more modules for grouped language phases)
 - 2-4 tasks per module
 - Tasks must be SPECIFIC and actionable ("Build a guess-the-number game using while loops",
   NOT "Learn loops")
@@ -129,7 +135,7 @@ CONTENT RULES:
 Output ONLY valid JSON — no markdown fences, no commentary. The JSON shape:
 {
   "careerLabel": string,
-  "totalWeeks": number (8-156),
+  "totalWeeks": number (8-400),
   "totalHours": number,
   "phases": [
     {
@@ -228,7 +234,7 @@ async function callGemini(prompt: string): Promise<unknown> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       contents: [{ parts: [{ text: `${SYSTEM_PROMPT}\n\n${prompt}` }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 6000 },
+      generationConfig: { temperature: 0.7, maxOutputTokens: 65536 },
     }),
     signal: abortAfter(AI_FETCH_TIMEOUT_MS),
   });
@@ -257,7 +263,7 @@ async function callGroq(prompt: string): Promise<unknown> {
     body: JSON.stringify({
       model: "llama-3.3-70b-versatile",
       temperature: 0.7,
-      max_tokens: 6000,
+      max_tokens: 32000,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: prompt },
@@ -296,7 +302,7 @@ async function callOpenRouter(prompt: string): Promise<unknown> {
     body: JSON.stringify({
       model: "meta-llama/llama-3.3-70b-instruct",
       temperature: 0.7,
-      max_tokens: 6000,
+      max_tokens: 32000,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: prompt },
@@ -491,11 +497,15 @@ export async function POST(req: NextRequest) {
 
     // v5.865 fix (B.1): prompt is now declared BEFORE any use, and uses
     // sanitizedRoadmap (not the raw previousRoadmap) to prevent injection.
+    // v5.88: explicitly tell the AI how many phases to generate based on language count.
+    const langCount = input.selectedLanguageIds.length;
+    const minPhases = langCount <= 2 ? 6 : langCount <= 5 ? 8 : langCount <= 10 ? 12 : langCount <= 20 ? 16 : 22;
+    const maxPhases = langCount <= 2 ? 8 : langCount <= 5 ? 12 : langCount <= 10 ? 16 : langCount <= 20 ? 22 : 30;
     let prompt: string;
     if (issues && sanitizedRoadmap) {
       prompt = `Previous roadmap had these validation issues:\n${JSON.stringify(issues, null, 2)}\n\nPrevious roadmap JSON:\n${JSON.stringify(sanitizedRoadmap, null, 2)}\n\nPlease return a CORRECTED JSON roadmap that fixes ALL the listed issues. Same format. Output ONLY the JSON.`;
     } else {
-      prompt = `Design a personalized coding learning roadmap for this learner. Choose the right number of phases (4-10) based on the profile complexity. Output ONLY the JSON roadmap.\n\nLearner profile:\n${JSON.stringify(userContext, null, 2)}`;
+      prompt = `Design a personalized coding learning roadmap for this learner.\n\nCRITICAL: The learner selected ${langCount} language(s)/framework(s). You MUST generate between ${minPhases} and ${maxPhases} phases. EVERY one of the ${langCount} selected languages MUST appear in at least one phase — do NOT silently drop any language. Group related languages (e.g., React+Next.js, Django+FastAPI+Flask) into combined phases where sensible, but ensure full coverage.\n\nOutput ONLY the JSON roadmap.\n\nLearner profile:\n${JSON.stringify(userContext, null, 2)}`;
     }
 
     // Run the 3-provider fallback chain

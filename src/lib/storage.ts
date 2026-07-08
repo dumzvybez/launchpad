@@ -115,6 +115,7 @@ export const DEFAULT_STATE: AppState = {
   questionRecords: {},
   flashcards: [],
   bookmarkedLessons: [],
+  certIssueAttempts: {},
 };
 
 /** Safely load state from localStorage, with schema migration */
@@ -192,6 +193,7 @@ export function loadState(): AppState {
       questionRecords: migratedParsed.questionRecords ?? {},
       flashcards: migratedParsed.flashcards ?? [],
       bookmarkedLessons: migratedParsed.bookmarkedLessons ?? [],
+      certIssueAttempts: migratedParsed.certIssueAttempts ?? {},
     };
 
     // v5.84: If we migrated from an old key, save the migrated state under

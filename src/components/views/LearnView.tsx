@@ -81,6 +81,33 @@ export function LearnView() {
     [selectedLessonId],
   );
 
+  // v5.875 (CRIT-3): Guard against stale persisted lessonId. If the stored
+  // selectedLessonId no longer maps to a real lesson (e.g., after content
+  // changes, backup import with old IDs, or track restructuring), reset
+  // to the tracks view instead of rendering a blank page.
+  useEffect(() => {
+    if (selectedLessonId && !selectedLesson) {
+      console.warn("[LearnView] stale lessonId detected, resetting to tracks view:", selectedLessonId);
+      setLearnTabState({ selectedLessonId: null, selectedTrack: null, tab: "tracks" });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedLessonId, selectedLesson]);
+
+  // v5.875 (CRIT-3): If lessonId is stale (selected but lesson not found),
+  // treat it as "no lesson selected" so the tracks view renders instead of blank.
+  const effectiveSelectedLessonId = selectedLessonId && selectedLesson ? selectedLessonId : null;
+
+  // v5.875 (CRIT-3): If the lesson is stale, show a brief loading spinner
+  // while the useEffect above resets to the tracks view. This prevents a
+  // blank page flash.
+  if (selectedLessonId && !selectedLesson) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="h-6 w-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
   // All tracks with their lesson counts
   const allTracks = useMemo(() => getAllTracks(), []);
 
@@ -100,7 +127,7 @@ export function LearnView() {
   const totalCompleted = Object.values(lessonProgress).filter((p) => p.status === "complete").length;
 
   // Tracks view
-  if (tab === "tracks" && !selectedLessonId) {
+  if (tab === "tracks" && !effectiveSelectedLessonId) {
     return (
       <div className="space-y-5">
         <div>
@@ -1344,8 +1371,38 @@ function QuizView({
   const setActiveChat = useStore((s) => s.setActiveChat);
   const setAiTutorOpen = useStore((s) => s.setAiTutorOpen);
 
-  // Use review questions if in review mode, otherwise all questions.
-  const questions = reviewMode && reviewQuestions ? reviewQuestions : lesson.quiz;
+  // v5.87 FIX: Shuffle quiz options at render time to eliminate the
+  // "correct answer is always B" bias found in auto-generated tracks.
+  // The shuffle is deterministic per question ID (seeded by the question ID
+  // string) so the same question always shuffles the same way within a
+  // session — but different questions get different shuffles, eliminating
+  // any pattern. This is a render-time fix that works for ALL tracks
+  // without needing to edit the 6MB lessons-content.ts data file.
+  const questions = useMemo(() => {
+    const rawQuestions = reviewMode && reviewQuestions ? reviewQuestions : lesson.quiz;
+    // v5.87: shuffle each question's options deterministically
+    return rawQuestions.map((q) => {
+      // Create a simple seeded shuffle based on the question ID
+      const seed = q.id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+      const indices = q.options.map((_, i) => i);
+      // Fisher-Yates shuffle with seeded PRNG
+      let s = seed;
+      for (let i = indices.length - 1; i > 0; i--) {
+        s = (s * 9301 + 49297) % 233280;
+        const j = Math.floor((s / 233280) * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+      // Build new options array and find new correctIndex
+      const shuffledOptions = indices.map((i) => q.options[i]);
+      const newCorrectIndex = indices.indexOf(q.correctIndex);
+      return {
+        ...q,
+        options: shuffledOptions,
+        correctIndex: newCorrectIndex,
+      };
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lesson.id, lesson.quiz, reviewMode, reviewQuestions]);
 
   const score = useMemo(() => {
     if (questions.length === 0) return 0;

@@ -1,6 +1,6 @@
 {
   "name": "launchpad",
-  "version": "5.868.0",
+  "version": "5.880.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000 2>&1 | tee dev.log",

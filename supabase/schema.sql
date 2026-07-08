@@ -51,6 +51,20 @@ CREATE POLICY "Only service role can delete certificates" ON certificates
 -- this is explicit for documentation purposes).
 CREATE INDEX IF NOT EXISTS idx_certificates_id ON certificates(id);
 
+-- v5.875 (CRIT-1): Unique constraint on (holder_name, language_completed) for
+-- language certificates. This is a SECOND LAYER OF DEFENSE against duplicate
+-- certificate rows — if the client-side in-flight guard (certIssuingInProgress
+-- Set in store.ts) is ever bypassed (e.g., two browser tabs, a race condition
+-- the guard misses), the database itself will reject the duplicate insert.
+-- Note: language_completed is NULL for career certificates, and Postgres
+-- treats NULL as distinct, so career certs are NOT affected by this constraint
+-- (which is correct — a user should be able to re-issue a career cert if the
+-- first attempt's row was deleted). For language certs, this ensures only one
+-- cert per (holder_name, language) pair.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_certificates_holder_language_unique
+  ON certificates (holder_name, language_completed)
+  WHERE certificate_type = 'language';
+
 -- ============================================================
 -- Environment Variables (set in Vercel → Project Settings):
 --

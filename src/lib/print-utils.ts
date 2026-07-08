@@ -95,7 +95,12 @@ export function openPrintableHtml(html: string, opts: PrintableOptions = {}): bo
 
   // Try to open in a new tab — most modern browsers allow this when called
   // from a user-initiated click handler.
-  const w = window.open(url, "_blank");
+  // v5.875 (MED-6): Add noopener,noreferrer to prevent the opened tab from
+  // accessing window.opener. Blob: URLs inherit the parent's origin, so
+  // without noopener, any script in the opened HTML (e.g. injected via XSS
+  // in share-card content) could read window.opener.localStorage and
+  // exfiltrate the user's API key.
+  const w = window.open(url, "_blank", "noopener,noreferrer");
   if (!w) {
     // Popup blocked — fall back to a direct download of the HTML file.
     // The user can then open it locally and use the in-page button bar.

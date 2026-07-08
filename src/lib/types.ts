@@ -507,6 +507,15 @@ export type AppState = {
   flashcards: Flashcard[];
   /** Bookmarked lesson IDs (Section 3) */
   bookmarkedLessons: string[];
+  /** v5.875 (CRIT-2): Certificate issuance attempt tracking to prevent infinite retry.
+   * Keyed by trackId (language certs) or "__career__" (career cert).
+   * Stores count + lastAttempt timestamp. */
+  certIssueAttempts: Record<string, { count: number; lastAttempt: number; permanentFail?: boolean }>;
+  /** v5.875 (HIGH-3): Actual number of projects assigned to this user's roadmap.
+   * Set by ProjectsView on mount via selectProjectsForRoadmap(). Used by
+   * selectCareerReadinessScore to compute the projects-completed percentage
+   * with the correct denominator (was hardcoded /3, should be /assignedProjectCount). */
+  assignedProjectCount?: number;
 };
 
 // ============================================================

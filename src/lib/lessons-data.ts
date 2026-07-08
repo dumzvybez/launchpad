@@ -39,7 +39,9 @@ export function lessonsLoaded(): boolean {
 export async function loadAllLessons(): Promise<Lesson[]> {
   if (_allLessonsCache) return _allLessonsCache;
   const mod = await import("./lessons-content");
-  _allLessonsCache = mod.ALL_LESSONS;
+  // v5.87: merge extended lessons (new lessons for short tracks)
+  const ext = await import("./lessons-extended");
+  _allLessonsCache = [...mod.ALL_LESSONS, ...ext.EXTENDED_LESSONS];
   // Rebuild the lookup maps now that we have the data.
   rebuildMaps();
   return _allLessonsCache;

@@ -288,8 +288,14 @@ export function selectCareerReadinessScore(state: AppState): {
   const quizAverage = quizCount > 0 ? Math.round(quizSum / quizCount) : 0;
 
   // 3. Projects completed — % of assigned projects marked shipped
+  // v5.875 (HIGH-3): was hardcoded /3, but 8 projects are assigned per roadmap.
+  // Now uses the ACTUAL assigned project count (set by ProjectsView on mount).
+  // Falls back to 8 (the max) if ProjectsView hasn't been visited yet.
   const shippedCount = state.projects.filter((p) => p.status === "shipped").length;
-  const projectsCompleted = Math.min(100, Math.round((shippedCount / 3) * 100));
+  const totalProjects = state.assignedProjectCount && state.assignedProjectCount > 0
+    ? state.assignedProjectCount
+    : 8;
+  const projectsCompleted = Math.min(100, Math.round((shippedCount / totalProjects) * 100));
 
   // 4. Daily challenges — streak + % completion.
   // Use the *daily-challenge* streak (state.dailyChallenge.currentStreak),
@@ -365,9 +371,13 @@ export function selectCareerProgress(state: AppState): {
   const lessonsPct = totalLessons > 0
     ? Math.round((completedLessons / totalLessons) * 100)
     : 0;
-  // Projects: shipped count / 3 (capped at 100%)
+  // Projects: shipped count / actual assigned total (capped at 100%)
+  // v5.875 (HIGH-3): was /3, now uses the dynamic assignedProjectCount.
   const shippedCount = state.projects.filter((p) => p.status === "shipped").length;
-  const projectsPct = Math.min(100, Math.round((shippedCount / 3) * 100));
+  const totalProjects = state.assignedProjectCount && state.assignedProjectCount > 0
+    ? state.assignedProjectCount
+    : 8;
+  const projectsPct = Math.min(100, Math.round((shippedCount / totalProjects) * 100));
   const overall = Math.round(roadmapPct * 0.4 + lessonsPct * 0.4 + projectsPct * 0.2);
   return { roadmapPct, lessonsPct, projectsPct, overall };
 }
@@ -565,14 +575,26 @@ type Store = {
 
   // Project submissions (capstone uploads)
   addProjectSubmission: (projectId: string, repoUrl: string, notes?: string) => void;
+  /** v5.875 (HIGH-3): Set the actual number of assigned projects for the user's
+   * roadmap. Called by ProjectsView on mount so Career Readiness Score uses
+   * the correct denominator instead of the hardcoded /3. */
+  setAssignedProjectCount: (count: number) => void;
 
   // Certificates
   issueCertificate: (trackId: string, trackName: string, name: string) => Promise<string>;
+  /** v5.875 (CRIT-1): Internal — do NOT call directly. Use issueCertificate. */
+  _issueCertificateInner: (trackId: string, trackName: string, name: string, state: AppState) => Promise<string>;
   issueCareerCertificate: (careerLabel: string, name: string) => Promise<string>;
   /** v5.76 — Auto-issue certificates when eligibility is met. Called from
    * setLessonProgress and checkAchievements. Idempotent — skips tracks
-   * that already have a cert. */
+   * that already have a cert.
+   * v5.875 (CRIT-1): guarded by in-memory Set to prevent duplicate fetches.
+   * v5.875 (CRIT-2): respects certIssueAttempts — skips after 3 transient
+   * failures within 24h, or immediately on permanent (4xx) failure. */
   tryAutoIssueCertificates: () => void;
+  /** v5.875 (CRIT-2): Manual retry — resets attempt counter for a track
+   * and immediately attempts issuance. Used by the "Retry" button in the UI. */
+  retryCertificateIssuance: (trackId: string) => Promise<string>;
   updateCertificateName: (trackId: string, name: string) => void;
   updateCareerCertificateName: (name: string) => void;
 
@@ -628,6 +650,18 @@ export const HABIT_DEFINITIONS = [
 
 let isResetting = false;
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+// v5.875 (CRIT-1): In-memory Set to prevent concurrent duplicate certificate
+// issuance requests for the same track. When tryAutoIssueCertificates fires
+// from both setLessonProgress AND checkAchievements (~50ms apart), both would
+// see certificates[trackId] as undefined and fire separate POSTs, creating
+// duplicate Supabase rows. This Set ensures only one in-flight request per track.
+const certIssuingInProgress = new Set<string>();
+
+// v5.875 (CRIT-2): Constants for certificate retry backoff.
+const CERT_MAX_ATTEMPTS = 3;
+const CERT_RETRY_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
+const CERT_TRANSIENT_BACKOFF_MS = 30 * 1000; // 30 seconds
 let lastPersistedState: AppState | null = null;
 function persist(state: AppState) {
     if (isResetting) return;
@@ -1022,9 +1056,10 @@ export const useStore = create<Store>((set, get) => {
       // v5.77 fix: use the already-imported ESM `selectPoolForLanguages` instead
       // of a dynamic `require()` that throws under Turbopack and silently broke
       // daily challenges for every new user.
+      // v5.88: pass skillLevel so beginners only get beginner-difficulty tasks.
       let dailyPool: string[] = [];
       try {
-        dailyPool = selectPoolForLanguages(input.selectedLanguageIds);
+        dailyPool = selectPoolForLanguages(input.selectedLanguageIds, undefined, input.skillLevel);
       } catch (e) {
         console.warn("[launchpad] could not load daily challenge pool:", e);
       }
@@ -1245,6 +1280,10 @@ export const useStore = create<Store>((set, get) => {
         };
       }),
 
+    // v5.875 (HIGH-3): Store the actual number of assigned projects.
+    setAssignedProjectCount: (count) =>
+      updateState((s) => ({ ...s, assignedProjectCount: count })),
+
     setLearnTabState: (partial) =>
       updateState((s) => ({
         ...s,
@@ -1261,13 +1300,43 @@ export const useStore = create<Store>((set, get) => {
         return existing.certId;
       }
 
+      // v5.875 (CRIT-1): RACE CONDITION GUARD — if an issuance is already
+      // in-flight for this track, return "" instead of firing a duplicate
+      // request. This prevents two concurrent POSTs (from
+      // setLessonProgress + checkAchievements firing ~50ms apart) from
+      // creating duplicate Supabase rows.
+      if (certIssuingInProgress.has(trackId)) {
+        console.log("[issueCertificate] issuance already in-flight for", trackId);
+        return "";
+      }
+
+      // v5.875 (CRIT-2): RETRY BACKOFF — if we've already tried and failed
+      // CERT_MAX_ATTEMPTS times within the last 24h, don't retry
+      // automatically. The user can manually retry via retryCertificateIssuance.
+      const attempts = state.certIssueAttempts[trackId];
+      if (attempts) {
+        if (attempts.permanentFail) {
+          console.log("[issueCertificate] permanent failure recorded for", trackId, "— use manual retry");
+          return "";
+        }
+        if (attempts.count >= CERT_MAX_ATTEMPTS && (Date.now() - attempts.lastAttempt) < CERT_RETRY_COOLDOWN_MS) {
+          console.log("[issueCertificate] max attempts reached for", trackId, "— cooldown active");
+          return "";
+        }
+      }
+
+      certIssuingInProgress.add(trackId);
+      try {
+        return await get()._issueCertificateInner(trackId, trackName, name, state);
+      } finally {
+        certIssuingInProgress.delete(trackId);
+      }
+    },
+
+    // v5.875 (CRIT-1/CRIT-2): Inner implementation — separated so the
+    // in-flight guard in issueCertificate can wrap it in try/finally.
+    _issueCertificateInner: async (trackId, trackName, name, state) => {
       // v5.84: build the progress proof from the user's actual lesson progress.
-      // v5.866 BUG 1A FIX: the old code only used `bestQuizScore`, which is set
-      // by setLessonProgress but NOT by recordQuizAnswer. If a lesson was
-      // completed via the quiz flow but bestQuizScore wasn't persisted (e.g.
-      // older state, race condition), the server would reject with 403
-      // "Insufficient quiz data". Now we compute the quiz score from
-      // `questionAnswers` as a fallback, matching the eligibility check logic.
       const trackLessons = getTrackLessons(trackId);
       const completedLessonIds: string[] = [];
       const quizScores: Record<string, number> = {};
@@ -1276,12 +1345,9 @@ export const useStore = create<Store>((set, get) => {
         if (prog?.status === "complete") {
           completedLessonIds.push(lesson.id);
         }
-        // v5.866: prefer bestQuizScore, but fall back to computing from
-        // questionAnswers (same data the eligibility check uses).
         if (prog?.bestQuizScore !== undefined && prog.bestQuizScore !== null) {
           quizScores[lesson.id] = prog.bestQuizScore;
         } else if (prog?.questionAnswers && lesson.quiz.length > 0) {
-          // Compute score from per-question answers
           let correct = 0;
           let answered = 0;
           for (const q of lesson.quiz) {
@@ -1299,20 +1365,13 @@ export const useStore = create<Store>((set, get) => {
         }
       }
 
-      // v5.868 BUG B FIX: handle gap languages (tracks with no lessons).
-      // Gap languages (docker, tailwind, express, graphql, kubernetes,
-      // terraform, pytorch, tensorflow) have NO lessons in ALL_LESSONS.
-      // The server requires 21 lesson IDs + 21 quiz scores, which can never
-      // be satisfied for a gap language. Return a SPECIFIC error instead of
-      // a misleading "temporary server issue".
+      // v5.868: handle gap languages (tracks with no lessons).
       if (trackLessons.length === 0) {
         console.error("[issueCertificate] track has no lessons (gap language):", trackId);
         return "";
       }
 
-      // v5.866 BUG 1A FIX: client-side pre-validation. Don't send the request
-      // if the progress proof is obviously incomplete — this avoids a 403
-      // and lets the user know something is wrong.
+      // v5.866: client-side pre-validation.
       if (completedLessonIds.length < trackLessons.length) {
         console.error("[issueCertificate] client-side validation: not enough completed lessons", {
           trackId, completed: completedLessonIds.length, expected: trackLessons.length,
@@ -1328,6 +1387,7 @@ export const useStore = create<Store>((set, get) => {
 
       let certId = "";
       let issueError: string | undefined;
+      let httpStatus = 0;
 
       try {
         const res = await fetch("/api/certificates/create", {
@@ -1344,6 +1404,7 @@ export const useStore = create<Store>((set, get) => {
             },
           }),
         });
+        httpStatus = res.status;
         if (res.ok) {
           const data = await res.json();
           certId = data.certId;
@@ -1355,10 +1416,36 @@ export const useStore = create<Store>((set, get) => {
         issueError = (err as Error).message;
       }
 
+      // v5.875 (CRIT-2): Record the attempt outcome.
+      // 4xx = permanent failure (validation/forbidden) — mark as permanent.
+      // 5xx/network/rate-limit = transient — increment count, allow retry after cooldown.
+      const isPermanentFail = httpStatus >= 400 && httpStatus < 500;
+      updateState((s) => {
+        const prev = s.certIssueAttempts[trackId] ?? { count: 0, lastAttempt: 0 };
+        return {
+          ...s,
+          certIssueAttempts: {
+            ...s.certIssueAttempts,
+            [trackId]: {
+              count: prev.count + 1,
+              lastAttempt: Date.now(),
+              permanentFail: isPermanentFail ? true : prev.permanentFail,
+            },
+          },
+        };
+      });
+
       if (!certId) {
-        console.error("[issueCertificate] failed:", issueError);
+        console.error("[issueCertificate] failed:", issueError, "(permanent:", isPermanentFail, ")");
         return "";
       }
+
+      // Success — clear attempt tracking for this track.
+      updateState((s) => {
+        const updated = { ...s.certIssueAttempts };
+        delete updated[trackId];
+        return { ...s, certIssueAttempts: updated };
+      });
 
       const cert = {
         certId,
@@ -1434,6 +1521,10 @@ export const useStore = create<Store>((set, get) => {
     // Called from setLessonProgress (after quiz completion) and
     // checkAchievements (after career readiness hits 100%).
     // Idempotent: skips tracks that already have a cert.
+    // v5.875 (CRIT-1/CRIT-2): The in-flight Set + attempt tracking in
+    // issueCertificate now prevents duplicate fetches and infinite retries.
+    // tryAutoIssueCertificates just checks eligibility — the guard logic
+    // inside issueCertificate handles dedup and backoff.
     tryAutoIssueCertificates: () => {
       const s = get().state;
       if (!s.roadmap) return;
@@ -1444,6 +1535,17 @@ export const useStore = create<Store>((set, get) => {
         // Skip if cert already exists
         if (s.certificates[langId]) continue;
 
+        // v5.875 (CRIT-2): Skip if this track has a permanent failure
+        // or is in cooldown — prevents hammering the endpoint.
+        const attempts = s.certIssueAttempts[langId];
+        if (attempts) {
+          if (attempts.permanentFail) continue;
+          if (attempts.count >= CERT_MAX_ATTEMPTS && (Date.now() - attempts.lastAttempt) < CERT_RETRY_COOLDOWN_MS) continue;
+        }
+
+        // Skip if issuance is already in-flight (CRIT-1)
+        if (certIssuingInProgress.has(langId)) continue;
+
         // Get lessons for this track
         const trackLessons = getTrackLessons(langId);
         if (trackLessons.length === 0) continue;
@@ -1453,21 +1555,44 @@ export const useStore = create<Store>((set, get) => {
           // Auto-issue — fire and forget (async, doesn't block the UI)
           const trackName = ALL_LANGUAGE_INFO[langId]?.name ?? langId;
           get().issueCertificate(langId, trackName, holderName).catch(() => {
-            // Silent failure — will retry on next eligibility check
+            // Error already logged + tracked in issueCertificate
           });
         }
       }
 
       // Check career certificate eligibility (100% career readiness)
       if (!s.careerCertificate) {
+        const careerKey = "__career__";
+        const careerAttempts = s.certIssueAttempts[careerKey];
+        if (careerAttempts) {
+          if (careerAttempts.permanentFail) return;
+          if (careerAttempts.count >= CERT_MAX_ATTEMPTS && (Date.now() - careerAttempts.lastAttempt) < CERT_RETRY_COOLDOWN_MS) return;
+        }
+        if (certIssuingInProgress.has(careerKey)) return;
+
         const { overall } = selectCareerReadinessScore(s);
         if (overall >= 100) {
           const careerLabel = s.roadmap.careerLabel;
           get().issueCareerCertificate(careerLabel, holderName).catch(() => {
-            // Silent failure
+            // Error already logged
           });
         }
       }
+    },
+
+    // v5.875 (CRIT-2): Manual retry — resets the attempt counter for a
+    // track and immediately attempts issuance. Bypasses the cooldown.
+    retryCertificateIssuance: async (trackId) => {
+      const s = get().state;
+      // Clear attempt tracking for this track
+      updateState((st) => {
+        const updated = { ...st.certIssueAttempts };
+        delete updated[trackId];
+        return { ...st, certIssueAttempts: updated };
+      });
+      const holderName = s.profile.name || "Learner";
+      const trackName = ALL_LANGUAGE_INFO[trackId]?.name ?? trackId;
+      return get().issueCertificate(trackId, trackName, holderName);
     },
 
     updateCertificateName: (trackId, name) =>

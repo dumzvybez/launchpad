@@ -83,6 +83,9 @@ export const TRACKS_WITH_CONTENT: string[] = [
   "php", "ruby", "r", "dart", "bash", "react", "nextjs", "django",
   "fastapi", "flask", "svelte", "vue", "angular", "nodejs",
   "postgresql", "mongodb",
+  // v5.87: gap languages now have lesson content (extended to 21)
+  "docker", "tailwind", "express", "graphql", "kubernetes",
+  "terraform", "pytorch", "tensorflow",
 ];
 
 /**

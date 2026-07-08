@@ -211,6 +211,31 @@ export function PlaygroundView() {
   // v5.84: sandboxed iframe for JS/TS execution. Replaces the old
   // new Function() approach that ran code in the page's origin.
   const sandboxIframeRef = useRef<HTMLIFrameElement | null>(null);
+  // v5.875 (CRIT-4): Parent-side timeout ref for JS/TS execution.
+  // If the sandbox iframe doesn't post 'pg-done' within 10s, we destroy
+  // the iframe (killing the running code) and show a timeout error.
+  // This catches synchronous infinite loops (e.g., while(true){}) that
+  // block the iframe's event loop and prevent the internal 30s timeout
+  // from ever firing.
+  const jsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // v5.875 (CRIT-4): Clear the parent-side timeout when pg-done arrives.
+  const clearJsTimeout = () => {
+    if (jsTimeoutRef.current) {
+      clearTimeout(jsTimeoutRef.current);
+      jsTimeoutRef.current = null;
+    }
+  };
+
+  // v5.875 (CRIT-4): Destroy the sandbox iframe (kills any running code)
+  // and create a fresh one for the next run.
+  const destroySandboxIframe = () => {
+    clearJsTimeout();
+    if (sandboxIframeRef.current) {
+      sandboxIframeRef.current.remove();
+      sandboxIframeRef.current = null;
+    }
+  };
 
   // v5.84: ensure the sandbox iframe exists and is ready.
   const ensureSandboxIframe = () => {
@@ -240,6 +265,8 @@ export function PlaygroundView() {
       if (e.data?.type === "pg-log") {
         setOutput((prev) => [...prev, e.data.log]);
       } else if (e.data?.type === "pg-done") {
+        // v5.875 (CRIT-4): Clear the parent-side timeout.
+        clearJsTimeout();
         setRunning(false);
       }
     };
@@ -247,6 +274,8 @@ export function PlaygroundView() {
     return () => {
       window.removeEventListener("message", handler);
       // v5.84: clean up the sandbox iframe on unmount.
+      // v5.875 (CRIT-4): also clear the parent-side timeout.
+      clearJsTimeout();
       if (sandboxIframeRef.current) {
         sandboxIframeRef.current.remove();
         sandboxIframeRef.current = null;
@@ -297,8 +326,22 @@ export function PlaygroundView() {
         // Post the code to the sandbox. The sandbox runs it and posts back
         // logs (as they happen) and a 'done' message when complete.
         iframe.contentWindow.postMessage({ type: "pg-run", code: jsCode }, "*");
+        // v5.875 (CRIT-4): Parent-side hard timeout. If the sandbox doesn't
+        // post 'pg-done' within 10s (e.g., synchronous infinite loop like
+        // while(true){}), destroy the iframe (kills the running code), show
+        // a timeout error, and reset the running state. The sandbox's
+        // internal 30s timeout only catches ASYNC hangs — a sync loop
+        // blocks the iframe's event loop before the Promise is returned.
+        clearJsTimeout();
+        jsTimeoutRef.current = setTimeout(() => {
+          // Destroy the hung iframe — this terminates the running script.
+          destroySandboxIframe();
+          setOutput((prev) => [...prev, { type: "error", text: "⏱️ Execution timed out (10s limit). The sandbox was destroyed to prevent the tab from hanging. Check for infinite loops." }]);
+          setRunning(false);
+        }, 10_000);
         // Note: setRunning(false) is called by the message listener when
-        // it receives the 'pg-done' message from the sandbox.
+        // it receives the 'pg-done' message from the sandbox, or by the
+        // timeout above if the sandbox hangs.
         return;
       } else if (language === "python") {
         setPyodideStatus("Loading Python runtime (first run downloads ~10MB, then cached)...");

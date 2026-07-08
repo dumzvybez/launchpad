@@ -243,8 +243,15 @@ export function InlineCodeEditor({
         if (runTimeoutRef.current) clearTimeout(runTimeoutRef.current);
         runTimeoutRef.current = setTimeout(() => {
           runTimeoutRef.current = null;
+          // v5.875 (CRIT-4): Destroy the sandbox iframe to kill any running
+          // synchronous infinite loop (e.g., while(true){}). Without this,
+          // the iframe keeps consuming CPU even after the error is shown.
+          if (iframeRef.current) {
+            iframeRef.current.remove();
+            iframeRef.current = null;
+          }
           setRunning(false);
-          setError("⏱️ Code took too long. Check for infinite loops.");
+          setError("⏱️ Code took too long (5s limit). Check for infinite loops. The sandbox was terminated.");
         }, 5000);
         iframeRef.current?.contentWindow?.postMessage({ type: "run-code", code: codeToRun }, "*");
       } else if (isHTML || isCSS) {

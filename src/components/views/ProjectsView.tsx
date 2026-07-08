@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Rocket,
   Github,
@@ -48,6 +48,7 @@ export function ProjectsView() {
   const state = useStore((s) => s.state);
   const updateProjectTracker = useStore((s) => s.updateProjectTracker);
   const addProjectSubmission = useStore((s) => s.addProjectSubmission);
+  const setAssignedProjectCount = useStore((s) => s.setAssignedProjectCount);
   // Section 11 — unified AI bubble
   const setPendingTutorMessage = useStore((s) => s.setPendingTutorMessage);
   const setAiTutorOpen = useStore((s) => s.setAiTutorOpen);
@@ -70,6 +71,15 @@ export function ProjectsView() {
     );
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.roadmap]);
+
+  // v5.875 (HIGH-3): Store the actual assigned project count so
+  // selectCareerReadinessScore uses the correct denominator (was /3).
+  useEffect(() => {
+    if (selectedProjects.length > 0) {
+      setAssignedProjectCount(selectedProjects.length);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedProjects.length]);
 
   const projectTrackers: Record<string, ProjectTracker> = {};
   for (const p of state.projects) {

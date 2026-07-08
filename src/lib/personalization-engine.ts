@@ -1415,10 +1415,18 @@ export function generateRoadmap(input: PersonalizationInput): GeneratedRoadmap {
   const timeline = computeTimeline(input);
   const career = CAREER_MAP[input.careerId];
 
-  // Generate phases — the count varies based on profile complexity.
-  // Phase 0 is always the VS Code Setup phase (installs, extensions, theme,
-  // shortcuts, official tutorial video). All subsequent phases get bumped
-  // by one in numbering.
+  // v5.88: Generate phases — the count now SCALES with the number of selected
+  // languages. Previously only primary + ONE secondary language got phases;
+  // the other 50+ languages were silently dropped. Now every selected language
+  // gets meaningful representation.
+  //
+  // Phase structure:
+  //   1. VS Code Setup (always)
+  //   2. Foundations (primary language basics)
+  //   3-7. Core skills (language mastery, building blocks, specialization, advanced)
+  //   8+. One phase per secondary language (or per group of 2-3 related languages)
+  //   N-1. AI Bonus Track
+  //   N. Capstone & Career
   const phases: GeneratedPhase[] = [
     genVSCodeSetupPhase(input, 1),
     genPhase1(input, timeline),
@@ -1430,17 +1438,46 @@ export function generateRoadmap(input: PersonalizationInput): GeneratedRoadmap {
   ];
   phases.forEach((p, i) => { p.number = i + 1; });
 
-  // Add extra phases for multi-language learners
+  // v5.88: Add a phase for EVERY secondary language (not just the first).
+  // Group related languages (e.g., React + Next.js, Django + Flask) into
+  // combined phases to keep the total phase count reasonable.
   const secondaryLangs = secondaryLanguages(input);
   if (secondaryLangs.length >= 1) {
-    const extraPhase = genExtraLanguagePhase(input, secondaryLangs[0], phases.length + 1);
-    phases.splice(4, 0, extraPhase); // insert after VS Code + Phase 1,2,3 (was 3, now 4)
+    const groups = groupRelatedLanguages(secondaryLangs);
+    for (const group of groups) {
+      const phaseNum = phases.length + 1;
+      if (group.length === 1) {
+        phases.push(genExtraLanguagePhase(input, group[0], phaseNum));
+      } else {
+        phases.push(genMultiLanguagePhase(input, group, phaseNum));
+      }
+    }
     phases.forEach((p, i) => { p.number = i + 1; });
   }
 
-  // Add AI bonus track as the final phase
+  // Add AI bonus track as the second-to-last phase
   const bonusPhase = genAIBonusPhase(input, phases.length + 1);
   phases.push(bonusPhase);
+
+  // Capstone & Career is always last
+  // (genPhase6 already handles "Capstone & Career" — but if we added many
+  // language phases, we need a final capstone. genPhase6 is "Advanced Topics"
+  // not capstone. The original code had phase 6 as the last core phase.
+  // For v5.88, ensure there's a proper capstone if we have many phases.)
+  // Actually, looking at the original PHASE_TEMPLATES, phase 6 IS
+  // "Capstone & Career". So the bonus phase is inserted before it... no,
+  // the bonus phase is pushed AFTER phase 6. Let me re-check.
+  // PHASE_TEMPLATES[5] = phase 6 = "Capstone & Career".
+  // The original code pushes bonusPhase AFTER all 6 phases + extra lang phases.
+  // That means Capstone comes before the AI bonus, which is wrong per the prompt
+  // ("AI Bonus Track as second-to-last, Capstone last").
+  // v5.88 fix: reorder so Capstone is truly last.
+  // Find the capstone phase (phase 6) and move it to the end.
+  const capstoneIdx = phases.findIndex((p) => p.title.includes("Capstone"));
+  if (capstoneIdx !== -1 && capstoneIdx < phases.length - 1) {
+    const [capstone] = phases.splice(capstoneIdx, 1);
+    phases.push(capstone);
+  }
   phases.forEach((p, i) => { p.number = i + 1; });
 
   // Link tasks to Launchpad lessons (where a match exists)
@@ -1455,10 +1492,6 @@ export function generateRoadmap(input: PersonalizationInput): GeneratedRoadmap {
   }));
 
   // Section 25 — enrich task descriptions to be beginner-friendly.
-  // v5.77 fix: only apply beginner enrichment to beginners. Previously this
-  // was called unconditionally, so intermediate and advanced learners got
-  // condescending "After completing this, you'll be able to..." appended to
-  // every task's `why` field.
   const finalPhases = input.skillLevel === "beginner"
     ? enrichRoadmapForBeginners(weightedPhases)
     : weightedPhases;
@@ -1473,6 +1506,127 @@ export function generateRoadmap(input: PersonalizationInput): GeneratedRoadmap {
     phases: finalPhases,
     generatedAt: new Date().toISOString(),
     source: "deterministic" as RoadmapSource,
+  };
+}
+
+// ============================================================
+// v5.88: Language grouping — combine related languages into
+// single phases to keep total phase count reasonable when a user
+// selects many languages. E.g., React + Next.js → one phase;
+// Django + FastAPI + Flask → one "Python Web Frameworks" phase.
+// ============================================================
+
+const LANGUAGE_GROUPS: Array<{ name: string; ids: string[]; maxPerPhase?: number }> = [
+  { name: "React Ecosystem", ids: ["react", "nextjs"] },
+  { name: "Python Web Frameworks", ids: ["django", "fastapi", "flask"] },
+  { name: "Frontend Frameworks", ids: ["svelte", "vue", "angular"] },
+  { name: "Compiled Languages", ids: ["java", "c", "cpp", "csharp", "go", "rust"], maxPerPhase: 3 },
+  { name: "Mobile Development", ids: ["swift", "kotlin", "dart"] },
+  { name: "Scripting Languages", ids: ["php", "ruby", "r", "bash"], maxPerPhase: 3 },
+  { name: "Databases", ids: ["postgresql", "mongodb", "sql"] },
+  { name: "DevOps Tools", ids: ["docker", "kubernetes", "terraform"] },
+  { name: "AI/ML Frameworks", ids: ["pytorch", "tensorflow"] },
+  { name: "Modern Web Stack", ids: ["tailwind", "express", "graphql"] },
+];
+
+function groupRelatedLanguages(langs: LanguageInfo[]): LanguageInfo[][] {
+  const grouped: LanguageInfo[][] = [];
+  const used = new Set<string>();
+
+  // First, try to form groups from predefined groupings
+  for (const group of LANGUAGE_GROUPS) {
+    const members = langs.filter((l) => group.ids.includes(l.id) && !used.has(l.id));
+    if (members.length >= 2) {
+      // v5.88 fix: if the group has more members than maxPerPhase, split into
+      // multiple sub-groups so no language is silently dropped.
+      const maxPer = group.maxPerPhase ?? 3;
+      for (let i = 0; i < members.length; i += maxPer) {
+        const chunk = members.slice(i, i + maxPer);
+        if (chunk.length >= 2) {
+          grouped.push(chunk);
+        } else {
+          // Last chunk has only 1 — give it its own single-language phase
+          grouped.push(chunk);
+        }
+        chunk.forEach((m) => used.add(m.id));
+      }
+    }
+  }
+
+  // Remaining languages get their own phases (one per language)
+  for (const lang of langs) {
+    if (!used.has(lang.id)) {
+      grouped.push([lang]);
+    }
+  }
+
+  return grouped;
+}
+
+// ============================================================
+// v5.88: Multi-language phase — for grouped related languages
+// (e.g., "Python Web Frameworks: Django + FastAPI + Flask")
+// ============================================================
+
+function genMultiLanguagePhase(
+  input: PersonalizationInput,
+  langs: LanguageInfo[],
+  phaseNumber: number,
+): GeneratedPhase {
+  const colors: PhaseColor[] = ["teal", "violet", "amber", "rose", "emerald", "sky"];
+  const color = colors[(phaseNumber - 1) % colors.length];
+  const langNames = langs.map((l) => l.name).join(" + ");
+  const groupConfig = LANGUAGE_GROUPS.find((g) => langs.every((l) => g.ids.includes(l.id)));
+  const groupName = groupConfig?.name ?? langNames;
+
+  return {
+    id: `phase-${phaseNumber}-group-${langs.map((l) => l.id).join("-")}`,
+    number: phaseNumber,
+    title: groupName,
+    subtitle: `Master ${langNames}`,
+    color,
+    icon: langs[0].icon,
+    estWeeks: Math.max(2, langs.length),
+    objectives: [
+      `Understand the strengths and use cases of each tool in the ${groupName} ecosystem`,
+      `Build a project combining ${langNames}`,
+      `Know when to choose which tool for a given problem`,
+    ],
+    modules: langs.map((lang, mi) => ({
+      id: `phase-${phaseNumber}-m${mi + 1}-${lang.id}`,
+      title: `${lang.name} essentials`,
+      description: `Learn ${lang.name}: ${lang.tagline}`,
+      tasks: [
+        {
+          id: `phase-${phaseNumber}-m${mi + 1}-t1`,
+          title: `Set up ${lang.name} and run hello world`,
+          why: `A working setup unblocks everything else.`,
+          brief: `Install ${lang.name}, set up your editor, and run hello world.`,
+          estMinutes: 60,
+          xp: 40,
+          tags: ["core", "setup"],
+          steps: [`Install ${lang.name}`, `Install editor extensions`, `Run hello world`],
+        },
+        {
+          id: `phase-${phaseNumber}-m${mi + 1}-t2`,
+          title: `Learn ${lang.name} syntax and core concepts`,
+          why: `${lang.tagline} — learning the fundamentals pays off immediately.`,
+          brief: `Study ${lang.name}'s syntax, types, and core idioms. ${lang.learningCurve}`,
+          estMinutes: 180,
+          xp: 80,
+          tags: ["core"],
+        },
+        {
+          id: `phase-${phaseNumber}-m${mi + 1}-t3`,
+          title: `Build a small project in ${lang.name}`,
+          why: `Applying ${lang.name} to a real problem solidifies your understanding.`,
+          brief: `Pick a small problem and implement it in ${lang.name}.`,
+          estMinutes: 300,
+          xp: 120,
+          tags: ["project", "core"],
+        },
+      ],
+    })),
   };
 }
 

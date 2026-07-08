@@ -783,9 +783,15 @@ function buildShareCardInnerHtml(opts: {
   badgesCount: number;
   languageIds: string[];
 }): string {
+  // v5.875 (HIGH-7): Escape ALL user/state-derived values before interpolating
+  // into HTML. Previously, `id` (from roadmap.languageIds) was interpolated raw,
+  // which allowed XSS via a crafted backup file with languageIds like
+  // "<img src=x onerror=...>". Now ALL values are escaped.
   const langChipsHtml = opts.languageIds.slice(0, 6).map(id => {
     const lang = LANGUAGE_MAP[id];
-    return `<span class="lang-chip">${lang?.icon ?? "📘"} ${lang?.name ?? id}</span>`;
+    const icon = escapeHtmlAttr(lang?.icon ?? "📘");
+    const name = escapeHtmlAttr(lang?.name ?? id);
+    return `<span class="lang-chip">${icon} ${name}</span>`;
   }).join("");
   return `<div class="card">
     <div class="header">

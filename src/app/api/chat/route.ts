@@ -219,7 +219,16 @@ async function callOpenAICompatible(
       max_tokens: 2048,
     }),
     signal: AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS),
+    // v5.875 (HIGH-2): Prevent SSRF via redirect. Without this, a custom
+    // endpoint could return 302 → http://169.254.169.254/ (cloud metadata)
+    // and fetch would follow it, reading the response. With "manual",
+    // 3xx responses are returned as-is and the !res.ok check below rejects them.
+    redirect: "manual",
   });
+  // v5.875 (HIGH-2): Reject any 3xx redirect response.
+  if (res.status >= 300 && res.status < 400) {
+    throw new Error(`Custom endpoint returned a redirect (${res.status}) — redirects are blocked for security (SSRF protection).`);
+  }
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
     throw new Error(`${url} HTTP ${res.status}: ${txt.slice(0, 200)}`);
@@ -297,13 +306,71 @@ async function fetchProviderChat(
 }
 
 // ============================================================
+// v5.875 (HIGH-9): Server-side rate limiting for /api/chat.
+// Prevents abuse/cost-runaway on AI provider API keys. Uses the same
+// in-memory pattern as the certificate endpoints (per-instance on Vercel;
+// for production, upgrade to Vercel KV/Upstash Redis for distributed limits).
+// Limit: 30 requests per 2 minutes per IP (streaming + non-streaming combined).
+// Test Connection calls are limited separately: 10 per hour per IP.
+// ============================================================
+const CHAT_RATE_LIMIT_WINDOW_MS = 2 * 60 * 1000; // 2 minutes
+const CHAT_RATE_LIMIT_MAX = 30;
+const TEST_RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const TEST_RATE_LIMIT_MAX = 10;
+const chatRateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const testRateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function checkChatRateLimit(ip: string, isTest: boolean): { allowed: boolean; retryAfterSec: number } {
+  const now = Date.now();
+  const map = isTest ? testRateLimitMap : chatRateLimitMap;
+  const windowMs = isTest ? TEST_RATE_LIMIT_WINDOW_MS : CHAT_RATE_LIMIT_WINDOW_MS;
+  const maxReqs = isTest ? TEST_RATE_LIMIT_MAX : CHAT_RATE_LIMIT_MAX;
+
+  // Clean up expired entries
+  for (const [key, val] of map) {
+    if (now >= val.resetAt) map.delete(key);
+  }
+
+  const entry = map.get(ip);
+  if (!entry || now >= entry.resetAt) {
+    map.set(ip, { count: 1, resetAt: now + windowMs });
+    return { allowed: true, retryAfterSec: 0 };
+  }
+  if (entry.count >= maxReqs) {
+    return { allowed: false, retryAfterSec: Math.ceil((entry.resetAt - now) / 1000) };
+  }
+  entry.count++;
+  return { allowed: true, retryAfterSec: 0 };
+}
+
+function getChatClientIp(req: NextRequest): string {
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) {
+    const parts = xff.split(",").map((s) => s.trim()).filter(Boolean);
+    if (parts.length > 0) return parts[parts.length - 1];
+  }
+  return req.headers.get("x-real-ip") ?? "unknown";
+}
+
+// ============================================================
 // POST handler — supports both real chat and POST-based Test Connection
 // (test=1 in the JSON body sends "Hi" instead of the messages array,
 //  so the API key is never leaked in URL query strings)
 // ============================================================
 export async function POST(req: NextRequest) {
   try {
+    // v5.875 (HIGH-9): Rate limit check. Test Connection has a stricter
+    // limit (10/hour) to prevent API-key enumeration against upstream providers.
+    const clientIp = getChatClientIp(req);
     const body = await req.json();
+    const isTest = !!body.test;
+    const rl = checkChatRateLimit(clientIp, isTest);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: `Rate limit exceeded. Try again in ${rl.retryAfterSec}s.` },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
+      );
+    }
     const {
       messages,
       provider,
@@ -479,7 +546,14 @@ export async function POST(req: NextRequest) {
           headers: upstreamHeaders,
           body: upstreamBody,
           signal: AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS),
+          // v5.875 (HIGH-2): Prevent SSRF via redirect on custom endpoints.
+          redirect: "manual",
         });
+
+        // v5.875 (HIGH-2): Reject any 3xx redirect response (SSRF protection).
+        if (upstreamRes.status >= 300 && upstreamRes.status < 400) {
+          throw new Error(`Upstream returned a redirect (${upstreamRes.status}) — redirects are blocked for security (SSRF protection).`);
+        }
 
         if (!upstreamRes.ok || !upstreamRes.body) {
           const txt = await upstreamRes.text().catch(() => "");

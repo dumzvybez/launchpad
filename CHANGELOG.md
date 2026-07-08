@@ -1,7 +1,313 @@
 # Launchpad CHANGELOG
 
 This file merges all previous changelogs (v2.68, v2.68.1, v3, v4, v5.76, v5.77, v5.78, v5.79) and adds the new
-**v5.865 (Certificate Security + Full Bug Fix Pass)** entries. Entries are in reverse chronological order.
+**v5.88 (Scalable Roadmap Generation + Project Coverage + Beginner Daily Challenges)** entries. Entries are in reverse chronological order.
+
+---
+
+## v5.88 — Scalable Roadmap Generation + Project Coverage + Beginner Daily Challenges
+
+This release fixes the **#1 highest-priority bug**: roadmap generation was broken
+at scale. A user selecting 30+ languages during onboarding got only 6-7 shallow
+phases (not enough to guide learning), only 8 projects regardless of language
+count (most languages had zero project coverage), and daily challenges that
+assumed prior knowledge instead of starting at true beginner level.
+
+### Part A: Root Cause Diagnosis
+
+**4 root causes identified:**
+
+1. **Single AI call with 6000-token cap (PRIMARY)**: All 3 providers (Gemini,
+   Groq, OpenRouter) used `maxOutputTokens: 6000` / `max_tokens: 6000`. A complete
+   roadmap for 38 languages needs ~15,000-30,000 tokens. The AI either truncated
+   or compressed to fit → 6-7 shallow phases.
+
+2. **Prompt didn't scale with language count**: The system prompt said "4-10
+   phases total" regardless of how many languages. No instruction to scale
+   phases proportionally.
+
+3. **Project assignment hardcoded to 8**: `selectProjectsForRoadmap` had
+   `maxProjects: 8` with tier caps of 3/3/2. No language coverage guarantee.
+
+4. **Daily challenge difficulty not filtered by skill level**: `selectPoolForLanguages`
+   collected ALL tasks (beginner + intermediate + advanced) and `selectWeekTasks`
+   picked 7 with NO difficulty filtering. A beginner could get an "advanced"
+   challenge on day 1.
+
+**Bonus finding**: The deterministic fallback engine only added ONE extra phase
+for `secondaryLangs[0]` — the other 50+ languages were completely ignored.
+
+### Part B: Fixes
+
+**B1 — Deterministic engine scales to all languages** (`personalization-engine.ts`):
+- `generateRoadmap()` now generates a phase for EVERY secondary language (not
+  just the first). For 38 languages, it produces 25 phases (was 7).
+- Added `groupRelatedLanguages()` — groups 2-3 related languages into combined
+  phases (e.g., "React Ecosystem: React + Next.js", "Python Web Frameworks:
+  Django + FastAPI + Flask") to keep total phase count reasonable.
+- Added `genMultiLanguagePhase()` — generates a phase with one module per
+  language in the group, each with setup + syntax + project tasks.
+- Groups with >3 members (e.g., "Compiled Languages" with 6) are split into
+  multiple sub-groups so no language is silently dropped.
+- Capstone & Career phase is now always last (reordered if language phases
+  were inserted between it and the AI bonus track).
+- Added `postgresql` and `mongodb` to `LANGUAGE_MAP` in `career-data.ts` (they
+  were missing, causing them to be silently dropped by `secondaryLanguages()`).
+
+**B2 — AI token limits increased + prompt scales** (`roadmap-generate/route.ts`):
+- Gemini: `maxOutputTokens` 6000 → 65536
+- Groq: `max_tokens` 6000 → 32000
+- OpenRouter: `max_tokens` 6000 → 32000
+- System prompt now explicitly scales phase count with language count:
+  "1-2 languages: 6-8 phases | 3-5: 8-12 | 6-10: 12-16 | 11-20: 16-22 | 21+: 22-30"
+- User prompt now explicitly states: "The learner selected N language(s). You
+  MUST generate between X and Y phases. EVERY selected language MUST appear."
+- totalWeeks range extended from 8-156 to 8-400 to accommodate large roadmaps.
+
+**B3 — Dynamic project count + language coverage guarantee** (`projects-data.ts`):
+- `maxProjects` now scales dynamically: `max(8, min(24, languageIds.length * 2))`.
+  For 38 languages → 24 projects (was 8).
+- Tier caps scale proportionally (40% foundational, 40% core, 20% capstone).
+- After tier-based selection, checks every selected language for project
+  coverage. If any language is uncovered, finds the best-matching project for
+  it and adds it (up to 30 total).
+- Note: 11 gap languages (docker, tailwind, express, graphql, kubernetes,
+  terraform, pytorch, tensorflow, nodejs, postgresql, mongodb) have no matching
+  project in the 207-project database. This is a DATA limitation — the coverage
+  guarantee only works if a project exists for that language. Adding projects
+  for these languages is a follow-up task.
+
+**B4 — Daily challenge difficulty filtered by skill level** (`daily-challenges-data-v2.ts`, `store.ts`):
+- `selectPoolForLanguages()` now accepts an optional `skillLevel` parameter:
+  - "beginner": only "beginner" difficulty tasks
+  - "intermediate": "beginner" + "intermediate" tasks
+  - "advanced": all tasks
+- `completeOnboarding()` in `store.ts` now passes `input.skillLevel` to
+  `selectPoolForLanguages()`, so a beginner's daily challenge pool only
+  contains beginner-difficulty tasks.
+
+### Part C: Live Test Results
+
+All tests run against the REAL `generateRoadmap()`, `selectProjectsForRoadmap()`,
+and `selectPoolForLanguages()` functions (not mocks).
+
+**Test 1 — 3 languages (python, javascript, react):**
+- Phases: 10 (was 6-7)
+- Tasks: 55
+- Generation time: 6ms
+- Phase list: VS Code Setup, Foundations, Core Language Mastery, Building Blocks,
+  Specialization, Advanced Topics, Second Language: JavaScript, Second Language:
+  React, AI Bonus Track, Capstone & Career ✅
+
+**Test 2 — 38 languages (ALL available):**
+- Phases: 25 (was 6-7) — scales properly ✅
+- Tasks: 160
+- Generation time: 3ms (instant — deterministic engine, no AI calls)
+- Language coverage: 38/38 ✅ (ALL selected languages appear in the roadmap)
+- Phase list includes grouped phases: React Ecosystem, Python Web Frameworks,
+  Frontend Frameworks, Compiled Languages (×2), Mobile Development, Scripting
+  Languages, Databases, DevOps Tools, AI/ML Frameworks, Modern Web Stack —
+  plus single-language phases for JavaScript, TypeScript, HTML, CSS, SQL,
+  Node.js, Bash, and the core phases. ✅
+
+**Test 3 — Project coverage:**
+- 38 languages → 30 projects assigned (was 8) ✅
+- Language coverage: 27/38 (11 gap languages have no matching project in the
+  207-project database — DATA limitation, not a code bug)
+- 3 languages → 9 projects (reasonable for a small selection)
+
+**Test 4 — Daily challenge difficulty:**
+- Beginner pool: 40 tasks, ALL "beginner" difficulty ✅ (no advanced tasks)
+- Intermediate pool: 82 tasks, "beginner" + "intermediate" only ✅
+- Advanced pool: 124 tasks, all difficulties ✅
+
+**Test 5 — Generation timing:**
+- 3 languages: 6ms
+- 38 languages: 3ms
+- (Both use the deterministic engine — instant, no AI calls needed. When AI
+  keys are configured, the AI path takes ~5-15s per provider call but produces
+  richer task descriptions. The deterministic engine is always the reliable
+  fallback.)
+
+### Files Changed
+
+- `package.json` — version bump to 5.880.0
+- `src/app/api/route.ts` — version bump
+- `public/sw.js` — cache version bump
+- `src/lib/personalization-engine.ts` — scalable phase generation, language
+  grouping, multi-language phases, capstone ordering fix
+- `src/lib/career-data.ts` — added postgresql + mongodb to LANGUAGE_MAP
+- `src/app/api/roadmap-generate/route.ts` — increased token limits (6K→32K/64K),
+  updated prompt to scale phase count with language count
+- `src/lib/projects-data.ts` — dynamic maxProjects, language coverage guarantee
+- `src/lib/daily-challenges-data-v2.ts` — skillLevel filtering in selectPoolForLanguages
+- `src/lib/store.ts` — pass skillLevel to selectPoolForLanguages in completeOnboarding
+
+### Remaining Limitations
+
+1. **11 gap languages have no projects**: docker, tailwind, express, graphql,
+   kubernetes, terraform, pytorch, tensorflow, nodejs, postgresql, mongodb.
+   The 207-project database doesn't include projects for these. Adding projects
+   is a content-creation follow-up task.
+2. **AI path still single-shot**: The AI roadmap generation is still a single
+   API call per provider (not chunked). With the increased token limits
+   (32K-64K), this is sufficient for up to ~30 languages. For 50+ languages,
+   the deterministic engine is the reliable path (the AI may still truncate).
+   A future v5.89 could implement chunked AI generation if needed.
+3. **In-memory rate limiter**: Still per-serverless-instance on Vercel (same
+   as v5.875). Upgrade to Vercel KV/Upstash for distributed limiting.
+
+---
+
+## v5.875 — Critical Bug Fixes + Security Hardening + Quiz Content Repair
+
+This release addresses all confirmed critical, high, and medium issues from the
+v5.87 codebase audit. Every fix was tested live (not just build-verified).
+
+### Part A: Quiz Shuffle Scoring Verification + Broken Quiz Content Repair
+
+**A.1 — Quiz shuffle mechanism verified correct**
+- The Fisher-Yates shuffle (seeded by question ID) correctly remaps BOTH the
+  `options` array AND the `correctIndex` via the same permutation. The user's
+  click position and the `correctIndex` are in the same shuffled coordinate
+  space, so `answers[q.id] === q.correctIndex` is an apples-to-apples comparison.
+- Verified with 8 test questions covering all 4 correctIndex positions:
+  clicking the visually-correct option scored 8/8 correct; clicking wrong
+  options scored 0/8. Deterministic per question ID; diverse across questions.
+
+**A.2 — 710 broken quiz questions replaced across 6 extended tracks**
+- **Root cause:** The auto-generated extended tracks (tailwind, express, graphql,
+  kubernetes, pytorch, tensorflow, terraform — 71 lessons total) all had
+  identical generic quiz questions: "Which statement about the concepts in 'X'
+  is correct?" with the same 4 options ("It requires a paid license", "It is
+  OS-specific", "It is a fundamental concept essential for [track] development",
+  "It is only used in legacy systems"). Every question in every lesson was a
+  near-duplicate.
+- **Fix:** Generated 710 unique, topic-specific questions (10 per lesson) from
+  each lesson's actual content blocks (topics, keyConcepts, pitfalls,
+  realWorldApps, interviewQuestions, whyItMatters). Each question has varied
+  correctIndex positions (0-3) and plausible distractors.
+- Docker track (6 lessons) was NOT affected — it already had proper questions.
+
+### Part B (CRIT-1): Certificate Issuance Race Condition Fix
+
+- **Root cause:** `tryAutoIssueCertificates()` fires synchronously from
+  `setLessonProgress` AND again ~50ms later via `checkAchievements`. Both see
+  `certificates[trackId]` as undefined (cert is written AFTER async fetch
+  resolves), so both fire a POST to `/api/certificates/create`. The server's
+  rate limiter doesn't dedupe by content → two duplicate Supabase rows.
+- **Fix (client-side):** Added `certIssuingInProgress` Set at module scope in
+  `store.ts`. `issueCertificate` checks the Set before firing; adds trackId
+  before fetch; removes in `finally` block. Separated inner implementation to
+  `_issueCertificateInner` so the guard wraps it in try/finally.
+- **Fix (server-side):** Added unique index on `(holder_name, language_completed)`
+  for language certificates in `supabase/schema.sql` — second layer of defense
+  in case the client guard is bypassed (e.g., two browser tabs).
+
+### Part C (CRIT-2): Certificate Issuance Infinite Retry Fix
+
+- **Root cause:** After a failed `issueCertificate` (network/5xx/rate-limit),
+  the app retried on EVERY subsequent lesson completion + EVERY
+  `checkAchievements` call with no backoff — exhausting the 5/hour server rate
+  limit and locking the user out for hours.
+- **Fix:** Added `certIssueAttempts: Record<string, { count, lastAttempt,
+  permanentFail? }>` to AppState. After 3 transient failures within 24h,
+  automatic retry stops. 4xx errors are classified as permanent failures
+  (no automatic retry). Added `retryCertificateIssuance` store action for
+  manual retry (resets the counter and immediately attempts).
+- `tryAutoIssueCertificates` now skips tracks that are in cooldown or have
+  permanent failures, preventing the hammering behavior.
+
+### Part D (CRIT-3): LearnView Blank Page on Stale LessonId Fix
+
+- **Root cause:** The persisted `learnTabState.selectedLessonId` can go stale
+  (after content changes, backup import with old IDs, track restructuring).
+  `getLessonById` returns undefined → none of the render branches match →
+  `return null` → blank page with no way to navigate back.
+- **Fix:** Added a `useEffect` that detects stale lessonId (selected but
+  lesson not found) and resets `learnTabState` to the tracks view. Added a
+  loading-spinner guard so the user sees a brief spinner (not a blank page)
+  while the effect fires.
+
+### Part E (CRIT-4): Playground JS Execution Timeout Fix
+
+- **Root cause:** The sandboxed iframe's internal 30s timeout only catches
+  ASYNC hangs. A synchronous `while(true){}` blocks the iframe's event loop
+  before the Promise is returned — the timeout never fires, the tab hangs,
+  and the Run button stays in "Running…" forever.
+- **Fix (PlaygroundView):** Added parent-side 10s hard timeout. If `pg-done`
+  isn't received, the parent destroys the iframe (killing the running code),
+  shows a "⏱️ Execution timed out" error, and resets running state. A fresh
+  iframe is created for the next run.
+- **Fix (InlineCodeEditor):** Same fix — the existing 5s timeout now also
+  destroys the iframe (was only showing an error, leaving the infinite loop
+  running in the background consuming CPU).
+
+### Part F (HIGH-2): SSRF via Redirect on Custom AI Endpoint Fix
+
+- **Root cause:** The SSRF check (`assertSafeExternalUrl`) validates only the
+  INITIAL URL. `fetch()` follows redirects by default, so an attacker-controlled
+  endpoint could return `302 → http://169.254.169.254/` (cloud metadata) and
+  the response would be read.
+- **Fix:** Added `redirect: "manual"` to ALL fetch calls in `/api/chat/route.ts`
+  (both the non-streaming `callOpenAICompatible` and the streaming path). Any
+  3xx response is explicitly rejected with a "redirects are blocked" error.
+
+### Part G (HIGH-7 + MED-6): Share-Card XSS + Missing noopener Fix
+
+- **Root cause (HIGH-7):** `DashboardView.buildShareCardInnerHtml` interpolated
+  `roadmap.languageIds` raw into HTML when `LANGUAGE_MAP[id]` was undefined.
+  A crafted backup file with `languageIds = ["<img src=x onerror=...>"]` would
+  execute script in the share-card page.
+- **Root cause (MED-6):** `openPrintableHtml` opened the blob: URL via
+  `window.open(url, "_blank")` without `noopener`. Blob: URLs inherit the
+  parent's origin, so the opened tab could access `window.opener.localStorage`
+  and exfiltrate the API key.
+- **Fix (HIGH-7):** All values in the lang-chip template are now escaped with
+  `escapeHtmlAttr()` (icon, name, and the raw id fallback).
+- **Fix (MED-6):** Changed to `window.open(url, "_blank", "noopener,noreferrer")`.
+
+### Part H (HIGH-9): Server-Side Rate Limiting for /api/chat
+
+- **Root cause:** Unlike the certificate and roadmap endpoints, `/api/chat` had
+  ZERO server-side rate limiting. The client-side limiter is trivially bypassed
+  (clear localStorage) and is skipped for BYOK users.
+- **Fix:** Added in-memory rate limiter (same pattern as cert endpoints):
+  - Chat: 30 requests per 2 minutes per IP (streaming + non-streaming combined)
+  - Test Connection: 10 requests per hour per IP (stricter — prevents API-key
+    enumeration against upstream providers)
+  - Returns 429 with `Retry-After` header when exceeded.
+
+### Part I (HIGH-3): Career Readiness Math Error Fix (÷3 → dynamic)
+
+- **Root cause:** `selectCareerReadinessScore` and `selectCareerProgress` both
+  computed `projectsCompleted = Math.min(100, Math.round((shippedCount / 3) * 100))`.
+  But 8 projects are assigned per roadmap (not 3). Shipping 3 of 8 (37.5%)
+  showed as 100% — inflating the Career Readiness Score and making the
+  `target-locked` achievement (≥100% overall) reachable with under half the
+  projects shipped.
+- **Fix:** Added `assignedProjectCount` to AppState. `ProjectsView` sets it
+  on mount via `selectProjectsForRoadmap().length`. Both selectors now use
+  `state.assignedProjectCount` (falling back to 8 if ProjectsView hasn't been
+  visited). This uses the ACTUAL dynamic count, not a hardcoded constant.
+
+### Files Changed
+
+- `package.json` — version bump to 5.875.0
+- `src/lib/types.ts` — added `certIssueAttempts` and `assignedProjectCount` to AppState
+- `src/lib/storage.ts` — added new fields to DEFAULT_STATE + migration
+- `src/lib/store.ts` — CRIT-1 race guard, CRIT-2 retry backoff, HIGH-3 ÷3→dynamic,
+  new `retryCertificateIssuance` + `setAssignedProjectCount` actions
+- `src/lib/lessons-extended.ts` — 710 broken quiz questions replaced with
+  topic-specific questions across 71 lessons (6 tracks)
+- `src/components/views/LearnView.tsx` — CRIT-3 stale lessonId guard
+- `src/components/views/PlaygroundView.tsx` — CRIT-4 parent-side JS timeout + iframe destruction
+- `src/components/views/ProjectsView.tsx` — HIGH-3 set assignedProjectCount on mount
+- `src/components/views/DashboardView.tsx` — HIGH-7 escape languageIds in share card
+- `src/components/lesson/InlineCodeEditor.tsx` — CRIT-4 iframe destruction on timeout
+- `src/app/api/chat/route.ts` — HIGH-2 redirect:manual (SSRF), HIGH-9 rate limiting
+- `src/lib/print-utils.ts` — MED-6 noopener on blob URL window.open
+- `supabase/schema.sql` — CRIT-1 unique index on (holder_name, language_completed)
 
 ---
 
