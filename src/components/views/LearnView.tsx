@@ -25,6 +25,7 @@ import {
   Printer,
   MessageCircleQuestion,
   RefreshCw,
+  RotateCcw,
 } from "lucide-react";
 import { useStore, selectCertificateEligible, selectTrackQuizAverage, selectWeakAreas } from "@/lib/store";
 import { GlassCard, GlassButton, ProgressBar } from "@/components/glass/GlassPrimitives";
@@ -58,6 +59,9 @@ export function LearnView() {
   const [filterLang, setFilterLang] = useState<string | null>(null); // null = show all
   const [lessonFilter, setLessonFilter] = useState<"all" | "bookmarked" | "in-progress" | "completed">("all");
   const [showExploreMore, setShowExploreMore] = useState(false);
+  // v5.92 (Part 6): "Already completed" popup state — shown when the user
+  // progresses sequentially to a lesson they'd already completed earlier.
+  const [completedPopup, setCompletedPopup] = useState<{ lessonId: string; trackLessons: Lesson[] } | null>(null);
   const lessonProgress = useStore((s) => s.state.lessonProgress);
   const setLessonProgress = useStore((s) => s.setLessonProgress);
   const setPlaygroundCode = useStore((s) => s.setPlaygroundCode);
@@ -107,6 +111,44 @@ export function LearnView() {
       </div>
     );
   }
+
+  // v5.92 (Part 5): Push URL when lesson/track selection changes for deep-linking.
+  // /learn/python/6 → track=python, lesson 6
+  // /learn/python → track=python, lesson list
+  // /learn → tracks grid
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const currentPath = window.location.pathname;
+    if (selectedLesson && selectedTrack) {
+      // Extract lesson number from the lesson ID (e.g., "python-06" → "6")
+      const match = selectedLesson.id.match(/-(\d+)$/);
+      const lessonNum = match ? parseInt(match[1], 10) : null;
+      if (lessonNum !== null) {
+        const expectedPath = `/learn/${selectedTrack}/${lessonNum}`;
+        if (currentPath !== expectedPath) {
+          window.history.pushState(null, "", expectedPath);
+        }
+      } else if (selectedLesson.isCapstone) {
+        const expectedPath = `/learn/${selectedTrack}/capstone`;
+        if (currentPath !== expectedPath) {
+          window.history.pushState(null, "", expectedPath);
+        }
+      }
+    } else if (selectedTrack && !selectedLessonId) {
+      // Track selected but no lesson → /learn/[trackId]
+      const expectedPath = `/learn/${selectedTrack}`;
+      if (currentPath !== expectedPath && !currentPath.startsWith(`/learn/${selectedTrack}/`)) {
+        window.history.pushState(null, "", expectedPath);
+      }
+    } else if (!selectedTrack && currentPath !== "/learn") {
+      // No track selected → /learn
+      const currentBase = "/" + (currentPath.split("/").filter(Boolean).slice(0, 1).join("") || "");
+      if (currentBase === "/learn") {
+        window.history.pushState(null, "", "/learn");
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedLessonId, selectedTrack, selectedLesson]);
 
   // All tracks with their lesson counts
   const allTracks = useMemo(() => getAllTracks(), []);
@@ -521,9 +563,19 @@ export function LearnView() {
             )}
             {next && (
               <GlassButton variant="ghost" size="sm" onClick={() => {
-                setSelectedLessonId(next.id);
-                setLessonProgress(selectedLesson.id, "in-progress");
-                window.scrollTo(0, 0);
+                // v5.92 (Part 6): If the next lesson was already completed
+                // (e.g. from a roadmap deep-link jump-ahead), show the
+                // "already completed — retry or skip?" popup instead of
+                // navigating directly.
+                const nextProgress = lessonProgress[next.id];
+                if (nextProgress?.status === "complete") {
+                  const trackLessons = getLessonsForTrack(selectedLesson.track);
+                  setCompletedPopup({ lessonId: next.id, trackLessons });
+                } else {
+                  setSelectedLessonId(next.id);
+                  setLessonProgress(selectedLesson.id, "in-progress");
+                  window.scrollTo(0, 0);
+                }
               }}>
                 {next.title} <ChevronRight className="h-4 w-4" />
               </GlassButton>
@@ -734,8 +786,112 @@ export function LearnView() {
     );
   }
 
+  // v5.92 (Part 6): Update the module-level lessonProgress reference for the popup.
+  lessonProgressGlobal = lessonProgress as Record<string, { status: string }>;
+
+  // v5.92 (Part 6): Render the "already completed" popup if active.
+  if (completedPopup) {
+    const retryLesson = () => {
+      setLessonProgress(completedPopup.lessonId, "in-progress");
+      setSelectedLessonId(completedPopup.lessonId);
+      window.scrollTo(0, 0);
+    };
+    const skipLesson = () => {
+      const idx = completedPopup.trackLessons.findIndex((l) => l.id === completedPopup.lessonId);
+      const nextIncomplete = completedPopup.trackLessons.slice(idx + 1).find(
+        (l) => lessonProgress[l.id]?.status !== "complete"
+      );
+      if (nextIncomplete) {
+        setSelectedLessonId(nextIncomplete.id);
+      }
+      window.scrollTo(0, 0);
+    };
+
+    return (
+      <AlreadyCompletedPopup
+        lessonId={completedPopup.lessonId}
+        trackLessons={completedPopup.trackLessons}
+        onRetry={retryLesson}
+        onSkip={skipLesson}
+        onClose={() => setCompletedPopup(null)}
+      />
+    );
+  }
+
   return null;
 }
+// v5.92 (Part 6): "Already completed" popup
+// Shown when a user progresses sequentially to a lesson they'd already
+// completed (e.g. from a roadmap deep-link jump-ahead).
+// ============================================================
+
+function AlreadyCompletedPopup({
+  lessonId,
+  trackLessons,
+  onRetry,
+  onSkip,
+  onClose,
+}: {
+  lessonId: string;
+  trackLessons: Lesson[];
+  onRetry: () => void;
+  onSkip: () => void;
+  onClose: () => void;
+}) {
+  const lesson = trackLessons.find((l) => l.id === lessonId);
+  if (!lesson) return null;
+
+  // Find the next incomplete lesson after this one
+  const currentIdx = trackLessons.findIndex((l) => l.id === lessonId);
+  const nextIncomplete = trackLessons.slice(currentIdx + 1).find(
+    (l) => lessonProgressGlobal[l.id]?.status !== "complete"
+  );
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <GlassCard className="max-w-md w-full p-6 border-2 border-amber-500/40">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="h-10 w-10 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="h-5 w-5 text-amber-500" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-base">You&apos;ve already completed this lesson</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              &ldquo;{lesson.title}&rdquo; was completed previously. Would you like to retry it or skip to the next incomplete lesson?
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-col gap-2">
+          <GlassButton
+            variant="primary"
+            onClick={() => { onRetry(); onClose(); }}
+            className="w-full justify-center"
+          >
+            <RotateCcw className="h-4 w-4" /> Retry this lesson
+          </GlassButton>
+          <GlassButton
+            variant="ghost"
+            onClick={() => { onSkip(); onClose(); }}
+            className="w-full justify-center"
+          >
+            Skip to {nextIncomplete ? `next incomplete (${nextIncomplete.title})` : "end of track"}
+            <ChevronRight className="h-4 w-4" />
+          </GlassButton>
+        </div>
+        <button
+          onClick={onClose}
+          className="mt-3 w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Stay on current lesson
+        </button>
+      </GlassCard>
+    </div>
+  );
+}
+
+// v5.92 (Part 6): Helper to access lessonProgress from the popup component.
+// We use a module-level reference that's updated by the LearnView component.
+let lessonProgressGlobal: Record<string, { status: string }> = {};
 
 // ============================================================
 // Sub-components

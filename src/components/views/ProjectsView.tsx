@@ -57,6 +57,16 @@ export function ProjectsView() {
   const [reviewProjectId, setReviewProjectId] = useState<string | null>(null);
   const [showExploreMore, setShowExploreMore] = useState(false);
 
+  // v5.92 (Part 5): Consume deep-link target from store (set by /projects/[id] URL).
+  const deepLinkProjectId = useStore((s) => s.deepLinkProjectId);
+  useEffect(() => {
+    if (deepLinkProjectId) {
+      setInstructionsProjectId(deepLinkProjectId);
+      useStore.setState({ deepLinkProjectId: null }); // consume
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepLinkProjectId]);
+
   // All projects for the "Explore More" view
   const ALL_PROJECTS: SelectedProject[] = PROJECTS.map(p => ({ ...p, matchReason: "From full catalog" }));
   const ALL_PROJECTS_COUNT = PROJECTS.length;

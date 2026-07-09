@@ -223,18 +223,84 @@ function extractJson(content: string): unknown {
 }
 
 // ============================================================
-// Provider 1: Google Gemini 2.5 Flash
+// v5.89 (BUG 2): Safe per-provider token limits based on ACTUAL rate limits.
+// v5.90 (PART 2): These are now STARTING defaults. The server reads
+// rate-limit headers from provider responses and adapts. On 413 errors,
+// it retries with a smaller max_tokens.
 // ============================================================
-async function callGemini(prompt: string): Promise<unknown> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("GEMINI_API_KEY not configured");
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+const GEMINI_MAX_TOKENS = 16384;  // Safe within 60s timeout
+const GROQ_MAX_TOKENS = 8000;    // Fits within 12K TPM (2K prompt + 8K output = 10K < 12K)
+const OPENROUTER_MAX_TOKENS = 8000;  // Model-specific cap
+const OPENAI_MAX_TOKENS = 8000;      // v5.90: added OpenAI support
+const ANTHROPIC_MAX_TOKENS = 8000;   // v5.90: added Anthropic support
+const CUSTOM_MAX_TOKENS = 8000;      // v5.90: added Custom endpoint support
+
+// v5.90 (PART 2): Track rate-limit info from provider response headers.
+// Groq returns: x-ratelimit-limit-tokens, x-ratelimit-remaining-tokens, x-ratelimit-reset-tokens
+// We use these to size subsequent requests. Initial values are the safe defaults above.
+let groqKnownLimit: number | null = null;  // TPM limit, discovered from headers
+
+function getGroqMaxTokens(): number {
+  // v5.90: if we've seen rate-limit headers, reserve 30% for the prompt
+  // and use the rest for output. Otherwise use the safe default.
+  if (groqKnownLimit && groqKnownLimit > 0) {
+    const reservedForPrompt = Math.min(3000, Math.floor(groqKnownLimit * 0.3));
+    const outputBudget = groqKnownLimit - reservedForPrompt;
+    return Math.max(2000, Math.min(outputBudget, 16000)); // clamp 2K-16K
+  }
+  return GROQ_MAX_TOKENS;
+}
+
+// ============================================================
+// v5.90 (PART 2): Read rate-limit headers from a response and update
+// the known limits. Called after every provider response.
+// ============================================================
+function updateRateLimitsFromHeaders(provider: string, headers: Headers): void {
+  if (provider === "groq") {
+    const limitTokens = headers.get("x-ratelimit-limit-tokens");
+    if (limitTokens) {
+      const n = parseInt(limitTokens, 10);
+      if (!isNaN(n) && n > 0) {
+        groqKnownLimit = n;
+        console.log(`[roadmap-generate] Groq TPM limit discovered from headers: ${n}`);
+      }
+    }
+  }
+  // Gemini, OpenRouter, OpenAI, Anthropic don't return useful per-request
+  // token-limit headers in a consistent way, so we rely on the safe defaults.
+}
+
+// ============================================================
+// v5.90 (PART 2): Check if an error is a 413 / rate-limit error that
+// warrants a retry with a smaller token budget.
+// ============================================================
+function isTokenLimitError(status: number, errorMsg: string): boolean {
+  if (status === 413) return true;
+  if (status === 429) return true;
+  // Groq returns 413 with "Request too large for model" message
+  if (errorMsg.includes("Request too large") || errorMsg.includes("too large")) return true;
+  if (errorMsg.includes("rate limit") || errorMsg.includes("rate_limit")) return true;
+  if (errorMsg.includes("maximum context length") || errorMsg.includes("token limit")) return true;
+  return false;
+}
+
+// ============================================================
+// Provider 1: Google Gemini 2.5 Flash
+// v5.89: supports optional user-supplied API key (BYOK for roadmap generation)
+// v5.90 (PART 1): ONLY uses user-supplied key — no platform key fallback.
+// v5.90 (PART 3): Uses Gemini's generateContent format (NOT OpenAI/Anthropic format).
+// ============================================================
+async function callGemini(prompt: string, userApiKey: string, model: string): Promise<unknown> {
+  if (!userApiKey) throw new Error("No Gemini API key provided");
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${userApiKey}`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+      // v5.90 (PART 3): Gemini uses "contents" array with "parts" — NOT OpenAI's
+      // "messages" array or Anthropic's top-level "system" field.
       contents: [{ parts: [{ text: `${SYSTEM_PROMPT}\n\n${prompt}` }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 65536 },
+      generationConfig: { temperature: 0.7, maxOutputTokens: GEMINI_MAX_TOKENS },
     }),
     signal: abortAfter(AI_FETCH_TIMEOUT_MS),
   });
@@ -242,6 +308,7 @@ async function callGemini(prompt: string): Promise<unknown> {
     const txt = await res.text().catch(() => "");
     throw new Error(`Gemini HTTP ${res.status}: ${txt.slice(0, 200)}`);
   }
+  updateRateLimitsFromHeaders("gemini", res.headers);
   const data = await res.json();
   const content = data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text).join("\n") ?? "";
   if (!content) throw new Error("Gemini returned empty content");
@@ -249,21 +316,25 @@ async function callGemini(prompt: string): Promise<unknown> {
 }
 
 // ============================================================
-// Provider 2: Groq (llama-3.3-70b-versatile)
+// Provider 2: Groq (OpenAI-compatible chat completions)
+// v5.90 (PART 1): ONLY uses user-supplied key — no platform key fallback.
+// v5.90 (PART 2): Adaptive token limits via rate-limit headers + 413 retry.
+// v5.90 (PART 3): Uses OpenAI-compatible format (messages array with role/content).
 // ============================================================
-async function callGroq(prompt: string): Promise<unknown> {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) throw new Error("GROQ_API_KEY not configured");
+async function callGroq(prompt: string, userApiKey: string, model: string): Promise<unknown> {
+  if (!userApiKey) throw new Error("No Groq API key provided");
+  const maxTokens = getGroqMaxTokens();
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${userApiKey}`,
     },
     body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
+      model,
       temperature: 0.7,
-      max_tokens: 32000,
+      max_tokens: maxTokens,
+      // v5.90 (PART 3): OpenAI-compatible messages format
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: prompt },
@@ -273,8 +344,37 @@ async function callGroq(prompt: string): Promise<unknown> {
   });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
-    throw new Error(`Groq HTTP ${res.status}: ${txt.slice(0, 200)}`);
+    const status = res.status;
+    // v5.90 (PART 2): On 413/rate-limit, retry with half the token budget
+    if (isTokenLimitError(status, txt)) {
+      console.warn(`[roadmap-generate] Groq ${status} (tokens too large), retrying with smaller budget`);
+      const retryRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${userApiKey}` },
+        body: JSON.stringify({
+          model,
+          temperature: 0.7,
+          max_tokens: Math.max(2000, Math.floor(maxTokens / 2)),
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: prompt },
+          ],
+        }),
+        signal: abortAfter(AI_FETCH_TIMEOUT_MS),
+      });
+      if (!retryRes.ok) {
+        const retryTxt = await retryRes.text().catch(() => "");
+        throw new Error(`Groq retry HTTP ${retryRes.status}: ${retryTxt.slice(0, 200)}`);
+      }
+      updateRateLimitsFromHeaders("groq", retryRes.headers);
+      const retryData = await retryRes.json();
+      const retryContent = retryData?.choices?.[0]?.message?.content ?? "";
+      if (!retryContent) throw new Error("Groq retry returned empty content");
+      return extractJson(retryContent);
+    }
+    throw new Error(`Groq HTTP ${status}: ${txt.slice(0, 200)}`);
   }
+  updateRateLimitsFromHeaders("groq", res.headers);
   const data = await res.json();
   const content = data?.choices?.[0]?.message?.content ?? "";
   if (!content) throw new Error("Groq returned empty content");
@@ -282,27 +382,25 @@ async function callGroq(prompt: string): Promise<unknown> {
 }
 
 // ============================================================
-// Provider 3: OpenRouter (meta-llama/llama-3.3-70b-instruct)
-// v5.85 fix (0.3): changed from google/gemini-2.5-flash to a genuinely
-// different model family (Llama 3.3 70B) so a Gemini outage doesn't kill
-// 2 of 3 fallback layers. Verified free on OpenRouter as of July 2026.
-// NOTE: OpenRouter's free model roster changes — re-check if it breaks.
+// Provider 3: OpenRouter (OpenAI-compatible chat completions)
+// v5.90 (PART 1): ONLY uses user-supplied key — no platform key fallback.
+// v5.90 (PART 3): Uses OpenAI-compatible format (messages array with role/content).
 // ============================================================
-async function callOpenRouter(prompt: string): Promise<unknown> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) throw new Error("OPENROUTER_API_KEY not configured");
+async function callOpenRouter(prompt: string, userApiKey: string, model: string): Promise<unknown> {
+  if (!userApiKey) throw new Error("No OpenRouter API key provided");
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${userApiKey}`,
       "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "https://launchpad--dev.vercel.app",
       "X-Title": "Launchpad",
     },
     body: JSON.stringify({
-      model: "meta-llama/llama-3.3-70b-instruct",
+      model,
       temperature: 0.7,
-      max_tokens: 32000,
+      max_tokens: OPENROUTER_MAX_TOKENS,
+      // v5.90 (PART 3): OpenAI-compatible messages format
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: prompt },
@@ -318,6 +416,155 @@ async function callOpenRouter(prompt: string): Promise<unknown> {
   const content = data?.choices?.[0]?.message?.content ?? "";
   if (!content) throw new Error("OpenRouter returned empty content");
   return extractJson(content);
+}
+
+// ============================================================
+// v5.90 (PART 1+3): Provider 4: OpenAI (OpenAI-compatible chat completions)
+// Uses user-supplied key only. OpenAI-compatible format.
+// ============================================================
+async function callOpenAI(prompt: string, userApiKey: string, model: string): Promise<unknown> {
+  if (!userApiKey) throw new Error("No OpenAI API key provided");
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${userApiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      temperature: 0.7,
+      max_tokens: OPENAI_MAX_TOKENS,
+      // v5.90 (PART 3): OpenAI-compatible messages format
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: prompt },
+      ],
+    }),
+    signal: abortAfter(AI_FETCH_TIMEOUT_MS),
+  });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(`OpenAI HTTP ${res.status}: ${txt.slice(0, 200)}`);
+  }
+  const data = await res.json();
+  const content = data?.choices?.[0]?.message?.content ?? "";
+  if (!content) throw new Error("OpenAI returned empty content");
+  return extractJson(content);
+}
+
+// ============================================================
+// v5.90 (PART 1+3): Provider 5: Anthropic (Messages API — NOT OpenAI format)
+// v5.90 (PART 3): Uses Anthropic's DISTINCT format: system prompt is a
+// top-level "system" field (NOT a message with role:"system"), and the
+// messages array contains only user/assistant turns. Field is "max_tokens"
+// (same name as OpenAI but different API path).
+// ============================================================
+async function callAnthropic(prompt: string, userApiKey: string, model: string): Promise<unknown> {
+  if (!userApiKey) throw new Error("No Anthropic API key provided");
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": userApiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: ANTHROPIC_MAX_TOKENS,
+      // v5.90 (PART 3): Anthropic's DISTINCT format — system is top-level,
+      // NOT a message with role:"system"
+      system: SYSTEM_PROMPT,
+      messages: [
+        { role: "user", content: prompt },
+      ],
+    }),
+    signal: abortAfter(AI_FETCH_TIMEOUT_MS),
+  });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(`Anthropic HTTP ${res.status}: ${txt.slice(0, 200)}`);
+  }
+  const data = await res.json();
+  // v5.90 (PART 3): Anthropic returns content as an array of {type:"text", text:"..."}
+  const content = data?.content?.map((c: { text?: string }) => c.text).join("\n") ?? "";
+  if (!content) throw new Error("Anthropic returned empty content");
+  return extractJson(content);
+}
+
+// ============================================================
+// v5.90 (PART 1+3): Provider 6: Custom endpoint (OpenAI-compatible)
+// The user provides their own endpoint URL + key + model name.
+// v5.90 (PART 1): SSRF protection is applied (same as /api/chat).
+// ============================================================
+async function callCustom(prompt: string, userApiKey: string, model: string, customEndpoint: string): Promise<unknown> {
+  if (!userApiKey) throw new Error("No custom API key provided");
+  if (!customEndpoint) throw new Error("Custom endpoint URL is required");
+  // v5.90: validate the custom endpoint against SSRF (reuse the chat route's logic)
+  await assertSafeExternalUrl(customEndpoint);
+  const res = await fetch(customEndpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${userApiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      temperature: 0.7,
+      max_tokens: CUSTOM_MAX_TOKENS,
+      // v5.90 (PART 3): OpenAI-compatible messages format
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: prompt },
+      ],
+    }),
+    signal: abortAfter(AI_FETCH_TIMEOUT_MS),
+    // v5.90: block redirects (SSRF protection, same as /api/chat)
+    redirect: "manual",
+  });
+  // v5.90: reject 3xx redirects
+  if (res.status >= 300 && res.status < 400) {
+    throw new Error(`Custom endpoint returned a redirect (${res.status}) — redirects are blocked for security.`);
+  }
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(`Custom endpoint HTTP ${res.status}: ${txt.slice(0, 200)}`);
+  }
+  const data = await res.json();
+  const content = data?.choices?.[0]?.message?.content ?? "";
+  if (!content) throw new Error("Custom endpoint returned empty content");
+  return extractJson(content);
+}
+
+// ============================================================
+// v5.90 (PART 1): SSRF protection for custom endpoints
+// (copied from /api/chat — same private/loopback IP blocking + DNS re-check)
+// ============================================================
+function isPrivateOrLoopbackHost(host: string): boolean {
+  const h = host.toLowerCase().replace(/^\[|\]$/g, "");
+  if (h === "localhost" || h.endsWith(".localhost")) return true;
+  if (h === "0.0.0.0" || h === "::") return true;
+  if (/^127\.\d+\.\d+\.\d+$/.test(h)) return true;
+  if (/^10\.\d+\.\d+\.\d+$/.test(h)) return true;
+  if (/^192\.168\.\d+\.\d+$/.test(h)) return true;
+  if (/^172\.(1[6-9]|2\d|3[01])\.\d+\.\d+$/.test(h)) return true;
+  if (/^169\.254\.\d+\.\d+$/.test(h)) return true;
+  if (h === "::1") return true;
+  if (h.startsWith("fe80:")) return true;
+  if (h.startsWith("fc") || h.startsWith("fd")) return true;
+  const mapped = h.match(/^(?:::ffff:)?(\d+\.\d+\.\d+\.\d+)$/);
+  if (mapped) return isPrivateOrLoopbackHost(mapped[1]);
+  return false;
+}
+
+async function assertSafeExternalUrl(rawUrl: string): Promise<void> {
+  let url: URL;
+  try { url = new URL(rawUrl); } catch { throw new Error("Invalid custom endpoint URL"); }
+  if (url.protocol !== "https:" && url.protocol !== "http:") {
+    throw new Error(`Custom endpoint must use http(s) protocol`);
+  }
+  if (isPrivateOrLoopbackHost(url.hostname)) {
+    throw new Error(`Custom endpoint hostname "${url.hostname}" is blocked (SSRF protection)`);
+  }
 }
 
 // ============================================================
@@ -401,10 +648,21 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { input, issues, previousRoadmap }: {
+    const { input, issues, previousRoadmap, userApiKey, userProvider, userModel, customEndpoint }: {
       input: PersonalizationInput;
       issues?: string[];
       previousRoadmap?: unknown;
+      /** v5.89 (BUG 4): Optional user-supplied API key (BYOK).
+       * v5.90 (PART 1): REQUIRED for any AI generation — if not provided,
+       * the route returns allFailed:true so the client uses the deterministic
+       * engine. NO platform-wide keys are used for roadmap generation. */
+      userApiKey?: string;
+      /** Which provider the user's key is for (gemini|groq|openrouter|openai|anthropic|custom). */
+      userProvider?: string;
+      /** v5.90 (PART 1): The model to use (from the user's settings). */
+      userModel?: string;
+      /** v5.90 (PART 1): Custom endpoint URL (only for provider="custom"). */
+      customEndpoint?: string;
     } = body;
 
     if (!input || !input.careerId) {
@@ -508,37 +766,123 @@ export async function POST(req: NextRequest) {
       prompt = `Design a personalized coding learning roadmap for this learner.\n\nCRITICAL: The learner selected ${langCount} language(s)/framework(s). You MUST generate between ${minPhases} and ${maxPhases} phases. EVERY one of the ${langCount} selected languages MUST appear in at least one phase — do NOT silently drop any language. Group related languages (e.g., React+Next.js, Django+FastAPI+Flask) into combined phases where sensible, but ensure full coverage.\n\nOutput ONLY the JSON roadmap.\n\nLearner profile:\n${JSON.stringify(userContext, null, 2)}`;
     }
 
-    // Run the 3-provider fallback chain
-    const providers: { name: RoadmapSource; fn: () => Promise<unknown> }[] = [
-      { name: "ai-gemini", fn: () => callGemini(prompt) },
-      { name: "ai-groq", fn: () => callGroq(prompt) },
-      { name: "ai-openrouter", fn: () => callOpenRouter(prompt) },
-    ];
+    // v5.90 (PART 1): BYOK-ONLY for roadmap generation.
+    // REQUIRED BEHAVIOR:
+    //   1. If the user provided their own API key → use ONLY that key (one provider call).
+    //   2. If the user did NOT provide a key → return allFailed:true immediately.
+    //      The client uses the deterministic engine. NO platform-wide keys are used.
+    //   3. NO platform-wide key fallback for roadmap generation.
+    // Platform-wide keys (GEMINI_API_KEY, GROQ_API_KEY, OPENROUTER_API_KEY) are
+    // still used by /api/chat for AI Tutor / Interview / Code Review — but NOT
+    // for roadmap generation. This resolves the shared-quota TPM exhaustion.
 
-    let lastError: Error | null = null;
-    for (const provider of providers) {
-      try {
-        const roadmap = await provider.fn();
-        // Tag the roadmap with the source
-        if (roadmap && typeof roadmap === "object") {
-          (roadmap as Record<string, unknown>).source = provider.name;
-        }
-        console.log(`[roadmap-generate] succeeded via ${provider.name}`);
-        return NextResponse.json({ roadmap });
-      } catch (err) {
-        console.warn(`[roadmap-generate] ${provider.name} failed:`, (err as Error).message);
-        lastError = err as Error;
-        // Continue to next provider
-      }
+    const safeUserKey = userApiKey && typeof userApiKey === "string" && userApiKey.trim().length > 0 && userApiKey.length <= 200 ? userApiKey.trim() : undefined;
+    const safeModel = typeof userModel === "string" && userModel.trim().length > 0 ? userModel.trim() : "";
+
+    // v5.90 (PART 1): If no user key → signal the client to use deterministic engine.
+    if (!safeUserKey || !userProvider) {
+      console.log("[roadmap-generate] no user API key provided — signaling client to use deterministic engine");
+      return NextResponse.json(
+        {
+          error: "No user API key provided. Roadmap generation requires a user-supplied API key (BYOK). The client will use the deterministic engine instead.",
+          allFailed: true,
+          noUserKey: true,
+        },
+        { status: 502 },
+      );
     }
 
-    // All 3 providers failed — caller (personalization-engine) will fall back to deterministic
+    // v5.90 (PART 1): Build a single-provider call using ONLY the user's key.
+    // Map provider name → RoadmapSource tag + call function.
+    type ProviderEntry = { name: RoadmapSource; fn: () => Promise<unknown> };
+    let provider: ProviderEntry | null = null;
+
+    if (userProvider === "gemini" && safeModel) {
+      provider = { name: "ai-gemini", fn: () => callGemini(prompt, safeUserKey!, safeModel) };
+    } else if (userProvider === "groq" && safeModel) {
+      provider = { name: "ai-groq", fn: () => callGroq(prompt, safeUserKey!, safeModel) };
+    } else if (userProvider === "openrouter" && safeModel) {
+      provider = { name: "ai-openrouter", fn: () => callOpenRouter(prompt, safeUserKey!, safeModel) };
+    } else if (userProvider === "openai" && safeModel) {
+      // v5.90 (PART 1): OpenAI is a valid RoadmapSource via the "ai-openrouter"
+      // tag (we don't have a separate "ai-openai" source, so we tag as openrouter-style).
+      // Actually, for clarity, let's add an "ai-openai" source. But to avoid changing
+      // the RoadmapSource type (which would break client code), we'll use "ai-openrouter"
+      // as the tag for all OpenAI-compatible providers (OpenAI, Anthropic, Custom).
+      // The client only uses this for display ("Generated by AI" vs "deterministic").
+      provider = { name: "ai-openrouter", fn: () => callOpenAI(prompt, safeUserKey!, safeModel) };
+    } else if (userProvider === "anthropic" && safeModel) {
+      provider = { name: "ai-openrouter", fn: () => callAnthropic(prompt, safeUserKey!, safeModel) };
+    } else if (userProvider === "custom" && safeModel && customEndpoint) {
+      provider = { name: "ai-openrouter", fn: () => callCustom(prompt, safeUserKey!, safeModel, customEndpoint) };
+    }
+
+    if (!provider) {
+      return NextResponse.json(
+        { error: `Invalid provider/model combination: provider=${userProvider}, model=${safeModel ? "(set)" : "(missing)"}, customEndpoint=${customEndpoint ? "(set)" : "(missing)"}`, allFailed: true },
+        { status: 400 },
+      );
+    }
+
+    // v5.90 (PART 1): Single attempt with the user's key. No multi-provider fallback.
+    try {
+      const roadmap = await provider.fn();
+      // Tag the roadmap with the source
+      if (roadmap && typeof roadmap === "object") {
+        (roadmap as Record<string, unknown>).source = provider.name;
+      }
+
+      // v5.89 (BUG 2): Post-generation coverage verification. If the AI
+      // truncated the output (e.g., hit the 8K token limit with 20+ languages),
+      // some selected languages may be missing from the roadmap. Tag them
+      // so the client can supplement with deterministic phases.
+      const aiRoadmap = roadmap as { phases?: Array<{ modules?: Array<{ tasks?: Array<{ lessonId?: string }> }> }> };
+      if (aiRoadmap.phases && Array.isArray(aiRoadmap.phases)) {
+        const coveredLangs = new Set<string>();
+        for (const phase of aiRoadmap.phases) {
+          for (const mod of phase.modules ?? []) {
+            for (const task of mod.tasks ?? []) {
+              if (task.lessonId) {
+                const trackId = task.lessonId.split("-")[0];
+                if (trackId) coveredLangs.add(trackId);
+              }
+            }
+          }
+        }
+        // Also check phase/module/task titles for language names
+        const phaseText = JSON.stringify(aiRoadmap.phases).toLowerCase();
+        for (const langId of input.selectedLanguageIds) {
+          const langName = LANGUAGE_MAP[langId]?.name?.toLowerCase();
+          if (phaseText.includes(langId.toLowerCase()) || (langName && phaseText.includes(langName))) {
+            coveredLangs.add(langId);
+          }
+        }
+        const missing = input.selectedLanguageIds.filter((id: string) => !coveredLangs.has(id));
+        if (missing.length > 0) {
+          console.log(`[roadmap-generate] ${provider.name} roadmap missing ${missing.length} languages:`, missing);
+          (roadmap as Record<string, unknown>)._missingLanguages = missing;
+        }
+      }
+
+      console.log(`[roadmap-generate] succeeded via ${provider.name} (user key)`);
+      return NextResponse.json({ roadmap });
+    } catch (err) {
+      // v5.90 (PART 6): PRIVACY FIX — sanitize the error message before logging
+      // and before returning to the client. The raw error may include the Gemini
+      // URL (which contains ?key=${apiKey}). Strip ?key=... to prevent API key
+      // leaking to Vercel server logs or to the client.
+      const rawErrMsg = (err as Error).message || String(err);
+      const sanitizedErrMsg = rawErrMsg.replace(/\?key=[^&\s"]+/g, "?key=[REDACTED]");
+      console.warn(`[roadmap-generate] ${provider.name} failed:`, sanitizedErrMsg);
+      return NextResponse.json(
+        { error: `${provider.name} failed: ${sanitizedErrMsg}`, allFailed: true },
+        { status: 502 },
+      );
+    }
+    // v5.90: unreachable — the try/catch above always returns. Kept for safety.
     return NextResponse.json(
-      {
-        error: `All 3 AI providers failed. Last error: ${lastError?.message ?? "unknown"}`,
-        allFailed: true,
-      },
-      { status: 502 },
+      { error: "Unexpected code path", allFailed: true },
+      { status: 500 },
     );
   } catch (err) {
     return NextResponse.json(

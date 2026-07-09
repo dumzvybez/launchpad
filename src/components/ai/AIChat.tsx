@@ -481,6 +481,9 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
     setInput("");
     setSending(true);
     // Fire the first AI call
+    // v5.90 (PART 5): use streaming for CONSISTENCY with handleSend and the
+    // "I don't understand" path. Previously the interview kickoff used non-
+    // streaming while subsequent messages streamed — an inconsistency.
     (async () => {
       try {
         const response = await fetch("/api/chat", {
@@ -494,18 +497,67 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
             temperature: aiSettings.temperature,
             customEndpoint: aiSettings.customEndpoint,
             systemPrompt: sysPrompt,
+            stream: true, // v5.90 (PART 5): consistent streaming
           }),
         });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
-        const assistantMessage: ChatMessage = {
-          id: `msg-${Date.now()}-ai`,
-          role: "assistant",
-          content: data.content || "(no response)",
-          timestamp: new Date().toISOString(),
-          provider: data.provider,
-        };
-        addMessage(chatId, assistantMessage);
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data.error || `HTTP ${response.status}`);
+        }
+        // v5.90 (PART 5): streaming path — same logic as handleSend
+        if (response.body) {
+          const assistantMsgId = `msg-${Date.now()}-ai`;
+          const initialAssistantMessage: ChatMessage = {
+            id: assistantMsgId,
+            role: "assistant",
+            content: "",
+            timestamp: new Date().toISOString(),
+            provider: aiSettings.provider,
+          };
+          addChatMessage(chatId, initialAssistantMessage);
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split("\n\n");
+              buffer = lines.pop() || "";
+              for (const line of lines) {
+                if (line.startsWith("data: ")) {
+                  const jsonStr = line.slice(6).trim();
+                  if (jsonStr === "[DONE]") break;
+                  try {
+                    const parsed = JSON.parse(jsonStr);
+                    if (parsed.content) {
+                      useStore.getState().updateChatMessage(chatId, assistantMsgId, {
+                        content: (useStore.getState().state.chatConversations.find((c) => c.id === chatId)?.messages.find((m) => m.id === assistantMsgId)?.content || "") + parsed.content,
+                      });
+                    }
+                    if (parsed.error) {
+                      throw new Error(parsed.error);
+                    }
+                  } catch { /* skip malformed */ }
+                }
+              }
+            }
+          } finally {
+            reader.releaseLock();
+          }
+        } else {
+          // Fallback: non-streaming (shouldn't happen with stream:true, but be safe)
+          const data = await response.json();
+          const assistantMessage: ChatMessage = {
+            id: `msg-${Date.now()}-ai`,
+            role: "assistant",
+            content: data.content || "(no response)",
+            timestamp: new Date().toISOString(),
+            provider: data.provider,
+          };
+          addMessage(chatId, assistantMessage);
+        }
       } catch (err) {
         const errorMessage: ChatMessage = {
           id: `msg-${Date.now()}-err`,
@@ -774,6 +826,8 @@ Be honest but encouraging. This is a learning context. Use code blocks for all c
               setSending(true);
 
               // Fire the first AI call
+              // v5.90 (PART 5): use streaming for CONSISTENCY with handleSend
+              // and the interview kickoff. Previously code review used non-streaming.
               (async () => {
                 try {
                   const response = await fetch("/api/chat", {
@@ -787,21 +841,68 @@ Be honest but encouraging. This is a learning context. Use code blocks for all c
                       temperature: aiSettings.temperature,
                       customEndpoint: aiSettings.customEndpoint,
                       systemPrompt: sysPrompt,
+                      stream: true, // v5.90 (PART 5): consistent streaming
                     }),
                   });
-                  const data = await response.json();
-                  if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
-                  const assistantMessage: ChatMessage = {
-                    id: `msg-${Date.now()}-ai`,
-                    role: "assistant",
-                    content: data.content || "(no response)",
-                    timestamp: new Date().toISOString(),
-                    provider: data.provider,
-                  };
-                  addMessage(chatId, assistantMessage);
-                  // Track badge progress. Wrapped in try/catch —
-                  // localStorage.setItem can throw in Safari private
-                  // mode or when quota is exceeded.
+                  if (!response.ok) {
+                    const data = await response.json().catch(() => ({}));
+                    throw new Error(data.error || `HTTP ${response.status}`);
+                  }
+                  // v5.90 (PART 5): streaming path — same logic as handleSend
+                  if (response.body) {
+                    const assistantMsgId = `msg-${Date.now()}-ai`;
+                    const initialAssistantMessage: ChatMessage = {
+                      id: assistantMsgId,
+                      role: "assistant",
+                      content: "",
+                      timestamp: new Date().toISOString(),
+                      provider: aiSettings.provider,
+                    };
+                    addMessage(chatId, initialAssistantMessage);
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buffer = "";
+                    try {
+                      while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split("\n\n");
+                        buffer = lines.pop() || "";
+                        for (const line of lines) {
+                          if (line.startsWith("data: ")) {
+                            const jsonStr = line.slice(6).trim();
+                            if (jsonStr === "[DONE]") break;
+                            try {
+                              const parsed = JSON.parse(jsonStr);
+                              if (parsed.content) {
+                                useStore.getState().updateChatMessage(chatId, assistantMsgId, {
+                                  content: (useStore.getState().state.chatConversations.find((c) => c.id === chatId)?.messages.find((m) => m.id === assistantMsgId)?.content || "") + parsed.content,
+                                });
+                              }
+                              if (parsed.error) {
+                                throw new Error(parsed.error);
+                              }
+                            } catch { /* skip malformed */ }
+                          }
+                        }
+                      }
+                    } finally {
+                      reader.releaseLock();
+                    }
+                  } else {
+                    // Fallback: non-streaming
+                    const data = await response.json();
+                    const assistantMessage: ChatMessage = {
+                      id: `msg-${Date.now()}-ai`,
+                      role: "assistant",
+                      content: data.content || "(no response)",
+                      timestamp: new Date().toISOString(),
+                      provider: data.provider,
+                    };
+                    addMessage(chatId, assistantMessage);
+                  }
+                  // Track badge progress
                   if (typeof window !== "undefined") {
                     try {
                       window.localStorage.setItem("launchpad:code-reviewed", "1");

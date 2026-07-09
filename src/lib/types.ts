@@ -196,6 +196,12 @@ export type GeneratedPhase = {
   icon: string;
   estWeeks: number;
   objectives: string[];
+  /** v5.91 (Part 2): If this phase was auto-injected as a prerequisite,
+   * this field lists which selected languages required it. */
+  autoInjectedFor?: string[];
+  /** v5.91 (Part 3): If this phase is a lesson-backed language phase,
+   * this contains the real lesson content grouped into modules. */
+  lessonGroups?: LessonGroup[];
   modules: {
     id: string;
     title: string;
@@ -229,6 +235,22 @@ export type GeneratedRoadmap = {
   aiRefinement?: string;
   /** Source of the generated roadmap */
   source?: RoadmapSource;
+};
+
+// ============================================================
+// v5.91 (Part 3): Lesson groups for roadmap phase display
+// ============================================================
+
+/** A group of lessons within a language's roadmap phase. */
+export type LessonGroup = {
+  /** Module title, e.g., "Module 1: Foundations" */
+  title: string;
+  /** Brief description of what this module covers */
+  description: string;
+  /** The lesson IDs in this group (e.g., ["python-01", "python-02", ...]) */
+  lessonIds: string[];
+  /** The lesson numbers (1-indexed) for display */
+  lessonNumbers: number[];
 };
 
 // ============================================================

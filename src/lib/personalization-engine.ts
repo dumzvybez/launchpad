@@ -1411,20 +1411,30 @@ function enrichRoadmapForBeginners(phases: GeneratedPhase[]): GeneratedPhase[] {
 // Main generator
 // ============================================================
 
-export function generateRoadmap(input: PersonalizationInput): GeneratedRoadmap {
+export function generateRoadmap(
+  input: PersonalizationInput,
+  /** v5.91 (Part 2): Languages auto-injected as prerequisites.
+   * Each entry has the trackId and which selected languages required it. */
+  autoInjected?: Array<{ trackId: string; requiredBy: string[] }>,
+): GeneratedRoadmap {
   const timeline = computeTimeline(input);
   const career = CAREER_MAP[input.careerId];
+
+  // v5.91 (Part 1): Topologically sort the language IDs so prerequisites
+  // come before their dependents in the roadmap.
+  const { topologicalSort } = require("./dependency-graph");
+  const sortedLangIds = topologicalSort(input.selectedLanguageIds) as string[];
 
   // v5.88: Generate phases — the count now SCALES with the number of selected
   // languages. Previously only primary + ONE secondary language got phases;
   // the other 50+ languages were silently dropped. Now every selected language
   // gets meaningful representation.
   //
-  // Phase structure:
+  // v5.91: Phase structure now respects dependency ordering.
   //   1. VS Code Setup (always)
   //   2. Foundations (primary language basics)
   //   3-7. Core skills (language mastery, building blocks, specialization, advanced)
-  //   8+. One phase per secondary language (or per group of 2-3 related languages)
+  //   8+. One phase per secondary language (sorted by prerequisite order)
   //   N-1. AI Bonus Track
   //   N. Capstone & Career
   const phases: GeneratedPhase[] = [
@@ -1438,18 +1448,46 @@ export function generateRoadmap(input: PersonalizationInput): GeneratedRoadmap {
   ];
   phases.forEach((p, i) => { p.number = i + 1; });
 
+  // v5.91 (Part 2): Build a map of auto-injected languages for labeling.
+  const autoInjectedMap = new Map<string, string[]>();
+  if (autoInjected) {
+    for (const inj of autoInjected) {
+      autoInjectedMap.set(inj.trackId, inj.requiredBy);
+    }
+  }
+
   // v5.88: Add a phase for EVERY secondary language (not just the first).
-  // Group related languages (e.g., React + Next.js, Django + Flask) into
-  // combined phases to keep the total phase count reasonable.
-  const secondaryLangs = secondaryLanguages(input);
+  // v5.91: Use topologically sorted order so prerequisites come first.
+  const secondaryLangs = sortedLangIds
+    .slice(1) // skip primary (first in sorted order)
+    .map((id: string) => LANGUAGE_MAP[id])
+    .filter(Boolean);
+
   if (secondaryLangs.length >= 1) {
     const groups = groupRelatedLanguages(secondaryLangs);
     for (const group of groups) {
       const phaseNum = phases.length + 1;
       if (group.length === 1) {
-        phases.push(genExtraLanguagePhase(input, group[0], phaseNum));
+        const phase = genExtraLanguagePhase(input, group[0], phaseNum);
+        // v5.91 (Part 2): Tag auto-injected phases with "required for" label
+        const injectedFor = autoInjectedMap.get(group[0].id);
+        if (injectedFor) {
+          phase.autoInjectedFor = injectedFor;
+          phase.subtitle = `Required for: ${injectedFor.map(id => LANGUAGE_MAP[id]?.name ?? id).join(", ")}`;
+        }
+        // v5.91 (Part 3): Add real lesson groups
+        phase.lessonGroups = buildLessonGroups(group[0].id);
+        phases.push(phase);
       } else {
-        phases.push(genMultiLanguagePhase(input, group, phaseNum));
+        const phase = genMultiLanguagePhase(input, group, phaseNum);
+        // Tag if any language in the group was auto-injected
+        const injectedFor = group
+          .flatMap(l => autoInjectedMap.get(l.id) ?? [])
+          .filter((v, i, a) => a.indexOf(v) === i); // dedupe
+        if (injectedFor.length > 0) {
+          phase.autoInjectedFor = injectedFor;
+        }
+        phases.push(phase);
       }
     }
     phases.forEach((p, i) => { p.number = i + 1; });
@@ -1459,20 +1497,7 @@ export function generateRoadmap(input: PersonalizationInput): GeneratedRoadmap {
   const bonusPhase = genAIBonusPhase(input, phases.length + 1);
   phases.push(bonusPhase);
 
-  // Capstone & Career is always last
-  // (genPhase6 already handles "Capstone & Career" — but if we added many
-  // language phases, we need a final capstone. genPhase6 is "Advanced Topics"
-  // not capstone. The original code had phase 6 as the last core phase.
-  // For v5.88, ensure there's a proper capstone if we have many phases.)
-  // Actually, looking at the original PHASE_TEMPLATES, phase 6 IS
-  // "Capstone & Career". So the bonus phase is inserted before it... no,
-  // the bonus phase is pushed AFTER phase 6. Let me re-check.
-  // PHASE_TEMPLATES[5] = phase 6 = "Capstone & Career".
-  // The original code pushes bonusPhase AFTER all 6 phases + extra lang phases.
-  // That means Capstone comes before the AI bonus, which is wrong per the prompt
-  // ("AI Bonus Track as second-to-last, Capstone last").
   // v5.88 fix: reorder so Capstone is truly last.
-  // Find the capstone phase (phase 6) and move it to the end.
   const capstoneIdx = phases.findIndex((p) => p.title.includes("Capstone"));
   if (capstoneIdx !== -1 && capstoneIdx < phases.length - 1) {
     const [capstone] = phases.splice(capstoneIdx, 1);
@@ -1507,6 +1532,46 @@ export function generateRoadmap(input: PersonalizationInput): GeneratedRoadmap {
     generatedAt: new Date().toISOString(),
     source: "deterministic" as RoadmapSource,
   };
+}
+
+// ============================================================
+// v5.91 (Part 3): Build lesson groups for a language phase.
+// Groups 21 lessons (20 stages + capstone) into logical modules.
+//
+// Grouping scheme:
+//   Module 1: Foundations (lessons 1-5) — setup, syntax, types, control flow
+//   Module 2: Core Concepts (lessons 6-12) — data structures, functions, OOP, errors
+//   Module 3: Advanced Topics (lessons 13-20) — advanced patterns, testing, deployment
+//   Module 4: Capstone (lesson 21) — final project
+// ============================================================
+
+function buildLessonGroups(trackId: string): import("./types").LessonGroup[] {
+  return [
+    {
+      title: "Module 1: Foundations",
+      description: "Setup, syntax, types, and control flow — the building blocks.",
+      lessonIds: Array.from({ length: 5 }, (_, i) => `${trackId}-${String(i + 1).padStart(2, "0")}`),
+      lessonNumbers: [1, 2, 3, 4, 5],
+    },
+    {
+      title: "Module 2: Core Concepts",
+      description: "Data structures, functions, OOP, and error handling.",
+      lessonIds: Array.from({ length: 7 }, (_, i) => `${trackId}-${String(i + 6).padStart(2, "0")}`),
+      lessonNumbers: [6, 7, 8, 9, 10, 11, 12],
+    },
+    {
+      title: "Module 3: Advanced Topics",
+      description: "Advanced patterns, testing, debugging, and deployment.",
+      lessonIds: Array.from({ length: 8 }, (_, i) => `${trackId}-${String(i + 13).padStart(2, "0")}`),
+      lessonNumbers: [13, 14, 15, 16, 17, 18, 19, 20],
+    },
+    {
+      title: "Module 4: Capstone Project",
+      description: "Apply everything in a comprehensive final project.",
+      lessonIds: [`${trackId}-capstone`],
+      lessonNumbers: [21],
+    },
+  ];
 }
 
 // ============================================================
@@ -1637,63 +1702,126 @@ function genMultiLanguagePhase(
 function genExtraLanguagePhase(input: PersonalizationInput, lang: LanguageInfo, phaseNumber: number): GeneratedPhase {
   const colors: PhaseColor[] = ["teal", "violet", "amber", "rose", "emerald", "sky"];
   const color = colors[(phaseNumber - 1) % colors.length];
+
+  // v5.89 (BUG 3): Enhanced with real language-specific content from LANGUAGE_MAP.
+  // Previously this was a 2-task stub with generic "Learn X syntax" + "Build a project".
+  // Now uses lang.tagline, lang.useCases, lang.learningCurve, lang.topCompanies,
+  // and lang.difficulty to create genuinely substantive, language-specific tasks.
+  const useCases = lang.useCases ?? [];
+  const topCompanies = lang.topCompanies ?? [];
+  const difficultyNote = lang.difficulty >= 4 ? `${lang.name} has a steeper learning curve — take it slow.` : `${lang.name} is relatively approachable.`;
+
+  // Build tasks based on the language's actual metadata
+  const tasks: Array<{
+    id: string; title: string; why: string; brief: string;
+    estMinutes: number; xp: number; tags: string[];
+    steps?: string[]; lessonId?: string;
+  }> = [
+    {
+      id: `phase-${phaseNumber}-m1-t1`,
+      title: `Set up ${lang.name} and run hello world`,
+      why: `A working setup unblocks everything else. ${lang.tagline}.`,
+      brief: `Install ${lang.name}, configure your editor with syntax highlighting and linting, and run a hello world program. ${difficultyNote}`,
+      estMinutes: 60,
+      xp: 40,
+      tags: ["core", "setup"],
+      steps: [
+        `Install ${lang.name} (follow the official getting started guide)`,
+        `Install editor extensions (syntax highlighting, autocomplete, linter)`,
+        `Write and run a hello world program`,
+        `Verify your setup with a simple calculation or string operation`,
+      ],
+      lessonId: ["python","javascript","typescript","html","css","sql","java","c","cpp","csharp","go","rust","swift","kotlin","php","ruby","r","dart","bash","react","nextjs","django","fastapi","flask","svelte","vue","angular","nodejs","postgresql","mongodb"].includes(lang.id) ? `${lang.id}-01` : undefined,
+    },
+    {
+      id: `phase-${phaseNumber}-m1-t2`,
+      title: `Learn ${lang.name} syntax, types, and control flow`,
+      why: `Each language has unique idioms — ${lang.learningCurve}.`,
+      brief: `Study ${lang.name}'s syntax, primitive types, operators, conditionals, and loops. ${lang.tagline}. Pay attention to how ${lang.name} handles errors and edge cases.`,
+      estMinutes: 240,
+      xp: 100,
+      tags: ["core", "reading"],
+      steps: [
+        `Read the official ${lang.name} tutorial / quickstart`,
+        `Practice with variables, types, and operators`,
+        `Write conditional and loop constructs`,
+        `Complete 3-5 exercises from the ${lang.name} docs`,
+      ],
+      lessonId: ["python","javascript","typescript","html","css","sql","java","c","cpp","csharp","go","rust","swift","kotlin","php","ruby","r","dart","bash","react","nextjs","django","fastapi","flask","svelte","vue","angular","nodejs","postgresql","mongodb"].includes(lang.id) ? `${lang.id}-03` : undefined,
+    },
+    {
+      id: `phase-${phaseNumber}-m1-t3`,
+      title: `Master ${lang.name} functions and data structures`,
+      why: `Functions and data structures are how you organize real logic. ${lang.name}'s approach may differ from what you know.`,
+      brief: `Learn how ${lang.name} defines functions, handles parameters/returns, and works with core data structures (arrays/lists, maps/dicts, sets). ${lang.tagline}.`,
+      estMinutes: 200,
+      xp: 90,
+      tags: ["core"],
+      steps: [
+        `Write functions with parameters and return values`,
+        `Work with ${lang.name}'s core data structures`,
+        `Understand scope and lifetime of variables`,
+        `Refactor a small script into reusable functions`,
+      ],
+      lessonId: ["python","javascript","typescript","html","css","sql","java","c","cpp","csharp","go","rust","swift","kotlin","php","ruby","r","dart","bash","react","nextjs","django","fastapi","flask","svelte","vue","angular","nodejs","postgresql","mongodb"].includes(lang.id) ? `${lang.id}-05` : undefined,
+    },
+  ];
+
+  // Add a use-case-specific task if we have use case data
+  if (useCases.length > 0) {
+    const primaryUseCase = useCases[0];
+    tasks.push({
+      id: `phase-${phaseNumber}-m1-t4`,
+      title: `Apply ${lang.name} to: ${primaryUseCase}`,
+      why: `${lang.name} excels at ${primaryUseCase.toLowerCase()}. Real-world use cases: ${useCases.slice(0, 3).join(", ")}.`,
+      brief: `Build a small, focused example demonstrating ${lang.name} for ${primaryUseCase.toLowerCase()}. ${topCompanies.length > 0 ? `Companies like ${topCompanies.slice(0, 2).join(" and ")} use ${lang.name} in production.` : ""}`,
+      estMinutes: 180,
+      xp: 100,
+      tags: ["hands-on", "core"],
+      steps: [
+        `Research how ${lang.name} is used for ${primaryUseCase.toLowerCase()}`,
+        `Build a minimal working example`,
+        `Test it with real data`,
+        `Document what you learned`,
+      ],
+      lessonId: ["python","javascript","typescript","html","css","sql","java","c","cpp","csharp","go","rust","swift","kotlin","php","ruby","r","dart","bash","react","nextjs","django","fastapi","flask","svelte","vue","angular","nodejs","postgresql","mongodb"].includes(lang.id) ? `${lang.id}-07` : undefined,
+    });
+  }
+
   return {
     id: `phase-${phaseNumber}-second-lang-${lang.id}`,
     number: phaseNumber,
     title: `Second Language: ${lang.name}`,
-    subtitle: `Add ${lang.name} to your toolkit`,
+    subtitle: lang.tagline,
     color,
     icon: lang.icon,
-    estWeeks: 1, // v5.85 fix (4.14): minimum 1 week to avoid confusing '0w' display
+    estWeeks: Math.max(2, Math.ceil(tasks.length / 2)),
     objectives: [
-      `Learn ${lang.name} syntax and core idioms`,
-      `Translate concepts from your first language`,
-      `Build a small project in ${lang.name}`,
+      `Set up ${lang.name} and understand its syntax and type system`,
+      `Master ${lang.name} functions, data structures, and idioms`,
+      ...(useCases.length > 0 ? [`Apply ${lang.name} to a real use case: ${useCases[0]}`] : [`Build a working project in ${lang.name}`]),
     ],
     modules: [
       {
-        id: `phase-${phaseNumber}-m1-syntax`,
+        id: `phase-${phaseNumber}-m1-fundamentals`,
         title: `${lang.name} fundamentals`,
-        description: `Learn the syntax, types, and control flow of ${lang.name}.`,
-        tasks: [
-          {
-            id: `phase-${phaseNumber}-m1-t1`,
-            title: `Set up ${lang.name} and run hello world`,
-            why: `A working setup unblocks everything else.`,
-            brief: `Install ${lang.name}, set up your editor, and run hello world.`,
-            estMinutes: 60,
-            xp: 40,
-            tags: ["core", "setup"],
-            steps: [
-              `Install ${lang.name}`,
-              `Install editor extensions`,
-              `Run hello world`,
-            ],
-          },
-          {
-            id: `phase-${phaseNumber}-m1-t2`,
-            title: `Learn ${lang.name} syntax and types`,
-            why: `Each language has unique idioms — learn them early.`,
-            brief: `Study ${lang.name}'s syntax, primitive types, and operators.`,
-            estMinutes: 180,
-            xp: 80,
-            tags: ["core"],
-          },
-        ],
+        description: `${lang.description.substring(0, 150)}${lang.description.length > 150 ? "..." : ""}`,
+        tasks: tasks.slice(0, 3),
       },
       {
         id: `phase-${phaseNumber}-m2-project`,
-        title: `Build a small ${lang.name} project`,
-        description: `Apply ${lang.name} to a real problem.`,
-        tasks: [
+        title: `Build with ${lang.name}`,
+        description: `Apply ${lang.name} to a real problem${useCases.length > 0 ? ` — ${useCases.slice(0, 2).join(", ")}` : ""}.`,
+        tasks: tasks.length > 3 ? [tasks[3]] : [
           {
             id: `phase-${phaseNumber}-m2-t1`,
             title: `Build a CLI tool or small app in ${lang.name}`,
-            why: `Building in a new language exposes its strengths and quirks.`,
-            brief: `Pick a small problem and implement it in ${lang.name}.`,
+            why: `Building in a new language exposes its strengths and quirks. ${lang.tagline}.`,
+            brief: `Pick a small problem and implement it in ${lang.name}. ${topCompanies.length > 0 ? `This is the kind of work ${topCompanies[0]} does with ${lang.name}.` : ""}`,
             estMinutes: 480,
             xp: 200,
             tags: ["project", "core"],
+            lessonId: ["python","javascript","typescript","html","css","sql","java","c","cpp","csharp","go","rust","swift","kotlin","php","ruby","r","dart","bash","react","nextjs","django","fastapi","flask","svelte","vue","angular","nodejs","postgresql","mongodb"].includes(lang.id) ? `${lang.id}-10` : undefined,
           },
         ],
       },
@@ -2356,12 +2484,26 @@ function genVSCodeSetupPhase(input: PersonalizationInput, phaseNumber: number): 
 
 export async function generateRoadmapWithAI(
   input: PersonalizationInput,
+  /** v5.89 (BUG 4): Optional user-supplied API key + provider. When provided,
+   * the server uses the user's key instead of platform-wide keys.
+   * v5.90 (PART 1): Now includes model + customEndpoint. The server REQUIRES
+   * a user key — if not provided, it returns allFailed:true and the client
+   * uses the deterministic engine. NO platform-wide keys are used. */
+  userKey?: { apiKey: string; provider: string; model?: string; customEndpoint?: string },
 ): Promise<{ roadmap: GeneratedRoadmap | null; error?: string; allFailed?: boolean }> {
   try {
     const res = await fetch("/api/roadmap-generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ input }),
+      body: JSON.stringify({
+        input,
+        ...(userKey ? {
+          userApiKey: userKey.apiKey,
+          userProvider: userKey.provider,
+          userModel: userKey.model,
+          customEndpoint: userKey.customEndpoint,
+        } : {}),
+      }),
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
@@ -2372,6 +2514,33 @@ export async function generateRoadmapWithAI(
     if (!aiRoadmap || !aiRoadmap.phases || !Array.isArray(aiRoadmap.phases)) {
       return { roadmap: null, error: "AI returned malformed roadmap" };
     }
+
+    // v5.89 (BUG 2): If the AI roadmap is missing any selected languages
+    // (truncation at token limit), supplement with deterministic phases for
+    // the missing languages. This ensures complete coverage even when the AI
+    // output is cut short.
+    const missingLangs: string[] = Array.isArray(aiRoadmap._missingLanguages) ? aiRoadmap._missingLanguages : [];
+    let supplementedPhases = aiRoadmap.phases;
+    if (missingLangs.length > 0) {
+      console.log(`[generateRoadmapWithAI] supplementing ${missingLangs.length} missing languages with deterministic phases`);
+      const supplementPhases = missingLangs.map((langId, i) => {
+        const lang = LANGUAGE_MAP[langId];
+        if (!lang) return null;
+        const phaseNum = (aiRoadmap.phases.length + i + 1);
+        return genExtraLanguagePhase(input, lang, phaseNum);
+      }).filter((p): p is GeneratedPhase => p !== null);
+      // Insert supplement phases before the last phase (Capstone) if it exists
+      if (supplementedPhases.length > 0) {
+        const lastPhase = supplementedPhases[supplementedPhases.length - 1];
+        const isLastCapstone = lastPhase && (lastPhase.title.includes("Capstone") || lastPhase.title.includes("Career"));
+        if (isLastCapstone) {
+          supplementedPhases = [...supplementedPhases.slice(0, -1), ...supplementPhases, lastPhase];
+        } else {
+          supplementedPhases = [...supplementedPhases, ...supplementPhases];
+        }
+      }
+    }
+
     // Normalize: ensure required fields exist
     const career = CAREER_MAP[input.careerId];
     const weeklyHours = input.hoursPerDay * input.daysPerWeek;
@@ -2382,7 +2551,7 @@ export async function generateRoadmapWithAI(
       languageIds: input.selectedLanguageIds,
       totalWeeks: aiRoadmap.totalWeeks || Math.max(8, Math.round((52 * 14) / Math.max(weeklyHours, 1))),
       totalHours: aiRoadmap.totalHours || Math.round((aiRoadmap.totalWeeks || 52) * weeklyHours),
-      phases: aiRoadmap.phases.map((p: GeneratedPhase, i: number) => ({
+      phases: supplementedPhases.map((p: GeneratedPhase, i: number) => ({
         ...p,
         number: i + 1, // ensure sequential
         estWeeks: p.estWeeks || 4,
@@ -2399,7 +2568,7 @@ export async function generateRoadmapWithAI(
         })),
       })),
       generatedAt: new Date().toISOString(),
-      aiRefinement: "Generated by AI",
+      aiRefinement: missingLangs.length > 0 ? `Generated by AI; supplemented ${missingLangs.length} missing languages` : "Generated by AI",
       source: (aiRoadmap.source as RoadmapSource) || "ai-gemini",
     };
     return { roadmap: normalized };

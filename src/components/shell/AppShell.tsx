@@ -88,20 +88,79 @@ export function AppShell() {
   useCommandPaletteShortcut();
 
   // v5.76 — Clean URL routing (pathname-based, no hash).
-  // Syncs currentView with the browser URL: /dashboard, /learn, /ai-tutor, etc.
-  // On mount: read the pathname and set the view.
+  // v5.92 (Part 5): Extended to support sub-paths for deep-linking:
+  //   /roadmap/phase/3       → roadmap view, phase 3 selected
+  //   /learn/python/6        → learn view, track=python, lesson 6
+  //   /projects/[projectId]  → projects view, specific project selected
+  // On mount: read the pathname and set the view + sub-state.
   // On view change: update the URL via pushState (no page reload).
-  // On popstate (back/forward): read the URL and set the view.
+  // On popstate (back/forward): read the URL and set the view + sub-state.
   const VALID_VIEWS = ["dashboard","roadmap","learn","playground","daily-challenge","flashcards","skill-tree","calendar","notes","projects","focus","analytics","career","ai-tutor","community","tools","account","settings"];
+
+  // v5.92 (Part 5): Parse sub-paths from the URL.
+  const parseSubPath = (path: string) => {
+    const parts = path.split("/").filter(Boolean); // e.g. ["roadmap", "phase", "3"]
+    if (parts.length === 0) return { view: "dashboard", subPath: [] };
+    const view = VALID_VIEWS.includes(parts[0]) ? parts[0] : "dashboard";
+    return { view, subPath: parts.slice(1) };
+  };
 
   useEffect(() => {
     const viewFromPath = () => {
-      const path = window.location.pathname.slice(1); // remove leading /
-      if (path && VALID_VIEWS.includes(path)) {
-        setView(path as typeof currentView);
-      } else if (!path || path === "") {
-        // Root path → dashboard (don't redirect, just set the view)
-        if (currentView !== "dashboard") setView("dashboard" as typeof currentView);
+      const rawPath = window.location.pathname.slice(1); // remove leading /
+      const { view, subPath } = parseSubPath(rawPath);
+
+      if (view !== currentView) {
+        setView(view as typeof currentView);
+      }
+
+      // v5.92 (Part 5): Handle sub-paths for deep-linking
+      if (view === "roadmap" && subPath.length >= 2 && subPath[0] === "phase") {
+        const phaseNum = parseInt(subPath[1], 10);
+        if (!isNaN(phaseNum) && phaseNum > 0) {
+          const phase = useStore.getState().state.roadmap?.phases.find(p => p.number === phaseNum);
+          if (phase) {
+            useStore.getState().selectPhase(phase.id);
+          }
+        }
+      } else if (view === "roadmap" && subPath.length === 0) {
+        // /roadmap (no sub-path) → clear phase selection
+        useStore.getState().selectPhase(null);
+        useStore.getState().selectModule(null);
+        useStore.getState().selectTask(null);
+      }
+
+      if (view === "learn" && subPath.length >= 2) {
+        // /learn/python/6 → select track=python, lesson 6
+        const trackId = subPath[0];
+        const lessonNum = parseInt(subPath[1], 10);
+        const lessonId = !isNaN(lessonNum) ? `${trackId}-${String(lessonNum).padStart(2, "0")}` : null;
+        if (lessonId) {
+          useStore.getState().setLearnTabState({
+            tab: "lesson",
+            selectedLessonId: lessonId,
+            selectedTrack: trackId,
+          });
+        } else if (trackId) {
+          // /learn/python → just select the track
+          useStore.getState().setLearnTabState({
+            tab: "tracks",
+            selectedLessonId: null,
+            selectedTrack: trackId,
+          });
+        }
+      } else if (view === "learn" && subPath.length === 0) {
+        // /learn (no sub-path) → tracks list
+        useStore.getState().setLearnTabState({
+          tab: "tracks",
+          selectedLessonId: null,
+          selectedTrack: null,
+        });
+      }
+
+      if (view === "projects" && subPath.length >= 1) {
+        // /projects/[projectId] → set deep-link target for ProjectsView to pick up
+        useStore.setState({ deepLinkProjectId: subPath[0] });
       }
     };
     viewFromPath();
@@ -110,11 +169,18 @@ export function AppShell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setView]);
 
+  // v5.92 (Part 5): Update URL when the view or sub-state changes.
+  // For views with sub-state (roadmap phase, learn lesson), the sub-state
+  // components push their own URLs. This effect only handles top-level view changes.
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const expectedPath = `/${currentView}`;
-      if (window.location.pathname !== expectedPath) {
-        window.history.pushState(null, "", expectedPath);
+      const currentPath = window.location.pathname;
+      const expectedBase = `/${currentView}`;
+      // Only pushState if the base view changed (not if we're already on a sub-path
+      // of the same view — e.g. /roadmap/phase/3 should not be overwritten to /roadmap)
+      const currentBase = "/" + (currentPath.split("/").filter(Boolean)[0] ?? "");
+      if (currentBase !== expectedBase) {
+        window.history.pushState(null, "", expectedBase);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps

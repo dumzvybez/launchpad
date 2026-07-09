@@ -103,15 +103,35 @@ const LESSONS_BY_TRACK: Map<string, Lesson[]> = new Map();
 /**
  * v5.79: rebuild the lookup maps from the cached ALL_LESSONS array.
  * Called by loadAllLessons() after the dynamic import completes.
+ * v5.89 (BUG 1): defensive null-checks — skip any malformed/undefined
+ * lesson entries instead of crashing the entire Learn tab. Logs a warning
+ * so the issue is visible in dev tools.
  */
 function rebuildMaps(): void {
   LESSON_MAP.clear();
   LESSONS_BY_TRACK.clear();
   const lessons = _allLessonsCache ?? [];
+  let skipped = 0;
   for (const l of lessons) {
+    // v5.89: skip undefined/null entries (e.g., from a double-comma syntax
+    // error in the source array that creates an array hole). Previously this
+    // would crash with "Cannot read properties of undefined (reading 'id')".
+    if (!l || typeof l !== "object") {
+      console.warn("[launchpad] skipping malformed lesson entry (undefined/null)", l);
+      skipped++;
+      continue;
+    }
+    if (typeof l.id !== "string" || typeof l.track !== "string") {
+      console.warn("[launchpad] skipping malformed lesson entry (missing id/track)", l);
+      skipped++;
+      continue;
+    }
     LESSON_MAP.set(l.id, l);
     if (!LESSONS_BY_TRACK.has(l.track)) LESSONS_BY_TRACK.set(l.track, []);
     LESSONS_BY_TRACK.get(l.track)!.push(l);
+  }
+  if (skipped > 0) {
+    console.warn(`[launchpad] ${skipped} malformed lesson entries skipped during map rebuild`);
   }
   // Sort each track's lessons by order.
   for (const arr of LESSONS_BY_TRACK.values()) {

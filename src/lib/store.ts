@@ -482,6 +482,8 @@ type Store = {
   /** Playground code (loaded by Try in Playground buttons) */
   playgroundCode: string | null;
   playgroundLanguage: "javascript" | "typescript" | "python" | "html" | "css" | "sql" | "bash" | null;
+  /** v5.92 (Part 5): Deep-link target for Projects tab (set by /projects/[id] URL). */
+  deepLinkProjectId: string | null;
   /** Force onboarding flow (set by Regenerate Plan button) */
   forceOnboarding: boolean;
 
@@ -724,6 +726,7 @@ export const useStore = create<Store>((set, get) => {
     pendingBadgeToasts: [],
     playgroundCode: null,
     playgroundLanguage: "javascript",
+    deepLinkProjectId: null,
     forceOnboarding: false,
     reviewModeLessonId: null,
     pendingTutorMessage: null,
@@ -1046,6 +1049,7 @@ export const useStore = create<Store>((set, get) => {
     completeOnboarding: (input, existingRoadmap?) => {
       // v5.77 fix: if OnboardingFlow already generated an AI roadmap, use it
       // instead of silently replacing it with the deterministic one.
+      // v5.91 (Part 2): pass autoInjected languages to generateRoadmap
       const roadmap = existingRoadmap ?? generateRoadmap(input);
       // Validate
       const validation = validateRoadmap(roadmap, input);
@@ -1871,14 +1875,23 @@ export function formatDuration(minutes: number): string {
 }
 
 // Provider model presets — BYOK only, no Z.ai. Updated per Section 2.4 (deprecated models removed).
+// v5.90 (PART 4): These are now FALLBACK lists only. The live model list is fetched
+// from each provider's API via /api/models and cached for 1 hour (see use-provider-models.ts).
+// These static lists are used only when the live fetch fails or before the first fetch completes.
+// IMPORTANT: do NOT default to "llama-3.3-70b-versatile" for Groq — it was deprecated June 17, 2026.
 export const PROVIDER_MODELS: Record<AIProviderKey, string[]> = {
-  // v5.85 fix (0.2): removed gemini-2.0-flash (shut down June 1, 2026).
-  // gemini-2.5-flash is the current stable free model as of July 2026.
-  gemini: ["gemini-2.5-flash", "gemini-2.5-pro"],
-  groq: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama-3.1-70b-versatile"],
-  openrouter: ["google/gemini-2.5-flash", "openai/gpt-4o", "anthropic/claude-sonnet-4", "meta-llama/llama-3.3-70b-instruct"],
-  openai: ["gpt-4o-mini", "gpt-4o"],
-  anthropic: ["claude-sonnet-4-20250514", "claude-3-5-haiku-20241022"],
+  // v5.90 (PART 4): Fallback lists — match /api/models FALLBACK_MODELS exactly.
+  gemini: ["gemini-2.5-flash-lite", "gemini-3-flash", "gemini-3.5-flash"],
+  groq: ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.6-27b"],
+  openrouter: [
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "openai/gpt-oss-120b:free",
+    "nvidia/nemotron-3-super-120b-a12b:free",
+    "google/gemma-4-31b-it:free",
+    "openrouter/free",
+  ],
+  openai: ["gpt-4o-mini"],
+  anthropic: ["claude-sonnet-4-5"],
   custom: [],
 };
 
@@ -1901,14 +1914,16 @@ export const PROVIDER_INFO: Record<AIProviderKey, {
     label: "Groq",
     icon: "⚡",
     recommended: true,
-    freeModels: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama-3.1-70b-versatile"],
+    // v5.90 (PART 4): updated — llama-3.3-70b-versatile was deprecated June 17, 2026.
+    freeModels: ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.6-27b"],
     getFreeKeyUrl: "https://console.groq.com",
   },
   openrouter: {
     label: "OpenRouter",
     icon: "🌐",
     recommended: true,
-    freeModels: ["google/gemini-2.5-flash", "meta-llama/llama-3.3-70b-instruct"],
+    // v5.90 (PART 4): updated with current free models.
+    freeModels: ["meta-llama/llama-3.3-70b-instruct:free", "openai/gpt-oss-120b:free"],
     getFreeKeyUrl: "https://openrouter.ai/keys",
   },
   openai: {

@@ -200,7 +200,7 @@ export const EXTENDED_LESSONS: Lesson[] = [
       { id: "q9", question: "What does 'docker-compose down' do?", options: ["Stops containers but keeps them", "Stops and removes containers, networks, and volumes (unless specified)", "Deletes the docker-compose.yml", "Shuts down Docker daemon"], correctIndex: 1, explanation: "docker-compose down stops and removes containers, networks, and default networks. Use -v to also remove volumes." },
       { id: "q10", question: "How do you scale a service in Docker Compose?", options: ["docker-compose scale service=3", "docker-compose up --scale service=3", "docker-compose --replicas 3 service", "docker-compose expand service=3"], correctIndex: 1, explanation: "The --scale flag scales a service to the specified number of replicas." },
     ],
-  },,
+  },
 
 {
   "id": "tailwind-16",

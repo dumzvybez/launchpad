@@ -45,8 +45,11 @@ import {
   regenerateRoadmapWithAI,
 } from "@/lib/personalization-engine";
 import type { GeneratedRoadmap } from "@/lib/types";
+// v5.91 (Part 2): prerequisite graph for auto-injection
+import { findMissingPrerequisites, getNonLessonPrerequisiteNotes, ALL_LANGUAGE_INFO as DEP_LANG_INFO } from "@/lib/dependency-graph";
+import { LANGUAGE_MAP as DEP_LANGUAGE_MAP } from "@/lib/career-data";
 
-const TOTAL_STEPS = 8; // steps 0-7
+const TOTAL_STEPS = 10; // steps 0-9 (v5.91: added step 5 — prerequisite confirmation)
 
 export function OnboardingFlow({ onDone }: { onDone: () => void }) {
   const completeOnboarding = useStore((s) => s.completeOnboarding);
@@ -68,15 +71,43 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
   // Section 9: AI fallback choice state — shown when all 3 providers fail twice
   const [aiFallbackChoice, setAiFallbackChoice] = useState<null | { input: PersonalizationInput }>(null);
 
+  // v5.89 (BUG 4): Optional user-supplied API key for roadmap generation.
+  // If provided, this key is used for roadmap AI generation AND stored in
+  // aiSettings so it's automatically reused for AI Tutor / Interview / Code Review.
+  // If skipped, the deterministic engine is used (reliable, instant, but template-based).
+  const setAISettings = useStore((s) => s.setAISettings);
+  const [optionalApiKey, setOptionalApiKey] = useState("");
+  const [optionalApiProvider, setOptionalApiProvider] = useState<string>("gemini");
+  const [optionalApiModel, setOptionalApiModel] = useState<string>("gemini-2.5-flash-lite");
+  const [apiKeySkipped, setApiKeySkipped] = useState(false);
+
+  // v5.91 (Part 2): Compute missing prerequisites for the confirmation step.
+  // This is memoized so it only recomputes when the language selection changes.
+  const missingPrereqs = useMemo(() => {
+    if (step !== 5) return [];
+    return findMissingPrerequisites(selectedLanguages);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, selectedLanguages]);
+
+  // v5.91 (Part 2): The final language list includes auto-injected prerequisites.
+  const finalLanguageIds = useMemo(() => {
+    const injected = missingPrereqs.map(p => p.trackId);
+    return [...selectedLanguages, ...injected];
+  }, [selectedLanguages, missingPrereqs]);
+
   const canProceed = useMemo(() => {
     if (step === 0) return true; // privacy intro
     if (step === 1) return true; // developer message
     if (step === 2) return name.trim().length > 0 && careerId !== "";
     if (step === 3) return occupationId !== "" && careerId !== "";
     if (step === 4) return selectedLanguages.length > 0;
-    if (step === 5) return true; // skill level has default
-    if (step === 6) return hoursPerDay > 0 && daysPerWeek > 0;
-    if (step === 7) return generatedRoadmap !== null;
+    // v5.91 (Part 2): Step 5 is the prerequisite confirmation step — always proceedable
+    if (step === 5) return true;
+    if (step === 6) return true; // skill level has default (was step 5)
+    if (step === 7) return hoursPerDay > 0 && daysPerWeek > 0; // (was step 6)
+    // v5.89: Step 8 is the optional API key step — always proceedable (was step 7)
+    if (step === 8) return true;
+    if (step === 9) return generatedRoadmap !== null; // (was step 8)
     return false;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, name, careerId, occupationId, selectedLanguages, hoursPerDay, daysPerWeek, generatedRoadmap]);
@@ -93,21 +124,33 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
         setSelectedLanguages(career.recommendedLanguages.slice(0, 3));
       }
     }
-    if (step === 6) {
-      // v5.77 fix: wrap the entire generation chain in try/finally so any
-      // unhandled exception (e.g., from validateRoadmap, regenerateRoadmapWithAI,
-      // or getGenerationStagesForInput) doesn't leave `isGenerating=true` and
-      // freeze the onboarding UI permanently.
-      // v5.77 fix 2: guard against double-fire of handleNext.
+    if (step === 9) {
+      // v5.89: Generation now triggers at step 8 (was step 7, shifted by prerequisite step).
+      // v5.91 (Part 2): Use finalLanguageIds (includes auto-injected prerequisites)
+      // and pass missingPrereqs to generateRoadmap for labeling.
       if (isGenerating) return;
       setIsGenerating(true);
       setGenStage(0);
+
+      const userKey = optionalApiKey.trim() && !apiKeySkipped
+        ? { apiKey: optionalApiKey.trim(), provider: optionalApiProvider, model: optionalApiModel }
+        : undefined;
+      if (userKey) {
+        setAISettings({
+          provider: optionalApiProvider as any,
+          apiKey: optionalApiKey.trim(),
+          model: optionalApiModel,
+          temperature: 0.7,
+        });
+      }
+
+      // v5.91 (Part 2): Use the final language list that includes auto-injected prerequisites.
       const input: PersonalizationInput = {
         name: name.trim(),
         careerId: careerId as CareerId,
         subPath: subPath || undefined,
         occupationId,
-        selectedLanguageIds: selectedLanguages,
+        selectedLanguageIds: finalLanguageIds,
         skillLevel,
         hoursPerDay,
         daysPerWeek,
@@ -141,7 +184,8 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
         let usedAI = false;
         let allFailedPass1 = false;
         try {
-          const aiResult = await generateRoadmapWithAI(input);
+          // v5.89 (BUG 4): pass the user's API key if provided
+          const aiResult = await generateRoadmapWithAI(input, userKey);
           if (aiResult.roadmap) {
             roadmap = aiResult.roadmap;
             usedAI = true;
@@ -158,7 +202,7 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
           console.log("[onboarding] All 3 providers failed Pass 1, starting Pass 2");
           setGenStage(3); // stay on "Sending to AI"
           try {
-            const aiResult2 = await generateRoadmapWithAI(input);
+            const aiResult2 = await generateRoadmapWithAI(input, userKey);
             if (aiResult2.roadmap) {
               roadmap = aiResult2.roadmap;
               usedAI = true;
@@ -193,7 +237,7 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
 
         if (!roadmap) {
           // Fallback: deterministic engine
-          roadmap = generateRoadmap(input);
+          roadmap = generateRoadmap(input, missingPrereqs);
         }
 
         let validation = validateRoadmap(roadmap, input);
@@ -211,7 +255,7 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
         // If still invalid after retry (or AI failed entirely), fall back to deterministic
         if (!validation.valid && usedAI) {
           console.log("[onboarding] AI roadmap still invalid, using deterministic fallback");
-          roadmap = generateRoadmap(input);
+          roadmap = generateRoadmap(input, missingPrereqs);
           validation = validateRoadmap(roadmap, input);
         }
 
@@ -219,21 +263,21 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
         setGenStage(10);
         if (!roadmap) {
           // Last-resort fallback — should never reach here, but be defensive.
-          roadmap = generateRoadmap(input);
+          roadmap = generateRoadmap(input, missingPrereqs);
         }
         setGeneratedRoadmap(roadmap);
         await new Promise((r) => setTimeout(r, 500));
         setIsGenerating(false);
-        setStep(7);
+        setStep(9); // v5.91: plan preview is now step 8
         return;
       } catch (err) {
         console.error("[onboarding] generation chain threw:", err);
         // Fall back to deterministic engine so the user can still proceed.
         try {
-          const fallback = generateRoadmap(input);
+          const fallback = generateRoadmap(input, missingPrereqs);
           setGeneratedRoadmap(fallback);
           setIsGenerating(false);
-          setStep(7);
+          setStep(9); // v5.91: plan preview is now step 8
         } catch (innerErr) {
           console.error("[onboarding] deterministic fallback also threw:", innerErr);
           setIsGenerating(false);
@@ -244,14 +288,14 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
       }
     }
 
-    if (step === 7) {
-      // Confirm — finalize onboarding
+    if (step === 9) {
+      // v5.91: Confirm — finalize onboarding. Use finalLanguageIds (includes auto-injected prereqs).
       const input: PersonalizationInput = {
         name: name.trim(),
         careerId: careerId as CareerId,
         subPath: subPath || undefined,
         occupationId,
-        selectedLanguageIds: selectedLanguages,
+        selectedLanguageIds: finalLanguageIds,
         skillLevel,
         hoursPerDay,
         daysPerWeek,
@@ -308,10 +352,10 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
               onClick={() => {
                 // Option A: use deterministic engine
                 const input = aiFallbackChoice.input;
-                const roadmap = generateRoadmap(input);
+                const roadmap = generateRoadmap(input, missingPrereqs);
                 setGeneratedRoadmap(roadmap);
                 setAiFallbackChoice(null);
-                setStep(7);
+                setStep(8);
               }}
             >
               <span className="flex flex-col items-start text-left">
@@ -343,7 +387,7 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
                 if (!roadmap) {
                   // Final fallback — no more prompts
                   try {
-                    roadmap = generateRoadmap(input);
+                    roadmap = generateRoadmap(input, missingPrereqs);
                   } catch (err) {
                     console.error("[onboarding] Option B deterministic fallback threw:", err);
                     setIsGenerating(false);
@@ -353,7 +397,7 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
                 setGeneratedRoadmap(roadmap);
                 setIsGenerating(false);
                 setAiFallbackChoice(null);
-                setStep(7);
+                setStep(8);
               }}
             >
               <span className="flex flex-col items-start text-left">
@@ -430,9 +474,15 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
             />
           )}
           {step === 5 && (
-            <SkillLevelStep skillLevel={skillLevel} setSkillLevel={setSkillLevel} />
+            <PrerequisiteConfirmationStep
+              selectedLanguages={selectedLanguages}
+              missingPrereqs={missingPrereqs}
+            />
           )}
           {step === 6 && (
+            <SkillLevelStep skillLevel={skillLevel} setSkillLevel={setSkillLevel} />
+          )}
+          {step === 7 && (
             <AvailabilityStep
               hoursPerDay={hoursPerDay}
               setHoursPerDay={setHoursPerDay}
@@ -440,7 +490,37 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
               setDaysPerWeek={setDaysPerWeek}
             />
           )}
-          {step === 7 && generatedRoadmap && (
+          {/* v5.89 (BUG 4): Optional API key step — between availability and plan preview */}
+          {step === 8 && !generatedRoadmap && (
+            <OptionalApiKeyStep
+              apiKey={optionalApiKey}
+              setApiKey={setOptionalApiKey}
+              provider={optionalApiProvider}
+              setProvider={(p: string) => {
+                setOptionalApiProvider(p);
+                const defaults: Record<string, string> = {
+                  gemini: "gemini-2.5-flash-lite",
+                  groq: "openai/gpt-oss-120b",
+                  openrouter: "meta-llama/llama-3.3-70b-instruct:free",
+                  openai: "gpt-4o-mini",
+                  anthropic: "claude-sonnet-4-5",
+                };
+                setOptionalApiModel(defaults[p] || "");
+              }}
+              model={optionalApiModel}
+              setModel={setOptionalApiModel}
+              skipped={apiKeySkipped}
+              setSkipped={setApiKeySkipped}
+            />
+          )}
+          {step === 8 && isGenerating && (
+            <PlanPreviewStep
+              roadmap={null}
+              isGenerating={isGenerating}
+              genStage={genStage}
+            />
+          )}
+          {step === 9 && generatedRoadmap && (
             <PlanPreviewStep
               roadmap={generatedRoadmap}
               isGenerating={isGenerating}
@@ -465,12 +545,12 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
             Back
           </button>
           <div className="flex-1" />
-          {step === 7 ? (
+          {step === 9 ? (
             <GlassButton onClick={handleNext} variant="primary" size="lg" disabled={!canProceed}>
               <Sparkles className="h-4 w-4" />
               Begin my journey
             </GlassButton>
-          ) : step === 6 ? (
+          ) : step === 8 ? (
             <GeneratingButton
               isGenerating={isGenerating}
               genStage={genStage}
@@ -1207,6 +1287,131 @@ function LanguageSelectionStep({
 // ============================================================
 // Step 4 — Skill Level
 // ============================================================
+// v5.91 (Part 2): Step 5 — Prerequisite Confirmation
+// Shows auto-injected prerequisite languages with clear labeling.
+// ============================================================
+
+function PrerequisiteConfirmationStep({
+  selectedLanguages,
+  missingPrereqs,
+}: {
+  selectedLanguages: string[];
+  missingPrereqs: Array<{ trackId: string; requiredBy: string[] }>;
+}) {
+  // Collect non-lesson prerequisite notes for informational display
+  const nonLessonNotes: Array<{ forTrack: string; note: string }> = [];
+  for (const langId of selectedLanguages) {
+    const notes = getNonLessonPrerequisiteNotes(langId);
+    for (const note of notes) {
+      nonLessonNotes.push({ forTrack: langId, note });
+    }
+  }
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">Prerequisite Check</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          We&apos;ve analyzed your selections for required foundations.
+        </p>
+      </div>
+
+      {missingPrereqs.length === 0 && nonLessonNotes.length === 0 ? (
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-5">
+          <div className="flex items-center gap-2">
+            <Check className="h-5 w-5 text-emerald-500" />
+            <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+              No missing prerequisites — your selections are complete!
+            </p>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            All your selected languages have their foundations covered. Click Continue to proceed.
+          </p>
+        </div>
+      ) : (
+        <>
+          {missingPrereqs.length > 0 && (
+            <div className="rounded-xl border border-primary/40 bg-primary/5 p-5 space-y-4">
+              <div>
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  Auto-included foundation languages
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Based on your selections, we&apos;re also including these required foundations.
+                  They&apos;ll be added to your roadmap with clear labels.
+                </p>
+              </div>
+              <div className="space-y-2">
+                {missingPrereqs.map((prereq) => {
+                  const langInfo = DEP_LANGUAGE_MAP[prereq.trackId];
+                  return (
+                    <div key={prereq.trackId} className="flex items-start gap-3 p-3 rounded-lg bg-background/50 border border-border/40">
+                      <div className="text-2xl">{langInfo?.icon ?? "📘"}</div>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium">{langInfo?.name ?? prereq.trackId}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          Required for: {prereq.requiredBy.map(id => DEP_LANGUAGE_MAP[id]?.name ?? id).join(", ")}
+                        </div>
+                        {langInfo?.tagline && (
+                          <div className="text-[11px] text-muted-foreground/70 mt-1">{langInfo.tagline}</div>
+                        )}
+                      </div>
+                      <div className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">
+                        Auto-added
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                These will appear in your roadmap before the languages that require them, with a
+                persistent &quot;Required for&quot; label. You can&apos;t remove true prerequisites,
+                but you can see exactly what was added and why.
+              </p>
+            </div>
+          )}
+
+          {nonLessonNotes.length > 0 && (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
+              <div className="flex items-start gap-2">
+                <Info className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium">Additional foundation recommended</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    These skills are recommended but don&apos;t have dedicated lesson tracks —
+                    we&apos;ll note them in your roadmap as informational guides.
+                  </p>
+                  <div className="mt-2 space-y-1">
+                    {nonLessonNotes.map((note, i) => (
+                      <div key={i} className="text-xs text-muted-foreground">
+                        <span className="font-medium capitalize">{note.note}</span> — recommended for{" "}
+                        {DEP_LANGUAGE_MAP[note.forTrack]?.name ?? note.forTrack}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      <div className="rounded-lg bg-foreground/5 p-3">
+        <p className="text-[11px] text-muted-foreground leading-relaxed">
+          Your selected languages: {selectedLanguages.map(id => DEP_LANGUAGE_MAP[id]?.name ?? id).join(", ")}
+          {missingPrereqs.length > 0 && (
+            <>
+              {" "}+ auto-added: {missingPrereqs.map(p => DEP_LANGUAGE_MAP[p.trackId]?.name ?? p.trackId).join(", ")}
+            </>
+          )}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
 
 function SkillLevelStep({
   skillLevel,
@@ -1357,6 +1562,174 @@ function AvailabilityStep({
           Based on {weeklyHours} hours/week. The engine will fine-tune this based on your skill level and occupation.
         </p>
       </div>
+    </div>
+  );
+}
+
+// ============================================================
+// v5.89 (BUG 4): Step 7 — Optional API Key
+// Lets the user bring their own AI API key for roadmap generation.
+// If provided, the key is also stored for AI Tutor / Interview / Code Review.
+// If skipped, the deterministic engine is used (instant, reliable, template-based).
+// ============================================================
+
+function OptionalApiKeyStep({
+  apiKey,
+  setApiKey,
+  provider,
+  setProvider,
+  model,
+  setModel,
+  skipped,
+  setSkipped,
+}: {
+  apiKey: string;
+  setApiKey: (v: string) => void;
+  provider: string;
+  setProvider: (v: string) => void;
+  model: string;
+  setModel: (v: string) => void;
+  skipped: boolean;
+  setSkipped: (v: boolean) => void;
+}) {
+  // Import PROVIDER_MODELS + PROVIDER_INFO from store
+  const PROVIDER_LABELS: Record<string, { label: string; icon: string; url?: string }> = {
+    gemini: { label: "Google Gemini", icon: "✨", url: "https://aistudio.google.com" },
+    groq: { label: "Groq", icon: "⚡", url: "https://console.groq.com" },
+    openrouter: { label: "OpenRouter", icon: "🌐", url: "https://openrouter.ai/keys" },
+    openai: { label: "OpenAI", icon: "🤖", url: "https://platform.openai.com/api-keys" },
+    anthropic: { label: "Anthropic", icon: "🧠", url: "https://console.anthropic.com" },
+  };
+  const MODELS: Record<string, string[]> = {
+    gemini: ["gemini-2.5-flash-lite", "gemini-3-flash", "gemini-3.5-flash"],
+    groq: ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.6-27b"],
+    openrouter: ["meta-llama/llama-3.3-70b-instruct:free", "openai/gpt-oss-120b:free", "nvidia/nemotron-3-super-120b-a12b:free", "google/gemma-4-31b-it:free", "openrouter/free"],
+    openai: ["gpt-4o-mini"],
+    anthropic: ["claude-sonnet-4-5"],
+  };
+  const providerInfo = PROVIDER_LABELS[provider] ?? PROVIDER_LABELS.gemini;
+  const models = MODELS[provider] ?? [];
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">Optional: AI API Key</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Provide your own API key for AI-powered roadmap generation, or skip to use the built-in engine.
+        </p>
+      </div>
+
+      {/* Honest tradeoff explanation */}
+      <div className="rounded-xl border border-border/60 bg-card/30 p-4 space-y-3">
+        <div className="flex items-start gap-2">
+          <div className="h-6 w-6 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5">
+            <Check className="h-3.5 w-3.5 text-emerald-500" />
+          </div>
+          <div>
+            <p className="text-sm font-medium">With an API key</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              AI generates a personalized roadmap with detailed, contextual task descriptions tailored to your career and languages. The same key powers AI Tutor, mock interviews, and code review — you only enter it once.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-start gap-2">
+          <div className="h-6 w-6 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0 mt-0.5">
+            <Clock className="h-3.5 w-3.5 text-amber-500" />
+          </div>
+          <div>
+            <p className="text-sm font-medium">Without an API key (Skip)</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              The built-in deterministic engine generates your roadmap instantly and reliably. It&apos;s template-based but covers all your selected languages with structured phases and tasks. You can add a key later in Settings to enable AI features.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Skip button */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => {
+            setSkipped(true);
+            setApiKey("");
+          }}
+          className={cn(
+            "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+            skipped
+              ? "bg-primary text-primary-foreground"
+              : "border border-border/60 hover:bg-foreground/5 text-muted-foreground",
+          )}
+        >
+          Skip — use built-in engine
+        </button>
+        {!skipped && (
+          <span className="text-xs text-muted-foreground">or provide your key below ↓</span>
+        )}
+      </div>
+
+      {/* API key input (hidden if skipped) */}
+      {!skipped && (
+        <div className="space-y-4 rounded-xl border border-border/60 bg-card/20 p-5">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Provider</label>
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-2">
+              {Object.entries(PROVIDER_LABELS).map(([id, info]) => (
+                <button
+                  key={id}
+                  onClick={() => setProvider(id)}
+                  className={cn(
+                    "flex flex-col items-center gap-1 px-3 py-2 rounded-lg border text-xs transition-all",
+                    provider === id
+                      ? "border-primary bg-primary/10 text-foreground"
+                      : "border-border/40 hover:bg-foreground/5 text-muted-foreground",
+                  )}
+                >
+                  <span className="text-base">{info.icon}</span>
+                  <span className="font-medium">{info.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">API Key</label>
+            <input
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder={`Paste your ${providerInfo.label} API key here`}
+              className="w-full mt-1.5 px-3 py-2 rounded-lg border border-border/60 bg-background/50 text-sm font-mono"
+            />
+            {providerInfo.url && (
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Get a free key at{" "}
+                <a href={providerInfo.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                  {providerInfo.url}
+                </a>
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Model</label>
+            <select
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              className="w-full mt-1.5 px-3 py-2 rounded-lg border border-border/60 bg-background/50 text-sm"
+            >
+              {models.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="rounded-lg bg-primary/5 border border-primary/20 p-3">
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              <Shield className="h-3 w-3 inline mr-1" />
+              Your key is stored only on this device (localStorage) and sent directly to {providerInfo.label} through our server proxy. It powers roadmap generation, AI Tutor, mock interviews, and code review — you&apos;ll never need to enter it again.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

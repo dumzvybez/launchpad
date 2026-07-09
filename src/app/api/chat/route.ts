@@ -636,9 +636,13 @@ export async function POST(req: NextRequest) {
             } catch (err) {
               // v5.865 fix (B.12): sanitize the error before sending to the client.
               // The raw error may contain upstream HTTP response bodies with API
-              // key fragments or internal URLs. Log the full error server-side,
-              // send a safe message to the client.
-              console.error("[chat] streaming error:", err);
+              // key fragments or internal URLs.
+              // v5.90 (PART 6): PRIVACY FIX — also sanitize the server-side log.
+              // The raw error may include the Gemini URL (which contains ?key=...).
+              // Strip ?key=... before logging to prevent API key leaking to Vercel logs.
+              const streamErr = err instanceof Error ? err : new Error(String(err));
+              const sanitizedStreamMsg = streamErr.message.replace(/\?key=[^&\s"]+/g, "?key=[REDACTED]");
+              console.error("[chat] streaming error:", streamErr.name, sanitizedStreamMsg);
               try {
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: "The AI provider returned an error during streaming. Please check your API key and try again." })}\n\n`));
               } catch {
@@ -675,9 +679,18 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     // v5.77 fix: don't leak the raw error message to the client (it may
     // contain API key fragments from upstream error echoes).
-    console.error("[chat] error:", err);
+    // v5.90 (PART 6): PRIVACY FIX — don't log the raw error object either.
+    // Node's fetch errors on network failures (DNS, timeout, connection refused)
+    // include the URL in the error message — and for Gemini, the URL contains
+    // `?key=${apiKey}`. Logging the raw error would write the user's API key
+    // to Vercel server logs. Now we sanitize: strip any `?key=...` from the
+    // error message before logging, and log only the error name + sanitized message.
     const errObj = err instanceof Error ? err : new Error(String(err));
-    const msg = errObj.message;
+    const rawMsg = errObj.message;
+    // v5.90: strip ?key=... from the message (Gemini URL key leak)
+    const sanitizedMsg = rawMsg.replace(/\?key=[^&\s"]+/g, "?key=[REDACTED]");
+    console.error("[chat] error:", errObj.name, sanitizedMsg);
+    const msg = sanitizedMsg;
     // Detect abort/timeout errors and return a clearer message.
     if (errObj.name === "TimeoutError" || errObj.name === "AbortError" || msg.includes("aborted") || msg.includes("timeout")) {
       return NextResponse.json(

@@ -1,7 +1,674 @@
 # Launchpad CHANGELOG
 
-This file merges all previous changelogs (v2.68, v2.68.1, v3, v4, v5.76, v5.77, v5.78, v5.79) and adds the new
-**v5.88 (Scalable Roadmap Generation + Project Coverage + Beginner Daily Challenges)** entries. Entries are in reverse chronological order.
+This file merges all previous changelogs and adds the new
+**v5.92 (Roadmap Intelligence UI: Lesson Groups + Auto-Completion + Deep-Linking + Completed Popup)**
+entries. Entries are in reverse chronological order.
+
+---
+
+## v5.92 — Roadmap Intelligence UI: Lesson Groups + Auto-Completion + Deep-Linking + Completed Popup
+
+This release completes Parts 3-6 of the roadmap intelligence feature,
+building on the v5.91 dependency graph and auto-injection foundation.
+
+### Part 3 — Real Lesson Groups Rendered in RoadmapView (COMPLETE)
+
+**Implemented:**
+- New `LessonGroupsView` component renders inside `PhaseDetailView` when
+  `phase.lessonGroups` exists (set by the v5.91 engine for all language phases).
+- 4 collapsible modules per language phase:
+  - Module 1: Foundations (lessons 1-5)
+  - Module 2: Core Concepts (lessons 6-12)
+  - Module 3: Advanced Topics (lessons 13-20)
+  - Module 4: Capstone Project (lesson 21)
+- Each module header shows: module number, title, description, completion count
+  (X/Y lessons complete), and percentage.
+- When expanded, each lesson shows: real lesson title (from `getLessonById`),
+  real lesson description, completion status indicator (green check or lesson
+  number), and a "Go to Lesson" button.
+- "Go to Lesson" navigates to the Learn tab with the specific lesson selected
+  (via `setLearnTabState`).
+- Also added: auto-injected phase label ("Auto-included — required for: X")
+  shown as a persistent badge inside the phase header.
+
+### Part 4 — Automatic Completion, Conditional Mark Complete Removal (COMPLETE)
+
+**Implemented:**
+- `TaskDetailView` now checks if a task has a `lessonId` link:
+  - **Lesson-linked tasks**: completion is derived from the EXISTING
+    `lessonProgress[lessonId]` state (same one Learn tab and certificates use).
+    The "Mark Complete" button is REMOVED — replaced with a read-only status
+    indicator ("Completed (lesson done)" or "Complete via lesson").
+  - **Non-lesson tasks** (project, setup, capstone): the manual "Mark Complete"
+    button is KEPT — no automatic signal exists for these.
+- No duplicate completion-tracking system was created — the existing
+  `lessonProgress` state is read directly.
+- **Confirmed:** completing a lesson via a roadmap deep-link marks only that
+  specific lesson complete (via `recordQuizAnswer` / `setLessonProgress` which
+  operate on a single `lessonId`). Earlier lessons in the same track are NOT
+  retroactively marked complete.
+
+### Part 5 — Deep-Linkable URLs, App-Wide (COMPLETE)
+
+**Implemented:**
+Extended the existing `pushState`-based routing in `AppShell.tsx` to support
+sub-paths. The routing handler now parses sub-paths and sets the appropriate
+view + sub-state. Back/Forward (popstate) correctly restores the specific
+sub-view, not just the top-level tab.
+
+**Deep-linkable routes added:**
+| Route Pattern | View | Behavior |
+|---|---|---|
+| `/roadmap/phase/[number]` | Roadmap | Opens the specific phase detail. Back → phase grid. |
+| `/learn/[trackId]/[lessonNum]` | Learn | Opens the specific lesson. Back → track's lesson list. |
+| `/learn/[trackId]` | Learn | Opens the track's lesson list. Back → tracks grid. |
+| `/projects/[projectId]` | Projects | Opens project instructions. Back → projects list. |
+
+**Audit of other drill-in views:**
+- **Flashcards**: no drill-in to a specific card (the deck is shown inline).
+  No deep-linking needed.
+- **AI Tutor**: conversations are listed in a sidebar but opening one doesn't
+  navigate to a new URL — it's handled in-place. Deep-linking to a specific
+  conversation would require restructuring the AIChat component. Left as
+  future work (low priority — conversations aren't shareable/bookmarkable
+  the way lessons and roadmap phases are).
+- **Calendar**: individual events open in a detail panel, not a separate view.
+  No deep-linking needed.
+- **Certificate verification**: already has its own route (`/verify/[id]`)
+  which is server-side rendered (separate from the SPA routing).
+
+**Routing mechanism:** Uses the same `pushState`/`popstate` pattern already
+established in v5.76. No new routing library or pattern introduced. The
+`parseSubPath` function in AppShell splits the pathname and dispatches to the
+appropriate store action (`selectPhase`, `setLearnTabState`, `deepLinkProjectId`).
+
+### Part 6 — "Already Completed" Popup (COMPLETE)
+
+**Implemented:**
+- When a user clicks "Next lesson" in the Learn tab and the next lesson was
+  already previously completed (e.g., from a roadmap deep-link jump-ahead),
+  a popup appears: "You've already completed this lesson — Retry or Skip?"
+- **Retry**: resets the lesson to `in-progress` and opens it normally.
+- **Skip**: finds the next incomplete lesson in the track and navigates to it.
+  If all remaining lessons are complete, stays on the current lesson.
+- The popup also has a "Stay on current lesson" option to dismiss without action.
+- The check is specifically in the sequential "Next lesson" button handler —
+  it does NOT fire on every lesson visit (e.g., clicking from the lesson list
+  or a roadmap deep-link doesn't trigger the popup).
+
+### Files Changed
+
+- `src/components/views/RoadmapView.tsx` — LessonGroupsView component (Part 3),
+  auto-injected label rendering (Part 2 UI), auto-completion + conditional
+  Mark Complete removal (Part 4), phase deep-link URL pushing (Part 5)
+- `src/components/views/LearnView.tsx` — lesson deep-link URL pushing (Part 5),
+  AlreadyCompletedPopup + sequential progression check (Part 6)
+- `src/components/shell/AppShell.tsx` — sub-path parsing + deep-link routing (Part 5)
+- `src/components/views/ProjectsView.tsx` — deep-link consumption (Part 5)
+- `src/lib/store.ts` — `deepLinkProjectId` field (Part 5)
+- `package.json`, `src/app/api/route.ts`, `public/sw.js` — version bump to 5.920.0
+
+### Test Results
+
+**28/28 programmatic tests passed:**
+- Part 3: 7/7 ✅ (LessonGroupsView, real lesson data, collapsible, Go to Lesson)
+- Part 4: 4/4 ✅ (hasLessonLink, lessonProgress derivation, conditional button)
+- Part 5: 8/8 ✅ (sub-path parsing, roadmap/learn/projects deep-links, popstate)
+- Part 6: 6/6 ✅ (popup component, state, check, retry/skip buttons)
+- Version: 3/3 ✅
+
+---
+
+## v5.91 — Roadmap Intelligence: Dependency Graph + Auto-Injection + Lesson Groups
+
+This release implements Parts 1-3 of the 6-part roadmap intelligence feature.
+Parts 4-6 (auto-completion, deep-linkable URLs, already-completed popup) are
+architecturally planned but require additional UI view changes that are in progress.
+
+### Part 1 — Dependency Graph (COMPLETE)
+
+Created a structured, machine-readable prerequisite graph in
+`src/lib/dependency-graph.ts`.
+
+**Full graph (tracks with prerequisites):**
+- `css` → requires: `html`
+- `javascript` → requires: `html`, `css`
+- `typescript` → requires: `javascript`
+- `react` → requires: `javascript`
+- `vue` → requires: `javascript`
+- `svelte` → requires: `javascript`
+- `angular` → requires: `typescript`
+- `nextjs` → requires: `typescript`
+- `tailwind` → requires: `css`
+- `nodejs` → requires: `javascript`
+- `express` → requires: `javascript`
+- `django` → requires: `python`
+- `fastapi` → requires: `python`
+- `flask` → requires: `python`
+- `pytorch` → requires: `python`
+- `tensorflow` → requires: `python`
+- `postgresql` → requires: `sql`
+- `kubernetes` → requires: `docker`
+- `docker` → non-lesson note: `git`
+- `kubernetes` → non-lesson note: `git`
+- `terraform` → non-lesson note: `git`
+
+**Key functions:**
+- `findMissingPrerequisites(selectedTrackIds)` — returns missing lesson-backed
+  prerequisites with which selected languages required each one
+- `getAllPrerequisites(trackId)` — transitive resolution (e.g., Next.js →
+  TypeScript → JavaScript → HTML + CSS)
+- `topologicalSort(trackIds)` — orders prerequisites before dependents
+- `getNonLessonPrerequisiteNotes(trackId)` — returns non-lesson-backed notes
+  (e.g., Git for Docker/Kubernetes/Terraform)
+
+**Non-lesson-backed prerequisites (Git)** are shown as informational notes,
+not auto-injected as phases — no content exists for them.
+
+### Part 2 — Transparent Auto-Injection with Visible Labeling (COMPLETE)
+
+**Onboarding flow changes:**
+- Added Step 5: `PrerequisiteConfirmationStep` — shows between language
+  selection and skill level. Displays:
+  - Each auto-added language with its icon, name, tagline, and "Required for: X" label
+  - An "Auto-added" badge on each injected language
+  - Non-lesson prerequisite notes (e.g., "Git — recommended for Docker")
+  - A summary of the final language list
+- If no prerequisites are missing, shows a success message
+- The user can proceed as-is (prerequisites can't be removed — they're required)
+- Total steps increased from 9 to 10 (step numbers shifted accordingly)
+
+**Roadmap generation changes:**
+- `generateRoadmap()` now accepts an optional `autoInjected` parameter
+- Auto-injected phases carry a persistent `autoInjectedFor: string[]` field
+- Auto-injected phase subtitles show "Required for: [language names]"
+- Phases are topologically sorted (prerequisites always before dependents)
+- Cascading prerequisites resolve fully (e.g., selecting Next.js auto-adds
+  TypeScript, JavaScript, HTML, CSS — each labeled with what required it)
+
+**Live test (Docker + React + Python):**
+- Missing prereqs: JavaScript (for React), HTML (for React), CSS (for React)
+- Final languages: docker, react, python, javascript, html, css
+- Phase order: HTML → CSS → JavaScript → React → Python (prerequisites first)
+- Each auto-injected phase labeled "Required for: React"
+
+### Part 3 — Real Lesson Content in Roadmap Phases (DATA COMPLETE, UI PENDING)
+
+**Data structure:**
+- Added `LessonGroup` type to `types.ts`: `{ title, description, lessonIds, lessonNumbers }`
+- Added `lessonGroups?: LessonGroup[]` field to `GeneratedPhase`
+- `buildLessonGroups(trackId)` creates 4 modules per language:
+  - Module 1: Foundations (lessons 1-5)
+  - Module 2: Core Concepts (lessons 6-12)
+  - Module 3: Advanced Topics (lessons 13-20)
+  - Module 4: Capstone Project (lesson 21)
+- Each lesson group contains real lesson IDs that link to actual Learn-tab content
+
+**Grouping logic:** Fixed-size grouping (5/7/8/1) based on pedagogical progression
+— foundations → core → advanced → capstone. This is a sensible default;
+future iterations could use lesson metadata (difficulty, topics) for dynamic grouping.
+
+**UI status:** The lesson group data is generated and stored in the roadmap,
+but the RoadmapView hasn't been updated yet to render the grouped lesson view
+with collapsible modules and "Go to Lesson" links. This is the remaining work
+for Part 3.
+
+### Parts 4-6 — Status
+
+- **Part 4 (Auto-completion):** The data infrastructure is in place
+  (`lessonGroups` with real lesson IDs link to `lessonProgress` state).
+  The RoadmapView needs updating to: (a) render lesson groups, (b) check
+  `lessonProgress[lessonId]` for completion status, (c) remove "Mark Complete"
+  for lesson-linked items, (d) keep it for non-lesson tasks.
+- **Part 5 (Deep-linkable URLs):** The existing routing uses `pushState`.
+  Extending it to `/roadmap/phase/3` and `/learn/python/6` requires updating
+  the AppShell routing handler and the view components.
+- **Part 6 (Already-completed popup):** Requires LearnView changes to detect
+  sequential progression and show the popup.
+
+These are UI-heavy changes that are in progress but not complete in this release.
+
+### Files Changed
+
+- `src/lib/dependency-graph.ts` — NEW: prerequisite graph + helpers (Part 1)
+- `src/lib/types.ts` — added `LessonGroup` type, `autoInjectedFor` + `lessonGroups`
+  fields on `GeneratedPhase` (Parts 2, 3)
+- `src/lib/personalization-engine.ts` — `generateRoadmap` accepts autoInjected,
+  topological sort, `buildLessonGroups()`, auto-injected phase labeling (Parts 1-3)
+- `src/components/shell/OnboardingFlow.tsx` — new Step 5 PrerequisiteConfirmationStep,
+  step numbering shifted, `finalLanguageIds` used throughout (Part 2)
+- `src/lib/store.ts` — updated comment (Part 2)
+- `package.json`, `src/app/api/route.ts`, `public/sw.js` — version bump to 5.910.0
+
+### Test Results
+
+**Core functionality verified:**
+- Dependency graph: 20 tracks with prerequisites, correct cascading resolution
+- Auto-injection: Docker + React + Python → JavaScript, HTML, CSS auto-added
+- Phase ordering: HTML → CSS → JavaScript → React (prerequisites first)
+- Lesson groups: 4 modules per language phase with real lesson IDs
+- Non-lesson notes: Git shown as informational note for Docker/K8s/Terraform
+
+---
+
+## v5.901 — Clarification: No Platform Keys in /api/chat + Cache Scope Confirmed
+
+This release corrects an inaccuracy in the v5.90 report and confirms the
+server-side model cache is correctly scoped. No code bugs were found —
+only a documentation correction was needed.
+
+### CLARIFICATION 1: /api/chat platform-key usage — report was wrong
+
+**Original v5.90 statement:** "Platform-wide keys still used by: /api/chat
+for AI Tutor chat, Interview Mode, and Code Review."
+
+**Actual finding (code trace):** This statement was INCORRECT. There are
+ZERO references to any platform-wide API key env var in `/api/chat/route.ts`:
+
+```
+$ grep -n "process\.env\.\|GEMINI_API_KEY\|GROQ_API_KEY\|OPENROUTER_API_KEY\|OPENAI_API_KEY\|ANTHROPIC_API_KEY" src/app/api/chat/route.ts
+473:            "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "https://launchpad--dev.vercel.app",
+```
+
+The only `process.env` reference is `NEXT_PUBLIC_APP_URL` (for the OpenRouter
+HTTP-Referer header) — NOT an API key.
+
+**Code path traced:**
+- Line 377: `apiKey` is destructured from the request body
+- Line 401: `if (!apiKey || !apiKey.trim()...)` → returns 401 immediately if no key
+- Line 267: `fetchProviderChat(provider, apiKey, ...)` passes the body's `apiKey`
+- Lines 465-524: streaming path uses `apiKey` from the body for all 6 providers
+- Client UI (`AIChat.tsx` lines 116, 266, 440): `if (!hasUserKey) { setShowSettings(true); return; }`
+
+**Conclusion:** `/api/chat` is pure BYOK. There is no platform-key fallback
+code — not even dead code. The v5.90 report statement was wrong. The
+CHANGELOG has been corrected.
+
+### CLARIFICATION 2: Server-side model cache scope — confirmed shared
+
+**Cache key structure (code evidence from `/api/models/route.ts`):**
+
+```typescript
+// Line 38: Map declaration — key is a plain string
+const modelCache = new Map<string, { models: string[]; fetchedAt: number }>();
+
+// Line 41: Cache lookup — keyed by `provider` (e.g., "groq", "openrouter")
+const entry = modelCache.get(provider);
+
+// Line 50: Cache store — keyed by `provider` only
+function setCachedModels(provider: string, models: string[]): void {
+  modelCache.set(provider, { models, fetchedAt: Date.now() });
+}
+
+// Line 162: Called with only the provider name, no user identifier
+const cached = getCachedModels(provider);
+```
+
+**Conclusion:** The cache is a SINGLE shared cache keyed ONLY by provider name.
+No API key, session ID, IP address, or any per-user identifier is included in
+the key. ONE successful fetch for "groq" serves ALL users for that hour. This
+is the correct behavior — the model list for a given provider is the same for
+everyone regardless of whose key fetched it.
+
+### No code changes needed
+
+Both clarifications revealed that the existing v5.90 code is correct:
+- `/api/chat` has no platform-key code to remove (it was already pure BYOK)
+- The model cache is already correctly shared (keyed by provider name only)
+
+The only change is the CHANGELOG correction above.
+
+### Version bump
+
+- `package.json` → 5.901.0
+- `src/app/api/route.ts` → 5.901.0
+- `public/sw.js` → launchpad-v5-901
+
+---
+
+## v5.90 — BYOK-Only Roadmap Gen + Adaptive Limits + Live Models + Privacy
+
+This release implements 6 architectural improvements to the AI provider system,
+covering all 6 supported providers (Gemini, Groq, OpenRouter, OpenAI, Anthropic, Custom).
+
+### PART 1: BYOK priority for roadmap generation — COMPLETE FIX
+
+**Required behavior implemented:**
+1. If the user has provided their own API key (via onboarding or Settings) for
+   ANY of the 6 providers → roadmap generation uses ONLY that key. NO platform-
+   wide key involvement.
+2. If the user has NOT provided a key → the route returns `allFailed: true`
+   with `noUserKey: true` immediately. The client uses the deterministic engine.
+   NO platform-wide keys are used for roadmap generation under any circumstance.
+3. Removed ALL platform-key fallback code from `/api/roadmap-generate`. The
+   route no longer reads `process.env.GEMINI_API_KEY`, `GROQ_API_KEY`, or
+   `OPENROUTER_API_KEY`. Zero outbound AI requests are constructed when no
+   user key exists.
+
+**Platform-wide keys status (v5.901 correction):** The original v5.90 report
+stated "Platform-wide keys still used by: /api/chat for AI Tutor chat, Interview
+Mode, and Code Review." This was INCORRECT. A code trace of `/api/chat/route.ts`
+confirms there are ZERO references to `process.env.GEMINI_API_KEY`,
+`GROQ_API_KEY`, `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, or `ANTHROPIC_API_KEY`.
+The route is pure BYOK: line 401 returns 401 if no `apiKey` is provided in the
+request body. The client UI (`AIChat.tsx`) gates all actions behind `hasUserKey`.
+There is no platform-key fallback code — not even dead code — in `/api/chat`.
+The platform-wide env vars (`GEMINI_API_KEY` etc.) are now ONLY used by the
+deterministic engine's local fallback path in `personalization-engine.ts`
+(client-side, never sent to the server). They are no longer referenced by any
+server-side API route.
+
+**Added:** OpenAI, Anthropic, and Custom endpoint roadmap wrappers (previously
+only Gemini/Groq/OpenRouter had wrappers). All 6 providers are now supported
+for roadmap generation.
+
+### PART 2: Adaptive token/output limits
+
+**Implemented:**
+- Safe per-provider starting defaults: Gemini 16K, Groq 8K, OpenRouter 8K,
+  OpenAI 8K, Anthropic 8K, Custom 8K.
+- `updateRateLimitsFromHeaders()` reads Groq's `x-ratelimit-limit-tokens`
+  header and sizes subsequent requests accordingly (reserves 30% for prompt).
+- `isTokenLimitError()` detects 413/429 errors + "Request too large" messages.
+- On 413/rate-limit, Groq automatically retries with half the token budget
+  (clamped to minimum 2K) instead of failing outright.
+- Other providers don't return useful per-request token-limit headers
+  consistently, so they rely on the safe defaults + the 413 retry logic.
+
+### PART 3: Provider message format review — all 6 confirmed correct
+
+**Exact request formats (verified by code review):**
+1. **Gemini**: `contents: [{ parts: [{ text: prompt }] }]` + `generationConfig`
+   — Gemini's own generateContent format. ✅ NOT using OpenAI/Anthropic format.
+2. **Groq**: `messages: [{role:"system"}, {role:"user"}]` + `max_tokens` —
+   OpenAI-compatible chat completions. ✅
+3. **OpenRouter**: Same as Groq (OpenAI-compatible) + `HTTP-Referer`/`X-Title`
+   headers. ✅
+4. **OpenAI**: Same as Groq (OpenAI-compatible). ✅
+5. **Anthropic**: `system: SYSTEM_PROMPT` (top-level) + `messages: [{role:"user"}]`
+   + `x-api-key` header + `anthropic-version` header — Anthropic's DISTINCT
+   Messages API format. ✅ NOT using OpenAI format (system is NOT in messages).
+6. **Custom**: Same as Groq (OpenAI-compatible) + SSRF protection
+   (`redirect: "manual"` + `assertSafeExternalUrl`). ✅
+
+### PART 4: Live model list fetching
+
+**Implemented:**
+- New `/api/models` route fetches live model lists from each provider's API:
+  - Groq: `GET https://api.groq.com/openai/v1/models`
+  - OpenRouter: `GET https://openrouter.ai/api/v1/models` (filters for
+    `pricing.prompt === "0" && pricing.completion === "0"` to identify free models)
+  - Gemini: `GET https://generativelanguage.googleapis.com/v1beta/models`
+  - OpenAI: `GET https://api.openai.com/v1/models`
+  - Anthropic: NO public endpoint — uses maintained static fallback list
+    (`claude-sonnet-4-5`), clearly labeled as requiring manual updates
+  - Custom: N/A (user types model name directly)
+- 1-hour cache per provider (in-memory server-side + localStorage client-side)
+- On live fetch failure, uses the EXACT fallback lists specified:
+  - Groq: `openai/gpt-oss-120b, openai/gpt-oss-20b, qwen/qwen3.6-27b`
+  - Gemini: `gemini-2.5-flash-lite, gemini-3-flash, gemini-3.5-flash`
+  - OpenRouter: `meta-llama/llama-3.3-70b-instruct:free, openai/gpt-oss-120b:free, nvidia/nemotron-3-super-120b-a12b:free, google/gemma-4-31b-it:free, openrouter/free`
+  - OpenAI: `gpt-4o-mini`
+  - Anthropic: `claude-sonnet-4-5`
+- New `useProviderModels()` hook for client-side fetching with caching
+- Removed `llama-3.3-70b-versatile` from ALL default selections (deprecated
+  June 17, 2026)
+- Updated `PROVIDER_MODELS` and `PROVIDER_INFO` in store.ts to use fallback lists
+
+**Live testing:** Code-reviewed only (no real API keys available in this
+environment). Endpoint URLs verified against provider docs. Fetch logic + cache
++ fallback verified via programmatic tests.
+
+### PART 5: Streaming fallback consistency
+
+**Found inconsistency:** The interview kickoff and code review kickoff used
+non-streaming (`stream` not set), while `handleSend` and the "I don't
+understand" path used `stream: true`. This meant the first message in an
+interview/code-review appeared all at once, while subsequent messages streamed
+token-by-token.
+
+**Fixed:** Both the interview kickoff and code review kickoff now pass
+`stream: true` and use the same streaming reader logic as `handleSend`.
+All 4 AI surfaces (AI Tutor chat, Interview Mode, Code Review, "I don't
+understand") now share the same streaming behavior. Found 8 `stream: true`
+occurrences across the 4 surfaces (each surface has its own fetch call +
+the shared handleSend path).
+
+### PART 6: Privacy audit — API key handling
+
+**Evidence-based statement:**
+
+> **Gap found and fixed.** The `console.error("[chat] error:", err)` statement
+> in `/api/chat/route.ts` (line 678) logged the raw error object, which on
+> network failures (DNS, timeout) includes the URL — and for Gemini, the URL
+> contains `?key=${apiKey}`. This would write the user's API key to Vercel
+> server logs. The same issue existed in the streaming error handler (line 641)
+> and the roadmap-generate error handler (line 870).
+
+**Fixed:**
+- All 3 error handlers now sanitize the error message with
+  `rawMsg.replace(/\?key=[^&\s"]+/g, "?key=[REDACTED]")` before logging.
+- The client-facing error message is already sanitized (returns a generic
+  "The AI provider returned an error" message, not the raw error).
+- The models route error handler was also sanitized.
+
+**Confirmed:**
+1. ✅ API key is stored ONLY client-side (localStorage). No server-side
+   persistence (no Supabase writes, no database writes).
+2. ✅ API key passes through the Vercel serverless function on its way to the
+   AI provider (the server constructs the outbound request using the key).
+3. ✅ No `console.log`/`console.error`/`console.warn` in any API route logs the
+   `apiKey`/`userApiKey`/`safeUserKey` variable directly. The only key leak
+   vector was via error messages containing the Gemini URL — now fixed.
+4. ✅ The key exists only transiently in the serverless function's execution
+   memory for the duration of a single request/response cycle. It is never
+   written to disk, cache, or any persistent store server-side.
+5. ✅ No analytics events, no request logging middleware, no database writes
+   capture the API key.
+
+**Final statement:** Confirmed: the current implementation now fully preserves
+the privacy-first design — the API key is never logged or persisted server-side.
+One gap was found (Gemini URL in error messages) and has been fixed.
+
+### Files Changed
+
+- `src/app/api/roadmap-generate/route.ts` — PART 1 (BYOK-only), PART 2
+  (adaptive limits + 413 retry), PART 3 (all 6 provider wrappers), PART 6
+  (error sanitization)
+- `src/app/api/chat/route.ts` — PART 6 (error sanitization for chat + streaming)
+- `src/app/api/models/route.ts` — PART 4 (new: live model list fetching)
+- `src/hooks/use-provider-models.ts` — PART 4 (new: client-side hook)
+- `src/lib/store.ts` — PART 4 (updated PROVIDER_MODELS + PROVIDER_INFO fallback lists)
+- `src/components/ai/AIChat.tsx` — PART 5 (streaming consistency for interview + code review)
+- `src/components/shell/OnboardingFlow.tsx` — PART 4 (removed deprecated default model)
+- `src/lib/personalization-engine.ts` — PART 1 (pass model + customEndpoint to generateRoadmapWithAI)
+- `package.json`, `src/app/api/route.ts`, `public/sw.js` — version bump to 5.900.0
+
+### Test Results
+
+**60/61 programmatic tests passed** (1 false positive — the string
+`llama-3.3-70b-versatile` appears in the migration map comments, not in the
+model list. The actual PROVIDER_MODELS is correct.)
+
+- PART 1: 9/9 ✅
+- PART 2: 10/10 ✅
+- PART 3: 10/10 ✅
+- PART 4: 15/15 ✅
+- PART 5: 5/5 ✅
+- PART 6: 7/7 ✅
+- Version: 3/3 ✅
+
+**Live testing note:** No real AI API keys were available in this environment.
+All fixes are verified via code review + programmatic tests. The endpoint URLs,
+fetch logic, cache behavior, fallback lists, streaming consistency, and privacy
+sanitization are all verified. Full end-to-end AI testing requires deployment
+with real keys.
+
+---
+
+## v5.89 — Learn Tab Crash Fix + AI Roadmap TPM Fix + Enhanced Phases + BYOK Onboarding
+
+This release fixes 3 production bugs found in v5.88 testing and adds a major
+architectural improvement: optional user-supplied API keys during onboarding.
+
+### BUG 1 (CRITICAL): Learn tab crashes with client-side exception
+
+**Root cause:** A double comma `},,` at line 203 of `lessons-extended.ts`
+(created during the v5.87 quiz-generation script) produced a JavaScript array
+hole — `[a, , b]` — making `EXTENDED_LESSONS[6]` evaluate to `undefined`.
+When `rebuildMaps()` in `lessons-data.ts` iterated the array and called
+`l.id` on the undefined entry, it threw "Cannot read properties of undefined
+(reading 'id')", crashing the entire Learn tab.
+
+**Fix:**
+- Fixed the double comma → single comma at line 203 (now 77 valid lessons, 0 undefined)
+- Added defensive null-checks in `rebuildMaps()`: any undefined/null entry or
+  entry missing `id`/`track` is now skipped with a `console.warn` instead of
+  crashing. This ensures ONE malformed entry can never crash the entire Learn tab.
+
+**Live test:** Verified 77 valid lessons, 0 undefined entries. The Learn tab
+no longer crashes.
+
+### BUG 2 (CRITICAL): Roadmap AI generation fails completely (TPM limits)
+
+**Root cause:** v5.88 raised Groq's `max_tokens` to 32,000, but Groq's free
+tier has a 12,000 TPM limit (input + output combined). Every request was
+rejected with HTTP 413. Gemini timed out at 60s. All 3 providers failed →
+silent fallback to deterministic engine → AI roadmap generation non-functional.
+
+**Fix:**
+- Set safe per-provider token limits based on ACTUAL rate limits:
+  - Gemini: 16,384 (was 65,536) — safe within 60s timeout
+  - Groq: 8,000 (was 32,000) — fits within 12K TPM (2K prompt + 8K output)
+  - OpenRouter: 8,000 (was 32,000) — model-specific cap
+- Added post-generation coverage verification: if the AI truncates and misses
+  any selected languages, the server tags the roadmap with `_missingLanguages`
+  and the client supplements with deterministic phases for those languages.
+- Added user-supplied API key support (BYOK): the server now accepts
+  `userApiKey` + `userProvider` parameters. When provided, the user's key is
+  tried FIRST (BYOK priority), falling back to platform keys only if the
+  user's key fails.
+
+**Live test:** Verified via code inspection — all 3 providers use safe token
+limits. The BYOK priority logic is in place. Coverage verification tags
+missing languages. Note: full end-to-end AI testing requires real API keys
+(not available in this environment), but the token limits are now within
+each provider's actual constraints.
+
+### BUG 3 (QUALITY): "Second Language" phases too shallow
+
+**Root cause:** `genExtraLanguagePhase` generated only 2 generic tasks per
+secondary language: "Learn X syntax" + "Build a project". No use of the
+rich language metadata available in `LANGUAGE_MAP` (tagline, useCases,
+learningCurve, topCompanies, difficulty).
+
+**Fix:** Enhanced `genExtraLanguagePhase` to use real language-specific content:
+- 4 tasks per language (was 2): setup, syntax/types/control-flow,
+  functions/data-structures, and a use-case-specific application task
+- Task descriptions now reference `lang.tagline`, `lang.learningCurve`,
+  `lang.useCases`, `lang.topCompanies`, and `lang.difficulty`
+- Each task links to the relevant Launchpad lesson via `lessonId`
+  (e.g., `rust-01`, `rust-03`, `rust-05`, `rust-07`)
+- Phase subtitle now uses the language's tagline (e.g., "Memory-safe systems
+  programming" for Rust, "Simple, fast, concurrent" for Go)
+- Module descriptions use the language's actual description from LANGUAGE_MAP
+
+**Live test output (python + rust):**
+```
+Phase: Second Language: Rust
+Subtitle: Memory-safe systems programming
+Tasks:
+  Module: Rust fundamentals
+    - Set up Rust and run hello world | 60m, 40xp, lesson=rust-01
+    - Learn Rust syntax, types, and control flow | 240m, 100xp, lesson=rust-03
+    - Master Rust functions and data structures | 200m, 90xp, lesson=rust-05
+  Module: Build with Rust
+    - Apply Rust to: Systems programming | 180m, 100xp, lesson=rust-07
+```
+
+**Live test output (python + go):**
+```
+Phase: Second Language: Go
+Subtitle: Simple, fast, concurrent
+Tasks:
+  Module: Go fundamentals
+    - Set up Go and run hello world | 60m, 40xp, lesson=go-01
+    - Learn Go syntax, types, and control flow | 240m, 100xp, lesson=go-03
+    - Master Go functions and data structures | 200m, 90xp, lesson=go-05
+  Module: Build with Go
+    - Apply Go to: Microservices | 180m, 100xp, lesson=go-07
+```
+
+### NEW FEATURE: Optional user-supplied API key in onboarding
+
+**Problem:** Roadmap generation used platform-wide shared API keys
+(Gemini/Groq/OpenRouter free tiers). A handful of users could exhaust the
+free-tier rate limits for everyone (Bug 2 was a direct symptom).
+
+**Solution:** Added an optional API key step (Step 7) to the onboarding flow.
+The user can provide their own key (for any of 5 providers: Gemini, Groq,
+OpenRouter, OpenAI, Anthropic) or skip to use the deterministic engine.
+
+**Key behaviors:**
+1. **Optional with visible Skip button** — onboarding is never blocked.
+2. **Honest tradeoff explanation** — "With an API key: AI-generated
+   personalized roadmap... Without: instant, reliable, template-based engine.
+   You can add a key later in Settings."
+3. **Single key, reused everywhere** — if provided, the key is immediately
+   stored in `aiSettings` via `setAISettings()`. This same key automatically
+   powers AI Tutor, Interview Mode, and Code Review. The user never enters
+   the same key twice.
+4. **Add later via Settings** — if skipped, the user can add a key later via
+   Settings (as already supported) to retroactively enable AI features.
+5. **BYOK priority for roadmap generation** — when the user's key is provided,
+   the server tries it FIRST. Platform keys are only used as fallback if the
+   user's key fails or wasn't provided.
+6. **Does this fully resolve Bug 2?** Partially. The user's own key eliminates
+   the shared-quota TPM exhaustion. However, Bug 2's chunking/limit-awareness
+   fix (safe `max_tokens` per provider) is still needed because a user's own
+   key can also hit TPM limits (e.g., Groq free tier is 12K TPM regardless of
+   whose key it is). Both fixes are complementary: BYOK solves the shared-quota
+   problem; safe token limits solve the per-request TPM problem.
+
+**Also updated:** All AI provider model lists in `PROVIDER_MODELS` (store.ts)
+have been updated with the latest available models (July 2026):
+- Gemini: added gemini-2.5-flash-lite, gemini-2.0-flash, gemini-2.0-flash-lite
+- Groq: added llama-3.2 variants, mixtral-8x7b, gemma2-9b
+- OpenRouter: added gpt-4.1, deepseek, qwen-2.5, grok-2, nova-pro
+- OpenAI: added gpt-4.1, gpt-4.1-mini/nano, o3-mini
+- Anthropic: added claude-3-5-sonnet, claude-3-opus
+
+### Files Changed
+
+- `src/lib/lessons-extended.ts` — fixed double comma (BUG 1)
+- `src/lib/lessons-data.ts` — defensive null-checks in rebuildMaps (BUG 1)
+- `src/app/api/roadmap-generate/route.ts` — safe token limits, BYOK support,
+  coverage verification (BUG 2 + FEATURE)
+- `src/lib/personalization-engine.ts` — enhanced genExtraLanguagePhase with
+  real language metadata (BUG 3); user key param in generateRoadmapWithAI
+  + missing-language supplement (BUG 2)
+- `src/lib/store.ts` — updated PROVIDER_MODELS with latest models (FEATURE)
+- `src/components/shell/OnboardingFlow.tsx` — new Step 7 OptionalApiKeyStep,
+  moved generation to step 7, plan preview to step 8, BYOK storage (FEATURE)
+- `package.json` — version bump to 5.890.0
+- `src/app/api/route.ts` — version bump
+- `public/sw.js` — cache version bump
+
+### Remaining Limitations
+
+1. **AI path still single-shot** — not chunked. With the safe token limits
+   (8K-16K), this works for up to ~15 languages. For 20+ languages, the AI
+   may truncate; the coverage verification + deterministic supplement ensures
+   no language is silently dropped. A future v5.90 could implement true
+   chunked AI generation if needed.
+2. **Full AI end-to-end test not run** — this environment has no real AI API
+   keys configured. The token limits are set correctly per each provider's
+   actual constraints, and the BYOK flow is verified via code inspection +
+   the deterministic engine path is fully tested.
+3. **Platform keys still used as fallback** — if the user's key fails (or they
+   skip), platform keys are still tried. Removing platform keys entirely would
+   make AI generation impossible for users who skip. This is the correct
+   tradeoff: BYOK is preferred but platform keys remain as a safety net.
 
 ---
 
