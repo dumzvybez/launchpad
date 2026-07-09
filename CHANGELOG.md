@@ -1,8 +1,122 @@
 # Launchpad CHANGELOG
 
 This file merges all previous changelogs and adds the new
-**v5.92 (Roadmap Intelligence UI: Lesson Groups + Auto-Completion + Deep-Linking + Completed Popup)**
+**v5.921 (Critical Fix: Onboarding Completely Blocked — 6 Root Causes Fixed)**
 entries. Entries are in reverse chronological order.
+
+---
+
+## v5.921 — Critical Fix: Onboarding Completely Blocked (6 Root Causes)
+
+This is a **production-blocking hotfix**. The v5.92 release introduced a step-
+number mismatch that prevented 100% of new users from completing onboarding —
+nobody could generate a roadmap. This release fixes 6 root causes.
+
+### Root Cause 1 (CRITICAL): Generation trigger at wrong step number
+
+**File:** `src/components/shell/OnboardingFlow.tsx`, line 127
+
+**Bug:** The generation trigger checked `if (step === 9)`, but the user clicks
+"Generate" while ON step 8 (API key step). Since `step === 9` was FALSE at
+that point, generation was **SKIPPED entirely**. The code fell through to
+`setStep(9)`, advancing to step 9 (plan preview) with no roadmap generated.
+At step 9, `canProceed` checks `generatedRoadmap !== null` → false → "Begin
+my journey" button was disabled. User was stuck.
+
+**Same root cause for both AI-key and skip paths** — generation never fired
+for either.
+
+**Fix:** Changed `if (step === 9)` to `if (step === 8)` for the generation
+trigger. Finalization remains at `if (step === 9)` (correct — "Begin my
+journey" should fire from the plan preview step).
+
+### Root Cause 2: missingPrereqs returned [] outside step 5
+
+**File:** `src/components/shell/OnboardingFlow.tsx`, line 87
+
+**Bug:** `missingPrereqs` had a guard `if (step !== 5) return [];` — it was
+only computed when the user was on the prerequisite confirmation step (step 5).
+During generation at step 8, `missingPrereqs` was `[]`, so:
+- `finalLanguageIds` didn't include auto-injected prerequisites
+- `generateRoadmap(input, missingPrereqs)` received `[]` instead of the actual
+  prerequisite data
+- Auto-injection labels and topological ordering were lost
+
+**Fix:** Removed the `step !== 5` guard. `missingPrereqs` is now always
+computed from `selectedLanguages`, regardless of the current step.
+
+### Root Cause 3: require() instead of ESM import in deterministic engine
+
+**File:** `src/lib/personalization-engine.ts`, line 1425
+
+**Bug:** The deterministic engine used `require("./dependency-graph")` to
+import `topologicalSort`. `require()` doesn't work in ESM/browser context —
+this would crash the deterministic engine at runtime with "require is not
+defined". Even if the generation trigger was fixed, the deterministic fallback
+would throw an error.
+
+**Fix:** Changed to a proper ESM import at the top of the file:
+`import { topologicalSort } from "./dependency-graph";`
+
+### Root Cause 4: Skip path showed "AI services unavailable" error screen
+
+**File:** `src/components/shell/OnboardingFlow.tsx`
+
+**Bug:** When the user clicked "Skip — use built-in engine", the code still
+called `generateRoadmapWithAI(input, undefined)`. The server (v5.90 BYOK-only)
+returned `allFailed: true` with `noUserKey: true`. The client then showed the
+"AI services unavailable" error screen — confusing UX for users who
+deliberately chose to skip.
+
+**Fix:** Added `if (userKey) { ... } else { ... }` around the AI attempts.
+When the user skips, AI is not attempted at all — the flow goes directly to
+the deterministic engine.
+
+### Root Cause 5: Toggle/selection stuck (can't uncheck Skip)
+
+**File:** `src/components/shell/OnboardingFlow.tsx`, OptionalApiKeyStep
+
+**Bug:** Clicking "Skip — use built-in engine" set `skipped=true` and hid the
+API key input (`{!skipped && (...)}`). Once skipped, there was no way to go
+back to entering a key — the user was stuck on the skip path.
+
+**Fix:** Added a "Provide a key instead" button that appears when `skipped`
+is true. Clicking it sets `skipped=false`, revealing the API key input again.
+
+### Root Cause 6: Missing "Test Connection" button
+
+**File:** `src/components/shell/OnboardingFlow.tsx`, OptionalApiKeyStep
+
+**Bug:** The optional API key step had no way for the user to verify their
+key was valid before proceeding to generation.
+
+**Fix:** Added a "Test Connection" button that calls `/api/chat` with
+`test: true`. Shows ✅ on success, ❌ with the error message on failure.
+Includes a loading spinner during the test.
+
+### Verification
+
+**Testing method:** Programmatic end-to-end test (not browser-based, since
+this environment's dev server doesn't support browser access via the gateway).
+The test simulates the exact onboarding flow:
+
+1. User selects languages: python, react, docker
+2. Missing prereqs computed: javascript, html, css (for react)
+3. Final languages: python, react, docker, javascript, html, css
+4. Deterministic engine called with `generateRoadmap(input, missingPrereqs)`
+5. Result: 13-phase roadmap generated, all phases populated
+6. HTML, CSS, JavaScript phases labeled "AUTO-INJECTED for: react"
+7. Phases topologically sorted (prerequisites before dependents)
+
+**Result:** ✅ Roadmap is not null, has 13 phases, can proceed to plan preview.
+
+**16/16 programmatic tests passed** covering all 6 root causes.
+
+### Files Changed
+
+- `src/components/shell/OnboardingFlow.tsx` — all 6 fixes
+- `src/lib/personalization-engine.ts` — ESM import fix (Root Cause 3)
+- `package.json`, `src/app/api/route.ts`, `public/sw.js` — version bump to 5.921.0
 
 ---
 

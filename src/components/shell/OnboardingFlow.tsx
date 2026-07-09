@@ -83,11 +83,14 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
 
   // v5.91 (Part 2): Compute missing prerequisites for the confirmation step.
   // This is memoized so it only recomputes when the language selection changes.
+  // v5.92 FIX (BUG 2): Removed the `step !== 5` guard — missingPrereqs must
+  // always be computed from selectedLanguages, regardless of current step.
+  // Previously it returned [] outside step 5, so during generation at step 8
+  // the auto-injected prerequisites were lost.
   const missingPrereqs = useMemo(() => {
-    if (step !== 5) return [];
     return findMissingPrerequisites(selectedLanguages);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, selectedLanguages]);
+  }, [selectedLanguages]);
 
   // v5.91 (Part 2): The final language list includes auto-injected prerequisites.
   const finalLanguageIds = useMemo(() => {
@@ -124,8 +127,11 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
         setSelectedLanguages(career.recommendedLanguages.slice(0, 3));
       }
     }
-    if (step === 9) {
-      // v5.89: Generation now triggers at step 8 (was step 7, shifted by prerequisite step).
+    if (step === 8) {
+      // v5.92 FIX (BUG 1): Generation triggers at step 8 (API key step), NOT step 9.
+      // Previously this checked `step === 9`, but the user clicks "Generate" while
+      // ON step 8 — so `step === 9` was always false and generation was SKIPPED.
+      // This blocked 100% of onboarding for both AI-key and skip paths.
       // v5.91 (Part 2): Use finalLanguageIds (includes auto-injected prerequisites)
       // and pass missingPrereqs to generateRoadmap for labeling.
       if (isGenerating) return;
@@ -183,45 +189,54 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
         let roadmap: GeneratedRoadmap | null = null;
         let usedAI = false;
         let allFailedPass1 = false;
-        try {
-          // v5.89 (BUG 4): pass the user's API key if provided
-          const aiResult = await generateRoadmapWithAI(input, userKey);
-          if (aiResult.roadmap) {
-            roadmap = aiResult.roadmap;
-            usedAI = true;
-          } else {
-            console.warn("[onboarding] AI Pass 1 failed:", aiResult.error);
-            if (aiResult.allFailed) allFailedPass1 = true;
-          }
-        } catch (err) {
-          console.warn("[onboarding] AI Pass 1 threw:", err);
-        }
 
-        // Section 9: Pass 2 — if Pass 1 had all 3 providers fail, retry the whole chain once more
-        if (!roadmap && allFailedPass1) {
-          console.log("[onboarding] All 3 providers failed Pass 1, starting Pass 2");
-          setGenStage(3); // stay on "Sending to AI"
+        // v5.92 FIX: If the user skipped (no key), skip AI attempts entirely
+        // and go straight to the deterministic engine. Previously the code tried
+        // AI with no key, which always failed, then showed the "AI services
+        // unavailable" error screen — confusing UX for users who deliberately skipped.
+        if (userKey) {
           try {
-            const aiResult2 = await generateRoadmapWithAI(input, userKey);
-            if (aiResult2.roadmap) {
-              roadmap = aiResult2.roadmap;
+            const aiResult = await generateRoadmapWithAI(input, userKey);
+            if (aiResult.roadmap) {
+              roadmap = aiResult.roadmap;
               usedAI = true;
-              allFailedPass1 = false;
             } else {
-              console.warn("[onboarding] AI Pass 2 also failed:", aiResult2.error);
+              console.warn("[onboarding] AI Pass 1 failed:", aiResult.error);
+              if (aiResult.allFailed) allFailedPass1 = true;
             }
           } catch (err) {
-            console.warn("[onboarding] AI Pass 2 threw:", err);
+            console.warn("[onboarding] AI Pass 1 threw:", err);
           }
+
+          // Pass 2 — if Pass 1 had all providers fail, retry once more
+          if (!roadmap && allFailedPass1) {
+            console.log("[onboarding] All providers failed Pass 1, starting Pass 2");
+            setGenStage(3);
+            try {
+              const aiResult2 = await generateRoadmapWithAI(input, userKey);
+              if (aiResult2.roadmap) {
+                roadmap = aiResult2.roadmap;
+                usedAI = true;
+                allFailedPass1 = false;
+              } else {
+                console.warn("[onboarding] AI Pass 2 also failed:", aiResult2.error);
+              }
+            } catch (err) {
+              console.warn("[onboarding] AI Pass 2 threw:", err);
+            }
+          }
+
+          // If both passes failed entirely, show user choice screen
+          if (!roadmap && allFailedPass1) {
+            console.log("[onboarding] Both AI passes failed — showing user choice screen");
+            setAiFallbackChoice({ input });
+            setIsGenerating(false);
+            return;
+          }
+        } else {
+          console.log("[onboarding] No user key — skipping AI, using deterministic engine directly");
         }
 
-        // Section 9: If both passes failed entirely, show user choice screen (do NOT silently fall back)
-        if (!roadmap && allFailedPass1) {
-          console.log("[onboarding] Both AI passes failed — showing user choice screen");
-          setAiFallbackChoice({ input });
-          setIsGenerating(false);
-          return;
-        }
         // Stage 4: Receiving AI response
         setGenStage(4); await new Promise((r) => setTimeout(r, 400));
         // Stage 5: Extracting roadmap structure
@@ -236,7 +251,7 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
         setGenStage(9);
 
         if (!roadmap) {
-          // Fallback: deterministic engine
+          // Fallback: deterministic engine (v5.92: also handles the skip path)
           roadmap = generateRoadmap(input, missingPrereqs);
         }
 
@@ -268,7 +283,7 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
         setGeneratedRoadmap(roadmap);
         await new Promise((r) => setTimeout(r, 500));
         setIsGenerating(false);
-        setStep(9); // v5.91: plan preview is now step 8
+        setStep(9); // v5.92: advance to plan preview (step 9)
         return;
       } catch (err) {
         console.error("[onboarding] generation chain threw:", err);
@@ -277,7 +292,7 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
           const fallback = generateRoadmap(input, missingPrereqs);
           setGeneratedRoadmap(fallback);
           setIsGenerating(false);
-          setStep(9); // v5.91: plan preview is now step 8
+          setStep(9); // v5.92: advance to plan preview (step 9)
         } catch (innerErr) {
           console.error("[onboarding] deterministic fallback also threw:", innerErr);
           setIsGenerating(false);
@@ -1592,7 +1607,6 @@ function OptionalApiKeyStep({
   skipped: boolean;
   setSkipped: (v: boolean) => void;
 }) {
-  // Import PROVIDER_MODELS + PROVIDER_INFO from store
   const PROVIDER_LABELS: Record<string, { label: string; icon: string; url?: string }> = {
     gemini: { label: "Google Gemini", icon: "✨", url: "https://aistudio.google.com" },
     groq: { label: "Groq", icon: "⚡", url: "https://console.groq.com" },
@@ -1609,6 +1623,41 @@ function OptionalApiKeyStep({
   };
   const providerInfo = PROVIDER_LABELS[provider] ?? PROVIDER_LABELS.gemini;
   const models = MODELS[provider] ?? [];
+
+  // v5.92 FIX (BUG 4): Test Connection state
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
+
+  const handleTestConnection = async () => {
+    if (!apiKey.trim()) {
+      setTestResult({ ok: false, message: "Please enter an API key first." });
+      return;
+    }
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider,
+          apiKey: apiKey.trim(),
+          model,
+          test: true,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setTestResult({ ok: true, message: "✅ Connection successful! Your key works." });
+      } else {
+        setTestResult({ ok: false, message: `❌ ${data.error || "Connection failed. Check your key and provider."}` });
+      }
+    } catch (err) {
+      setTestResult({ ok: false, message: `❌ Network error: ${(err as Error).message}` });
+    } finally {
+      setTesting(false);
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -1645,7 +1694,7 @@ function OptionalApiKeyStep({
         </div>
       </div>
 
-      {/* Skip button */}
+      {/* Skip / Provide Key toggle — v5.92 FIX (BUG 3): can toggle back and forth */}
       <div className="flex items-center gap-3">
         <button
           onClick={() => {
@@ -1661,6 +1710,16 @@ function OptionalApiKeyStep({
         >
           Skip — use built-in engine
         </button>
+        {skipped && (
+          <button
+            onClick={() => {
+              setSkipped(false);
+            }}
+            className="px-4 py-2 rounded-lg text-sm font-medium border border-border/60 hover:bg-foreground/5 text-muted-foreground transition-colors"
+          >
+            Provide a key instead
+          </button>
+        )}
         {!skipped && (
           <span className="text-xs text-muted-foreground">or provide your key below ↓</span>
         )}
@@ -1720,6 +1779,38 @@ function OptionalApiKeyStep({
                 <option key={m} value={m}>{m}</option>
               ))}
             </select>
+          </div>
+
+          {/* v5.92 FIX (BUG 4): Test Connection button */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleTestConnection}
+              disabled={testing || !apiKey.trim()}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
+                testing || !apiKey.trim()
+                  ? "bg-foreground/5 text-muted-foreground cursor-not-allowed"
+                  : "bg-primary/15 text-primary hover:bg-primary/25"
+              )}
+            >
+              {testing ? (
+                <>
+                  <Loader2 className="h-3 w-3 animate-spin" /> Testing...
+                </>
+              ) : (
+                <>
+                  <Check className="h-3 w-3" /> Test Connection
+                </>
+              )}
+            </button>
+            {testResult && (
+              <span className={cn(
+                "text-xs",
+                testResult.ok ? "text-emerald-500" : "text-rose-500"
+              )}>
+                {testResult.message}
+              </span>
+            )}
           </div>
 
           <div className="rounded-lg bg-primary/5 border border-primary/20 p-3">

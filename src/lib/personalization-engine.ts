@@ -9,6 +9,8 @@ import type {
   SkillLevel,
 } from "./types";
 import { CAREER_MAP, LANGUAGE_MAP, OCCUPATION_MAP, LANGUAGES } from "./career-data";
+// v5.92 FIX: use ESM import instead of require() — require() doesn't work in browser/ESM
+import { topologicalSort } from "./dependency-graph";
 
 // ============================================================
 // PERSONALIZATION ENGINE
@@ -1422,8 +1424,8 @@ export function generateRoadmap(
 
   // v5.91 (Part 1): Topologically sort the language IDs so prerequisites
   // come before their dependents in the roadmap.
-  const { topologicalSort } = require("./dependency-graph");
-  const sortedLangIds = topologicalSort(input.selectedLanguageIds) as string[];
+  // v5.92 FIX: use the ESM import (was require() which doesn't work in browser)
+  const sortedLangIds = topologicalSort(input.selectedLanguageIds);
 
   // v5.88: Generate phases — the count now SCALES with the number of selected
   // languages. Previously only primary + ONE secondary language got phases;
