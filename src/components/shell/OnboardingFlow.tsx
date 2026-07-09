@@ -138,7 +138,11 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
       setIsGenerating(true);
       setGenStage(0);
 
-      const userKey = optionalApiKey.trim() && !apiKeySkipped
+      // v5.922 FIX: Removed `!apiKeySkipped` check — if a key is entered, use it.
+      // The `apiKeySkipped` flag was causing false negatives when state got
+      // out of sync (e.g., user toggled skip/enter). An empty key is already
+      // falsy, so the check is redundant.
+      const userKey = optionalApiKey.trim()
         ? { apiKey: optionalApiKey.trim(), provider: optionalApiProvider, model: optionalApiModel }
         : undefined;
       if (userKey) {
@@ -370,7 +374,7 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
                 const roadmap = generateRoadmap(input, missingPrereqs);
                 setGeneratedRoadmap(roadmap);
                 setAiFallbackChoice(null);
-                setStep(8);
+                setStep(9); // v5.922 FIX: was setStep(8) — should advance to plan preview (step 9), not back to API key step
               }}
             >
               <span className="flex flex-col items-start text-left">
@@ -394,7 +398,12 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
                 setGenStage(3);
                 let roadmap: GeneratedRoadmap | null = null;
                 try {
-                  const aiResult = await generateRoadmapWithAI(input);
+                  // v5.922 FIX: pass userKey so the retry actually uses the user's key
+                  // (was calling generateRoadmapWithAI(input) with no key → always 502)
+                  const retryUserKey = optionalApiKey.trim()
+                    ? { apiKey: optionalApiKey.trim(), provider: optionalApiProvider, model: optionalApiModel }
+                    : undefined;
+                  const aiResult = await generateRoadmapWithAI(input, retryUserKey);
                   if (aiResult.roadmap) roadmap = aiResult.roadmap;
                 } catch (err) {
                   console.warn("[onboarding] Option B retry threw:", err);
@@ -409,10 +418,15 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
                     return;
                   }
                 }
+                if (!roadmap) {
+                  // v5.922: safety guard — should never reach here
+                  setIsGenerating(false);
+                  return;
+                }
                 setGeneratedRoadmap(roadmap);
                 setIsGenerating(false);
                 setAiFallbackChoice(null);
-                setStep(8);
+                setStep(9); // v5.922 FIX: was setStep(8) — should advance to plan preview
               }}
             >
               <span className="flex flex-col items-start text-left">
@@ -1834,19 +1848,33 @@ function PlanPreviewStep({
   isGenerating,
   genStage,
 }: {
-  roadmap: ReturnType<typeof generateRoadmap>;
+  roadmap: ReturnType<typeof generateRoadmap> | null;
   isGenerating: boolean;
   genStage: number;
 }) {
-  const stages = getGenerationStagesForInput({
-    name: "",
-    careerId: roadmap.careerId,
-    selectedLanguageIds: roadmap.languageIds,
-    occupationId: "",
-    skillLevel: "beginner",
-    hoursPerDay: 2,
-    daysPerWeek: 5,
-  });
+  // v5.922 FIX (CRITICAL): Handle null roadmap during generation animation.
+  // Previously this accessed `roadmap.careerId` BEFORE checking isGenerating,
+  // crashing with "Cannot read properties of null (reading 'careerId')".
+  // The caller passes roadmap={null} during generation (line 533).
+  const stages = roadmap
+    ? getGenerationStagesForInput({
+        name: "",
+        careerId: roadmap.careerId,
+        selectedLanguageIds: roadmap.languageIds,
+        occupationId: "",
+        skillLevel: "beginner",
+        hoursPerDay: 2,
+        daysPerWeek: 5,
+      })
+    : getGenerationStagesForInput({
+        name: "",
+        careerId: "software-engineering" as CareerId,
+        selectedLanguageIds: [],
+        occupationId: "student",
+        skillLevel: "beginner",
+        hoursPerDay: 2,
+        daysPerWeek: 5,
+      });
 
   if (isGenerating) {
     return (
@@ -1883,6 +1911,16 @@ function PlanPreviewStep({
             </div>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  // v5.922: Safety guard — if roadmap is null and not generating, show error
+  if (!roadmap) {
+    return (
+      <div className="text-center py-12">
+        <AlertTriangle className="h-10 w-10 mx-auto text-amber-500 mb-3" />
+        <p className="text-sm text-muted-foreground">Roadmap generation failed. Please go back and try again.</p>
       </div>
     );
   }

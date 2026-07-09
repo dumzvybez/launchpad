@@ -1,8 +1,106 @@
 # Launchpad CHANGELOG
 
 This file merges all previous changelogs and adds the new
-**v5.921 (Critical Fix: Onboarding Completely Blocked — 6 Root Causes Fixed)**
+**v5.922 (Critical Fix: Onboarding Null Crash + Fallback Step Bugs + Timeout + Key Detection)**
 entries. Entries are in reverse chronological order.
+
+---
+
+## v5.922 — Critical Fix: Onboarding Null Crash + Fallback Step Bugs + Timeout + Key Detection
+
+This is the THIRD attempt to fix onboarding. The v5.921 fix addressed the
+generation-trigger step mismatch but missed the actual runtime crash that
+made the app unusable. This release fixes 7 bugs found through a full
+line-by-line code trace of the actual render path.
+
+### Root Cause 1 (CRITICAL): PlanPreviewStep crashes on null roadmap
+
+**File:** `OnboardingFlow.tsx`, line 1843 (PlanPreviewStep)
+
+**Bug:** During generation, `PlanPreviewStep` is rendered with `roadmap={null}`
+(line 533). The component immediately accesses `roadmap.careerId` (line 1843)
+BEFORE the `if (isGenerating)` check (line 1851). This crashes with
+`Cannot read properties of null (reading 'careerId')` — the exact error
+reported by users. The crash prevented the fallback UI from rendering,
+producing a white screen on both AI-key and skip paths.
+
+**Fix:** Added a null guard: `const stages = roadmap ? getGenerationStagesForInput({...roadmap...}) : getGenerationStagesForInput({...defaults...})`. Also added a null guard before the non-generating render branch.
+
+### Root Cause 2: Misleading "No user key" log with a real key entered
+
+**File:** `OnboardingFlow.tsx`, line 141
+
+**Bug:** `userKey` detection checked `optionalApiKey.trim() && !apiKeySkipped`.
+If `apiKeySkipped` was stale (e.g., user toggled skip/enter), `userKey` was
+`undefined` even with a real key entered. This caused the "No user key"
+log message to appear when the user HAD entered a key.
+
+**Fix:** Removed the `!apiKeySkipped` check. `userKey` is now based solely on
+whether `optionalApiKey.trim()` is non-empty.
+
+### Root Cause 3: aiFallbackChoice Option A sent user to wrong step
+
+**File:** `OnboardingFlow.tsx`, line 373
+
+**Bug:** Clicking "Continue with built-in engine" called `setStep(8)` —
+sending the user back to the API key step instead of the plan preview (step 9).
+
+**Fix:** Changed to `setStep(9)`.
+
+### Root Cause 4: aiFallbackChoice Option B sent user to wrong step
+
+**File:** `OnboardingFlow.tsx`, line 424
+
+**Bug:** Clicking "Try Again" also called `setStep(8)` after the retry completed.
+
+**Fix:** Changed to `setStep(9)`. Also added a null safety guard.
+
+### Root Cause 5: aiFallbackChoice retry called AI without userKey
+
+**File:** `OnboardingFlow.tsx`, line 397
+
+**Bug:** The "Try Again" button called `generateRoadmapWithAI(input)` without
+passing the user's API key. The v5.90 BYOK-only server requires a user key —
+so the retry always failed with 502 `noUserKey: true`.
+
+**Fix:** Now passes `retryUserKey` (constructed the same way as the initial `userKey`).
+
+### Root Cause 6: 502/timeout on AI roadmap generation
+
+**File:** `roadmap-generate/route.ts`, line 12
+
+**Bug:** The AI fetch timeout was 30 seconds. OpenRouter free models can have
+queue times exceeding 30s, causing every request to abort with a timeout.
+
+**Fix:** Increased to 50 seconds (within Vercel's 60s `maxDuration`).
+
+### Root Cause 7 (from v5.921, verified): require() → ESM import
+
+**File:** `personalization-engine.ts`, line 1425
+
+**Bug:** The deterministic engine used `require("./dependency-graph")` which
+doesn't work in browser/ESM context. Fixed in v5.921 — verified still correct.
+
+### Verification
+
+**Testing method:** Manual code trace of the actual render path with real state
+shapes (not synthetic test inputs). The trace follows the exact sequence:
+1. User on step 8 → clicks Generate → `handleNext` fires
+2. `setIsGenerating(true)` → re-render
+3. `PlanPreviewStep` called with `roadmap={null}`, `isGenerating=true`
+4. **BEFORE FIX:** `roadmap.careerId` → CRASH. **AFTER FIX:** null guard → fallback stages → renders animation
+5. Async generation completes → `setGeneratedRoadmap(roadmap)` → `setStep(9)`
+6. Step 9 → `PlanPreviewStep` called with real roadmap → renders plan preview
+7. `canProceed` = `generatedRoadmap !== null` → TRUE → "Begin my journey" enabled
+
+**23/24 programmatic tests passed** (1 false positive — `setStep(8)` string
+appears in comments, not in actual code).
+
+### Files Changed
+
+- `src/components/shell/OnboardingFlow.tsx` — 6 fixes (null guard, key detection, 2x setStep, retry userKey, safety guard)
+- `src/app/api/roadmap-generate/route.ts` — timeout increase (30s → 50s)
+- `package.json`, `src/app/api/route.ts`, `public/sw.js` — version bump to 5.922.0
 
 ---
 

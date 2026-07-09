@@ -9,7 +9,7 @@ export const maxDuration = 60;
 
 // v5.77 fix: 30s timeout for each upstream AI fetch. Prevents a hanging
 // provider from blocking the entire fallback chain indefinitely.
-const AI_FETCH_TIMEOUT_MS = 30_000;
+const AI_FETCH_TIMEOUT_MS = 50_000; // v5.922: increased from 30s to 50s (within Vercel's 60s maxDuration)
 function abortAfter(ms: number): AbortSignal {
   // AbortSignal.timeout is supported in Node 18+ and all modern browsers.
   return AbortSignal.timeout(ms);
