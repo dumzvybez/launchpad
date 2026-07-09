@@ -231,9 +231,7 @@ export type GeneratedRoadmap = {
   totalHours: number;
   phases: GeneratedPhase[];
   generatedAt: string;
-  /** AI refinement notes */
-  aiRefinement?: string;
-  /** Source of the generated roadmap */
+  /** Source of the generated roadmap (always "deterministic" since v5.923) */
   source?: RoadmapSource;
 };
 
@@ -417,12 +415,14 @@ export type AISettings = {
   temperature: number; // 0.0 - 1.5
 };
 
-/** Result source for AI roadmap generation */
+/** Result source for roadmap generation. v5.923: the deterministic engine is
+ * the only generator, so this is always "deterministic". The union is kept
+ * for backward-compatibility with roadmaps persisted in older localStorage. */
 export type RoadmapSource =
+  | "deterministic"
   | "ai-gemini"
   | "ai-groq"
-  | "ai-openrouter"
-  | "deterministic";
+  | "ai-openrouter";
 
 export type RateLimitEntry = {
   timestamp: number; // epoch ms
@@ -463,8 +463,11 @@ export type AppState = {
     backgroundTheme: string;
     /** Custom background color (when theme = 'custom') */
     customBackground?: string;
-    /** First-time tour completed */
+    /** First-time tour completed (deprecated v5.923 — tour removed, kept for persisted-state compat) */
     tourCompleted?: boolean;
+    /** v5.923: last app version whose release notes the user has seen. Used by
+     * VersionUpdateDialog to show "what's new" once per release. */
+    lastSeenReleaseVersion?: string;
     /** Whether to show the mobile "use desktop" banner this session */
     mobileBannerDismissed?: boolean;
     /** Whether to hide video supplements in lessons (Section 2.4) */

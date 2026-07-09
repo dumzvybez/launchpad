@@ -65,8 +65,7 @@ self.addEventListener("fetch", (event) => {
   if (url.pathname.startsWith("/_next/webpack-hmr")) return;
 
   // PRIVACY: NEVER cache API responses. The /api/chat endpoint may
-  // contain AI responses that include user code, and /api/roadmap-generate
-  // responses include the user's personalized roadmap. Caching these in
+  // contain AI responses that include user code. Caching these in
   // Cache Storage would persist them in the browser even after the user
   // clicks "Reset all data" in Settings (which only clears localStorage).
   if (url.pathname.startsWith("/api/")) {

@@ -1,8 +1,113 @@
 # Launchpad CHANGELOG
 
 This file merges all previous changelogs and adds the new
-**v5.922 (Critical Fix: Onboarding Null Crash + Fallback Step Bugs + Timeout + Key Detection)**
+**v5.923 (Scope Reduction: Deterministic Roadmap Engine Only + Version-Update Popup + Tour Removed)**
 entries. Entries are in reverse chronological order.
+
+---
+
+## v5.923 — Deterministic Roadmap Engine Only + Version-Update Popup + Tour Removed
+
+This release is a deliberate scope reduction and cleanup. The deterministic
+roadmap engine is confirmed working correctly and is now the **only** roadmap
+generation method. All AI-powered roadmap generation code has been removed
+entirely — not disabled, removed. AI Tutor chat, Interview Mode, and Code
+Review are unaffected and remain BYOK-gated as before.
+
+### Removed: Optional API-key onboarding step
+
+**File:** `OnboardingFlow.tsx`
+
+The entire "Optional: AI API Key" step (added in v5.89) is gone. Onboarding
+now flows directly from the time-commitment (availability) step straight into
+roadmap generation via the deterministic engine — no key prompt, no "skip"
+choice, no "Test Connection" button. `TOTAL_STEPS` went from 10 → 9.
+
+The `OptionalApiKeyStep` component, the `optionalApiKey` / `optionalApiProvider`
+/ `optionalApiModel` / `apiKeySkipped` state, and the `setAISettings` seeding
+in onboarding have all been removed. Users who want AI Tutor / Interview /
+Code Review add their key the first time they open the AI Tutor (which already
+has a setup screen).
+
+### Removed: All AI roadmap generation code paths
+
+- `generateRoadmapWithAI` and `regenerateRoadmapWithAI` in
+  `personalization-engine.ts` — fully deleted (≈155 lines).
+- The entire `/api/roadmap-generate` route (`src/app/api/roadmap-generate/`)
+  — deleted. It had no consumer other than the two functions above.
+- The AI "Pass 1 / Pass 2" retry logic and the `allFailedPass1` flow in
+  `OnboardingFlow.tsx` — removed.
+- The `aiFallbackChoice` state and the entire "AI services unavailable"
+  fallback choice screen ("Continue with built-in" / "Try Again") — removed.
+  With a single deterministic path there is nothing to fall back from.
+- The `ai` stage in `GENERATION_STAGES` ("Sending your profile to the AI
+  (Gemini → Groq → OpenRouter fallback)") — removed. The "phases" stage
+  description no longer says "AI determines…".
+
+### Removed: First-time tour (tooltip)
+
+**Files:** `FirstTimeTour.tsx` (deleted), `AppShell.tsx`, `OnboardingFlow.tsx`
+
+The post-onboarding tooltip tour (`FirstTimeTour`) and all of its code have
+been removed. `setPreference("tourCompleted", false)` in onboarding is gone.
+The `tourCompleted` preference field is kept in the type for backward
+compatibility with persisted state but is no longer read by anything.
+
+### New: Version-update notification popup
+
+**Files:** `src/lib/version-info.ts` (new), `src/components/shell/VersionUpdateDialog.tsx` (new)
+
+A one-time "What's new" popup that tells users what changed after a release:
+
+- **Existing users** see it once on their first visit after an update (when
+  `lastSeenReleaseVersion` ≠ `APP_VERSION`).
+- **New users** see it once after they complete onboarding.
+- Dismissing it records the current version so it never reappears for the
+  same release.
+- Release notes live in a single, easy-to-edit file (`src/lib/version-info.ts`).
+  To ship a new release: bump `APP_VERSION`, add a `ReleaseInfo` to the top of
+  the `RELEASES` array, and deploy.
+- A new `lastSeenReleaseVersion` preference was added to `AppState.preferences`.
+
+### Updated: Onboarding summary text (no AI mentions)
+
+The plan-preview step no longer distinguishes "AI-generated" vs "deterministic
+fallback" roadmaps. It now shows a single positive message: "Generated
+instantly by Launchpad's built-in engine. No API key needed."
+
+### Updated: App-wide AI-roadmap text references
+
+- **Help Centre** — the "What if all 3 AI providers fail?" Q&A and the
+  "How is my roadmap generated?" answer now describe the deterministic engine.
+  The privacy and offline answers no longer list roadmap generation as
+  server-bound or internet-dependent.
+- **Footer / Privacy Policy** — the "AI Roadmap generation: …sent to Google
+  Gemini" bullet removed from both the comment block and the rendered modal.
+- **manifest.json** — "personalized AI roadmap" → "personalized roadmap".
+- **sw.js** — privacy comment no longer references `/api/roadmap-generate`.
+- **README.md** — "AI-Powered Roadmaps" → "Personalized Roadmaps"; the
+  Gemini→Groq→OpenRouter mermaid diagram removed; tech-stack table updated;
+  env-vars section no longer lists roadmap AI keys.
+- **next.config.ts** — cosmetic comment updated.
+
+### Confirmed: AI Tutor / Interview / Code Review untouched
+
+`/api/chat` (the BYOK proxy for AI Tutor, Mock Interviews, and Code Review),
+`AIChat.tsx`, `AITutorFloating.tsx`, the `AISettings` type, and the BYOK
+provider presets in the store are all unchanged. Removing roadmap AI generation
+did not affect them — they share no code with the removed `/api/roadmap-generate`
+route. The only shared surface was the onboarding API-key step seeding
+`aiSettings`, which was convenience-only; users now set their key via the AI
+Tutor setup screen.
+
+### Fixed: Dead import in onboarding
+
+Removed a pre-existing dead import of `ALL_LANGUAGE_INFO` (a non-existent
+export) from `dependency-graph.ts` in `OnboardingFlow.tsx`.
+
+### Version bump
+
+`package.json` 5.922.0 → 5.923.0.
 
 ---
 

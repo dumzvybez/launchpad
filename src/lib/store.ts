@@ -1047,8 +1047,8 @@ export const useStore = create<Store>((set, get) => {
       }),
 
     completeOnboarding: (input, existingRoadmap?) => {
-      // v5.77 fix: if OnboardingFlow already generated an AI roadmap, use it
-      // instead of silently replacing it with the deterministic one.
+      // Use the roadmap OnboardingFlow already generated (deterministic engine,
+      // v5.923) if provided; otherwise generate one on the fly.
       // v5.91 (Part 2): pass autoInjected languages to generateRoadmap
       const roadmap = existingRoadmap ?? generateRoadmap(input);
       // Validate

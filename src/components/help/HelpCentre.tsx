@@ -11,10 +11,6 @@ const QA = [
     a: "Open the AI Tutor (floating bubble at bottom-right or the AI Tutor tab in the sidebar). If you haven't set up a key yet, you'll see a setup screen. Pick a provider (Google Gemini, Groq, OpenRouter, OpenAI, Anthropic, or a custom endpoint), choose a model, paste your API key, and click Save. Use the 'Test Connection' button to verify your key works. Get a free key from console.groq.com (Groq) or aistudio.google.com (Gemini).",
   },
   {
-    q: "What if all 3 AI providers fail during roadmap generation?",
-    a: "Launchpad's roadmap generator tries Google Gemini → Groq → OpenRouter in order. If all three fail (rate limits, network issues, or missing API keys), the built-in deterministic engine creates your roadmap locally. You'll see an amber message on the plan preview explaining the engine was used. Try again later — AI services may be temporarily unavailable.",
-  },
-  {
     q: "Can I learn multiple careers at once?",
     a: "Currently you can have one career per account. You can regenerate your plan from Settings → Data & backup → Restart Onboarding to switch careers. Your lesson progress and badges are preserved — only the roadmap gets regenerated with the new career.",
   },
@@ -32,7 +28,7 @@ const QA = [
   },
   {
     q: "Is my data really private?",
-    a: "Yes. All your data (profile, progress, roadmap, lessons, chat history, badges, settings) is stored 100% in your browser's localStorage. Nothing is sent to a server except: (1) AI chat messages — these go directly from your browser to the AI provider you've configured (Gemini, OpenAI, Anthropic, Groq, or OpenRouter), and (2) roadmap generation inputs — sent to Gemini (or Groq/OpenRouter as fallback) during onboarding. We don't have accounts, we don't sync across devices, and we don't sell or use your data for ads.",
+    a: "Yes. All your data (profile, progress, roadmap, lessons, chat history, badges, settings) is stored 100% in your browser's localStorage. Nothing is sent to a server except: AI chat messages — these go directly from your browser to the AI provider you've configured (Gemini, OpenAI, Anthropic, Groq, or OpenRouter) for the AI Tutor, Mock Interviews, and Code Review features. Roadmap generation is 100% on-device. We don't have accounts, we don't sync across devices, and we don't sell or use your data for ads.",
   },
   {
     q: "How do I backup my data?",
@@ -44,7 +40,7 @@ const QA = [
   },
   {
     q: "Can I use this offline?",
-    a: "Mostly yes. After your first visit, the app loads from cache and works offline — you can view your roadmap, complete tasks, take lessons, and use the playground. The only features requiring internet are: (1) the AI Tutor (needs to call AI servers), and (2) generating a new roadmap (uses AI). Install Launchpad as a PWA (Add to Home Screen) for the best offline experience.",
+    a: "Mostly yes. After your first visit, the app loads from cache and works offline — you can view your roadmap, complete tasks, take lessons, and use the playground. The only features requiring internet are: the AI Tutor, Mock Interviews, and Code Review (they call AI servers). Everything else — including roadmap generation — runs entirely on your device. Install Launchpad as a PWA (Add to Home Screen) for the best offline experience.",
   },
   {
     q: "How do I install Launchpad as an app?",
@@ -64,7 +60,7 @@ const QA = [
   },
   {
     q: "How is Launchpad different from freeCodeCamp, Codecademy, or Udemy?",
-    a: "Launchpad is the only platform that combines: (1) a fully AI-personalized roadmap built around YOUR career and languages — not a generic template, (2) completely free with no paywalls ever, (3) 100% on-device privacy — no accounts, no tracking, no data sold, (4) built-in lessons for 30 languages, an inline code editor, AI tutor, mock interviews, code review, and a resume builder — everything you need, without leaving the platform. Most platforms do one or two of these. Launchpad does all of them.",
+    a: "Launchpad is the only platform that combines: (1) a fully personalized roadmap built around YOUR career and languages — generated instantly on your device, not a generic template, (2) completely free with no paywalls ever, (3) 100% on-device privacy — no accounts, no tracking, no data sold, (4) built-in lessons for 30 languages, an inline code editor, AI tutor, mock interviews, code review, and a resume builder — everything you need, without leaving the platform. Most platforms do one or two of these. Launchpad does all of them.",
   },
   {
     q: "How does the inline code editor work?",
@@ -120,7 +116,7 @@ const QA = [
   },
   {
     q: "How is my roadmap generated?",
-    a: "Our personalization engine combines your career choice, selected languages, current occupation, skill level, and weekly availability. It calls a 3-provider AI fallback chain (Google Gemini → Groq → OpenRouter) to generate a structured JSON roadmap with the right number of phases (4-10) based on your profile complexity. After AI generation, we run an automated validation on phases, content, dependencies, language coverage, timeline, and numbering. If validation finds issues, we send the roadmap back to the AI for one correction retry. If all 3 providers fail or validation still fails, we fall back to a deterministic engine. The visual progress indicator shows each stage: Analyzing inputs → Mapping career → Loading languages → Sending to AI → Receiving response → Extracting structure → Designing phases → Generating tasks → Computing timeline → Validating accuracy → Finalizing.",
+    a: "Your roadmap is built instantly by Launchpad's built-in deterministic engine — no API key needed, no network calls, no waiting. The engine combines your career, selected languages, occupation, skill level, and weekly availability to design a structured multi-phase plan with concrete tasks, each linked to the right lessons. Generation is 100% on-device and always works.",
   },
   {
     q: "Why are some fields locked in Account Settings?",

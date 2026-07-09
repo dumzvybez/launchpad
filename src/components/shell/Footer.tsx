@@ -32,9 +32,6 @@ Use Settings → Data & backup to export a JSON copy.
 - AI Chat messages: When you send a message to the AI tutor, it goes to the AI
   provider you've configured (Gemini, OpenAI, Anthropic, Groq, or OpenRouter).
   The provider processes it and returns a response. We never see your messages.
-- AI Roadmap generation: During onboarding, your career, language, and availability
-  inputs are sent to Google Gemini (or Groq/OpenRouter as fallback) to generate
-  your personalized roadmap. After generation, nothing is sent again.
 
 You provide your own API keys. Launchpad does not bundle any AI keys.
 Your keys are stored on your device only.
@@ -175,9 +172,6 @@ export function Footer() {
                 <div className="space-y-2 ml-1">
                   <div className="text-xs text-muted-foreground">
                     <strong className="text-foreground">AI Chat & Mock Interviews & Code Review:</strong> When you send a message, it goes to the AI provider you&apos;ve configured (Gemini, OpenAI, Anthropic, Groq, or OpenRouter). The provider processes it and returns a response. We never see your messages.
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    <strong className="text-foreground">AI Roadmap generation:</strong> During onboarding, your career, language, and availability inputs are sent to Google Gemini (or Groq/OpenRouter as fallback) to generate your personalized roadmap. After generation, nothing is sent again.
                   </div>
                   <div className="text-xs text-muted-foreground">
                     <strong className="text-foreground">YouTube video supplements:</strong> When you expand a video in a lesson, your browser connects to youtube-nocookie.com (YouTube&apos;s privacy-enhanced mode). YouTube doesn&apos;t track you until you press play.

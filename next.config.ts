@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   // predate v5.865. These are in third-party-generated code and require
   // upstream fixes. Setting to false would block the build. Keeping true
   // until the shadcn/ui components are regenerated.
-  // The CRITICAL type errors (TDZ in roadmap-generate, Server Component
+  // The CRITICAL type errors (TDZ in API routes, Server Component
   // onClick in verify page) have been fixed in the hand-written code.
   typescript: {
     ignoreBuildErrors: true,

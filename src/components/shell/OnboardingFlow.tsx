@@ -8,10 +8,7 @@ import {
   AlertTriangle,
   Sparkles,
   Target,
-  Code2,
-  GraduationCap,
   Clock,
-  Map,
   Shield,
   Search,
   ChevronDown,
@@ -41,19 +38,15 @@ import {
   generateRoadmap,
   validateRoadmap,
   getGenerationStagesForInput,
-  generateRoadmapWithAI,
-  regenerateRoadmapWithAI,
 } from "@/lib/personalization-engine";
-import type { GeneratedRoadmap } from "@/lib/types";
 // v5.91 (Part 2): prerequisite graph for auto-injection
-import { findMissingPrerequisites, getNonLessonPrerequisiteNotes, ALL_LANGUAGE_INFO as DEP_LANG_INFO } from "@/lib/dependency-graph";
+import { findMissingPrerequisites, getNonLessonPrerequisiteNotes } from "@/lib/dependency-graph";
 import { LANGUAGE_MAP as DEP_LANGUAGE_MAP } from "@/lib/career-data";
 
-const TOTAL_STEPS = 10; // steps 0-9 (v5.91: added step 5 — prerequisite confirmation)
+const TOTAL_STEPS = 9; // steps 0-8 (v5.923: removed optional API key step — deterministic engine only)
 
 export function OnboardingFlow({ onDone }: { onDone: () => void }) {
   const completeOnboarding = useStore((s) => s.completeOnboarding);
-  const setPreference = useStore((s) => s.setPreference);
   const [step, setStep] = useState(0);
 
   // Input state for all steps
@@ -68,19 +61,6 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
   const [generatedRoadmap, setGeneratedRoadmap] = useState<ReturnType<typeof generateRoadmap> | null>(null);
   const [genStage, setGenStage] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
-  // Section 9: AI fallback choice state — shown when all 3 providers fail twice
-  const [aiFallbackChoice, setAiFallbackChoice] = useState<null | { input: PersonalizationInput }>(null);
-
-  // v5.89 (BUG 4): Optional user-supplied API key for roadmap generation.
-  // If provided, this key is used for roadmap AI generation AND stored in
-  // aiSettings so it's automatically reused for AI Tutor / Interview / Code Review.
-  // If skipped, the deterministic engine is used (reliable, instant, but template-based).
-  const setAISettings = useStore((s) => s.setAISettings);
-  const [optionalApiKey, setOptionalApiKey] = useState("");
-  const [optionalApiProvider, setOptionalApiProvider] = useState<string>("gemini");
-  const [optionalApiModel, setOptionalApiModel] = useState<string>("gemini-2.5-flash-lite");
-  const [apiKeySkipped, setApiKeySkipped] = useState(false);
-
   // v5.91 (Part 2): Compute missing prerequisites for the confirmation step.
   // This is memoized so it only recomputes when the language selection changes.
   // v5.92 FIX (BUG 2): Removed the `step !== 5` guard — missingPrereqs must
@@ -127,34 +107,18 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
         setSelectedLanguages(career.recommendedLanguages.slice(0, 3));
       }
     }
-    if (step === 8) {
-      // v5.92 FIX (BUG 1): Generation triggers at step 8 (API key step), NOT step 9.
-      // Previously this checked `step === 9`, but the user clicks "Generate" while
-      // ON step 8 — so `step === 9` was always false and generation was SKIPPED.
-      // This blocked 100% of onboarding for both AI-key and skip paths.
-      // v5.91 (Part 2): Use finalLanguageIds (includes auto-injected prerequisites)
-      // and pass missingPrereqs to generateRoadmap for labeling.
+    // v5.923: Step 7 (availability) triggers deterministic roadmap generation.
+    // The optional API key step and ALL AI generation paths were removed — the
+    // built-in engine is called directly and immediately. No API key, no
+    // fallback choice screen, no network calls. Roadmap generation is instant
+    // and 100% on-device.
+    if (step === 7) {
       if (isGenerating) return;
       setIsGenerating(true);
       setGenStage(0);
 
-      // v5.922 FIX: Removed `!apiKeySkipped` check — if a key is entered, use it.
-      // The `apiKeySkipped` flag was causing false negatives when state got
-      // out of sync (e.g., user toggled skip/enter). An empty key is already
-      // falsy, so the check is redundant.
-      const userKey = optionalApiKey.trim()
-        ? { apiKey: optionalApiKey.trim(), provider: optionalApiProvider, model: optionalApiModel }
-        : undefined;
-      if (userKey) {
-        setAISettings({
-          provider: optionalApiProvider as any,
-          apiKey: optionalApiKey.trim(),
-          model: optionalApiModel,
-          temperature: 0.7,
-        });
-      }
-
-      // v5.91 (Part 2): Use the final language list that includes auto-injected prerequisites.
+      // Use the final language list that includes auto-injected prerequisites,
+      // and pass missingPrereqs to generateRoadmap for "Required for" labeling.
       const input: PersonalizationInput = {
         name: name.trim(),
         careerId: careerId as CareerId,
@@ -166,14 +130,13 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
         daysPerWeek,
       };
 
-      // 11 stages — labels match the spec exactly
+      // Deterministic-engine generation stages (cosmetic progress indicator).
+      // The engine itself is instant; these stages give the user a sense of
+      // progress while the plan is assembled and validated.
       const STAGE_LABELS = [
         "Analyzing your inputs…",
         "Mapping career path…",
         "Loading language data…",
-        "Sending to AI…",
-        "Receiving AI response…",
-        "Extracting roadmap structure…",
         "Designing phases…",
         "Generating tasks & modules…",
         "Computing timeline…",
@@ -182,133 +145,33 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
       ];
 
       try {
-        // Stage 0
-        setGenStage(0); await new Promise((r) => setTimeout(r, 400));
-        // Stage 1
-        setGenStage(1); await new Promise((r) => setTimeout(r, 400));
-        // Stage 2
-        setGenStage(2); await new Promise((r) => setTimeout(r, 400));
-        // Stage 3: Sending to AI — Pass 1
-        setGenStage(3);
-        let roadmap: GeneratedRoadmap | null = null;
-        let usedAI = false;
-        let allFailedPass1 = false;
-
-        // v5.92 FIX: If the user skipped (no key), skip AI attempts entirely
-        // and go straight to the deterministic engine. Previously the code tried
-        // AI with no key, which always failed, then showed the "AI services
-        // unavailable" error screen — confusing UX for users who deliberately skipped.
-        if (userKey) {
-          try {
-            const aiResult = await generateRoadmapWithAI(input, userKey);
-            if (aiResult.roadmap) {
-              roadmap = aiResult.roadmap;
-              usedAI = true;
-            } else {
-              console.warn("[onboarding] AI Pass 1 failed:", aiResult.error);
-              if (aiResult.allFailed) allFailedPass1 = true;
-            }
-          } catch (err) {
-            console.warn("[onboarding] AI Pass 1 threw:", err);
-          }
-
-          // Pass 2 — if Pass 1 had all providers fail, retry once more
-          if (!roadmap && allFailedPass1) {
-            console.log("[onboarding] All providers failed Pass 1, starting Pass 2");
-            setGenStage(3);
-            try {
-              const aiResult2 = await generateRoadmapWithAI(input, userKey);
-              if (aiResult2.roadmap) {
-                roadmap = aiResult2.roadmap;
-                usedAI = true;
-                allFailedPass1 = false;
-              } else {
-                console.warn("[onboarding] AI Pass 2 also failed:", aiResult2.error);
-              }
-            } catch (err) {
-              console.warn("[onboarding] AI Pass 2 threw:", err);
-            }
-          }
-
-          // If both passes failed entirely, show user choice screen
-          if (!roadmap && allFailedPass1) {
-            console.log("[onboarding] Both AI passes failed — showing user choice screen");
-            setAiFallbackChoice({ input });
-            setIsGenerating(false);
-            return;
-          }
-        } else {
-          console.log("[onboarding] No user key — skipping AI, using deterministic engine directly");
-        }
-
-        // Stage 4: Receiving AI response
-        setGenStage(4); await new Promise((r) => setTimeout(r, 400));
-        // Stage 5: Extracting roadmap structure
+        setGenStage(0); await new Promise((r) => setTimeout(r, 350));
+        setGenStage(1); await new Promise((r) => setTimeout(r, 350));
+        setGenStage(2); await new Promise((r) => setTimeout(r, 300));
+        setGenStage(3); await new Promise((r) => setTimeout(r, 300));
+        setGenStage(4); await new Promise((r) => setTimeout(r, 300));
         setGenStage(5); await new Promise((r) => setTimeout(r, 300));
-        // Stage 6: Designing phases
-        setGenStage(6); await new Promise((r) => setTimeout(r, 300));
-        // Stage 7: Generating tasks & modules
-        setGenStage(7); await new Promise((r) => setTimeout(r, 300));
-        // Stage 8: Computing timeline
-        setGenStage(8); await new Promise((r) => setTimeout(r, 300));
-        // Stage 9: Validating accuracy
-        setGenStage(9);
-
-        if (!roadmap) {
-          // Fallback: deterministic engine (v5.92: also handles the skip path)
-          roadmap = generateRoadmap(input, missingPrereqs);
+        setGenStage(6);
+        const roadmap = generateRoadmap(input, missingPrereqs);
+        const validation = validateRoadmap(roadmap, input);
+        if (!validation.valid) {
+          console.warn("[onboarding] roadmap validation issues:", validation.errors);
         }
-
-        let validation = validateRoadmap(roadmap, input);
-
-        // If AI generated it and validation found errors, do ONE retry
-        if (usedAI && !validation.valid) {
-          console.log("[onboarding] AI roadmap had validation errors, retrying:", validation.errors);
-          const retryResult = await regenerateRoadmapWithAI(input, roadmap, validation.errors);
-          if (retryResult.roadmap) {
-            roadmap = retryResult.roadmap;
-            validation = validateRoadmap(roadmap, input);
-          }
-        }
-
-        // If still invalid after retry (or AI failed entirely), fall back to deterministic
-        if (!validation.valid && usedAI) {
-          console.log("[onboarding] AI roadmap still invalid, using deterministic fallback");
-          roadmap = generateRoadmap(input, missingPrereqs);
-          validation = validateRoadmap(roadmap, input);
-        }
-
-        // Stage 10: Finalizing your plan
-        setGenStage(10);
-        if (!roadmap) {
-          // Last-resort fallback — should never reach here, but be defensive.
-          roadmap = generateRoadmap(input, missingPrereqs);
-        }
+        setGenStage(7);
+        await new Promise((r) => setTimeout(r, 400));
         setGeneratedRoadmap(roadmap);
-        await new Promise((r) => setTimeout(r, 500));
         setIsGenerating(false);
-        setStep(9); // v5.92: advance to plan preview (step 9)
+        setStep(8); // advance to plan preview
         return;
       } catch (err) {
-        console.error("[onboarding] generation chain threw:", err);
-        // Fall back to deterministic engine so the user can still proceed.
-        try {
-          const fallback = generateRoadmap(input, missingPrereqs);
-          setGeneratedRoadmap(fallback);
-          setIsGenerating(false);
-          setStep(9); // v5.92: advance to plan preview (step 9)
-        } catch (innerErr) {
-          console.error("[onboarding] deterministic fallback also threw:", innerErr);
-          setIsGenerating(false);
-          // Show the user-choice screen so they can retry.
-          setAiFallbackChoice({ input });
-        }
+        console.error("[onboarding] generation threw:", err);
+        setIsGenerating(false);
         return;
       }
     }
 
-    if (step === 9) {
-      // v5.91: Confirm — finalize onboarding. Use finalLanguageIds (includes auto-injected prereqs).
+    if (step === 8) {
+      // Confirm — finalize onboarding. Use finalLanguageIds (includes auto-injected prereqs).
       const input: PersonalizationInput = {
         name: name.trim(),
         careerId: careerId as CareerId,
@@ -319,13 +182,9 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
         hoursPerDay,
         daysPerWeek,
       };
-      // v5.77 fix: pass the AI-generated roadmap (if any) so the store uses it
-      // instead of silently regenerating a deterministic one. Previously the
-      // user previewed an AI roadmap and then got a different deterministic
-      // roadmap saved to their account.
+      // Pass the generated roadmap so the store uses the exact plan the user
+      // previewed, rather than silently regenerating one.
       completeOnboarding(input, generatedRoadmap ?? undefined);
-      // Show the first-time tour
-      setPreference("tourCompleted", false);
       onDone();
       return;
     }
@@ -336,109 +195,6 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
   const handleBack = () => {
     setStep((s) => Math.max(s - 1, 0));
   };
-
-  // Section 9: AI fallback choice screen — shown when all 3 providers fail twice
-  if (aiFallbackChoice) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 relative">
-        <div className="absolute inset-0 pointer-events-none opacity-60" style={{
-          background: `radial-gradient(at 20% 20%, rgba(245,158,11,0.12) 0px, transparent 50%), radial-gradient(at 80% 30%, rgba(232,121,249,0.10) 0px, transparent 50%)`,
-        }} />
-        <div className="glass-elevated rounded-3xl w-full max-w-xl relative z-10 p-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-400 to-rose-500 flex items-center justify-center">
-              <AlertTriangle className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold">AI services unavailable</h2>
-              <p className="text-sm text-muted-foreground">All 3 AI providers (Gemini, Groq, OpenRouter) failed after 2 attempts.</p>
-            </div>
-          </div>
-          <div className="rounded-xl border border-border/60 bg-card/30 p-4 space-y-3 mb-5">
-            <p className="text-sm leading-relaxed">
-              We tried Google Gemini, Groq, and OpenRouter twice each, but couldn&apos;t reach any of them.
-              This is usually temporary (rate limits, network issues, or missing API keys on the server).
-            </p>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              You have two options:
-            </p>
-          </div>
-          <div className="space-y-2">
-            <GlassButton
-              variant="primary"
-              size="lg"
-              className="w-full justify-start"
-              onClick={() => {
-                // Option A: use deterministic engine
-                const input = aiFallbackChoice.input;
-                const roadmap = generateRoadmap(input, missingPrereqs);
-                setGeneratedRoadmap(roadmap);
-                setAiFallbackChoice(null);
-                setStep(9); // v5.922 FIX: was setStep(8) — should advance to plan preview (step 9), not back to API key step
-              }}
-            >
-              <span className="flex flex-col items-start text-left">
-                <span className="font-semibold">Continue with Launchpad&apos;s built-in roadmap engine</span>
-                <span className="text-[11px] font-normal opacity-80">Slightly less personalized but still a solid plan.</span>
-              </span>
-            </GlassButton>
-            <GlassButton
-              variant="ghost"
-              size="lg"
-              className="w-full justify-start"
-              onClick={async () => {
-                // v5.77 fix: Option B "Try Again" — previously this called
-                // setStep(7) BEFORE setting generatedRoadmap, which rendered
-                // a blank screen because PlanPreviewStep requires both
-                // `step === 7 && generatedRoadmap`. Now we keep the user on
-                // the fallback screen (with a loading indicator) until the
-                // retry completes, then advance.
-                const input = aiFallbackChoice.input;
-                setIsGenerating(true);
-                setGenStage(3);
-                let roadmap: GeneratedRoadmap | null = null;
-                try {
-                  // v5.922 FIX: pass userKey so the retry actually uses the user's key
-                  // (was calling generateRoadmapWithAI(input) with no key → always 502)
-                  const retryUserKey = optionalApiKey.trim()
-                    ? { apiKey: optionalApiKey.trim(), provider: optionalApiProvider, model: optionalApiModel }
-                    : undefined;
-                  const aiResult = await generateRoadmapWithAI(input, retryUserKey);
-                  if (aiResult.roadmap) roadmap = aiResult.roadmap;
-                } catch (err) {
-                  console.warn("[onboarding] Option B retry threw:", err);
-                }
-                if (!roadmap) {
-                  // Final fallback — no more prompts
-                  try {
-                    roadmap = generateRoadmap(input, missingPrereqs);
-                  } catch (err) {
-                    console.error("[onboarding] Option B deterministic fallback threw:", err);
-                    setIsGenerating(false);
-                    return;
-                  }
-                }
-                if (!roadmap) {
-                  // v5.922: safety guard — should never reach here
-                  setIsGenerating(false);
-                  return;
-                }
-                setGeneratedRoadmap(roadmap);
-                setIsGenerating(false);
-                setAiFallbackChoice(null);
-                setStep(9); // v5.922 FIX: was setStep(8) — should advance to plan preview
-              }}
-            >
-              <span className="flex flex-col items-start text-left">
-                <span className="font-semibold">Try Again</span>
-                <span className="text-[11px] font-normal opacity-80">Retry the AI chain one more time. Falls back to built-in if it still fails.</span>
-              </span>
-            </GlassButton>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative">
@@ -511,7 +267,7 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
           {step === 6 && (
             <SkillLevelStep skillLevel={skillLevel} setSkillLevel={setSkillLevel} />
           )}
-          {step === 7 && (
+          {step === 7 && !isGenerating && (
             <AvailabilityStep
               hoursPerDay={hoursPerDay}
               setHoursPerDay={setHoursPerDay}
@@ -519,37 +275,14 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
               setDaysPerWeek={setDaysPerWeek}
             />
           )}
-          {/* v5.89 (BUG 4): Optional API key step — between availability and plan preview */}
-          {step === 8 && !generatedRoadmap && (
-            <OptionalApiKeyStep
-              apiKey={optionalApiKey}
-              setApiKey={setOptionalApiKey}
-              provider={optionalApiProvider}
-              setProvider={(p: string) => {
-                setOptionalApiProvider(p);
-                const defaults: Record<string, string> = {
-                  gemini: "gemini-2.5-flash-lite",
-                  groq: "openai/gpt-oss-120b",
-                  openrouter: "meta-llama/llama-3.3-70b-instruct:free",
-                  openai: "gpt-4o-mini",
-                  anthropic: "claude-sonnet-4-5",
-                };
-                setOptionalApiModel(defaults[p] || "");
-              }}
-              model={optionalApiModel}
-              setModel={setOptionalApiModel}
-              skipped={apiKeySkipped}
-              setSkipped={setApiKeySkipped}
-            />
-          )}
-          {step === 8 && isGenerating && (
+          {step === 7 && isGenerating && (
             <PlanPreviewStep
               roadmap={null}
               isGenerating={isGenerating}
               genStage={genStage}
             />
           )}
-          {step === 9 && generatedRoadmap && (
+          {step === 8 && generatedRoadmap && (
             <PlanPreviewStep
               roadmap={generatedRoadmap}
               isGenerating={isGenerating}
@@ -574,16 +307,16 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
             Back
           </button>
           <div className="flex-1" />
-          {step === 9 ? (
+          {step === 8 ? (
             <GlassButton onClick={handleNext} variant="primary" size="lg" disabled={!canProceed}>
               <Sparkles className="h-4 w-4" />
               Begin my journey
             </GlassButton>
-          ) : step === 8 ? (
+          ) : step === 7 ? (
             <GeneratingButton
               isGenerating={isGenerating}
               genStage={genStage}
-              totalStages={11}
+              totalStages={8}
               disabled={!canProceed}
               onClick={handleNext}
             />
@@ -723,9 +456,6 @@ function GeneratingButton({
     "Analyzing your inputs…",
     "Mapping career path…",
     "Loading language data…",
-    "Sending to AI…",
-    "Receiving AI response…",
-    "Extracting roadmap structure…",
     "Designing phases…",
     "Generating tasks & modules…",
     "Computing timeline…",
@@ -1596,251 +1326,7 @@ function AvailabilityStep({
 }
 
 // ============================================================
-// v5.89 (BUG 4): Step 7 — Optional API Key
-// Lets the user bring their own AI API key for roadmap generation.
-// If provided, the key is also stored for AI Tutor / Interview / Code Review.
-// If skipped, the deterministic engine is used (instant, reliable, template-based).
-// ============================================================
-
-function OptionalApiKeyStep({
-  apiKey,
-  setApiKey,
-  provider,
-  setProvider,
-  model,
-  setModel,
-  skipped,
-  setSkipped,
-}: {
-  apiKey: string;
-  setApiKey: (v: string) => void;
-  provider: string;
-  setProvider: (v: string) => void;
-  model: string;
-  setModel: (v: string) => void;
-  skipped: boolean;
-  setSkipped: (v: boolean) => void;
-}) {
-  const PROVIDER_LABELS: Record<string, { label: string; icon: string; url?: string }> = {
-    gemini: { label: "Google Gemini", icon: "✨", url: "https://aistudio.google.com" },
-    groq: { label: "Groq", icon: "⚡", url: "https://console.groq.com" },
-    openrouter: { label: "OpenRouter", icon: "🌐", url: "https://openrouter.ai/keys" },
-    openai: { label: "OpenAI", icon: "🤖", url: "https://platform.openai.com/api-keys" },
-    anthropic: { label: "Anthropic", icon: "🧠", url: "https://console.anthropic.com" },
-  };
-  const MODELS: Record<string, string[]> = {
-    gemini: ["gemini-2.5-flash-lite", "gemini-3-flash", "gemini-3.5-flash"],
-    groq: ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.6-27b"],
-    openrouter: ["meta-llama/llama-3.3-70b-instruct:free", "openai/gpt-oss-120b:free", "nvidia/nemotron-3-super-120b-a12b:free", "google/gemma-4-31b-it:free", "openrouter/free"],
-    openai: ["gpt-4o-mini"],
-    anthropic: ["claude-sonnet-4-5"],
-  };
-  const providerInfo = PROVIDER_LABELS[provider] ?? PROVIDER_LABELS.gemini;
-  const models = MODELS[provider] ?? [];
-
-  // v5.92 FIX (BUG 4): Test Connection state
-  const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
-
-  const handleTestConnection = async () => {
-    if (!apiKey.trim()) {
-      setTestResult({ ok: false, message: "Please enter an API key first." });
-      return;
-    }
-    setTesting(true);
-    setTestResult(null);
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider,
-          apiKey: apiKey.trim(),
-          model,
-          test: true,
-        }),
-      });
-      const data = await res.json();
-      if (data.ok) {
-        setTestResult({ ok: true, message: "✅ Connection successful! Your key works." });
-      } else {
-        setTestResult({ ok: false, message: `❌ ${data.error || "Connection failed. Check your key and provider."}` });
-      }
-    } catch (err) {
-      setTestResult({ ok: false, message: `❌ Network error: ${(err as Error).message}` });
-    } finally {
-      setTesting(false);
-    }
-  };
-
-  return (
-    <div className="space-y-5">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Optional: AI API Key</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Provide your own API key for AI-powered roadmap generation, or skip to use the built-in engine.
-        </p>
-      </div>
-
-      {/* Honest tradeoff explanation */}
-      <div className="rounded-xl border border-border/60 bg-card/30 p-4 space-y-3">
-        <div className="flex items-start gap-2">
-          <div className="h-6 w-6 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5">
-            <Check className="h-3.5 w-3.5 text-emerald-500" />
-          </div>
-          <div>
-            <p className="text-sm font-medium">With an API key</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              AI generates a personalized roadmap with detailed, contextual task descriptions tailored to your career and languages. The same key powers AI Tutor, mock interviews, and code review — you only enter it once.
-            </p>
-          </div>
-        </div>
-        <div className="flex items-start gap-2">
-          <div className="h-6 w-6 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0 mt-0.5">
-            <Clock className="h-3.5 w-3.5 text-amber-500" />
-          </div>
-          <div>
-            <p className="text-sm font-medium">Without an API key (Skip)</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              The built-in deterministic engine generates your roadmap instantly and reliably. It&apos;s template-based but covers all your selected languages with structured phases and tasks. You can add a key later in Settings to enable AI features.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Skip / Provide Key toggle — v5.92 FIX (BUG 3): can toggle back and forth */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => {
-            setSkipped(true);
-            setApiKey("");
-          }}
-          className={cn(
-            "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-            skipped
-              ? "bg-primary text-primary-foreground"
-              : "border border-border/60 hover:bg-foreground/5 text-muted-foreground",
-          )}
-        >
-          Skip — use built-in engine
-        </button>
-        {skipped && (
-          <button
-            onClick={() => {
-              setSkipped(false);
-            }}
-            className="px-4 py-2 rounded-lg text-sm font-medium border border-border/60 hover:bg-foreground/5 text-muted-foreground transition-colors"
-          >
-            Provide a key instead
-          </button>
-        )}
-        {!skipped && (
-          <span className="text-xs text-muted-foreground">or provide your key below ↓</span>
-        )}
-      </div>
-
-      {/* API key input (hidden if skipped) */}
-      {!skipped && (
-        <div className="space-y-4 rounded-xl border border-border/60 bg-card/20 p-5">
-          <div>
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Provider</label>
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-2">
-              {Object.entries(PROVIDER_LABELS).map(([id, info]) => (
-                <button
-                  key={id}
-                  onClick={() => setProvider(id)}
-                  className={cn(
-                    "flex flex-col items-center gap-1 px-3 py-2 rounded-lg border text-xs transition-all",
-                    provider === id
-                      ? "border-primary bg-primary/10 text-foreground"
-                      : "border-border/40 hover:bg-foreground/5 text-muted-foreground",
-                  )}
-                >
-                  <span className="text-base">{info.icon}</span>
-                  <span className="font-medium">{info.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">API Key</label>
-            <input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder={`Paste your ${providerInfo.label} API key here`}
-              className="w-full mt-1.5 px-3 py-2 rounded-lg border border-border/60 bg-background/50 text-sm font-mono"
-            />
-            {providerInfo.url && (
-              <p className="text-[11px] text-muted-foreground mt-1">
-                Get a free key at{" "}
-                <a href={providerInfo.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                  {providerInfo.url}
-                </a>
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Model</label>
-            <select
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              className="w-full mt-1.5 px-3 py-2 rounded-lg border border-border/60 bg-background/50 text-sm"
-            >
-              {models.map((m) => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* v5.92 FIX (BUG 4): Test Connection button */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleTestConnection}
-              disabled={testing || !apiKey.trim()}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
-                testing || !apiKey.trim()
-                  ? "bg-foreground/5 text-muted-foreground cursor-not-allowed"
-                  : "bg-primary/15 text-primary hover:bg-primary/25"
-              )}
-            >
-              {testing ? (
-                <>
-                  <Loader2 className="h-3 w-3 animate-spin" /> Testing...
-                </>
-              ) : (
-                <>
-                  <Check className="h-3 w-3" /> Test Connection
-                </>
-              )}
-            </button>
-            {testResult && (
-              <span className={cn(
-                "text-xs",
-                testResult.ok ? "text-emerald-500" : "text-rose-500"
-              )}>
-                {testResult.message}
-              </span>
-            )}
-          </div>
-
-          <div className="rounded-lg bg-primary/5 border border-primary/20 p-3">
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              <Shield className="h-3 w-3 inline mr-1" />
-              Your key is stored only on this device (localStorage) and sent directly to {providerInfo.label} through our server proxy. It powers roadmap generation, AI Tutor, mock interviews, and code review — you&apos;ll never need to enter it again.
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ============================================================
-// Step 6 — Plan Preview (with 7-stage visual generation)
+// Plan Preview (with staged visual generation)
 // ============================================================
 
 function PlanPreviewStep({
@@ -1991,30 +1477,18 @@ function PlanPreviewStep({
         </div>
       </div>
 
-      {/* Source message — teal if AI succeeded, amber if deterministic fallback */}
-      {roadmap.source && roadmap.source !== "deterministic" ? (
-        <div className="rounded-lg border border-teal-500/40 bg-teal-500/5 p-3 flex items-start gap-2">
-          <Sparkles className="h-4 w-4 text-teal-500 mt-0.5 shrink-0" />
-          <div>
-            <div className="text-xs font-semibold text-teal-600 dark:text-teal-400">
-              Your roadmap was generated using AI for maximum accuracy and personalization.
-            </div>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              Provider: {roadmap.source.replace("ai-", "").toUpperCase()}
-            </p>
+      {/* Source message — always the built-in engine now (v5.923: deterministic only) */}
+      <div className="rounded-lg border border-teal-500/40 bg-teal-500/5 p-3 flex items-start gap-2">
+        <Sparkles className="h-4 w-4 text-teal-500 mt-0.5 shrink-0" />
+        <div>
+          <div className="text-xs font-semibold text-teal-600 dark:text-teal-400">
+            Generated instantly by Launchpad&apos;s built-in engine.
           </div>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            No API key needed — your plan was personalized on-device from your career, languages, and availability.
+          </p>
         </div>
-      ) : (
-        <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 flex items-start gap-2">
-          <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-          <div>
-            <div className="text-xs font-semibold text-amber-600 dark:text-amber-400">
-              Your roadmap was generated using Launchpad&apos;s built-in engine. For even more
-              personalized results, try again later — AI services may be temporarily unavailable.
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -40,7 +40,8 @@ const AccountView = dynamic(() => import("@/components/views/AccountView").then(
 const SettingsView = dynamic(() => import("@/components/views/SettingsView").then(m => ({ default: m.SettingsView })), { loading: viewLoadingFallback });
 import { AITutorFloating } from "@/components/ai/AITutorFloating";
 import { BadgeToastContainer } from "@/components/achievements/BadgeToastContainer";
-import { FirstTimeTour } from "@/components/tour/FirstTimeTour";
+// v5.923: FirstTimeTour removed — replaced by the VersionUpdateDialog (release-notes popup).
+import { VersionUpdateDialog } from "@/components/shell/VersionUpdateDialog";
 // v5.865 fix (10.2): MobileBanner import removed — dead no-op component.
 import { MobileBottomNav } from "@/components/shell/MobileBottomNav";
 import { OfflineBanner } from "@/components/pwa/OfflineBanner";
@@ -315,8 +316,9 @@ export function AppShell() {
       {/* Badge toasts */}
       <BadgeToastContainer />
 
-      {/* First-time tour overlay */}
-      <FirstTimeTour />
+      {/* v5.923: Release-notes popup — shown once per version update (and once
+          for new users after onboarding). See src/lib/version-info.ts. */}
+      <VersionUpdateDialog />
     </div>
   );
 }

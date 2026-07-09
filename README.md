@@ -21,7 +21,7 @@
 
 ## 🧭 What is Launchpad?
 
-Launchpad is an AI-powered, personalized coding education platform built on one core belief: **learning to code shouldn't require an account, a subscription, or your data.**
+Launchpad is a personalized coding education platform built on one core belief: **learning to code shouldn't require an account, a subscription, or your data.**
 
 Tell it your career goal, and Launchpad generates a custom learning roadmap pulling from a massive on-device curriculum — then walks with you through lessons, quizzes, projects, mock interviews, and even helps you build a resume at the end. All of it runs **100% in your browser.** No servers tracking you. No sign-ups. No catch.
 
@@ -39,7 +39,7 @@ Tell it your career goal, and Launchpad generates a custom learning roadmap pull
 ## 📚 Table of Contents
 
 - [✨ Core Features](#-core-features)
-- [🧠 How the AI Personalization Works](#-how-the-ai-personalization-works)
+- [🧠 How Personalization Works](#-how-personalization-works)
 - [🛠️ Tech Stack](#️-tech-stack)
 - [🚀 Getting Started](#-getting-started)
 - [📖 Course Catalog](#-course-catalog)
@@ -52,24 +52,14 @@ Tell it your career goal, and Launchpad generates a custom learning roadmap pull
 ## ✨ Core Features
 
 <details open>
-<summary><strong>🧠 AI-Powered Roadmaps</strong></summary>
+<summary><strong>🧠 Personalized Roadmaps</strong></summary>
 <br>
 
-Your personalized learning path is generated through a resilient multi-provider AI chain — if one model is down, it quietly falls back to the next, and if everything fails, you can always continue on a deterministic built-in engine instead.
+Your personalized learning path is generated instantly by Launchpad's built-in deterministic engine — right in your browser. No API keys, no waiting, no network calls. It combines your career, languages, skill level, and availability into a structured plan.
 
-```mermaid
-flowchart LR
-    A[Your Profile] --> B{Gemini 2.5 Flash}
-    B -- fails --> C{Groq Llama 3.3 70B}
-    C -- fails --> D{OpenRouter}
-    D -- fails --> E[Built-in Engine /<br/>Try Again Choice]
-    B -- success --> F[12-Point Validated Roadmap]
-    C -- success --> F
-    D -- success --> F
-```
-
-- 12-point validation on every AI-generated roadmap (phase counts, lesson references, sequencing, and more)
-- Variable-length roadmaps (4–10 phases) that scale with your goals
+- 12-point validation on every generated roadmap (phase counts, lesson references, sequencing, and more)
+- Variable-length roadmaps (4–10+ phases) that scale with your goals and language count
+- Auto-injected prerequisite languages with clear 'Required for' labeling
 - A dedicated AI-focused bonus phase near the end of every track
 - Every roadmap task links straight into the matching lesson
 
@@ -169,11 +159,11 @@ No platform-funded AI costs here — you plug in your own free or paid API key (
 
 ---
 
-## 🧠 How the AI Personalization Works
+## 🧠 How Personalization Works
 
 ```mermaid
 flowchart TD
-    A[Onboarding: Your Goals & Background] --> B[AI Roadmap Generation]
+    A[Onboarding: Your Goals & Background] --> B[Roadmap Generation (Built-in Engine)]
     B --> C[Learn Tab: 630 Lessons]
     B --> D[Daily Challenges Pool]
     B --> E[Projects: 207 Available]
@@ -195,7 +185,7 @@ flowchart TD
 | Framework | Next.js 16 (App Router) + TypeScript 5 |
 | Styling | Tailwind CSS 4 + shadcn/ui (glass design system) |
 | State | Zustand, persisted to `localStorage` |
-| Roadmap AI | Gemini 2.5 Flash → Groq Llama 3.3 70B → OpenRouter (server-side fallback chain) |
+| Roadmap Engine | Built-in deterministic engine (100% on-device, no API key needed) |
 | Tutor / Interview / Review AI | BYOK — Gemini, OpenAI, Anthropic, Groq, OpenRouter, or custom endpoint |
 | Code Execution | Sandboxed iframe, Pyodide, sql.js, simulated shell |
 | Certificate Verification | Supabase (Postgres + RLS) |
@@ -217,10 +207,7 @@ bun install
 **2. Set up environment variables** — create `.env.local`:
 
 ```env
-# Server-side only — used for roadmap generation, never exposed to the client
-GEMINI_API_KEY=your_key
-GROQ_API_KEY=your_key
-OPENROUTER_API_KEY=your_key
+# Optional — only used if you self-host and want platform keys for AI Tutor (BYOK is the default)
 
 # Certificate verification (Supabase) — v5.77+
 # Set these to enable public certificate verification at /verify/[id]
@@ -243,7 +230,7 @@ CERT_SECRET=your_random_secret_string
 
 Free keys: [Gemini](https://aistudio.google.com) · [Groq](https://console.groq.com) · [OpenRouter](https://openrouter.ai/keys) · [Supabase](https://supabase.com)
 
-> If all three AI keys are missing or every provider fails, you'll get a clean fallback screen — continue on the built-in engine or try again.
+> Roadmap generation needs no keys — it runs entirely in your browser. AI Tutor, Mock Interviews, and Code Review are BYOK (bring your own key).
 
 **3. Run it**
 
@@ -294,7 +281,7 @@ No accounts. No servers storing your data. No analytics. Everything lives in you
 
 - Your AI API keys never leave your device
 - Chat history with the AI Tutor stays local
-- Roadmap generation sends only your stated goals to the AI provider — nothing else
+- Roadmap generation runs entirely on your device — nothing is sent anywhere
 - The Community tab requires a GitHub account to post, but your Launchpad progress is **never** shared there
 
 ---
