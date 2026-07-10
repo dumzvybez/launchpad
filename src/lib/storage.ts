@@ -47,6 +47,10 @@ function migrateState(oldState: Record<string, unknown>, fromVersion: number): P
     if (!state.learnTabState) {
       state.learnTabState = { selectedTrack: null, selectedLessonId: null, tab: "tracks" };
     }
+    // v5.925: flashcardsTabState migration for older saved states.
+    if (!state.flashcardsTabState) {
+      state.flashcardsTabState = { filter: "due", currentIndex: 0 };
+    }
   }
 
   // Mark as current schema version
@@ -108,6 +112,10 @@ export const DEFAULT_STATE: AppState = {
     selectedTrack: null,
     selectedLessonId: null,
     tab: "tracks",
+  },
+  flashcardsTabState: {
+    filter: "due",
+    currentIndex: 0,
   },
   certificates: {},
   projectSubmissions: [],
@@ -184,6 +192,7 @@ export function loadState(): AppState {
       rateLimitTimestamps: migratedParsed.rateLimitTimestamps ?? [],
       dailyChallenge: { ...DEFAULT_STATE.dailyChallenge, ...migratedParsed.dailyChallenge },
       learnTabState: { ...DEFAULT_STATE.learnTabState, ...migratedParsed.learnTabState },
+      flashcardsTabState: { ...DEFAULT_STATE.flashcardsTabState, ...migratedParsed.flashcardsTabState },
       certificates: migratedParsed.certificates ?? {},
       careerCertificate: migratedParsed.careerCertificate,
       dailyChallengePool: migratedParsed.dailyChallengePool,

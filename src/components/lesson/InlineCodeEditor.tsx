@@ -221,6 +221,15 @@ export function InlineCodeEditor({
   };
 
   const handleRun = useCallback(async () => {
+    // v5.925 FIX (BUG 2): increment the real code-run counter when the user
+    // clicks Run. Powers the "Code Typer" badge (was previously approximated
+    // by completed-lesson count, firing on quiz passes with zero code runs).
+    if (typeof window !== "undefined") {
+      try {
+        const cur = Number(window.localStorage.getItem("launchpad:code-run-count") ?? "0");
+        window.localStorage.setItem("launchpad:code-run-count", String(cur + 1));
+      } catch { /* ignore */ }
+    }
     setRunning(true);
     setError(null);
     setOutput([]);

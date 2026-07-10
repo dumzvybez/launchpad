@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Rocket,
   Github,
@@ -25,6 +26,7 @@ import { CAREER_MAP, LANGUAGE_MAP } from "@/lib/career-data";
 import { ALL_LANGUAGE_INFO } from "@/lib/lessons-meta";
 import { getLessonById } from "@/lib/lessons-data";
 import { openPrintableHtml } from "@/lib/print-utils";
+import { openCareerCertificatePdf } from "@/lib/certificate-pdf";
 import type { AppState, GeneratedRoadmap } from "@/lib/types";
 
 export function CareerView() {
@@ -286,7 +288,7 @@ export function CareerView() {
                         if (careerCert.name !== finalName) {
                           updateCareerCertificateName(finalName);
                         }
-                        generateCareerCertificate(finalName, career.label, roadmap.languageIds, computeHoursInvested(useStore.getState().state, roadmap));
+                        openCareerCertificatePdf(finalName, career.label, roadmap.languageIds, computeHoursInvested(useStore.getState().state, roadmap));
                       }}
                     >
                       <Download className="h-4 w-4" /> Download Career Certificate (PDF)
@@ -298,7 +300,7 @@ export function CareerView() {
                         if (name === null) return;
                         const finalName = name.trim() || "Learner";
                         updateCareerCertificateName(finalName);
-                        generateCareerCertificate(finalName, career.label, roadmap.languageIds, computeHoursInvested(useStore.getState().state, roadmap));
+                        openCareerCertificatePdf(finalName, career.label, roadmap.languageIds, computeHoursInvested(useStore.getState().state, roadmap));
                       }}
                     >
                       <Pencil className="h-3.5 w-3.5" /> Edit name
@@ -322,7 +324,7 @@ export function CareerView() {
                         return;
                       }
                       // Success — generate the PDF with the real certId
-                      generateCareerCertificate(finalName, career.label, roadmap.languageIds, computeHoursInvested(useStore.getState().state, roadmap));
+                      openCareerCertificatePdf(finalName, career.label, roadmap.languageIds, computeHoursInvested(useStore.getState().state, roadmap));
                     }}
                   >
                     <Download className="h-4 w-4" /> Issue Career Certificate
@@ -385,9 +387,15 @@ function SuggestedNextSteps({ readiness }: {
         View Suggested Next Steps →
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setOpen(false)}>
-          <div className="max-w-md w-full bg-card rounded-xl shadow-2xl p-5" onClick={(e) => e.stopPropagation()}>
+      {open && typeof document !== "undefined" && createPortal(
+        // v5.925 FIX (BUG 7 — Career tab popup overlap): portal to document.body
+        // so the popup escapes the parent GlassCard's `backdrop-filter` (which
+        // per CSS Containment creates a containing block for position:fixed
+        // descendants, trapping the popup inside the card). Also applied the
+        // v5.85 fixes that the resume popup already had: solid bg-background,
+        // max-h + overflow-y-auto, stronger backdrop.
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md" onClick={() => setOpen(false)}>
+          <div className="max-w-md w-full max-h-[85vh] overflow-y-auto bg-background rounded-xl shadow-2xl p-5 border border-border/60 ring-1 ring-black/5 dark:ring-white/5" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold">Suggested Next Steps</h3>
               <button onClick={() => setOpen(false)} className="text-xs text-muted-foreground hover:text-foreground">✕</button>
@@ -413,7 +421,8 @@ function SuggestedNextSteps({ readiness }: {
               ))}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
@@ -481,7 +490,10 @@ function ResumeBuilderButton() {
         <FileText className="h-3.5 w-3.5" /> Build My Resume
       </GlassButton>
 
-      {open && (
+      {open && typeof document !== "undefined" && createPortal(
+        // v5.925 FIX (BUG 7): portal to document.body — escapes the parent
+        // GlassCard's backdrop-filter containing block so the popup covers
+        // the full viewport instead of just the card.
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md overflow-hidden"
           onClick={() => setOpen(false)}
@@ -551,7 +563,8 @@ function ResumeBuilderButton() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );
@@ -687,7 +700,16 @@ function generateResumePDF(opts: {
   <meta charset="utf-8" />
   <title>Resume — ${escapeHtml(opts.name)}</title>
   <style>
-    @page { size: A4; margin: 12mm; }
+    /* v5.924 PDF FIX (Mode C + orientation): lock to A4 PORTRAIT with 12mm
+       margins. Previously the print-utils wrapper injected an unconditional
+       @page { margin: 0 } that overrode this margin → content printed flush
+       to the page edge and the dark header banner looked cropped. That
+       injected rule is now gone (print-utils only injects @page when the
+       surface HTML doesn't declare its own), so this @page wins. Explicit
+       "portrait" fixes the orientation-inconsistency report (resume was the
+       only portrait surface but didn't say so, relying on the browser
+       default which could differ on mobile). */
+    @page { size: A4 portrait; margin: 12mm; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -830,11 +852,18 @@ function generateResumePDF(opts: {
     th { background: #F3F4F6; color: #374151; font-weight: 600; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.5px; }
     td { color: #1f2937; }
 
-    /* Print: ensure colors show */
+    /* Print: ensure colors show + keep to one page */
     @media print {
       body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .header { border-radius: 0; }
       .resume { max-width: none; }
+      /* v5.924: clamp the resume to a single A4 page. The A4 portrait
+         printable area at 12mm margins is ~186mm tall. Setting max-height
+         to the page content-box + overflow:hidden guarantees no content
+         spills onto page 2. Sections use break-inside:avoid so they don't
+         split awkwardly. */
+      .resume { max-height: 186mm; overflow: hidden; }
+      .section, .sidebar-section { break-inside: avoid; }
     }
     @media screen {
       body { background: #f3f4f6; padding: 20px; }
@@ -953,131 +982,6 @@ function generateResumePDF(opts: {
   openPrintableHtml(html, {
     filename: `launchpad-resume-${opts.name.replace(/\s+/g, "-").toLowerCase()}`,
     title: "Launchpad Resume",
-  });
-}
-
-// ============================================================
-// Career Master Certificate generator
-// ============================================================
-function generateCareerCertificate(name: string, careerLabel: string, languageIds: string[], totalHours: number) {
-  // v5.866 BUG 1B FIX (career cert): ONLY use the stored certId from Supabase.
-  // NEVER generate a fake fallback ID — same fix as the language cert in LearnView.
-  const stored = useStore.getState().state.careerCertificate;
-  if (!stored?.certId) {
-    console.error("[generateCareerCertificate] no stored certId");
-    alert(
-      "Career Master Certificate has not been issued yet. Click 'Issue certificate' first.\n\n" +
-      "If you already clicked it and got an error, please try again."
-    );
-    return;
-  }
-  const certId = stored.certId;
-  const issuedAt = stored.issuedAt;
-  const date = new Date(issuedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-  const langs = languageIds.map((id) => ALL_LANGUAGE_INFO[id]?.name ?? id);
-  const langsList = langs.map((l) => `<span class="lang-chip">${escapeHtml(l)}</span>`).join("");
-
-  const html = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>Launchpad Career Master Certificate — ${escapeHtml(name)}</title>
-  <style>
-    @page { size: landscape; margin: 0; }
-    * { box-sizing: border-box; }
-    body { margin: 0; padding: 0; font-family: Georgia, 'Times New Roman', serif; }
-    .cert {
-      width: 100vw; min-height: 100vh;
-      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 30%, #fefce8 70%, #fdf4ff 100%);
-      padding: 50px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .watermark {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg);
-      font-size: 240px; font-weight: 900; color: rgba(245, 158, 11, 0.06);
-      pointer-events: none; user-select: none; letter-spacing: -0.05em; z-index: 0;
-    }
-    .border {
-      position: absolute; inset: 25px;
-      border: 4px solid #D97706; border-radius: 12px; z-index: 1;
-      box-shadow: inset 0 0 0 1px #FCD34D;
-    }
-    .border-inner {
-      position: absolute; inset: 35px;
-      border: 1px solid #F59E0B; border-radius: 8px; z-index: 1;
-    }
-    .content { position: relative; z-index: 2; text-align: center; max-width: 850px; }
-    .logo {
-      font-size: 40px; font-weight: bold; letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #F59E0B 0%, #E879F9 50%, #2DD4BF 100%);
-      -webkit-background-clip: text; background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 4px;
-    }
-    .subtitle { font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: #92400E; margin-bottom: 28px; }
-    .title { font-size: 32px; font-weight: bold; color: #78350F; margin-bottom: 6px; }
-    .body-text { font-size: 14px; color: #4b5563; max-width: 650px; line-height: 1.6; margin: 0 auto 24px; }
-    .name { font-size: 44px; font-weight: bold; font-style: italic; color: #78350F; margin: 12px 0 24px; border-bottom: 2px solid #D97706; padding-bottom: 6px; display: inline-block; min-width: 350px; }
-    .career { font-size: 22px; color: #78350F; font-weight: bold; margin-bottom: 16px; }
-    .langs-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 12px; }
-    .lang-chip { padding: 4px 10px; border: 1px solid #F59E0B; border-radius: 12px; font-size: 11px; color: #92400E; background: rgba(252, 211, 77, 0.2); }
-    .stats { font-size: 12px; color: #6b7280; margin-bottom: 28px; }
-    .signatures { display: flex; gap: 80px; margin-top: 28px; justify-content: center; }
-    .sig { text-align: center; }
-    .sig-line { width: 200px; border-top: 1px solid #78350F; margin-bottom: 6px; }
-    .sig-label { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.1em; }
-    .cert-id { position: absolute; bottom: 45px; left: 50%; transform: translateX(-50%); font-size: 10px; color: #92400E; font-family: monospace; z-index: 2; }
-    .seal {
-      position: absolute; bottom: 70px; right: 70px;
-      width: 110px; height: 110px; border-radius: 50%;
-      background: linear-gradient(135deg, #FCD34D, #F59E0B, #D97706);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      color: white; font-weight: bold; font-size: 11px; text-align: center;
-      box-shadow: 0 4px 16px rgba(217, 119, 6, 0.4);
-      transform: rotate(-12deg);
-      z-index: 2;
-      border: 3px solid #FCD34D;
-    }
-    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-  </style>
-</head>
-<body>
-  <div class="cert">
-    <div class="watermark">Launchpad</div>
-    <div class="border"></div>
-    <div class="border-inner"></div>
-    <div class="content">
-      <div class="logo">Launchpad</div>
-      <div class="subtitle">Coding Education Platform</div>
-      <div class="title">Career Master Certificate</div>
-      <div class="body-text">This certifies that the bearer has demonstrated mastery across the entire career curriculum — completing the full personalized roadmap, all linked lessons, and shipped capstone projects with production-grade quality.</div>
-      <div class="name">${escapeHtml(name)}</div>
-      <div class="career">${escapeHtml(careerLabel)} — Mastery Achieved</div>
-      <div class="langs-row">${langsList}</div>
-      <div class="stats">~${Math.round(totalHours)} hours invested · ${langs.length} technologies mastered · Completed ${date}</div>
-      <div class="signatures">
-        <div class="sig">
-          <div class="sig-line"></div>
-          <div class="sig-label">Launchpad</div>
-        </div>
-        <div class="sig">
-          <div class="sig-line"></div>
-          <div class="sig-label">Date · ${date}</div>
-        </div>
-      </div>
-    </div>
-    <div class="seal">CAREER<br/>MASTER<br/>${date.split(",")[0]}</div>
-    <div class="cert-id">Certificate ID: ${certId}</div>
-  </div>
-</body>
-</html>`;
-
-  // Open via shared utility — no auto-print, user clicks "Download Now".
-  openPrintableHtml(html, {
-    filename: `launchpad-career-certificate-${certId}`,
-    title: "Launchpad Career Master Certificate",
   });
 }
 

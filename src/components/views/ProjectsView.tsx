@@ -23,6 +23,7 @@ import { GlassCard, GlassButton, GlassPill, ProgressBar } from "@/components/gla
 import { cn } from "@/lib/utils";
 import { selectProjectsForRoadmap, PROJECTS, type SelectedProject, type Project } from "@/lib/projects-data";
 import { LANGUAGE_MAP } from "@/lib/career-data";
+import { AIVerifyDialog, type AIVerifyTarget } from "@/components/ai/AIVerifyDialog";
 import type { ProjectTracker } from "@/lib/types";
 
 const STATUS_CONFIG = {
@@ -55,6 +56,8 @@ export function ProjectsView() {
   const [filter, setFilter] = useState<"all" | "shipped" | "in_progress" | "planned">("all");
   const [instructionsProjectId, setInstructionsProjectId] = useState<string | null>(null);
   const [reviewProjectId, setReviewProjectId] = useState<string | null>(null);
+  // v5.925: AI-Verify dialog state. verifyTarget is the project being verified.
+  const [verifyTarget, setVerifyTarget] = useState<AIVerifyTarget | null>(null);
   const [showExploreMore, setShowExploreMore] = useState(false);
 
   // v5.92 (Part 5): Consume deep-link target from store (set by /projects/[id] URL).
@@ -332,29 +335,31 @@ export function ProjectsView() {
                     )}
                   </div>
 
-                  {/* AI Code Review explanation — always visible to teach users about the feature */}
-                  {status === "shipped" ? (
-                    <div className="rounded-lg bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 border border-violet-500/30 p-2.5 text-[10px] text-muted-foreground leading-relaxed">
-                      <strong className="text-violet-600 dark:text-violet-300">🎉 Project shipped!</strong> Click below to get a senior-dev-level AI review of your code — bugs, improvements, score, and suggestions.
+                  {/* v5.925 (BUG 4): AI-Verify flow replaces the self-mark "Shipped"
+                      + dead "Get AI Code Review" button. The user now clicks
+                      "Verify Project" to submit code for AI assessment. A
+                      verified result auto-marks the project shipped + verifiedAt
+                      (counts toward Career Readiness). Not-verified shows feedback. */}
+                  {status === "shipped" && tracker?.verifiedAt && (
+                    <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/30 p-2.5 text-[10px] text-emerald-600 dark:text-emerald-400 leading-relaxed flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                      <span><strong>AI-Verified.</strong> Counts toward Career Readiness. Resubmit to re-verify.</span>
                     </div>
-                  ) : null}
-
-                  {/* AI Code Review button — Section 11: uses unified AI bubble */}
-                  {status === "shipped" && (
-                    <button
-                      onClick={() => {
-                        // Section 11 — unified AI bubble: set a pending tutor
-                        // message with the code review prompt and open the AI
-                        // Tutor floating bubble (same as "I Don't Understand").
-                        const reviewPrompt = `Please review my code for the project "${proj.title}".\n\nProject description: ${proj.description}\n\nDeliverables:\n${proj.deliverables.map((d, i) => `${i + 1}. ${d}`).join("\n")}\n\nMy GitHub repo: ${tracker?.repoUrl || "(not provided)"}\n\nPlease provide:\n1. Overall code quality score (out of 10)\n2. Strengths\n3. Areas for improvement\n4. Specific suggestions\n5. Security concerns (if any)`;
-                        setPendingTutorMessage(reviewPrompt);
-                        setAiTutorOpen(true);
-                      }}
-                      className="w-full px-3 py-2.5 rounded-lg bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white text-xs font-semibold hover:brightness-110 transition-all flex items-center justify-center gap-1.5 shadow-md shadow-violet-500/20"
-                    >
-                      <Target className="h-3.5 w-3.5" /> Get AI Code Review
-                    </button>
                   )}
+                  {status === "shipped" && !tracker?.verifiedAt && (
+                    <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-2.5 text-[10px] text-amber-600 dark:text-amber-400 leading-relaxed flex items-center gap-1.5">
+                      <Award className="h-3.5 w-3.5 shrink-0" />
+                      <span>Marked shipped — <strong>not yet AI-verified.</strong> Verify to count toward Career Readiness.</span>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => setVerifyTarget({ mode: "project", project: proj })}
+                    className="w-full px-3 py-2.5 rounded-lg bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white text-xs font-semibold hover:brightness-110 transition-all flex items-center justify-center gap-1.5 shadow-md shadow-violet-500/20"
+                  >
+                    <Target className="h-3.5 w-3.5" />
+                    {tracker?.verifiedAt ? "Re-verify Project" : "Verify Project"}
+                  </button>
                 </div>
               </GlassCard>
             );
@@ -408,6 +413,24 @@ export function ProjectsView() {
           )}
         </div>
       </GlassCard>
+
+      {/* v5.925: AI-Verify dialog for projects. onVerified auto-marks shipped + verifiedAt. */}
+      {verifyTarget && verifyTarget.mode === "project" && (
+        <AIVerifyDialog
+          open={true}
+          onOpenChange={(o) => { if (!o) setVerifyTarget(null); }}
+          target={verifyTarget}
+          onVerified={(result) => {
+            if (result.passed) {
+              updateProjectTracker(verifyTarget.project.id, {
+                status: "shipped",
+                shippedAt: new Date().toISOString(),
+                verifiedAt: new Date().toISOString(),
+              });
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

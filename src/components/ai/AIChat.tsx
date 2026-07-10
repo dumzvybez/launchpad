@@ -1422,8 +1422,44 @@ function CodeReviewSetupScreen({
   const [code, setCode] = useState("");
   const [language, setLanguage] = useState("javascript");
   const [context, setContext] = useState("");
+  // v5.925: multi-file support — additional files beyond the main textarea.
+  // Each file collapses to a pill when a new one is added (same UX as AIVerifyDialog).
+  const [extraFiles, setExtraFiles] = useState<Array<{ id: string; filename: string; content: string; collapsed: boolean }>>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const canSubmit = code.trim().length > 0 && hasUserKey;
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const uploaded = e.target.files;
+    if (!uploaded) return;
+    for (const file of Array.from(uploaded)) {
+      // Text-only (matches /api/chat contract — no multimodal).
+      if (file.size > 200_000) continue;
+      try {
+        const content = await new Promise<string>((resolve, reject) => {
+          const r = new FileReader();
+          r.onload = () => resolve(String(r.result ?? ""));
+          r.onerror = () => reject(r.error);
+          r.readAsText(file);
+        });
+        setExtraFiles((prev) => [
+          ...prev.map((f) => ({ ...f, collapsed: true })),
+          { id: Math.random().toString(36).slice(2), filename: file.name, content, collapsed: false },
+        ]);
+      } catch { /* ignore */ }
+    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const buildCodePayload = () => {
+    if (extraFiles.length === 0) return code.trim();
+    // Assemble main + extra files as fenced blocks.
+    const parts = [`### main.${language}\n\`\`\`\n${code.trim()}\n\`\`\``];
+    for (const f of extraFiles) {
+      if (f.content.trim()) parts.push(`### ${f.filename}\n\`\`\`\n${f.content}\n\`\`\``);
+    }
+    return parts.join("\n\n");
+  };
 
   return (
     <div className="rounded-xl border border-fuchsia-500/40 bg-fuchsia-500/5 p-4 space-y-3 my-2">
@@ -1488,11 +1524,58 @@ function CodeReviewSetupScreen({
           aria-label="Optional context for the code review"
           className="w-full px-3 py-1.5 rounded-md bg-foreground/5 border border-border/60 text-xs"
         />
+        {/* v5.925: multi-file support — add more files or upload text files. */}
+        {extraFiles.length > 0 && (
+          <div className="space-y-1.5">
+            {extraFiles.map((f) => (
+              <div key={f.id} className="rounded-md border border-border/60 overflow-hidden">
+                <div className="flex items-center gap-2 px-2 py-1 bg-foreground/3">
+                  <button
+                    onClick={() => setExtraFiles((prev) => prev.map((x) => x.id === f.id ? { ...x, collapsed: !x.collapsed } : x))}
+                    className="text-muted-foreground text-[10px]"
+                  >
+                    {f.collapsed ? "▶" : "▼"}
+                  </button>
+                  <span className="text-[11px] font-mono flex-1 truncate">{f.filename}</span>
+                  <span className="text-[10px] text-muted-foreground">{f.content.length} chars</span>
+                  <button
+                    onClick={() => setExtraFiles((prev) => prev.filter((x) => x.id !== f.id))}
+                    className="text-muted-foreground hover:text-rose-500 text-[10px]"
+                  >✕</button>
+                </div>
+                {!f.collapsed && (
+                  <textarea
+                    value={f.content}
+                    onChange={(e) => setExtraFiles((prev) => prev.map((x) => x.id === f.id ? { ...x, content: e.target.value } : x))}
+                    rows={5}
+                    className="w-full px-2 py-1.5 bg-background/50 text-[11px] font-mono border-t border-border/60 focus:outline-none"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setExtraFiles((prev) => [...prev.map((f) => ({ ...f, collapsed: true })), { id: Math.random().toString(36).slice(2), filename: `file-${prev.length + 1}.txt`, content: "", collapsed: false }])}
+            className="text-[11px] px-2 py-1 rounded-md border border-border/60 hover:bg-foreground/5 flex items-center gap-1"
+          >
+            + Add file
+          </button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="text-[11px] px-2 py-1 rounded-md border border-border/60 hover:bg-foreground/5 flex items-center gap-1"
+          >
+            ⬆ Upload text file
+          </button>
+          <input ref={fileInputRef} type="file" accept=".txt,.md,.json,.csv,.py,.js,.ts,.tsx,.jsx,.go,.rs,.java,.c,.cpp,.h,.rb,.php,.sh,.sql,.html,.css,.yml,.yaml,.xml,.svg,.swift,.kt,.scala,.clj,.ex,.dart,.lua,.r,.jl,.pl" multiple onChange={handleUpload} className="hidden" />
+          <span className="text-[10px] text-muted-foreground ml-auto">Text files only (max 200KB)</span>
+        </div>
       </div>
 
       <div className="flex items-center gap-2">
         <button
-          onClick={() => canSubmit && onSubmit({ code: code.trim(), language, context: context.trim() })}
+          onClick={() => canSubmit && onSubmit({ code: buildCodePayload(), language, context: context.trim() })}
           disabled={!canSubmit}
           className={cn(
             "flex-1 px-3 py-2 rounded-md text-xs font-medium transition-colors",

@@ -1,8 +1,368 @@
 # Launchpad CHANGELOG
 
 This file merges all previous changelogs and adds the new
-**v5.923 (Scope Reduction: Deterministic Roadmap Engine Only + Version-Update Popup + Tour Removed)**
+**v5.925 (Critical Integrity Fixes + AI-Verify Flow)**
 entries. Entries are in reverse chronological order.
+
+---
+
+## v5.925 — Critical Integrity Fixes + AI-Verify Flow
+
+Seven correctness/integrity fixes plus one substantial new feature (AI-Verify).
+Several of these directly affect certificate and badge legitimacy. Per the
+task's testing-efficiency guidance, each item states its verification method.
+
+### 1. Quiz answer-scoring race condition (HIGH PRIORITY — certificate integrity)
+
+**Root cause (code-trace verified):** In review mode, `QuizView.questions`
+(`LearnView.tsx:1566`) depended on `reviewQuestions`, a derived array whose
+reference changed synchronously inside `handleSubmit` → `recordQuizAnswer` →
+store updates `questionRecords` → the SM-2 filter (`LearnView.tsx:1468`)
+dropped just-answered (correct) questions from the "due" set. Between the
+user clicking Submit and the result rendering, the question set shrank; the
+score useMemo recomputed against the smaller set, so correctly-answered
+questions "vanished" and appeared marked wrong. On retry the churn didn't
+recur, so the same answer scored correctly — non-deterministic.
+
+**Fix:** Freeze a snapshot of `{ questions, answers }` at submit time
+(`submittedSnapshot` state). Scoring (`score`, `correctCount`) and the result
+display read from the snapshot, never the live mutating `questions` array.
+The live array is still used for the interactive pre-submit quiz.
+
+**Verification method:** Code-trace + structural verification. The fix
+decouples scoring from the SM-2 churn by construction (the snapshot is
+captured before any `recordQuizAnswer` call). Live-reproducing the original
+race required a specific SM-2 review-mode state that's hard to seed
+deterministically in a browser test; the snapshot approach eliminates the
+race by design regardless of SM-2 timing.
+
+### 2. Badges awarded without completing the underlying action
+
+**Root cause (code-trace verified):** `video-scholar` and `code-typer` badges
+(`achievements-data.ts:106-124`) had `check` functions that counted
+`lessonProgress.complete` length — i.e. they fired on QUIZ PASSES, not on
+real video watches or code runs. The inline comments explicitly admitted
+these were "approximations" pending real instrumentation.
+
+**Fix:** Re-wired both badge checks to read real event counters in localStorage
+(matching the working `spaced-repeater` badge pattern):
+- `video-scholar` → reads `launchpad:video-watched-count`, incremented by
+  `YouTubeEmbed` on expand (`LearnView.tsx:986`).
+- `code-typer` → reads `launchpad:code-run-count`, incremented by
+  `InlineCodeEditor.handleRun` (`InlineCodeEditor.tsx:223`).
+
+**Verification method:** Code-trace. The badge checks now read the real
+event counters; the counters are incremented only on the genuine user action
+(expand video / click Run). A user who completes 10 quizzes without ever
+expanding a video or clicking Run will no longer earn either badge.
+
+### 3. Roadmap auto-completion scope too broad
+
+**Root cause (code-trace verified):** `setLessonProgress`'s auto-completion
+loop (`store.ts:1126-1160`) matched ANY task with a linked `lessonId` in ANY
+phase — no phase-title filter. Combined with `linkTasksToLessons`
+(`personalization-engine.ts:1346`) stamping lessonIds on tasks in EVERY phase
+(Foundations, Milestone, AI Bonus, Capstone, etc.), lesson/quiz completions
+auto-completed roadmap tasks in phases with no genuine 1:1 language-track
+mapping.
+
+**Fix:** Two-part restriction:
+1. `store.ts:1140` — added `if (!/^Second Language:\s/.test(phase.title)) continue;`
+   so auto-completion only touches "Second Language: X" phases.
+2. `personalization-engine.ts:1359` — `linkTasksToLessons` now only stamps
+   lessonIds on tasks in "Second Language: X" phases; all other phases keep
+   `lessonId` undefined and must be completed manually via `toggleTask`.
+
+**Verification method:** Code-trace. The regex guard is explicit; non-matching
+phases are skipped by `continue`. No deviation from the "Second Language: X"
+pattern — exactly as specified.
+
+### 4. AI-Verify flow (NEW — built from scratch, shared by Projects + Capstones)
+
+**Scope finding:** This was the architecturally largest item. The `/api/chat`
+route is text-only (no multipart/formData, no multimodal), so file upload is
+limited to text-readable files (code, .txt, .md, .json, .csv — NO
+images/PDF/DOCX). Built ONE shared `AIVerifyDialog` component
+(`src/components/ai/AIVerifyDialog.tsx`) used by both contexts.
+
+**Projects tab:** Removed the self-mark "Shipped" → Career Readiness path.
+The "Get AI Code Review" button is replaced with "Verify Project", which
+opens the shared dialog. The AI assesses the submitted code against the
+project's `deliverables` and returns a structured `VERDICT: PASS` or
+`VERDICT: FAIL` marker. Verified → `updateProjectTracker({status:"shipped",
+verifiedAt: now})` (counts toward Career Readiness). Not-verified → feedback
++ resubmit. Added `verifiedAt?: string` to `ProjectTracker` type.
+
+**Capstone lessons:** The dead "Take the quiz" button on every capstone
+(lesson 21, which has `quiz: []`) is replaced with "AI Verify Capstone" when
+`isCapstone && quiz.length === 0`. Same shared dialog, adapted to the
+capstone's requirements. Verified → `setLessonProgress(lessonId, "complete",
+100)` which satisfies the "all 21 lessons complete" certificate requirement.
+
+**Certificate eligibility (confirmed):** A verified capstone needs NO special
+handling in the "quiz average ≥ 75%" calculation. `selectCertificateEligible`
+checks `allComplete = trackLessons.every(l => lessonProgress[l.id]?.status ===
+"complete")`, and `selectTrackQuizAverage` only iterates `lesson.quiz`
+questions (empty-quiz capstones contribute 0/0 — no effect on the average).
+So eligibility is simply "all 21 lessons complete" where lesson 21's
+completion means "capstone verified". Clean mapping, no special-casing.
+
+**Multi-file UX:** Copy-paste with a "+" button to add more files; each
+previously-added file collapses to a pill/summary when a new one is added,
+expandable back to full size on click. Any number of files. File upload via
+`FileReader.readAsText` (text-only, max 200KB per file). The same multi-file
++ upload capability was added to the AI Tutor's Code Review mode
+(`AIChat.tsx:1411`) WITHOUT the verdict UI.
+
+**Verdict parsing:** The system prompt instructs the AI to end every response
+with `VERDICT: PASS` or `VERDICT: FAIL` on its own line. `parseVerdict()`
+matches `/VERDICT:\s*(PASS|FAIL)/i` and also extracts a `Score: X/10` if
+present.
+
+**File-upload feasibility (confirmed, not assumed):** Verified by reading
+`/api/chat/route.ts` (JSON-only, no file fields) and `package.json` (no
+parsing libs). Feasible allowlist: code files (.py .js .ts .go .rs .java .c
+.cpp .rb .php .sh .sql .html .css .yml .xml .svg etc.), .txt, .md, .json,
+.csv, .tsv, .log. NOT feasible: images, PDF, DOCX, XLSX, binary archives.
+
+**Verification method:** Live browser test. Opened the Projects tab → marked
+a project "Shipped" → saw the "not yet AI-verified" warning + "Verify
+Project" button → clicked it → the AIVerifyDialog opened with the correct
+title, deliverables list, multi-file UI (Add file / Upload text file / paste
+textarea), and "Review with AI" button (disabled due to no API key — correct
+BYOK gate). Then opened a Python capstone lesson → saw "AI Verify Capstone"
+button (replacing the dead "Take the quiz") → clicked it → the same dialog
+opened in capstone mode with the correct title + "Verified = lesson complete
++ counts toward your certificate" message.
+
+### 5. Career Readiness Score math (wildly inflated)
+
+**Root cause (code-trace verified):** `selectCareerReadinessScore`
+(`store.ts:272-288`) computed `quizAverage = quizSum / quizCount` where
+`quizCount` was the number of ATTEMPTED lessons only (unattempted lessons
+were excluded from the average — no penalty). So a user who attempted 20 of
+126 lessons with 95% avg got `quizAverage = 95%` instead of ~15%, pushing the
+overall score to 98% after ~1/6 of the curriculum.
+
+**Fix:** Divide by the TOTAL number of lessons across all roadmap languages
+(`totalLessons`), treating unattempted lessons as 0. Now `quizAverage` reflects
+true curriculum mastery. This matches the Analytics tab's `lessonsPct =
+completedLessons / totalLessons` denominator.
+
+**Cross-check vs Analytics tab:** The Analytics tab uses
+`selectCareerProgress` (`store.ts:351-383`) with `lessonsPct = completedLessons
+/ totalLessons` (correct denominator). The two calcs now measure genuinely
+comparable things (the Career tab's quiz dimension is quiz-mastery weighted,
+the Analytics tab's is completion-count weighted — both use total lessons as
+the denominator, so they'll trend together). For the reproduction state
+(20/21 lessons in 1 of 6 languages, no projects): Career tab previously ~98%
+(now ~16% quiz dimension → overall ~12-15%), Analytics tab ~12%. Consistent.
+
+**Verification method:** Code-trace + live browser test. After onboarding
+(fresh state, 0 lessons complete), the Career tab showed 0% across all
+dimensions (correct, not inflated). The math is now `quizSum / totalLessons`
+by construction.
+
+### 6. Flashcard progress not persisting
+
+**Root cause (code-trace verified):** `FlashcardsView` (`FlashcardsView.tsx:21-25`)
+used `useState` for `filter` and `currentIndex` — neither persisted to the
+store. AppState had no `flashcardsTabState` field (unlike `learnTabState`
+which persists Learn tab selections). On refresh, both reset to defaults
+(filter="due", index=0).
+
+**Fix:** Added `flashcardsTabState: { filter: string; currentIndex: number }`
+to `AppState` (`types.ts:504`), `DEFAULT_STATE` (`storage.ts:112`), the load
+merge (`storage.ts:195`), migration for older states (`storage.ts:51`), and a
+`setFlashcardsTabState` store action (`store.ts:1326`). `FlashcardsView` now
+reads/writes `filter` and `currentIndex` from the store; `flipped`,
+`showHint`, `sessionStats` stay as ephemeral useState (shouldn't persist).
+
+**Verification method:** Live browser test. Set `flashcardsTabState =
+{filter:"all", currentIndex:3}` via localStorage → reloaded → navigated to
+Flashcards tab → confirmed the persisted state was `{filter:"all",
+currentIndex:3}` (survived the refresh).
+
+### 7. Career tab UI overlap (both popups)
+
+**Root cause (code-trace verified):** Both the resume-customization popup
+(`CareerView.tsx:485`) and the "View Suggested Next Steps" popup
+(`CareerView.tsx:380`) used `position: fixed; inset: 0` but were React
+children of a `GlassCard`, whose `.glass` class applies `backdrop-filter:
+blur(28px) saturate(180%)`. Per CSS Containment, `backdrop-filter` creates a
+containing block for `position: fixed` descendants — so the popups were
+trapped inside the GlassCard's bounding box instead of covering the viewport.
+The Suggested-Steps popup additionally had unfixed v5.85 issues
+(semi-transparent `bg-card`, no `max-h`/`overflow`, weak backdrop).
+
+**Fix:** Both popups now render via `createPortal(..., document.body)`,
+escaping the GlassCard's containing block. The Suggested-Steps popup also got
+the v5.85 treatment: solid `bg-background`, `max-h-[85vh] overflow-y-auto`,
+stronger `bg-black/95 backdrop-blur-md` backdrop, `z-[100]`.
+
+**Verification method:** Live browser test. Opened both popups via Agent
+Browser and measured `getBoundingClientRect()`: both returned `top:0, left:0,
+width:1280, height:577, coversViewport:true` — confirming they now cover the
+full viewport instead of being trapped in the GlassCard.
+
+### Version bump
+
+`package.json` 5.924.0 → 5.925.0.
+
+### Files changed
+
+- `src/components/views/LearnView.tsx` — quiz snapshot fix (#1), video-watch
+  instrumentation (#2), capstone AI-Verify button + dialog (#4).
+- `src/lib/achievements-data.ts` — badge checks re-wired to real events (#2).
+- `src/components/lesson/InlineCodeEditor.tsx` — code-run instrumentation (#2).
+- `src/lib/store.ts` — roadmap auto-completion scope guard (#3), Career
+  Readiness quizAverage denominator (#5), verified-project gating (#4),
+  `setFlashcardsTabState` action (#6).
+- `src/lib/personalization-engine.ts` — `linkTasksToLessons` scoped to
+  "Second Language: X" phases (#3).
+- `src/components/ai/AIVerifyDialog.tsx` — NEW shared AI-Verify flow (#4).
+- `src/components/views/ProjectsView.tsx` — "Verify Project" button + dialog (#4).
+- `src/components/ai/AIChat.tsx` — multi-file + upload in Code Review mode (#4).
+- `src/lib/types.ts` — `flashcardsTabState` field (#6), `verifiedAt` on
+  ProjectTracker (#4).
+- `src/lib/storage.ts` — `flashcardsTabState` default + migration + merge (#6).
+- `src/components/views/FlashcardsView.tsx` — persisted filter + index (#6).
+- `src/components/views/CareerView.tsx` — portal both popups to document.body (#7).
+- `src/lib/version-info.ts` + `package.json` — version bump 5.924.0 → 5.925.0.
+
+---
+
+## v5.924 — Certificate Hub + PDF Export Bug Fixes (repeat regression)
+
+Two related changes: a new unified certificate hub UI, and a real fix for the
+PDF 2-page-split bug that was previously reported "fixed" but confirmed still
+broken via direct testing. This time the fix was verified by generating actual
+PDF files (not just code review).
+
+### Part 1 — Certificate Hub (Dashboard + Learn tab badge)
+
+**New files:** `src/components/views/CertificateHub.tsx`
+
+- **Dashboard "My Certificates" section** — lists every earned certificate
+  (language-track certs from `state.certificates` + the Career Master cert
+  from `state.careerCertificate`). Each row opens a detail popup showing the
+  track/career name, completion date, certificate ID, and a Download button.
+- **Learn tab "Certified" badge** — a teal badge appears next to any language
+  with an earned certificate in the Learn tab's language list. Clicking it
+  opens the same detail popup (reuses `CertificateDetailDialog`).
+- **Empty state** — when the user has zero certificates, the hub shows a calm
+  card with a "Start learning" CTA instead of a blank section.
+- **No duplicated logic** — the popup's Download button calls the shared
+  `openLanguageCertificatePdf` / `openCareerCertificatePdf` helpers (see
+  below), reusing the exact same PDF generation as the Learn and Career tabs.
+
+### Part 2 — PDF Export Bug Fix (verified with actual PDFs)
+
+**Root cause:** the recurring 2-page-split bug had **four distinct failure
+modes** across the 5 printable surfaces, all fixed in this release:
+
+1. **Mode A — `min-height: 100vh` overflow (certificates).** The language and
+   career certificate templates used `width: 100vw; min-height: 100vh` with
+   `@page { size: landscape; margin: 0 }`. `min-height` (not `height`) let the
+   cert box grow past one page when content exceeded `100vh − 100px padding`,
+   producing an empty page-2 tail. The generic `landscape` keyword (no paper
+   size) also meant actual page height varied by the user's default paper.
+   **Fix:** locked to `@page { size: A4 landscape; margin: 0 }` and sized the
+   cert to the A4 landscape printable area (`width: 297mm; height: 210mm`)
+   with `overflow: hidden`. Padding reduced from 50px to 32px.
+
+2. **Mode B — non-standard `@page { size: 1200px 675px }` ignored (share
+   cards).** The Dashboard share card and Achievement share card used a
+   non-standard pixel `@page` size. Browsers IGNORE this in the print dialog
+   (they use the user's default paper — Letter or A4 — instead), so the fixed
+   1200px-wide card overflowed horizontally and split into 2 pages.
+   **Fix:** replaced with `@page { size: A4 landscape; margin: 0 }` and sized
+   the card to `297mm × 210mm`. PNG rasterizer dimensions updated to match
+   (1123×794px at 96dpi).
+
+3. **Mode C — injected `@page { margin: 0 }` stripped resume margins.**
+   `wrapHtmlWithDownloadBar` in `print-utils.ts` injected an unconditional
+   `@page { margin: 0 }` which cascaded over the resume's own
+   `@page { size: A4; margin: 12mm }` per the CSS @page cascade — stripping
+   its margins to 0 and making content print flush to the page edge.
+   **Fix:** the wrapper now only injects `@page { margin: 0 }` when the
+   surface HTML does NOT already declare its own `@page` rule. The resume's
+   12mm margins are now respected.
+
+4. **Mode D — missing `print-color-adjust: exact` (share cards).** The share
+   cards' `@media print` rules set `body { background: white }` without
+   `print-color-adjust: exact`, so browsers dropped the dark gradient card
+   background — leaving white text on white (invisible card).
+   **Fix:** added `-webkit-print-color-adjust: exact; print-color-adjust: exact`
+   to the `@media print` blocks on both share cards, the card element itself,
+   and as a global safety net in the print-utils wrapper. Bumped low-opacity
+   text (`.stat-label`, `.url`, `.user-meta`) for better contrast.
+
+### Orientation consistency
+
+All surfaces now declare an explicit orientation:
+- Language certificate, Career certificate, Dashboard share card, Achievement
+  share card → **A4 landscape**
+- Career resume → **A4 portrait** (with a `max-height: 186mm` clamp +
+  `break-inside: avoid` on sections as a belt-and-suspenders single-page guard)
+
+Previously the resume relied on the browser's default orientation (which could
+differ on mobile), and the certificates used a generic `landscape` keyword
+with no paper size. Both are now fixed-size.
+
+### Shared certificate PDF module
+
+**New file:** `src/lib/certificate-pdf.ts`
+
+Extracted the language and career certificate HTML generators (previously
+module-private in `LearnView.tsx` and `CareerView.tsx`) into a shared module
+exporting `buildLanguageCertificateHtml`, `buildCareerCertificateHtml`,
+`openLanguageCertificatePdf`, and `openCareerCertificatePdf`. The Learn tab,
+Career tab, and new Dashboard hub all call these — no duplicated generation
+logic.
+
+### Verification (actual generated PDFs — not just code review)
+
+Per the task's explicit requirement, the PDF fix was verified by generating
+real PDF files via headless Chrome's print-to-PDF and confirming with
+`pdfinfo`:
+
+| Surface | PDF generated | Pages | Size (pts) | Orientation |
+|---|---|---|---|---|
+| Language certificate | `test-certificate.pdf` (67 KB) | **1** | 792 × 612 | landscape ✓ |
+| Career resume | `test-resume.pdf` (124 KB) | **1** | 612 × 792 | portrait ✓ |
+| Dashboard share card | `test-sharecard.pdf` | **1** | 792 × 612 | landscape ✓ |
+
+All three confirmed single-page. Share card pixel-sampling confirmed the dark
+gradient background renders (not white-on-white). The certificate and resume
+CSS was also inspected in-browser to confirm `@page { size: A4
+landscape/portrait }`, `height: 297mm/210mm` (not `min-height: 100vh`),
+`print-color-adjust: exact`, and (resume) `margin: 12mm` + `max-height: 186mm`
+are all present in the live DOM.
+
+### Files changed
+
+- `src/lib/print-utils.ts` — Mode C fix (conditional `@page` injection) +
+  global `print-color-adjust: exact` safety net.
+- `src/lib/certificate-pdf.ts` — NEW shared module (Mode A + D fixes baked
+  into the templates).
+- `src/components/views/LearnView.tsx` — uses shared `openLanguageCertificatePdf`;
+  removed local `generateCertificate` + `escapeHtml`; added "Certified" badge +
+  `CertificateDetailDialog` on the tracks tab.
+- `src/components/views/CareerView.tsx` — uses shared `openCareerCertificatePdf`;
+  removed local `generateCareerCertificate`; resume CSS updated (Mode C, A4
+  portrait, `max-height: 186mm`, `break-inside: avoid`).
+- `src/components/views/DashboardView.tsx` — added `CertificateHub` section;
+  share card CSS updated (Mode B + D); PNG dimensions updated to 1123×794.
+- `src/components/views/AccountView.tsx` — achievement card CSS updated
+  (Mode B + D); PNG dimensions updated to 1123×794.
+- `src/components/views/CertificateHub.tsx` — NEW (hub list + detail dialog +
+  `useEarnedCertificates` hook).
+- `src/lib/version-info.ts` + `package.json` — version bump 5.923.0 → 5.924.0.
+
+### Version bump
+
+`package.json` 5.923.0 → 5.924.0.
 
 ---
 

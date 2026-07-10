@@ -39,7 +39,9 @@ import {
 } from "@/lib/lessons-data";
 import { getVideoLink, getPlaylist } from "@/data/youtube-links";
 import { InlineCodeEditor } from "@/components/lesson/InlineCodeEditor";
-import { openPrintableHtml } from "@/lib/print-utils";
+import { openLanguageCertificatePdf } from "@/lib/certificate-pdf";
+import { CertificateDetailDialog, useEarnedCertificates } from "@/components/views/CertificateHub";
+import { AIVerifyDialog, type AIVerifyTarget } from "@/components/ai/AIVerifyDialog";
 import { isDueForReview } from "@/lib/sm2";
 import type { Lesson, QuizQuestion } from "@/lib/types";
 
@@ -59,6 +61,11 @@ export function LearnView() {
   const [filterLang, setFilterLang] = useState<string | null>(null); // null = show all
   const [lessonFilter, setLessonFilter] = useState<"all" | "bookmarked" | "in-progress" | "completed">("all");
   const [showExploreMore, setShowExploreMore] = useState(false);
+  // v5.924: certificate detail popup (opened by the "Certified" badge on a track card).
+  const [certPopup, setCertPopup] = useState<ReturnType<typeof useEarnedCertificates>[number] | null>(null);
+  // v5.925: AI-Verify dialog target for capstone lessons (lesson 21 of each track).
+  const [capstoneVerifyTarget, setCapstoneVerifyTarget] = useState<AIVerifyTarget | null>(null);
+  const earnedCerts = useEarnedCertificates();
   // v5.92 (Part 6): "Already completed" popup state — shown when the user
   // progresses sequentially to a lesson they'd already completed earlier.
   const [completedPopup, setCompletedPopup] = useState<{ lessonId: string; trackLessons: Lesson[] } | null>(null);
@@ -171,6 +178,7 @@ export function LearnView() {
   // Tracks view
   if (tab === "tracks" && !effectiveSelectedLessonId) {
     return (
+      <>
       <div className="space-y-5">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Learn</h1>
@@ -331,9 +339,26 @@ export function LearnView() {
                           <div className="text-[10px] text-muted-foreground font-mono">{t.lessonCount} lessons</div>
                         </div>
                       </div>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 font-semibold uppercase">
-                        In Plan
-                      </span>
+                      <div className="flex items-center gap-1">
+                        {/* v5.924: Certified badge — opens the certificate detail popup. */}
+                        {certificates[t.id] && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const c = earnedCerts.find((ec) => ec.kind === "language" && ec.trackId === t.id);
+                              if (c) setCertPopup(c);
+                            }}
+                            title="Certificate earned — click to view & download"
+                            className="inline-flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded-full bg-teal-500/20 text-teal-600 dark:text-teal-400 font-semibold uppercase hover:bg-teal-500/30 transition-colors"
+                          >
+                            <Award className="h-2.5 w-2.5" /> Certified
+                          </button>
+                        )}
+                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 font-semibold uppercase">
+                          In Plan
+                        </span>
+                      </div>
                     </div>
                     <div className="space-y-2 mb-3">
                       <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
@@ -405,6 +430,26 @@ export function LearnView() {
           </div>
         )}
       </div>
+      {/* v5.924: certificate detail popup (opened by the "Certified" badge) */}
+      <CertificateDetailDialog cert={certPopup} onClose={() => setCertPopup(null)} />
+      {/* v5.925: AI-Verify dialog for capstone lessons. onVerified marks the
+          capstone lesson complete (score 100) — satisfies certificate eligibility. */}
+      {capstoneVerifyTarget && capstoneVerifyTarget.mode === "capstone" && (
+        <AIVerifyDialog
+          open={true}
+          onOpenChange={(o) => { if (!o) setCapstoneVerifyTarget(null); }}
+          target={capstoneVerifyTarget}
+          onVerified={(result) => {
+            if (result.passed) {
+              const lesson = (capstoneVerifyTarget as Extract<AIVerifyTarget, { mode: "capstone" }>).lesson;
+              setLessonProgress(lesson.id, "complete", 100);
+              setTab("result");
+              window.scrollTo(0, 0);
+            }
+          }}
+        />
+      )}
+      </>
     );
   }
 
@@ -418,6 +463,7 @@ export function LearnView() {
     const next = idx < trackLessons.length - 1 ? trackLessons[idx + 1] : null;
 
     return (
+      <>
       <div className="space-y-4 lesson-content">
         {/* Breadcrumb + nav */}
         <div className="flex items-center justify-between gap-3 flex-wrap no-print">
@@ -581,18 +627,52 @@ export function LearnView() {
               </GlassButton>
             )}
           </div>
-          <GlassButton
-            variant="primary"
-            onClick={() => {
-              setLessonProgress(selectedLesson.id, "in-progress");
-              setTab("quiz");
-              window.scrollTo(0, 0);
-            }}
-          >
-            <Trophy className="h-4 w-4" /> Take the quiz
-          </GlassButton>
+          {/* v5.925 (BUG 4): capstones (lesson 21) have no quiz — the old "Take
+              the quiz" button was a dead end that blocked certificate issuance.
+              Replace it with an "AI Verify" button that opens the shared
+              AIVerifyDialog. A verified capstone marks the lesson complete,
+              satisfying the "all 21 lessons complete" certificate requirement. */}
+          {selectedLesson.isCapstone && selectedLesson.quiz.length === 0 ? (
+            <GlassButton
+              variant="primary"
+              onClick={() => {
+                const trackName = ALL_LANGUAGE_INFO[selectedLesson.track]?.name ?? selectedLesson.track;
+                setCapstoneVerifyTarget({ mode: "capstone", lesson: selectedLesson, trackName });
+              }}
+            >
+              <Trophy className="h-4 w-4" /> AI Verify Capstone
+            </GlassButton>
+          ) : (
+            <GlassButton
+              variant="primary"
+              onClick={() => {
+                setLessonProgress(selectedLesson.id, "in-progress");
+                setTab("quiz");
+                window.scrollTo(0, 0);
+              }}
+            >
+              <Trophy className="h-4 w-4" /> Take the quiz
+            </GlassButton>
+          )}
         </div>
       </div>
+      {/* v5.925: AI-Verify dialog for capstone lessons (lesson-tab view). */}
+      {capstoneVerifyTarget && capstoneVerifyTarget.mode === "capstone" && (
+        <AIVerifyDialog
+          open={true}
+          onOpenChange={(o) => { if (!o) setCapstoneVerifyTarget(null); }}
+          target={capstoneVerifyTarget}
+          onVerified={(result) => {
+            if (result.passed) {
+              const lesson = (capstoneVerifyTarget as Extract<AIVerifyTarget, { mode: "capstone" }>).lesson;
+              setLessonProgress(lesson.id, "complete", 100);
+              setTab("result");
+              window.scrollTo(0, 0);
+            }
+          }}
+        />
+      )}
+      </>
     );
   }
 
@@ -689,7 +769,7 @@ export function LearnView() {
                             if (existing.name !== finalName) {
                               updateCertificateName(track, finalName);
                             }
-                            generateCertificate(finalName, trackName, track, trackLessons);
+                            openLanguageCertificatePdf(finalName, trackName, track, trackLessons);
                           }}
                         >
                           <Award className="h-4 w-4" /> Download certificate (PDF)
@@ -702,7 +782,7 @@ export function LearnView() {
                             if (name === null) return;
                             const finalName = name.trim() || "Learner";
                             updateCertificateName(track, finalName);
-                            generateCertificate(finalName, trackName, track, trackLessons);
+                            openLanguageCertificatePdf(finalName, trackName, track, trackLessons);
                           }}
                         >
                           Edit name
@@ -739,7 +819,7 @@ export function LearnView() {
                             return;
                           }
                           // Success — generate the PDF with the real certId
-                          generateCertificate(finalName, trackName, track, trackLessons);
+                          openLanguageCertificatePdf(finalName, trackName, track, trackLessons);
                         }}
                       >
                         <Award className="h-4 w-4" /> Issue certificate
@@ -817,6 +897,10 @@ export function LearnView() {
       />
     );
   }
+
+  // v5.924: The CertificateDetailDialog is rendered at the end of each tab's
+  // JSX (not as an early return) so the dialog portal overlays the Learn tab
+  // instead of unmounting it. See the tracks-tab return below.
 
   return null;
 }
@@ -954,7 +1038,19 @@ function YouTubeEmbed({ lessonId, trackId }: { lessonId: string; trackId: string
     <div className="rounded-xl border border-border/40 bg-muted/20 overflow-hidden">
       {/* Collapsible header — Section 2.4 pattern */}
       <button
-        onClick={() => setExpanded(!expanded)}
+        onClick={() => {
+          const next = !expanded;
+          setExpanded(next);
+          // v5.925 FIX (BUG 2): increment the real video-watch counter when the
+          // user expands a video supplement (the explicit "watch" action).
+          // Powers the "Video Scholar" badge. Only counts on expand (not collapse).
+          if (next && typeof window !== "undefined") {
+            try {
+              const cur = Number(window.localStorage.getItem("launchpad:video-watched-count") ?? "0");
+              window.localStorage.setItem("launchpad:video-watched-count", String(cur + 1));
+            } catch { /* ignore */ }
+          }
+        }}
         className="w-full flex items-center gap-3 p-4 text-left hover:bg-muted/30 transition-colors"
       >
         <div className="h-8 w-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
@@ -1560,29 +1656,59 @@ function QuizView({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lesson.id, lesson.quiz, reviewMode, reviewQuestions]);
 
+  // v5.925 FIX (BUG 1 — quiz scoring race condition): Previously `questions`
+  // depended on `reviewQuestions` (review mode), which is itself a derived
+  // array whose reference changes synchronously inside handleSubmit →
+  // recordQuizAnswer → store updates questionRecords → SM-2 filter drops
+  // just-answered (correct) questions from the "due" set. That meant the
+  // `questions` array (and thus the `score` useMemo) recomputed BETWEEN the
+  // user clicking Submit and the result rendering — the question set shrank,
+  // correctly-answered questions vanished, and the score was computed
+  // against the new smaller set (appearing "marked wrong"). On retry the
+  // churn didn't recur so the same answer scored correctly.
+  //
+  // Fix: freeze a snapshot of the questions + the user's answers at submit
+  // time. Scoring and the result display read from the snapshot, never the
+  // live (mutating) `questions` array. The live `questions` is still used to
+  // render the interactive quiz pre-submit.
+  const [submittedSnapshot, setSubmittedSnapshot] = useState<
+    | { questions: typeof questions; answers: Record<string, number> }
+    | null
+  >(null);
+
   const score = useMemo(() => {
-    if (questions.length === 0) return 0;
+    // Use the frozen snapshot once submitted; otherwise compute live (pre-submit
+    // display only — never used for the recorded score).
+    const qs = submitted ? (submittedSnapshot?.questions ?? questions) : questions;
+    if (qs.length === 0) return 0;
+    const ans = submitted ? (submittedSnapshot?.answers ?? answers) : answers;
     let correct = 0;
-    for (const q of questions) {
-      if (answers[q.id] === q.correctIndex) correct++;
+    for (const q of qs) {
+      if (ans[q.id] === q.correctIndex) correct++;
     }
-    return Math.round((correct / questions.length) * 100);
+    return Math.round((correct / qs.length) * 100);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [answers, questions]);
+  }, [answers, questions, submitted, submittedSnapshot]);
 
   const correctCount = useMemo(() => {
+    const qs = submitted ? (submittedSnapshot?.questions ?? questions) : questions;
+    const ans = submitted ? (submittedSnapshot?.answers ?? answers) : answers;
     let c = 0;
-    for (const q of questions) {
-      if (answers[q.id] === q.correctIndex) c++;
+    for (const q of qs) {
+      if (ans[q.id] === q.correctIndex) c++;
     }
     return c;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [answers, questions]);
+  }, [answers, questions, submitted, submittedSnapshot]);
 
   const passMark = Math.max(1, Math.ceil(questions.length * 0.7)); // 70%
   const passed = correctCount >= passMark;
 
   const handleSubmit = () => {
+    // Freeze the question set + answers BEFORE recording anything, so the
+    // SM-2 churn triggered by recordQuizAnswer cannot shrink the set we
+    // score against.
+    setSubmittedSnapshot({ questions, answers });
     setSubmitted(true);
     // Record each answer in the store (per-question tracking per Section 1.1)
     for (const q of questions) {
@@ -1644,17 +1770,22 @@ function QuizView({
         </GlassCard>
       ) : (
         <>
-      {questions.map((q, qi) => (
+      {/* v5.925: iterate the frozen snapshot after submit so the displayed
+          result set matches the set we scored against (immune to SM-2 churn). */}
+      {(submitted ? (submittedSnapshot?.questions ?? questions) : questions).map((q, qi) => {
+        const displayQs = submitted ? (submittedSnapshot?.questions ?? questions) : questions;
+        const displayAns = submitted ? (submittedSnapshot?.answers ?? answers) : answers;
+        return (
         <GlassCard key={q.id} className="p-4">
           <div className="flex items-start gap-2 mb-3">
             <span className="text-[10px] font-mono text-muted-foreground mt-0.5 shrink-0">
-              Question {qi + 1} of {questions.length}
+              Question {qi + 1} of {displayQs.length}
             </span>
             <p className="text-sm font-medium flex-1">{q.question}</p>
           </div>
           <div className="space-y-1.5">
             {q.options.map((opt, oi) => {
-              const isSelected = answers[q.id] === oi;
+              const isSelected = displayAns[q.id] === oi;
               const isCorrect = oi === q.correctIndex;
               const showResult = submitted;
               return (
@@ -1697,7 +1828,8 @@ function QuizView({
             </button>
           )}
         </GlassCard>
-      ))}
+        );
+      })}
 
       <div className="flex items-center justify-between gap-3 pt-2">
         {submitted ? (
@@ -1706,9 +1838,10 @@ function QuizView({
             passed ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-amber-500/10 text-amber-600 dark:text-amber-400",
           )}>
             <Trophy className="h-4 w-4 inline mr-1" />
+            {/* v5.925: use snapshot length so the count is stable post-submit. */}
             {passed
-              ? `Passed! ${correctCount}/${questions.length} correct (${score}%)`
-              : `Not yet — ${correctCount}/${questions.length} correct (need ${passMark})`}
+              ? `Passed! ${correctCount}/${(submittedSnapshot?.questions ?? questions).length} correct (${score}%)`
+              : `Not yet — ${correctCount}/${(submittedSnapshot?.questions ?? questions).length} correct (need ${passMark})`}
           </div>
         ) : (
           <div className="text-xs text-muted-foreground">
@@ -1745,167 +1878,4 @@ function QuizView({
       )}
     </div>
   );
-}
-
-// ============================================================
-// Certificate generation — improved with editable name, language icon,
-// skills mastered list, verify URL, watermark, actual lesson count, PDF print
-// ============================================================
-
-function generateCertificate(
-  name: string,
-  trackName: string,
-  trackId: string,
-  trackLessons: Lesson[],
-) {
-  // v5.866 BUG 1B FIX: ONLY use the stored certId from Supabase.
-  // NEVER generate a fake fallback ID — if no cert is stored, the cert
-  // was not issued, and we should not produce an unverifiable PDF.
-  const stored = useStore.getState().state.certificates[trackId];
-  if (!stored?.certId) {
-    console.error("[generateCertificate] no stored certId for track:", trackId);
-    alert(
-      "Certificate has not been issued yet. Click 'Issue certificate' first.\n\n" +
-      "If you already clicked it and got an error, please try again."
-    );
-    return;
-  }
-  const certId = stored.certId;
-  const issuedAt = stored?.issuedAt ?? new Date().toISOString();
-  const date = new Date(issuedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-  const trackInfo = ALL_LANGUAGE_INFO[trackId];
-  const trackIcon = trackInfo?.icon ?? "📘";
-  const trackColor = trackInfo?.color ?? "#3B82F6";
-  const lessonCount = trackLessons.length;
-  const quizCount = trackLessons.reduce((sum, l) => sum + l.quiz.length, 0);
-  // Skills mastered — pull 4-6 lesson titles
-  const skillsMastered = trackLessons
-    .filter((l) => !l.isCapstone)
-    .slice(0, 6)
-    .map((l) => l.title);
-  const skillsList = skillsMastered.map((s) => `<li>${escapeHtml(s)}</li>`).join("");
-
-  const html = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>Launchpad Certificate — ${escapeHtml(name)} — ${escapeHtml(trackName)}</title>
-  <style>
-    @page { size: landscape; margin: 0; }
-    * { box-sizing: border-box; }
-    body { margin: 0; padding: 0; font-family: Georgia, 'Times New Roman', serif; }
-    .cert {
-      width: 100vw; min-height: 100vh;
-      background: linear-gradient(135deg, #fefce8 0%, #f0fdfa 50%, #fdf4ff 100%);
-      padding: 50px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-    /* Subtle Launchpad watermark behind content */
-    .watermark {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg);
-      font-size: 220px; font-weight: 900; color: rgba(45, 212, 191, 0.04);
-      pointer-events: none; user-select: none; letter-spacing: -0.05em;
-      z-index: 0;
-    }
-    .border {
-      position: absolute; inset: 25px;
-      border: 3px solid #1f2937; border-radius: 12px;
-      z-index: 1;
-    }
-    .border-inner {
-      position: absolute; inset: 33px;
-      border: 1px solid #6b7280; border-radius: 8px;
-      z-index: 1;
-    }
-    .content { position: relative; z-index: 2; text-align: center; max-width: 800px; }
-    .logo {
-      font-size: 36px; font-weight: bold; letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #2DD4BF 0%, #E879F9 50%, #FCD34D 100%);
-      -webkit-background-clip: text; background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 4px;
-    }
-    .subtitle { font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: #6b7280; margin-bottom: 28px; }
-    .title { font-size: 26px; font-weight: bold; color: #1f2937; margin-bottom: 6px; }
-    .body-text { font-size: 14px; color: #4b5563; max-width: 600px; line-height: 1.6; margin: 0 auto 24px; }
-    .name { font-size: 38px; font-weight: bold; font-style: italic; color: #111827; margin: 12px 0 24px; border-bottom: 2px solid #1f2937; padding-bottom: 6px; display: inline-block; min-width: 300px; }
-    .track-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 8px; }
-    .track-icon { font-size: 32px; }
-    .track { font-size: 20px; color: #1f2937; font-weight: bold; }
-    .track-detail { font-size: 13px; color: #6b7280; margin-bottom: 20px; }
-    .skills-box { background: rgba(255,255,255,0.5); border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 20px; margin: 0 auto 28px; max-width: 500px; }
-    .skills-title { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #6b7280; margin-bottom: 6px; }
-    .skills-list { list-style: none; padding: 0; margin: 0; font-size: 11px; color: #374151; columns: 2; column-gap: 24px; }
-    .skills-list li { padding: 2px 0; break-inside: avoid; }
-    .signatures { display: flex; gap: 80px; margin-top: 28px; justify-content: center; }
-    .sig { text-align: center; }
-    .sig-line { width: 200px; border-top: 1px solid #1f2937; margin-bottom: 6px; }
-    .sig-label { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.1em; }
-    .cert-id { position: absolute; bottom: 45px; left: 50%; transform: translateX(-50%); font-size: 10px; color: #9ca3af; font-family: monospace; z-index: 2; }
-    .seal {
-      position: absolute; bottom: 70px; right: 70px;
-      width: 90px; height: 90px; border-radius: 50%;
-      background: linear-gradient(135deg, ${trackColor}, #E879F9);
-      display: flex; align-items: center; justify-content: center;
-      color: white; font-weight: bold; font-size: 12px; text-align: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      transform: rotate(-12deg);
-      z-index: 2;
-    }
-    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-  </style>
-</head>
-<body>
-  <div class="cert">
-    <div class="watermark">Launchpad</div>
-    <div class="border"></div>
-    <div class="border-inner"></div>
-    <div class="content">
-      <div class="logo">Launchpad</div>
-      <div class="subtitle">Coding Education Platform</div>
-      <div class="title">Certificate of Completion</div>
-      <div class="body-text">This certifies that the bearer has successfully completed all required lessons, exercises, and quizzes in the track below, demonstrating proficiency in the fundamentals of the technology.</div>
-      <div class="name">${escapeHtml(name)}</div>
-      <div class="track-row">
-        <span class="track-icon">${trackIcon}</span>
-        <span class="track">${escapeHtml(trackName)} Track</span>
-      </div>
-      <div class="track-detail">${lessonCount} lessons · ${quizCount} quiz questions · Completed ${date}</div>
-      <div class="skills-box">
-        <div class="skills-title">Skills Mastered</div>
-        <ul class="skills-list">${skillsList}</ul>
-      </div>
-      <div class="signatures">
-        <div class="sig">
-          <div class="sig-line"></div>
-          <div class="sig-label">Launchpad</div>
-        </div>
-        <div class="sig">
-          <div class="sig-line"></div>
-          <div class="sig-label">Date · ${date}</div>
-        </div>
-      </div>
-    </div>
-    <div class="seal">VERIFIED<br/>${date.split(",")[0]}</div>
-    <div class="cert-id">Certificate ID: ${certId}</div>
-  </div>
-</body>
-</html>`;
-
-  // Open via shared utility — no auto-print, user clicks "Download Now".
-  openPrintableHtml(html, {
-    filename: `launchpad-certificate-${trackId}-${certId}`,
-    title: `Launchpad ${trackName} Certificate`,
-  });
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
 }

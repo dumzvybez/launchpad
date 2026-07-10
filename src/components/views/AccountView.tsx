@@ -324,7 +324,7 @@ function ShareAchievementsModal({
 
   const handlePng = async () => {
     setBusy("png"); setStatus(null);
-    const r = await downloadHtmlAsPng(cardInnerHtml, filename, { width: 1200, height: 675 });
+    const r = await downloadHtmlAsPng(cardInnerHtml, filename, { width: 1123, height: 794 });
     setBusy(null);
     setStatus({ ok: r.ok, msg: r.ok ? "PNG downloaded." : `Failed: ${r.error}` });
     if (r.ok) markShared();
@@ -332,7 +332,7 @@ function ShareAchievementsModal({
 
   const handleCopyClipboard = async () => {
     setBusy("clipboard"); setStatus(null);
-    const r = await copyHtmlAsPng(cardInnerHtml, { width: 1200, height: 675 });
+    const r = await copyHtmlAsPng(cardInnerHtml, { width: 1123, height: 794 });
     setBusy(null);
     setStatus({
       ok: r.ok,
@@ -371,7 +371,7 @@ function ShareAchievementsModal({
           <button onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground p-1 rounded" aria-label="Close">✕</button>
         </div>
         <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
-          Generate a beautiful 1200×675 shareable card showing off your badges and progress.
+          Generate a beautiful A4-landscape shareable card showing off your badges and progress.
         </p>
 
         {/* Mini preview */}
@@ -407,30 +407,35 @@ function ShareAchievementsModal({
   );
 }
 
+// v5.924 PDF FIX (Mode B + Mode D): see DashboardView SHARE_CARD_CSS for the
+// full rationale. Replaced non-standard `@page { size: 1200px 675px }` with
+// `A4 landscape; margin: 0`; card sized in mm to the A4 landscape printable
+// area; print-color-adjust:exact added so the dark gradient bg actually prints.
 const ACHIEVEMENTS_CARD_CSS = `
-  @page { size: 1200px 675px; margin: 0; }
+  @page { size: A4 landscape; margin: 0; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
     width: 100%; min-height: 100vh;
     background: #0a0a0a;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     display: flex; align-items: center; justify-content: center;
-    padding: 20px;
+    padding: 0;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
   .card {
-    width: 1200px; height: 675px;
+    width: 297mm; height: 210mm;
     background:
       radial-gradient(circle at 15% 20%, rgba(45, 212, 191, 0.18) 0%, transparent 40%),
       radial-gradient(circle at 85% 75%, rgba(232, 121, 249, 0.15) 0%, transparent 45%),
       radial-gradient(circle at 50% 50%, rgba(252, 211, 77, 0.06) 0%, transparent 60%),
       linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #312E81 100%);
     color: white;
-    padding: 48px 56px;
+    padding: 40px 48px;
     position: relative;
     overflow: hidden;
-    border-radius: 16px;
-    box-shadow: 0 25px 80px rgba(0,0,0,0.5);
+    border-radius: 0;
     display: flex; flex-direction: column;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
   .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; position: relative; z-index: 1; }
   .brand { display: flex; align-items: center; gap: 12px; }
@@ -450,9 +455,18 @@ const ACHIEVEMENTS_CARD_CSS = `
   .badges { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; align-content: flex-start; position: relative; z-index: 1; }
   .badge { padding: 8px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 18px; font-size: 13px; font-weight: 500; }
   .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); position: relative; z-index: 1; }
-  .tagline { font-size: 13px; opacity: 0.7; font-style: italic; }
-  .url { font-size: 11px; opacity: 0.5; font-family: monospace; }
-  @media print { body { background: white; padding: 0; } .card { box-shadow: none; border-radius: 0; } }
+  .tagline { font-size: 13px; opacity: 0.85; font-style: italic; }
+  .url { font-size: 11px; opacity: 0.8; font-family: monospace; }
+  @media screen { body { background: #0a0a0a; padding: 20px; } .card { border-radius: 16px; box-shadow: 0 25px 80px rgba(0,0,0,0.5); } }
+  /* v5.924: keep dark card bg + print-color-adjust in print (was missing →
+     white text on white invisible card). Bump opacity for contrast. */
+  @media print {
+    body { background: white; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .card { box-shadow: none; border-radius: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .stat-label { opacity: 0.85; }
+    .subtitle { opacity: 0.85; }
+    .badges-title { opacity: 0.85; }
+  }
 `;
 
 function buildAchievementsCardInnerHtml(opts: {

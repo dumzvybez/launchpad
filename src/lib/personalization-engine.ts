@@ -1345,10 +1345,18 @@ function linkTasksToLessons(phases: GeneratedPhase[], languageIds: string[]): Ge
 
   return phases.map((phase) => ({
     ...phase,
+    // v5.925 FIX (BUG 3): only stamp lessonIds onto tasks in "Second Language: X"
+    // phases. Previously this linked lessons to tasks in EVERY phase (Foundations,
+    // Milestone, AI Bonus, Capstone, etc.), which — combined with the store's
+    // auto-completion loop — caused lesson/quiz completions to auto-complete
+    // roadmap tasks in phases with no genuine 1:1 language-track mapping. Now
+    // only "Second Language: X" phases get lessonId links; all other phases
+    // keep lessonId undefined and must be completed manually via toggleTask.
     modules: phase.modules.map((mod) => ({
       ...mod,
       tasks: mod.tasks.map((task) => {
         if (task.lessonId) return task; // already linked
+        if (!/^Second Language:\s/.test(phase.title)) return task; // v5.925: skip non-language phases
         const text = `${task.title} ${task.brief} ${task.why}`;
         for (const entry of compiled) {
           if (entry.patterns.some((p) => p.test(text))) {

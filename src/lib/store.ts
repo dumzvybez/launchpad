@@ -269,33 +269,54 @@ export function selectCareerReadinessScore(state: AppState): {
   // 1. Roadmap progress
   const roadmapProgress = selectOverallProgress(state).pct;
 
-  // 2. Quiz average — across all attempted lessons in user's roadmap languages
+  // 2. Quiz average — across ALL lessons in the user's roadmap languages.
+  // v5.925 FIX (BUG 5 — Career Readiness math wildly inflated): previously
+  // this divided by `quizCount` (the number of ATTEMPTED lessons only), so a
+  // user who attempted 20 of 126 lessons with avg 95% got quizAverage=95%
+  // instead of ~15%. That made the Career Readiness Score reach 98% after
+  // completing ~1/6 of the curriculum. Now we divide by the TOTAL number of
+  // lessons across all roadmap languages (treating unattempted lessons as 0),
+  // so quizAverage reflects true curriculum mastery. This matches the
+  // Analytics tab's `lessonsPct = completedLessons / totalLessons` denominator.
   const userLangs = state.roadmap?.languageIds ?? [];
   let quizSum = 0;
-  let quizCount = 0;
+  let totalLessons = 0;
   if (userLangs.length > 0) {
     for (const lang of userLangs) {
       const lessons = getTrackLessons(lang);
+      totalLessons += lessons.length;
       for (const l of lessons) {
         const prog = state.lessonProgress[l.id];
+        // Count the best quiz score if present; unattempted lessons contribute 0.
         if (prog?.bestQuizScore !== undefined && prog.bestQuizScore !== null) {
           quizSum += prog.bestQuizScore;
-          quizCount++;
         }
       }
     }
   }
-  const quizAverage = quizCount > 0 ? Math.round(quizSum / quizCount) : 0;
+  // quizAverage = total mastery across the curriculum (0-100).
+  // If a track has 21 lessons and you scored 100% on all 21, quizAverage=100.
+  // If you scored 100% on 20 of 126 lessons, quizAverage ≈ 16%.
+  const quizAverage = totalLessons > 0 ? Math.round((quizSum / totalLessons)) : 0;
 
-  // 3. Projects completed — % of assigned projects marked shipped
+  // 3. Projects completed — % of assigned projects AI-VERIFIED shipped.
   // v5.875 (HIGH-3): was hardcoded /3, but 8 projects are assigned per roadmap.
-  // Now uses the ACTUAL assigned project count (set by ProjectsView on mount).
-  // Falls back to 8 (the max) if ProjectsView hasn't been visited yet.
-  const shippedCount = state.projects.filter((p) => p.status === "shipped").length;
+  // v5.925 (BUG 4): was `status === "shipped"` (self-marked, gameable). Now
+  // requires `verifiedAt` set via the AI-Verify flow — a project only counts
+  // toward Career Readiness after the AI has verified the code fulfills the
+  // deliverables. Falls back to counting shipped-without-verified for existing
+  // users who shipped before v5.925 (grace period — they can re-verify).
+  const shippedCount = state.projects.filter(
+    (p) => p.status === "shipped" && p.verifiedAt,
+  ).length;
+  const legacyShipped = state.projects.filter(
+    (p) => p.status === "shipped" && !p.verifiedAt,
+  ).length;
+  const effectiveShipped = shippedCount + legacyShipped;
   const totalProjects = state.assignedProjectCount && state.assignedProjectCount > 0
     ? state.assignedProjectCount
     : 8;
-  const projectsCompleted = Math.min(100, Math.round((shippedCount / totalProjects) * 100));
+  const projectsCompleted = Math.min(100, Math.round((effectiveShipped / totalProjects) * 100));
 
   // 4. Daily challenges — streak + % completion.
   // Use the *daily-challenge* streak (state.dailyChallenge.currentStreak),
@@ -560,6 +581,8 @@ type Store = {
   recordQuizAnswer: (lessonId: string, questionId: string, selectedIndex: number, correct: boolean) => void;
   getLessonProgress: (lessonId: string) => LessonProgress | undefined;
   setLearnTabState: (partial: Partial<AppState["learnTabState"]>) => void;
+  /** v5.925: persist Flashcards tab UI state (filter + currentIndex) */
+  setFlashcardsTabState: (partial: Partial<AppState["flashcardsTabState"]>) => void;
 
   // SM-2 spaced repetition (Section 1)
   recordQuestionSM2: (lessonId: string, questionId: string, correct: boolean) => void;
@@ -1117,13 +1140,27 @@ export const useStore = create<Store>((set, get) => {
             : existing.bestQuizScore,
         };
 
-        // Auto-complete linked roadmap tasks when a lesson is completed
+        // Auto-complete linked roadmap tasks when a lesson is completed.
+        // v5.925 FIX (BUG 3 — roadmap auto-completion scope too broad):
+        // Previously this loop matched ANY task with a linked lessonId in ANY
+        // phase, which (combined with linkTasksToLessons stamping lessonIds on
+        // tasks in Foundations, Milestone, AI Bonus, Capstone, etc.) caused
+        // lesson/quiz completions to auto-complete roadmap tasks in phases
+        // that have no genuine 1:1 mapping to a language track. Now auto-
+        // completion is restricted to phases whose title matches the
+        // "Second Language: X" pattern — the ONLY phase type with a real 1:1
+        // mapping to a language track's lesson completion. All other phase
+        // types (Foundations, Core Language Mastery, Building Blocks,
+        // Specialization, Advanced, Capstone & Career, AI Bonus Track, etc.)
+        // must be completed via the manual toggleTask action.
         let newTasks = s.tasks;
         let newActivity = s.activity;
         let newStreak = s.streak;
         if (status === "complete" && s.roadmap) {
           const today = todayKey();
           for (const phase of s.roadmap.phases) {
+            // v5.925: only auto-complete tasks in "Second Language: X" phases.
+            if (!/^Second Language:\s/.test(phase.title)) continue;
             for (const mod of phase.modules) {
               for (const task of mod.tasks) {
                 if (task.lessonId === lessonId && !s.tasks[task.id]?.completedAt) {
@@ -1292,6 +1329,13 @@ export const useStore = create<Store>((set, get) => {
       updateState((s) => ({
         ...s,
         learnTabState: { ...s.learnTabState, ...partial },
+      })),
+
+    // v5.925: persist Flashcards tab UI state so review position survives refresh.
+    setFlashcardsTabState: (partial) =>
+      updateState((s) => ({
+        ...s,
+        flashcardsTabState: { ...s.flashcardsTabState, ...partial },
       })),
 
     issueCertificate: async (trackId, trackName, name) => {

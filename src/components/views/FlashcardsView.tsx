@@ -18,8 +18,23 @@ export function FlashcardsView() {
   const ensureFlashcardsForTrack = useStore((s) => s.ensureFlashcardsForTrack);
   const roadmap = useStore((s) => s.state.roadmap);
 
-  const [filter, setFilter] = useState<FilterMode>("due");
-  const [currentIndex, setCurrentIndex] = useState(0);
+  // v5.925 FIX (BUG 6 — flashcard progress not persisting): filter +
+  // currentIndex now read from / write to the persisted store instead of
+  // local useState, so review position survives a page refresh. `flipped`,
+  // `showHint`, and `sessionStats` stay as useState (ephemeral UI state that
+  // shouldn't persist — you don't want to resume mid-flip).
+  const persistedFilter = useStore((s) => s.state.flashcardsTabState.filter);
+  const persistedIndex = useStore((s) => s.state.flashcardsTabState.currentIndex);
+  const setFlashcardsTabState = useStore((s) => s.setFlashcardsTabState);
+
+  const filter: FilterMode = persistedFilter;
+  const currentIndex = persistedIndex;
+  const setFilter = (f: FilterMode) => setFlashcardsTabState({ filter: f, currentIndex: 0 });
+  const setCurrentIndex = (updater: number | ((i: number) => number)) => {
+    const next = typeof updater === "function" ? updater(persistedIndex) : updater;
+    setFlashcardsTabState({ currentIndex: next });
+  };
+
   const [flipped, setFlipped] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [sessionStats, setSessionStats] = useState({ correct: 0, incorrect: 0 });

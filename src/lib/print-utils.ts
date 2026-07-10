@@ -40,6 +40,17 @@ type PrintableOptions = {
 export function wrapHtmlWithDownloadBar(html: string, opts: PrintableOptions = {}): string {
   const { filename = "launchpad-document", title = "Launchpad" } = opts;
   // Inject the button bar right after <body> opening tag, OR prepend if no <body>.
+  //
+  // v5.924 (PDF fix — Mode C): We NO LONGER inject an unconditional
+  // `@page { margin: 0; }`. That rule cascaded over every surface's own
+  // @page declaration (e.g. the resume's `@page { size: A4; margin: 12mm }`)
+  // and stripped its margins to 0, causing content to print flush to the
+  // page edges and split across pages. Now we only set @page margin:0 when
+  // the surface HTML does NOT already declare an @page rule of its own.
+  const hasOwnPageRule = /@page\s*\{/i.test(html);
+  const pageRule = hasOwnPageRule
+    ? "" // let the surface's @page win (no competing rule injected)
+    : "  @page { margin: 0; }\n";
   const buttonBar = `
 <div id="lp-download-bar" style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#0d1117;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
   <span style="font-weight:600;">${escapeHtml(title)}</span>
@@ -56,9 +67,12 @@ export function wrapHtmlWithDownloadBar(html: string, opts: PrintableOptions = {
   @media print {
     body { padding-top: 0 !important; }
     #lp-download-bar { display: none !important; }
+    /* v5.924: force background graphics to print on ALL surfaces by default,
+       so dark/gradient cards and certificate seals don't vanish into white.
+       Individual surfaces may also set this locally; this is the safety net. */
+    html, body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   }
-  @page { margin: 0; }
-</style>
+${pageRule}}</style>
 <script>
   // Print the document title (used as the default filename by the browser's
   // "Save as PDF" dialog) — make it match the requested filename.

@@ -26,6 +26,7 @@ import { LANGUAGE_MAP, CAREER_MAP } from "@/lib/career-data";
 // dailyChallengePool (which already has task IDs from v2) and look them up
 // via a lazy import only on the client.
 import { openPrintableHtml, copyHtmlAsPng, downloadHtmlAsPng } from "@/lib/print-utils";
+import { CertificateHub } from "@/components/views/CertificateHub";
 
 export function DashboardView() {
   const state = useStore((s) => s.state);
@@ -354,6 +355,9 @@ export function DashboardView() {
         </div>
       </GlassCard>
 
+      {/* v5.924: Certificate Hub — unified list of all earned certificates. */}
+      <CertificateHub />
+
       {/* AI Tutor CTA */}
       <GlassCard className="p-5 bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 border-violet-500/30">
         <div className="flex items-center gap-4">
@@ -591,7 +595,7 @@ function ShareProgressCardModal({ onClose }: { onClose: () => void }) {
     setBusy("png"); setStatus(null);
     // v5.77 fix: sanitize filename to filesystem-safe characters.
     const safeFilename = (profile.name || "learner").replace(/[^a-zA-Z0-9\s-]/g, "").replace(/\s+/g, "-").toLowerCase() || "learner";
-    const r = await downloadHtmlAsPng(cardInnerHtml, `launchpad-progress-${safeFilename}`, { width: 1200, height: 675 });
+    const r = await downloadHtmlAsPng(cardInnerHtml, `launchpad-progress-${safeFilename}`, { width: 1123, height: 794 });
     setBusy(null);
     setStatus({ ok: r.ok, msg: r.ok ? "PNG downloaded." : `Failed: ${r.error}` });
     if (r.ok) markShared();
@@ -599,7 +603,7 @@ function ShareProgressCardModal({ onClose }: { onClose: () => void }) {
 
   const handleCopyClipboard = async () => {
     setBusy("clipboard"); setStatus(null);
-    const r = await copyHtmlAsPng(cardInnerHtml, { width: 1200, height: 675 });
+    const r = await copyHtmlAsPng(cardInnerHtml, { width: 1123, height: 794 });
     setBusy(null);
     setStatus({
       ok: r.ok,
@@ -655,7 +659,7 @@ function ShareProgressCardModal({ onClose }: { onClose: () => void }) {
           <button onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground p-1 rounded" aria-label="Close">✕</button>
         </div>
         <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
-          Generate a beautiful 1200×675 shareable card for Twitter/X, LinkedIn, or Instagram. Pick the format you need:
+          Generate a beautiful A4-landscape shareable card for Twitter/X, LinkedIn, or Instagram. Pick the format you need:
         </p>
 
         {/* Card preview (mini) */}
@@ -700,30 +704,40 @@ function ShareProgressCardModal({ onClose }: { onClose: () => void }) {
 }
 
 // Shared CSS for the share card (used by both PNG rasterizer and printable page)
+// v5.924 PDF FIX (Mode B + Mode D):
+//   - Replaced non-standard `@page { size: 1200px 675px }` (which browsers
+//     IGNORE in the print dialog — they use the user's default paper instead,
+//     causing the fixed 1200px-wide card to overflow horizontally and split
+//     into 2 pages). Now locked to `A4 landscape; margin: 0` and the card is
+//     sized in mm to the A4 landscape printable area (297×210mm).
+//   - Added `print-color-adjust: exact` so the dark gradient card background
+//     and colored accents actually print (otherwise white text on white =
+//     invisible card).
 const SHARE_CARD_CSS = `
-  @page { size: 1200px 675px; margin: 0; }
+  @page { size: A4 landscape; margin: 0; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
     width: 100%; min-height: 100vh;
     background: #0a0a0a;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     display: flex; align-items: center; justify-content: center;
-    padding: 20px;
+    padding: 0;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
   .card {
-    width: 1200px; height: 675px;
+    width: 297mm; height: 210mm;
     background:
       radial-gradient(circle at 15% 20%, rgba(45, 212, 191, 0.18) 0%, transparent 40%),
       radial-gradient(circle at 85% 75%, rgba(232, 121, 249, 0.15) 0%, transparent 45%),
       radial-gradient(circle at 50% 50%, rgba(252, 211, 77, 0.06) 0%, transparent 60%),
       linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #312E81 100%);
     color: white;
-    padding: 56px 64px;
+    padding: 42px 50px;
     position: relative;
     overflow: hidden;
-    border-radius: 16px;
-    box-shadow: 0 25px 80px rgba(0,0,0,0.5);
+    border-radius: 0;
     display: flex; flex-direction: column;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
   .card::before {
     content: ""; position: absolute; inset: 0;
@@ -767,10 +781,19 @@ const SHARE_CARD_CSS = `
   .lang-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
   .lang-chip { font-size: 12px; padding: 4px 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; font-weight: 500; }
   .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.06); position: relative; z-index: 1; }
-  .tagline { font-size: 14px; opacity: 0.7; font-style: italic; }
-  .url { font-size: 12px; opacity: 0.5; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px; }
-  @media screen { body { background: #0a0a0a; } }
-  @media print { body { background: white; padding: 0; } .card { box-shadow: none; border-radius: 0; } }
+  .tagline { font-size: 14px; opacity: 0.85; font-style: italic; }
+  .url { font-size: 12px; opacity: 0.75; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px; }
+  @media screen { body { background: #0a0a0a; padding: 20px; } .card { border-radius: 16px; box-shadow: 0 25px 80px rgba(0,0,0,0.5); } }
+  /* v5.924: keep the dark card background + print-color-adjust in print.
+     Previously @media print set body{background:white} WITHOUT print-color-
+     adjust → the gradient card bg was dropped → white text on white. */
+  @media print {
+    body { background: white; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .card { box-shadow: none; border-radius: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .stat-label { opacity: 0.8; }
+    .url { opacity: 0.85; }
+    .user-meta { opacity: 0.8; }
+  }
 `;
 
 function buildShareCardInnerHtml(opts: {

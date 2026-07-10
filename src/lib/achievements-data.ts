@@ -109,8 +109,12 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "🎬",
     rarity: "common",
     xp: 75,
-    // Tracked when user expands video supplements — approximation: completed lessons × 0.5
-    check: (s: AppState) => Object.values(s.lessonProgress).filter((p) => p.status === "complete").length >= 5,
+    // v5.925 FIX (BUG 2): previously counted completed LESSONS (approximation),
+    // so the badge fired after 5 quiz passes with zero video watches. Now reads
+    // the real video-watch count incremented by YouTubeEmbed on expand/play.
+    check: (s: AppState) =>
+      typeof window !== "undefined" &&
+      Number(window.localStorage.getItem("launchpad:video-watched-count") ?? "0") >= 5,
   },
   {
     id: "code-typer",
@@ -119,8 +123,12 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "💻",
     rarity: "common",
     xp: 75,
-    // Approximation: 10+ completed lessons means user has likely run code 10+ times
-    check: (s: AppState) => Object.values(s.lessonProgress).filter((p) => p.status === "complete").length >= 10,
+    // v5.925 FIX (BUG 2): previously counted completed LESSONS (approximation),
+    // so the badge fired after 10 quiz passes with zero code runs. Now reads
+    // the real code-run count incremented by InlineCodeEditor's handleRun.
+    check: (s: AppState) =>
+      typeof window !== "undefined" &&
+      Number(window.localStorage.getItem("launchpad:code-run-count") ?? "0") >= 10,
   },
   {
     id: "community-member",

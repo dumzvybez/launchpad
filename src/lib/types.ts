@@ -290,6 +290,9 @@ export type ProjectTracker = {
   notes?: string;
   startedAt?: string;
   shippedAt?: string;
+  /** v5.925: ISO timestamp when the project was AI-verified. A project counts
+   * toward Career Readiness Score only if this is set (AI-Verify flow). */
+  verifiedAt?: string;
 };
 
 export type FocusSession = {
@@ -500,6 +503,12 @@ export type AppState = {
     selectedTrack: string | null;
     selectedLessonId: string | null;
     tab: "tracks" | "lesson" | "quiz" | "result";
+  };
+  /** v5.925: Flashcards tab persistent UI state — fixes review-position reset
+   * on refresh. Mirrors learnTabState. */
+  flashcardsTabState: {
+    filter: string; // "all" | "due" | trackId
+    currentIndex: number;
   };
   /** Per-track certificate metadata (keyed by track id) */
   certificates: Record<string, {
