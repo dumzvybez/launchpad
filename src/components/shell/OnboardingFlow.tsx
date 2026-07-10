@@ -145,12 +145,16 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
       ];
 
       try {
-        setGenStage(0); await new Promise((r) => setTimeout(r, 350));
-        setGenStage(1); await new Promise((r) => setTimeout(r, 350));
-        setGenStage(2); await new Promise((r) => setTimeout(r, 300));
-        setGenStage(3); await new Promise((r) => setTimeout(r, 300));
-        setGenStage(4); await new Promise((r) => setTimeout(r, 300));
-        setGenStage(5); await new Promise((r) => setTimeout(r, 300));
+        // v5.927 (#8): slower, more deliberate pacing for the generation-stage
+        // labels so they don't advance too abruptly. This is a display/UX choice
+        // only — actual generation computation is instant (deterministic engine).
+        // Step 7 (time commitment) is unchanged.
+        setGenStage(0); await new Promise((r) => setTimeout(r, 550));
+        setGenStage(1); await new Promise((r) => setTimeout(r, 550));
+        setGenStage(2); await new Promise((r) => setTimeout(r, 500));
+        setGenStage(3); await new Promise((r) => setTimeout(r, 500));
+        setGenStage(4); await new Promise((r) => setTimeout(r, 500));
+        setGenStage(5); await new Promise((r) => setTimeout(r, 500));
         setGenStage(6);
         const roadmap = generateRoadmap(input, missingPrereqs);
         const validation = validateRoadmap(roadmap, input);
@@ -158,7 +162,7 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
           console.warn("[onboarding] roadmap validation issues:", validation.errors);
         }
         setGenStage(7);
-        await new Promise((r) => setTimeout(r, 400));
+        await new Promise((r) => setTimeout(r, 550));
         setGeneratedRoadmap(roadmap);
         setIsGenerating(false);
         setStep(8); // advance to plan preview

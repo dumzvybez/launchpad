@@ -27,6 +27,7 @@ import { ALL_LANGUAGE_INFO } from "@/lib/lessons-meta";
 import { getLessonById } from "@/lib/lessons-data";
 import { openPrintableHtml } from "@/lib/print-utils";
 import { openCareerCertificatePdf } from "@/lib/certificate-pdf";
+import { CareerReadinessCard } from "@/components/views/CareerReadinessCard";
 import type { AppState, GeneratedRoadmap } from "@/lib/types";
 
 export function CareerView() {
@@ -96,88 +97,13 @@ export function CareerView() {
         </GlassCard>
       )}
 
-      {/* Readiness score — Section 5.2: 5 dimensions, color thresholds */}
-      <GlassCard className={cn("p-5", readinessGlow)}>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold flex items-center gap-2">
-            <Target className="h-4 w-4" /> Career Readiness Score
-          </h2>
-          <span className="text-[10px] text-muted-foreground font-mono">
-            {/* v5.926 (A2): 4 components — Challenges removed. */}
-            weighted: roadmap {Math.round(readiness.weights.roadmap * 100)}% · knowledge {Math.round(readiness.weights.quiz * 100)}% · projects {Math.round(readiness.weights.projects * 100)}%{readiness.weights.interviews > 0 ? ` · interviews ${Math.round(readiness.weights.interviews * 100)}%` : ""}
-          </span>
-        </div>
-        <div className="flex items-center gap-4 mb-4">
-          <div className={cn("text-4xl font-bold font-mono bg-gradient-to-br bg-clip-text text-transparent", readinessColor)}>
-            {readiness.overall}%
-          </div>
-          <div className="flex-1">
-            <ProgressBar value={readiness.overall} className="h-3" />
-            <p className="text-[10px] text-muted-foreground mt-1">
-              {readiness.overall >= 100
-                ? "🏆 100% Career Readiness — claim your Career Master Certificate below!"
-                : readiness.overall >= 90
-                  ? "🎉 You're interview-ready! Consider applying to your first role."
-                  : readiness.overall >= 71
-                    ? "Almost job-ready — push to the end"
-                    : readiness.overall >= 41
-                      ? "Making progress — focus on the lowest dimension below"
-                      : "Just getting started — keep going!"}
-            </p>
-          </div>
-        </div>
-        {/* v5.926 (A2): 4 dimensions (Challenges removed; Interview transparent). */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-          <div>
-            <div className="text-[10px] uppercase text-muted-foreground flex items-center gap-1">Roadmap</div>
-            <div className="font-mono font-semibold">{readiness.roadmapProgress}%</div>
-            <ProgressBar value={readiness.roadmapProgress} className="h-1 mt-1" />
-          </div>
-          <div>
-            <div className="text-[10px] uppercase text-muted-foreground flex items-center gap-1">Knowledge 📚</div>
-            <div className="font-mono font-semibold">{readiness.quizAverage}%</div>
-            <ProgressBar value={readiness.quizAverage} className="h-1 mt-1" />
-          </div>
-          <div>
-            <div className="text-[10px] uppercase text-muted-foreground flex items-center gap-1">Projects 🔨</div>
-            <div className="font-mono font-semibold">{readiness.projectsCompleted}%</div>
-            <ProgressBar value={readiness.projectsCompleted} className="h-1 mt-1" />
-          </div>
-          <div>
-            <div className="text-[10px] uppercase text-muted-foreground flex items-center gap-1">Interviews 🎤</div>
-            {/* v5.926 (A2): transparent Interview scoring — show sessions + questions. */}
-            {readiness.interviewScore === null ? (
-              <>
-                <div className="font-mono font-semibold text-muted-foreground">—</div>
-                <div className="text-[9px] text-muted-foreground mt-0.5">No sessions yet</div>
-              </>
-            ) : (
-              <>
-                <div className="font-mono font-semibold">{readiness.interviewScore}%</div>
-                <div className="text-[9px] text-muted-foreground mt-0.5">
-                  {readiness.interviewSessions} session{readiness.interviewSessions === 1 ? "" : "s"} · ~{readiness.interviewQuestions} Q answered
-                </div>
-                <ProgressBar value={readiness.interviewScore ?? 0} className="h-1 mt-1" />
-              </>
-            )}
-          </div>
-        </div>
+      {/* v5.927 (#1): Career Readiness — now uses the SHARED CareerReadinessCard
+          component (same as the Dashboard). One source of truth, no duplicate. */}
+      <CareerReadinessCard variant="full" />
 
-        {/* 90%+ banner per Section 5.2 */}
-        {readiness.overall >= 90 && readiness.overall < 100 && (
-          <div className="mt-4 p-3 rounded-lg bg-gradient-to-r from-amber-500/15 to-yellow-500/10 border border-amber-500/30 text-xs text-amber-700 dark:text-amber-300">
-            🎉 You&apos;re interview-ready! Consider applying to your first role.
-          </div>
-        )}
-        {readiness.overall >= 100 && (
-          <div className="mt-4 p-3 rounded-lg bg-gradient-to-r from-amber-500/20 to-yellow-500/15 border border-amber-500/40 text-xs text-amber-700 dark:text-amber-300 font-medium">
-            🏆 100% Career Readiness! Your Career Master Certificate is unlocked below.
-          </div>
-        )}
-
-        {/* Suggested Next Steps modal trigger */}
-        <SuggestedNextSteps readiness={readiness} />
-      </GlassCard>
+      {/* Suggested Next Steps trigger (kept separate from the shared card so
+          the shared component stays Dashboard-reusable). */}
+      <SuggestedNextSteps readiness={readiness} />
 
       {/* Build My Resume button — Section 6.2 */}
       <GlassCard className="p-5 bg-gradient-to-br from-teal-500/10 to-violet-500/10 border-teal-500/30">

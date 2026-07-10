@@ -274,6 +274,7 @@ export function selectCareerReadinessScore(state: AppState): {
   interviewScore: number | null; // 0-100, or null if never used
   interviewSessions: number;     // v5.926: transparent count
   interviewQuestions: number;    // v5.926: approx questions answered
+  minInterviewQuestions: number; // v5.927: language-scaled minimum for warm-up
   overall: number;               // 0-100 weighted
   weights: { roadmap: number; quiz: number; projects: number; interviews: number };
 } {
@@ -307,25 +308,40 @@ export function selectCareerReadinessScore(state: AppState): {
     : 8;
   const projectsCompleted = Math.min(100, Math.round((verifiedCount / totalProjects) * 100));
 
-  // 4. Interview readiness — transparent scoring.
-  // v5.926 (A2): reports sessionsCompleted + questionsAnswered for UI
-  // transparency. A "session" = a chat conversation containing the Interview
-  // Mode kickoff message. "Questions answered" = approximated as the number
-  // of user messages in interview conversations (minus the kickoff message).
-  // Score = min(100, sessionsCompleted / 5 * 100). Only contributes when
-  // sessionsCompleted >= 1 (otherwise null — the dimension is hidden).
+  // 4. Interview readiness — transparent scoring with a language-scaled minimum.
+  // v5.927 (#2): the score now requires a MINIMUM number of answered questions
+  // before it "warms up" and contributes meaningfully. The minimum scales with
+  // the number of languages the user selected:
+  //   minQuestions = 10 × languageCount  (1 lang = 10 Q, 6 langs = 60 Q)
+  // Reasoning: a user studying 6 languages should demonstrate broader knowledge
+  // than a user studying 1. Below the minimum, the score is 0 and the UI shows
+  // transparent progress ("X/Y questions across Z sessions"). Above the minimum,
+  // the score scales linearly: minQuestions → 50%, 2× minQuestions → 100%.
+  // A "session" = a chat conversation containing the Interview Mode kickoff
+  // message. "Questions answered" = approximated as user messages (minus the
+  // kickoff). Only contributes when interviewSessions >= 1 (otherwise null).
   const interviewConversations = state.chatConversations.filter((c) =>
     c.messages.some((m) => m.content?.includes("I'm ready to start my mock interview")),
   );
   const interviewSessions = interviewConversations.length;
   const interviewQuestions = interviewConversations.reduce((sum, c) => {
-    // Count user messages after the kickoff (each ≈ one answered question).
     const userMsgs = c.messages.filter((m) => m.role === "user").length;
     return sum + Math.max(0, userMsgs - 1); // -1 for the kickoff message
   }, 0);
-  const interviewScore: number | null = interviewSessions > 0
-    ? Math.min(100, Math.round((interviewSessions / 5) * 100))
-    : null;
+  // v5.927 (#2): language-scaled minimum + linear warm-up.
+  const languageCount = Math.max(1, userLangs.length);
+  const minInterviewQuestions = 10 * languageCount;
+  let interviewScore: number | null;
+  if (interviewSessions === 0) {
+    interviewScore = null;
+  } else if (interviewQuestions < minInterviewQuestions) {
+    // Below minimum — score is 0 (warms up at minInterviewQuestions).
+    interviewScore = 0;
+  } else {
+    // Above minimum — linear scale: min → 50%, 2×min → 100%.
+    const ratio = (interviewQuestions - minInterviewQuestions) / minInterviewQuestions;
+    interviewScore = Math.min(100, Math.round(50 + ratio * 50));
+  }
 
   // v5.926 (A2): new 4-component weights (Challenges removed).
   // Without interviews: Roadmap 40% + Knowledge 40% + Projects 20% = 100%.
@@ -348,6 +364,7 @@ export function selectCareerReadinessScore(state: AppState): {
     interviewScore,
     interviewSessions,
     interviewQuestions,
+    minInterviewQuestions,
     overall,
     weights,
   };

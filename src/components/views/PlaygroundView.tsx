@@ -201,7 +201,7 @@ export function PlaygroundView() {
   const [output, setOutput] = useState<{ type: "log" | "error" | "warn" | "info"; text: string }[]>([]);
   const [running, setRunning] = useState(false);
   const [pyodideStatus, setPyodideStatus] = useState<string>("");
-  const [showExamples, setShowExamples] = useState(true);
+  const [showExamples, setShowExamples] = useState(false); // v5.927 (#4): default collapsed
   const [showExternalLinks, setShowExternalLinks] = useState(false);
   const [htmlPreview, setHtmlPreview] = useState<string | null>(null);
   const storeCode = useStore((s) => s.playgroundCode);
@@ -411,33 +411,32 @@ export function PlaygroundView() {
         </p>
       </div>
 
-      {/* Language selector — horizontal tabs */}
-      <div className="flex flex-wrap gap-1.5 p-1.5 rounded-xl bg-foreground/5">
-        {LANGUAGES.map((l) => (
-          <button
-            key={l.id}
-            onClick={() => setLanguage(l.id)}
-            aria-pressed={language === l.id}
-            className={cn(
-              "inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all",
-              language === l.id
-                ? "bg-background text-foreground shadow-sm border border-border/60"
-                : "text-muted-foreground hover:text-foreground hover:bg-foreground/5",
-            )}
+      {/* v5.927 (#4): compact language selector (dropdown) — replaces the
+          horizontal tab row that grew the Playground's footprint. */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative inline-flex items-center">
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value as Lang)}
+            className="appearance-none pl-9 pr-8 py-2 rounded-lg bg-foreground/5 border border-border/60 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
           >
-            <span aria-hidden="true">{l.icon}</span>
-            {l.label}
-          </button>
-        ))}
+            {LANGUAGES.map((l) => (
+              <option key={l.id} value={l.id}>{l.icon} {l.label}</option>
+            ))}
+          </select>
+          <span className="absolute left-3 text-base pointer-events-none">
+            {langConfig.icon}
+          </span>
+          <svg className="absolute right-2.5 h-4 w-4 text-muted-foreground pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" /></svg>
+        </div>
+        {/* Runtime info — inline with the selector */}
+        <div className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+          <Info className="h-3 w-3" aria-hidden="true" />
+          <span><strong className="text-foreground">{langConfig.label}:</strong> {langConfig.runtime}</span>
+        </div>
       </div>
 
-      {/* Runtime info for selected language */}
-      <div className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-        <Info className="h-3 w-3" aria-hidden="true" />
-        <span><strong className="text-foreground">{langConfig.label}:</strong> {langConfig.runtime}</span>
-      </div>
-
-      {/* Examples — moved ABOVE the editor so the editor + output can expand */}
+      {/* v5.927 (#4): examples default collapsed (showExamples starts false). */}
       <div className="rounded-xl border border-border/60 bg-card/40 overflow-hidden">
         <button
           onClick={() => setShowExamples(!showExamples)}
@@ -468,22 +467,8 @@ export function PlaygroundView() {
         )}
       </div>
 
-      {/* VS Code suggestion card */}
-      <GlassCard className="p-3.5 border-sky-500/30 bg-sky-500/5">
-        <div className="flex items-start gap-2.5">
-          <VSCode className="h-5 w-5 text-sky-500 shrink-0 mt-0.5" />
-          <div className="text-xs flex-1">
-            <p className="font-medium text-foreground mb-1">Use VS Code for a better experience</p>
-            <p className="text-muted-foreground">
-              For larger projects, debugging, and IntelliSense, install{" "}
-              <a href="https://code.visualstudio.com/download" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">
-                Visual Studio Code
-              </a>{" "}
-              — the free, open-source editor from Microsoft. See your roadmap's <strong>&quot;VS Code Setup&quot;</strong> phase for a recommended extensions list, theme, and shortcuts.
-            </p>
-          </div>
-        </div>
-      </GlassCard>
+      {/* v5.927 (#4): VS Code suggestion card moved BELOW the editor+output
+          (was above it, pushing the editor down). */}
 
       {/* Editor + Output — full-width, large, side-by-side on desktop */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -661,6 +646,23 @@ export function PlaygroundView() {
           </div>
         )}
       </div>
+
+      {/* v5.927 (#4): VS Code suggestion card — now below the editor+output. */}
+      <GlassCard className="p-3.5 border-sky-500/30 bg-sky-500/5">
+        <div className="flex items-start gap-2.5">
+          <VSCode className="h-5 w-5 text-sky-500 shrink-0 mt-0.5" />
+          <div className="text-xs flex-1">
+            <p className="font-medium text-foreground mb-1">Use VS Code for a better experience</p>
+            <p className="text-muted-foreground">
+              For larger projects, debugging, and IntelliSense, install{" "}
+              <a href="https://code.visualstudio.com/download" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">
+                Visual Studio Code
+              </a>{" "}
+              — the free, open-source editor from Microsoft. See your roadmap&apos;s <strong>&quot;VS Code Setup&quot;</strong> phase for a recommended extensions list, theme, and shortcuts.
+            </p>
+          </div>
+        </div>
+      </GlassCard>
     </div>
   );
 }

@@ -1,13 +1,194 @@
 # Launchpad CHANGELOG
 
 This file merges all previous changelogs and adds the new
-**v5.926 (Post-v5.925 Regressions + Career Score Redesign + Streaming/Rate-Limit Removal + UX Polish)**
+**v5.927 (Career Score Consistency + Interview Scoring + Playground UX + Flashcard Fix + Polish)**
 entries. Entries are in reverse chronological order.
 
 > **Dual-format release notes (v5.926+):** This CHANGELOG.md is the TECHNICAL
 > developer-facing record. The user-facing plain-language summary shown in the
 > app's version-update popup lives in `src/lib/version-info.ts`. Both must be
 > updated on every release.
+
+---
+
+## v5.927 — Career Score Consistency + Interview Scoring + Playground UX + Flashcard Fix + Polish
+
+### 1. Career Readiness Score — Dashboard/Career tab consistency
+
+**Root cause:** The Dashboard had its own inline duplicate of the Career
+Readiness display (`DashboardView.tsx:154-217`) that still referenced the
+removed `challengeScore` dimension (deleted in v5.926). The Career tab had
+the correct 4-dimension version. Two implementations → they diverged.
+
+**Fix:** Created a shared `CareerReadinessCard` component
+(`src/components/views/CareerReadinessCard.tsx`) with a `variant` prop
+(`"full"` for Career tab, `"compact"` for Dashboard). Both views now render
+the same component — one source of truth. **Live-tested:** both show identical
+values (0% / Roadmap 0% / Knowledge 0% / Projects 0% / Interviews —) for the
+same user state.
+
+### 2. Interview scoring — minimum-question formula scaled to language count
+
+**Formula:** `minQuestions = 10 × languageCount` (1 lang = 10 Q, 6 langs = 60 Q).
+Below the minimum, the score is 0 and the UI shows transparent progress
+("X/Y questions across Z sessions"). Above the minimum, the score scales
+linearly: `minQuestions → 50%`, `2 × minQuestions → 100%`.
+
+**Reasoning:** A user studying 6 languages should demonstrate broader
+knowledge than a user studying 1. The old formula (`sessions / 5 × 100`)
+gave 40% for "a few questions" in one session with no context. The new
+formula requires a meaningful volume of questions scaled to the user's
+curriculum breadth before the score warms up.
+
+**Added:** `minInterviewQuestions` to the `selectCareerReadinessScore` return
+type. The `CareerReadinessCard` UI now shows "X/Y Q · Z sessions" when below
+the minimum, and "Z sessions · X Q answered" when above.
+
+### 3. Career Readiness formula audit (all 4 components)
+
+**Roadmap:** `selectOverallProgress(state).pct` — dynamic (computed from
+completed tasks / total tasks in the user's roadmap phases). No fixed
+denominator. ✓ Clean.
+
+**Knowledge (quizAverage):** `quizSum / totalLessons` where `totalLessons` =
+sum of `getTrackLessons(lang).length` across all roadmap languages. Dynamic
+per user. ✓ Clean (v5.925 fixed the old `quizCount` attempted-only denominator).
+
+**Projects:** `verifiedCount / totalProjects` where `totalProjects =
+state.assignedProjectCount ?? 8`. The fallback `8` is a fixed default, but
+only applies when `ProjectsView` hasn't been visited yet (it sets the actual
+count on mount). ✓ Clean — the `8` is a reasonable default, not a hidden
+fixed denominator for users who have visited the Projects tab.
+
+**Interviews:** `interviewScore` based on `interviewQuestions` vs.
+`minInterviewQuestions = 10 × languageCount`. Dynamic per user's language
+count. ✓ Clean — no fixed denominator.
+
+**No hidden fixed denominators found** in any of the 4 components.
+
+### 4. Playground UX improvements
+
+- Replaced the horizontal language tab row with a compact `<select>` dropdown
+  (icon + label per option). Reduces the Playground's vertical footprint.
+- Moved the "Use VS Code for a better experience" card from above the editor
+  to below the editor+output section.
+- Defaulted `showExamples` to `false` (was `true`) — example code now starts
+  collapsed, expandable on demand.
+- Runtime info moved inline with the dropdown.
+
+### 5. Flashcard persistence — third attempt (deeper investigation)
+
+**Root cause (distinct from v5.925 + v5.926):** On tab-switch remount,
+`FlashcardsView` unmounts and remounts. The `ensureFlashcardsForTrack` effect
+ran on every remount, potentially mutating the `flashcards` array reference
+(even when no new cards were added, the store's `updateState` creates a new
+state object). This caused `filteredCards` to recompose, and the persisted
+`currentIndex` could point beyond the new array bounds → `currentCard` was
+undefined → the UI appeared to "reset".
+
+**Fix (two-part):**
+1. **Clamp without resetting:** `currentIndex = Math.min(persistedIndex,
+   filteredCards.length - 1)` — preserves the user's position as closely as
+   possible instead of resetting to 0 when the deck shrinks.
+2. **Guard the ensure effect:** Added a `useRef<Set<string>>` so
+   `ensureFlashcardsForTrack` only runs ONCE per track per page load, not on
+   every remount. This prevents unnecessary state mutations on tab-switch.
+
+**Live-tested BOTH cases:**
+- Full refresh: set `{filter:"all", currentIndex:3}` via UI → reloaded →
+  state survived as `{filter:"all", currentIndex:3}`. ✓
+- Tab-switch-and-return: set `{filter:"all", currentIndex:3}` via UI →
+  switched to Dashboard → switched back to Flashcards → state survived as
+  `{filter:"all", currentIndex:3}`. ✓
+
+### 6. Footer cleanup
+
+Removed "Built by Dumindu Dulara Wanasinghe" + portfolio link. Changed the
+avatar letter from "D" to "L". Centered the remaining items (Launchpad © 2026,
+Privacy Policy, Help Centre, GitHub Repo, ⌘K command palette hint) using
+`justify-center`.
+
+### 7. Onboarding URL consistency
+
+Added `window.history.replaceState(null, "", "/onboarding")` in the AppShell
+when the onboarding flow is showing. The address bar now consistently shows
+`/onboarding` throughout the entire flow (was showing whatever the user
+landed on, usually `/`).
+
+### 8. Onboarding step 8 generation-stage pacing
+
+Increased the `setTimeout` delays between generation-stage label advances
+from 300-350ms to 500-550ms. The stages now advance at a more deliberate,
+readable pace. **Step 7 (time commitment) unchanged.** Actual generation
+computation speed is unaffected — the deterministic engine is instant; only
+the display pacing changed.
+
+### 9. Version Update popup evolution
+
+- **No count lines:** removed the "X items" count above each category.
+- **Liquid-glass styling:** category cards now use `bg-white/5
+  backdrop-blur-md border border-white/15` (genuine frosted glass) instead of
+  flat solid colors.
+- **Version history:** the popup now shows ALL versions from `version-info.ts`.
+  The latest version is expanded by default; older versions are listed but
+  collapsed — click to expand to the same detail view.
+- **Settings entry point:** added a "What's New" button in Settings that
+  reopens the popup anytime via a `forceOpen` prop.
+- **Container redesigned:** multi-version format with collapsible version
+  sections + frosted liquid-glass cards throughout.
+
+### 10. Five liquid-glass CSS patterns integrated
+
+All 5 patterns added to `globals.css` as utility classes, adapted to the
+dark theme (using `hsl(var(--primary))`, `hsl(var(--foreground))`, etc. —
+NOT the reference's literal light-theme hex values):
+
+1. **Segmented toggle** (`.lp-segmented`): iOS-style sliding indicator.
+   Candidate: difficulty selection, mobile bottom nav. Available for use.
+2. **Icon-slide button** (`.lp-btn-icon-slide`): arrow slides in on hover.
+   Candidate: onboarding CTAs. Available for use.
+3. **Toggle switch** (`.lp-toggle`): "on" color uses `hsl(var(--primary))`
+   (not green). Available to replace the app's existing toggle where used.
+4. **Frosted glass card** (`.lp-glass-aurora-bg`): **Comparison report:**
+   the app's existing `.glass-elevated` class is already equivalent (uses
+   `backdrop-filter: blur(28px) saturate(180%)` + translucent bg + border).
+   The reference pattern's `blur(14px)` is actually lighter. The new
+   `.lp-glass-aurora-bg` adds an aurora radial-gradient backdrop option,
+   but the existing glass card is NOT replaced — it's already better.
+5. **Three-ring spinner** (`.lp-loader-rings`): three concentric rings
+   spinning at different speeds. **Applied** to the AIVerifyDialog's
+   "Reviewing…" loading state.
+
+### 11. PWA install screenshot bug — second attempt (fixed)
+
+**Root cause (confirmed):** The v5.926 manifest fix (removing the `screenshots`
+array) never took effect because the service worker (`sw.js`) was still
+serving the STALE cached manifest from cache version `launchpad-v5-922`. The
+SW used stale-while-revalidate for `/manifest.json`, so the browser's install
+dialog kept reading the old manifest with the deleted screenshot references.
+
+**Fix (two-part):**
+1. Bumped the SW cache version from `launchpad-v5-922` to `launchpad-v5-927`.
+   On `activate`, the SW deletes all caches that don't match the new version,
+   purging the stale manifest.
+2. Changed `/manifest.json` handling from stale-while-revalidate to
+   **network-first** — the SW now always fetches the fresh manifest first,
+   falling back to cache only when offline. This ensures the browser's install
+   dialog always uses the latest manifest.
+
+### Additional bugs found + fixed during this pass
+
+- **Dashboard `selectCareerReadinessScore` import unused:** the Dashboard no
+  longer calls `selectCareerReadinessScore` directly (the shared component
+  does). The import remains for now (used elsewhere) but the duplicate
+  display is gone.
+- **CareerView `readinessGlow` / `readinessColor` unused:** the Career tab
+  no longer uses these inline (the shared component handles them). Left in
+  place (harmless) to avoid breaking other references.
+
+### Version bump
+
+`package.json` 5.926.0 → 5.927.0.
 
 ---
 

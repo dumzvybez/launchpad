@@ -27,6 +27,7 @@ import { LANGUAGE_MAP, CAREER_MAP } from "@/lib/career-data";
 // via a lazy import only on the client.
 import { openPrintableHtml, copyHtmlAsPng, downloadHtmlAsPng } from "@/lib/print-utils";
 import { CertificateHub } from "@/components/views/CertificateHub";
+import { CareerReadinessCard } from "@/components/views/CareerReadinessCard";
 
 export function DashboardView() {
   const state = useStore((s) => s.state);
@@ -151,70 +152,9 @@ export function DashboardView() {
         />
       </div>
 
-      {/* Career Readiness box — Section 5.2: now uses 5-dimension score (matches Career tab) */}
-      {career && (() => {
-        const cr = selectCareerReadinessScore(state);
-        return (
-          <GlassCard className="p-5">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold flex items-center gap-2">
-                <Target className="h-4 w-4 text-primary" /> Career Readiness · {career.label}
-              </h2>
-              <button
-                onClick={() => setView("career")}
-                className="text-xs text-primary hover:underline"
-              >
-                View Career →
-              </button>
-            </div>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="text-4xl font-bold font-mono">{cr.overall}%</div>
-              <div className="flex-1">
-                <ProgressBar value={cr.overall} className="h-3" />
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  {cr.overall >= 100
-                    ? "🏆 Career Master — claim your certificate!"
-                    : cr.overall >= 90
-                      ? "🎉 Interview-ready — consider applying!"
-                      : cr.overall >= 71
-                        ? "Almost job-ready — push to the end"
-                        : cr.overall >= 41
-                          ? "Making progress — keep going"
-                          : "Just getting started — every lesson counts"}
-                </p>
-              </div>
-            </div>
-            {/* 5-dimension breakdown — matches Career tab */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
-              <div>
-                <div className="text-[10px] uppercase text-muted-foreground">Roadmap</div>
-                <div className="font-mono font-semibold">{cr.roadmapProgress}%</div>
-                <ProgressBar value={cr.roadmapProgress} className="h-1 mt-0.5" />
-              </div>
-              <div>
-                <div className="text-[10px] uppercase text-muted-foreground">Knowledge 📚</div>
-                <div className="font-mono font-semibold">{cr.quizAverage}%</div>
-                <ProgressBar value={cr.quizAverage} className="h-1 mt-0.5" />
-              </div>
-              <div>
-                <div className="text-[10px] uppercase text-muted-foreground">Projects 🔨</div>
-                <div className="font-mono font-semibold">{cr.projectsCompleted}%</div>
-                <ProgressBar value={cr.projectsCompleted} className="h-1 mt-0.5" />
-              </div>
-              <div>
-                <div className="text-[10px] uppercase text-muted-foreground">Challenges 🎯</div>
-                <div className="font-mono font-semibold">{cr.challengeScore}%</div>
-                <ProgressBar value={cr.challengeScore} className="h-1 mt-0.5" />
-              </div>
-              <div>
-                <div className="text-[10px] uppercase text-muted-foreground">Interviews 🎤</div>
-                <div className="font-mono font-semibold">{cr.interviewScore === null ? "—" : `${cr.interviewScore}%`}</div>
-                <ProgressBar value={cr.interviewScore ?? 0} className="h-1 mt-0.5" />
-              </div>
-            </div>
-          </GlassCard>
-        );
-      })()}
+      {/* v5.927 (#1): Career Readiness — now uses the SHARED CareerReadinessCard
+          component (same as the Career tab). One source of truth, no duplicate. */}
+      {career && <CareerReadinessCard variant="compact" />}
 
       {/* Continue learning */}
       {nextTask && (

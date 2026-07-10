@@ -516,7 +516,8 @@ export function AIVerifyDialog({ open, onOpenChange, target, onVerified }: AIVer
             disabled={reviewing || !hasUserKey}
           >
             {reviewing ? (
-              <><Loader2 className="h-4 w-4 animate-spin" /> Reviewing…</>
+              // v5.927 (#10 Pattern 5): three-ring spinner for AI-verify loading.
+              <><span className="lp-loader-rings inline-flex items-center justify-center" style={{ width: 16, height: 16 }}><span className="lp-loader-rings-ring" /><span className="lp-loader-rings-ring" /><span className="lp-loader-rings-ring" /></span> Reviewing…</>
             ) : verdict ? (
               "Resubmit for review"
             ) : (

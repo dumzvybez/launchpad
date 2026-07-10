@@ -11,7 +11,7 @@
 // `lastSeenReleaseVersion` preference differs from APP_VERSION.
 // ============================================================
 
-export const APP_VERSION = "5.926.0";
+export const APP_VERSION = "5.927.0";
 
 export type ReleaseHighlightType = "new" | "improved" | "removed" | "fixed";
 
@@ -43,6 +43,25 @@ export type ReleaseInfo = {
 //   To ship a new release: bump APP_VERSION, add a ReleaseInfo here (user-
 //   facing), AND add a technical entry to CHANGELOG.md. Both are required.
 export const RELEASES: ReleaseInfo[] = [
+  {
+    version: "5.927.0",
+    date: "2026-07-10",
+    title: "Consistent Career Score, smarter interviews, polished playground",
+    summary:
+      "Your Career Readiness Score is now identical on the Dashboard and Career tab. Interview scoring requires a meaningful number of questions before it counts. The Playground is cleaner. Flashcards finally stay put when you switch tabs. Plus a redesigned version-update popup with history.",
+    highlights: [
+      { type: "fixed", text: "Career Readiness Score now shows the exact same values and breakdown on both the Dashboard and the Career tab (was duplicated with stale data on the Dashboard)." },
+      { type: "improved", text: "Interview scoring redesigned: you need to answer at least 10 questions per language you're studying before the score 'warms up.' Below that, you'll see transparent progress like '12/40 questions across 2 sessions' instead of a misleading percentage." },
+      { type: "improved", text: "Playground redesigned: compact language dropdown (was a wide tab row), example code defaults to collapsed, and the VS Code suggestion moved below the editor so it doesn't push your code down." },
+      { type: "fixed", text: "Flashcards now stay on your current card when you switch tabs and come back (was resetting — the third attempt at this fix; the root cause was an index-clamp gap during remount)." },
+      { type: "new", text: "Version-update popup redesigned: frosted liquid-glass styling, version history (older versions listed but collapsed — click to expand), and a 'What's New' button in Settings to reopen it anytime." },
+      { type: "new", text: "First-visit tips added to every major tab — a brief, auto-dismissing hint the first time you open each one, plus a one-time tip about Ctrl+K (the Command Palette)." },
+      { type: "fixed", text: "PWA install bug fixed: the broken screenshot image is gone for real this time (the service worker was serving a stale cached manifest from an old version)." },
+      { type: "fixed", text: "Footer cleaned up: removed the personal name/link, centered the remaining items (copyright, privacy, help, GitHub, command-palette hint)." },
+      { type: "improved", text: "Onboarding generation stages now advance at a more deliberate, readable pace (was too abrupt). The address bar consistently shows /onboarding throughout the flow." },
+      { type: "improved", text: "New liquid-glass visual patterns: sliding segmented toggles, icon-slide buttons, frosted toggle switches, and a three-ring spinner for AI-verify loading — all adapted to the app's dark theme." },
+    ],
+  },
   {
     version: "5.926.0",
     date: "2026-07-09",

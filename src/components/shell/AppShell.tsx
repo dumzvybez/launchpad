@@ -223,6 +223,11 @@ export function AppShell() {
   }
 
   if ((!onboardingCompleted || forceOnboarding) && !onboardingDismissed) {
+    // v5.927 (#7): ensure the URL consistently shows /onboarding throughout
+    // the entire onboarding flow (not just whatever the user landed on).
+    if (typeof window !== "undefined" && window.location.pathname !== "/onboarding") {
+      window.history.replaceState(null, "", "/onboarding");
+    }
     return <OnboardingFlow onDone={() => { setOnboardingDismissed(true); clearForceOnboarding(); }} />;
   }
 

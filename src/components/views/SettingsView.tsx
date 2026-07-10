@@ -32,6 +32,7 @@ import {
 } from "@/lib/career-data";
 import { getLastAutoBackupTime } from "@/lib/storage";
 import { HelpCentre } from "@/components/help/HelpCentre";
+import { VersionUpdateDialog } from "@/components/shell/VersionUpdateDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -47,6 +48,8 @@ export function SettingsView() {
   const [confirmReset, setConfirmReset] = useState(false);
   const [customColor, setCustomColor] = useState(state.preferences.customBackground ?? "#6366F1");
   const [helpOpen, setHelpOpen] = useState(false);
+  // v5.927 (#9): force-open the VersionUpdateDialog from Settings.
+  const [versionDialogOpen, setVersionDialogOpen] = useState(false);
 
   // Derive lastBackup directly from the store value — no need to mirror it
   // in local state with setState-in-useEffect.
@@ -101,13 +104,22 @@ export function SettingsView() {
             Everything here actually works — and your data stays on this device.
           </p>
         </div>
-        {/* Help Centre button — opens same modal as footer */}
-        <button
-          onClick={() => setHelpOpen(true)}
-          className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md border border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors shrink-0"
-        >
-          <HelpCircle className="h-3.5 w-3.5" /> Help Centre
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          {/* v5.927 (#9): "What's New" button — reopens the VersionUpdateDialog. */}
+          <button
+            onClick={() => setVersionDialogOpen(true)}
+            className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md border border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors"
+          >
+            <Sparkles className="h-3.5 w-3.5" /> What&apos;s New
+          </button>
+          {/* Help Centre button — opens same modal as footer */}
+          <button
+            onClick={() => setHelpOpen(true)}
+            className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md border border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors"
+          >
+            <HelpCircle className="h-3.5 w-3.5" /> Help Centre
+          </button>
+        </div>
       </div>
 
       {/* Appearance */}
@@ -401,6 +413,9 @@ export function SettingsView() {
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      {/* v5.927 (#9): VersionUpdateDialog — force-opened from Settings. */}
+      <VersionUpdateDialog forceOpen={versionDialogOpen} onForceClose={() => setVersionDialogOpen(false)} />
     </div>
   );
 }

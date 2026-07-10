@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { Layers, ChevronLeft, ChevronRight, Lightbulb, Check, X, RotateCcw } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { GlassCard, GlassButton } from "@/components/glass/GlassPrimitives";
@@ -28,7 +28,6 @@ export function FlashcardsView() {
   const setFlashcardsTabState = useStore((s) => s.setFlashcardsTabState);
 
   const filter: FilterMode = persistedFilter;
-  const currentIndex = persistedIndex;
   const setFilter = (f: FilterMode) => setFlashcardsTabState({ filter: f, currentIndex: 0 });
   const setCurrentIndex = (updater: number | ((i: number) => number)) => {
     const next = typeof updater === "function" ? updater(persistedIndex) : updater;
@@ -50,8 +49,16 @@ export function FlashcardsView() {
   }, [roadmap]);
 
   // Ensure flashcards are populated for all visible tracks.
+  // v5.927 (#5): guard with a session-level ref so this only runs ONCE per
+  // page load, not on every tab-switch remount. The flashcards are persisted
+  // in the store, so re-running on every remount is unnecessary and can cause
+  // the flashcards array reference to change (even if no new cards are added),
+  // which cascades into filteredCards recomputation + index clamping.
+  const ensuredRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     for (const id of trackIds) {
+      if (ensuredRef.current.has(id)) continue;
+      ensuredRef.current.add(id);
       ensureFlashcardsForTrack(id);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -76,6 +83,18 @@ export function FlashcardsView() {
     return allCards.filter((c) => c.trackId === filter);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allCards, filter]);
+
+  // v5.927 (#5): clamp the persisted index to the valid range WITHOUT resetting
+  // to 0. This handles BOTH the full-refresh AND the tab-switch-remount case
+  // where `filteredCards` recomputes (e.g. SM-2 state changes move cards
+  // in/out of the "due" set) and the persisted index may point beyond the
+  // array. Previously an out-of-bounds index meant `currentCard` was undefined
+  // and the UI appeared to "reset". Now we clamp to the last valid index,
+  // preserving the user's position as closely as possible.
+  const currentIndex = Math.min(
+    persistedIndex,
+    Math.max(0, filteredCards.length - 1),
+  );
 
   const dueCount = useMemo(
     () => allCards.filter((c) => isDueForReview(c.nextReviewDate, c.interval)).length,

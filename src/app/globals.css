@@ -625,6 +625,154 @@
     animation: lp-toast-slide-out 0.35s cubic-bezier(0.4, 0, 0.6, 1) forwards;
   }
 
+  /* v5.927 (#10): 5 liquid-glass CSS patterns adapted to the dark theme.
+     Colors use the app's existing tokens (primary, foreground, background)
+     — NOT the reference's literal light-theme hex values. */
+
+  /* Pattern 1 — iOS-style segmented toggle with sliding indicator.
+     Uses bg-foreground/10 (dark) instead of #e5e7eb, bg-background for the
+     slider instead of #fff. */
+  .lp-segmented {
+    position: relative;
+    display: inline-flex;
+    padding: 3px;
+    background: hsl(var(--foreground) / 0.08);
+    border-radius: 8px;
+  }
+  .lp-segmented label {
+    position: relative;
+    z-index: 2;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: hsl(var(--muted-foreground));
+    cursor: pointer;
+    border-radius: 6px;
+    transition: color 0.25s ease;
+  }
+  .lp-segmented input { display: none; }
+  .lp-segmented input:checked + label {
+    color: hsl(var(--foreground));
+  }
+  .lp-segmented-slider {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: calc(33.33% - 2px);
+    height: calc(100% - 6px);
+    background: hsl(var(--background));
+    border-radius: 6px;
+    box-shadow: 0 1px 3px hsl(var(--foreground) / 0.15);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Pattern 2 — Arrow icon that slides in from the right on hover.
+     Uses the app's primary gradient instead of the reference's teal/cyan. */
+  .lp-btn-icon-slide {
+    display: inline-flex; align-items: center; gap: 0;
+    padding: 10px 24px;
+    font-size: 14px; font-weight: 600;
+    color: hsl(var(--primary-foreground));
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8));
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: gap 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 8px 20px -8px hsl(var(--primary) / 0.5);
+  }
+  .lp-btn-icon-slide svg {
+    width: 0; height: 18px;
+    transition: width 0.3s ease, transform 0.3s ease;
+  }
+  .lp-btn-icon-slide:hover {
+    gap: 8px;
+    box-shadow: 0 12px 26px -8px hsl(var(--primary) / 0.6);
+  }
+  .lp-btn-icon-slide:hover svg {
+    width: 18px;
+    transform: translateX(3px);
+  }
+
+  /* Pattern 3 — Toggle switch. "on" uses the app's primary color (not green). */
+  .lp-toggle {
+    position: relative;
+    display: inline-block;
+    width: 48px; height: 26px;
+    cursor: pointer;
+  }
+  .lp-toggle input { opacity: 0; width: 0; height: 0; }
+  .lp-toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: hsl(var(--foreground) / 0.2);
+    border-radius: 999px;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+  }
+  .lp-toggle-slider::before {
+    content: "";
+    position: absolute;
+    height: 20px; width: 20px;
+    left: 3px; top: 3px;
+    background: hsl(var(--background));
+    border-radius: 50%;
+    box-shadow: 0 2px 6px hsl(var(--foreground) / 0.2);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .lp-toggle input:checked + .lp-toggle-slider {
+    background: hsl(var(--primary));
+    box-shadow: 0 0 14px hsl(var(--primary) / 0.5);
+  }
+  .lp-toggle input:checked + .lp-toggle-slider::before {
+    transform: translateX(22px);
+  }
+
+  /* Pattern 4 — Frosted glass card. The app's existing `.glass-elevated` is
+     already equivalent (uses backdrop-filter + translucent bg + border).
+     This pattern adds a subtle aurora radial-gradient backdrop option.
+     See the CHANGELOG report for the comparison. */
+  .lp-glass-aurora-bg {
+    background:
+      radial-gradient(circle at 20% 20%, hsl(var(--primary) / 0.12), transparent 45%),
+      radial-gradient(circle at 80% 30%, hsl(280 80% 60% / 0.10), transparent 45%),
+      radial-gradient(circle at 50% 80%, hsl(180 80% 50% / 0.08), transparent 50%);
+  }
+
+  /* Pattern 5 — Three concentric rings spinning at different speeds.
+     Uses the app's teal/fuchsia/cyan accent palette. */
+  .lp-loader-rings {
+    position: relative;
+    width: 60px;
+    height: 60px;
+  }
+  .lp-loader-rings-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    animation: lp-rings-spin 1.5s linear infinite;
+  }
+  .lp-loader-rings-ring:nth-child(1) {
+    inset: 0;
+    border-top-color: hsl(180 80% 50%);
+    border-right-color: hsl(180 80% 50%);
+  }
+  .lp-loader-rings-ring:nth-child(2) {
+    inset: 8px;
+    border-top-color: hsl(280 80% 60%);
+    border-left-color: hsl(280 80% 60%);
+    animation-duration: 2s;
+    animation-direction: reverse;
+  }
+  .lp-loader-rings-ring:nth-child(3) {
+    inset: 16px;
+    border-top-color: hsl(40 90% 50%);
+    border-bottom-color: hsl(40 90% 50%);
+    animation-duration: 1s;
+  }
+  @keyframes lp-rings-spin {
+    to { transform: rotate(360deg); }
+  }
+
   /* No-scrollbar utility */
   .no-scrollbar::-webkit-scrollbar {
     display: none;

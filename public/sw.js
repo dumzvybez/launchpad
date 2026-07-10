@@ -2,9 +2,15 @@
 // Launchpad Service Worker — offline-first caching
 // Caches the app shell + static assets so the app works
 // even when offline (after first load).
+//
+// v5.927 (PWA fix): the cache version MUST be bumped on every release
+// that changes manifest.json or any precached asset. The v5.926 manifest
+// fix (removing deleted screenshot refs) never took effect because the SW
+// was still serving the stale v5.922-cached manifest. Bumping the version
+// purges all old caches on activate.
 // ============================================================
 
-const CACHE_VERSION = "launchpad-v5-922";
+const CACHE_VERSION = "launchpad-v5-927";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -91,12 +97,30 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // v5.927 (PWA fix): manifest.json must ALWAYS be network-first so the
+  // browser's install dialog uses the latest manifest (not a stale cached
+  // one referencing deleted screenshots). Stale-while-revalidate was serving
+  // the old v5.922 manifest with screenshot refs → broken install images.
+  if (url.pathname === "/manifest.json") {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const copy = response.clone();
+            caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request).then((r) => r ?? new Response("{}", { status: 504 }))),
+    );
+    return;
+  }
+
   // For static assets — stale-while-revalidate
   if (
     url.pathname.startsWith("/_next/static/") ||
     url.pathname.startsWith("/icons/") ||
     url.pathname.startsWith("/fonts/") ||
-    url.pathname === "/manifest.json" ||
     url.pathname === "/favicon.ico"
   ) {
     event.respondWith(
