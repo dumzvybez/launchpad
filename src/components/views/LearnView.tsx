@@ -541,14 +541,36 @@ export function LearnView() {
           <YouTubeEmbed lessonId={selectedLesson.id} trackId={track} />
         </div>
 
-        {/* Capstone badge (Section 3.4) */}
+        {/* v5.926 (D1): Capstone phase — redesigned hero card with clear
+            structure: what it is, status, and the AI Verify action. */}
         {selectedLesson.isCapstone && (
-          <div className="rounded-lg border-2 border-amber-500/40 bg-gradient-to-br from-amber-500/10 to-orange-500/10 p-3 flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-amber-500" />
-            <div>
-              <div className="text-xs font-semibold text-amber-600 dark:text-amber-400">Capstone Project · Full Project Guide</div>
-              <p className="text-[10px] text-muted-foreground">This is the capstone for the {ALL_LANGUAGE_INFO[track]?.name ?? track} track. Build it end-to-end and submit your repo.</p>
+          <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/8 via-orange-500/5 to-amber-500/8 p-5 space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-md shadow-amber-500/20">
+                <Trophy className="h-5 w-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[10px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-semibold font-mono">Capstone Project</div>
+                <h2 className="text-base font-bold leading-tight">{selectedLesson.title}</h2>
+                <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+                  This is the final project for the {ALL_LANGUAGE_INFO[track]?.name ?? track} track. Build it end-to-end
+                  using the spec below, then click <strong>AI Verify Capstone</strong> to submit your code for review.
+                  A verified capstone completes this lesson and counts toward your certificate.
+                </p>
+              </div>
             </div>
+            {/* Status indicator */}
+            {progress?.status === "complete" ? (
+              <div className="flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-3 py-2 text-xs text-emerald-600 dark:text-emerald-400">
+                <Check className="h-4 w-4 shrink-0" />
+                <span><strong>Verified!</strong> This capstone is complete and counts toward your certificate.</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 rounded-lg bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+                <Trophy className="h-4 w-4 shrink-0" />
+                <span>Not yet verified — build the project, then submit via the AI Verify button at the bottom.</span>
+              </div>
+            )}
           </div>
         )}
 

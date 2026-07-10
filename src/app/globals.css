@@ -612,6 +612,19 @@
     100% { background-position: 200% 0; }
   }
 
+  /* v5.926 (D2/D4): hint slide-in + notification slide-out animations */
+  @keyframes lp-hint-slide-in {
+    0% { opacity: 0; transform: translateY(-8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes lp-toast-slide-out {
+    0% { opacity: 1; transform: translateX(0); }
+    100% { opacity: 0; transform: translateX(120%); }
+  }
+  .lp-toast-dismissing {
+    animation: lp-toast-slide-out 0.35s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+  }
+
   /* No-scrollbar utility */
   .no-scrollbar::-webkit-scrollbar {
     display: none;

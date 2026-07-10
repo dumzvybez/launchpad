@@ -62,21 +62,5 @@
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ],
-  "screenshots": [
-    {
-      "src": "/screenshot-wide.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Launchpad dashboard — coding education platform with personalized roadmap, lessons, and AI tutor"
-    },
-    {
-      "src": "/screenshot-narrow.png",
-      "sizes": "720x1280",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Launchpad mobile — dashboard with stats, career readiness, and activity tracking"
-    }
-  ],
   "prefer_related_applications": false
 }

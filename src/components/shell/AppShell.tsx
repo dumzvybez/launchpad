@@ -42,6 +42,7 @@ import { AITutorFloating } from "@/components/ai/AITutorFloating";
 import { BadgeToastContainer } from "@/components/achievements/BadgeToastContainer";
 // v5.923: FirstTimeTour removed — replaced by the VersionUpdateDialog (release-notes popup).
 import { VersionUpdateDialog } from "@/components/shell/VersionUpdateDialog";
+import { FirstVisitHints } from "@/components/shell/FirstVisitHints";
 // v5.865 fix (10.2): MobileBanner import removed — dead no-op component.
 import { MobileBottomNav } from "@/components/shell/MobileBottomNav";
 import { OfflineBanner } from "@/components/pwa/OfflineBanner";
@@ -319,6 +320,9 @@ export function AppShell() {
       {/* v5.923: Release-notes popup — shown once per version update (and once
           for new users after onboarding). See src/lib/version-info.ts. */}
       <VersionUpdateDialog />
+
+      {/* v5.926 (D2): First-visit contextual hints + Command Palette tip. */}
+      <FirstVisitHints />
     </div>
   );
 }

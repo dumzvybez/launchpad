@@ -1,8 +1,152 @@
 # Launchpad CHANGELOG
 
 This file merges all previous changelogs and adds the new
-**v5.925 (Critical Integrity Fixes + AI-Verify Flow)**
+**v5.926 (Post-v5.925 Regressions + Career Score Redesign + Streaming/Rate-Limit Removal + UX Polish)**
 entries. Entries are in reverse chronological order.
+
+> **Dual-format release notes (v5.926+):** This CHANGELOG.md is the TECHNICAL
+> developer-facing record. The user-facing plain-language summary shown in the
+> app's version-update popup lives in `src/lib/version-info.ts`. Both must be
+> updated on every release.
+
+---
+
+## v5.926 — Post-v5.925 Regressions + Career Score Redesign + Streaming/Rate-Limit Removal + UX Polish
+
+### Group A — AI-Verify & Career Score
+
+**A1: Projects tab "Shipped" self-marking removed; AI-Verify empty-response fixed.**
+- Removed the "Shipped" option from the project status `<select>` dropdown. The
+  ONLY way a project reaches "shipped" status is a successful AI-Verify pass
+  (which sets `status: "shipped"` + `shippedAt` + `verifiedAt`). The dropdown
+  shows "✓ Verified" read-only when already verified.
+- `selectCareerReadinessScore` now counts ONLY `verifiedAt` projects (the
+  legacy fallback for self-marked "shipped" without verifiedAt is removed).
+- AI-Verify empty-response bug fixed: `AIVerifyDialog` was parsing
+  `data.messages` / `data.response` / `data.message` but the `/api/chat`
+  non-streaming response returns `{ content, provider }`. Fixed to read
+  `data.content`. Live-tested: the dialog now displays the full AI review.
+
+**A2: Career Readiness Score redesigned to 4 components; Interview scoring transparent.**
+- Removed the "Challenges" (daily challenges) dimension entirely.
+- New formula: Without interviews → Roadmap 40% + Knowledge 40% + Projects 20%.
+  With interviews → Roadmap 30% + Knowledge 30% + Projects 20% + Interviews 20%.
+- Interview scoring is now transparent: reports `interviewSessions` (count of
+  conversations with the interview kickoff message) + `interviewQuestions`
+  (approximated from user message count). The Career tab UI shows
+  "X sessions · ~Y Q answered" instead of a bare percentage.
+- **Score swing warning:** existing users who had the Challenges dimension
+  contributing to their score will see a change. Users with high daily-challenge
+  streaks but low roadmap/knowledge progress will see their score DROP (since
+  Challenges was previously inflating it). Users with low challenge activity but
+  high roadmap/knowledge will see minimal change. This is the intended effect of
+  removing a dimension that didn't reflect real career readiness.
+
+### Group B — Streaming & Rate-Limit Removal
+
+**B1: Streaming removed across ALL AI surfaces + ALL 6 providers.**
+- `/api/chat` route: removed the entire `if (stream) { ... }` SSE block (~215
+  lines) and the `stream` field from the request type. The route now always
+  returns `{ content, provider }` JSON.
+- `AIChat.tsx`: converted all 4 streaming fetch sites (handleSend, "I don't
+  understand", interview kickoff, code review) from `stream: true` +
+  `response.body.getReader()` + TextDecoder to plain `await response.json()` +
+  `data.content`. Removed the `useStream` variable entirely.
+- `AIVerifyDialog.tsx`: already used non-streaming; fixed the response field
+  parsing (see A1).
+- Loading state: the `sending` state now shows a "Thinking..." indicator while
+  awaiting the full response (no incremental text).
+- No surface has a hard dependency on incremental display — all surfaces render
+  the full response at once, which is simpler and more reliable.
+
+**B2: Rate limiter removed from `/api/chat`.**
+- Removed `CHAT_RATE_LIMIT_*` constants, `chatRateLimitMap`, `testRateLimitMap`,
+  `checkChatRateLimit()`, `getChatClientIp()`, and the rate-limit check in the
+  POST handler. This is a BYOK endpoint — users use their own API key + provider
+  quota, so server-side rate limiting is unnecessary.
+- Certificate routes (`/api/certificates/create`, `/api/certificates/verify`)
+  retain their OWN separate rate limiters — unaffected by this change.
+
+### Group C — Repeat Regressions
+
+**C1: Flashcard persistence — REAL root cause found and fixed.**
+- The v5.925 fix added `flashcardsTabState` but didn't hold because of a
+  hydration race: the store starts with `DEFAULT_STATE` (filter="due"), then
+  `hydrate()` loads the persisted filter (e.g. "all"). The `prevFilter`
+  render-path reset (`if (filter !== prevFilter) { setCurrentIndex(0); }`)
+  fired during hydration, resetting the persisted index to 0.
+- Fix: removed the `prevFilter` render-path reset entirely. The `setFilter`
+  function already resets `currentIndex` to 0 when the USER changes the filter,
+  so the render-path reset was redundant AND caused the hydration race.
+- Live-tested: set `{filter:"all", currentIndex:5}` → reloaded → state survived.
+
+**C2: AI Tutor Code Review / Interview Mode dialog layout bug.**
+- Both `CodeReviewSetupScreen` and `InterviewSetupScreen` lacked `max-height` +
+  `overflow-y-auto`, so on smaller windows they expanded and pushed the chat
+  input out of view. Added `max-h-[50vh] overflow-y-auto` to both setup screens.
+
+### Group D — Post-Onboarding UX & Visual Polish
+
+**D1: Capstone lesson phase UI redesigned.**
+- Replaced the small "Capstone Project · Full Project Guide" badge with a
+  prominent hero card: gradient amber background, trophy icon, "Capstone
+  Project" label, lesson title, explanation text ("Build it end-to-end...
+  then click AI Verify Capstone..."), and a status indicator (✓ Verified or
+  "Not yet verified"). Only capstone lessons are affected — no other lesson type.
+
+**D2: First-visit contextual hints per major view.**
+- New `FirstVisitHints` component: the first time a user visits each major view
+  (Dashboard, Roadmap, Learn, Playground, Projects, AI Tutor, Career,
+  Flashcards, Analytics, Skill Tree), shows a brief auto-dismissing (~3.5s) hint
+  at the top describing what the view is for. Tracked in localStorage per view.
+- Plus one persistent (dismissible) tip about the Command Palette (Ctrl+K),
+  shown once at bottom-right.
+
+**D3: Version Update popup — user-facing content + stacked card UI.**
+- Content: rewrote ALL release notes in `version-info.ts` to be plain-language
+  and user-facing (no file names, component names, or technical jargon).
+  Established a dual-format process: `version-info.ts` = user-facing popup
+  content; `CHANGELOG.md` = technical developer record. Both updated on every
+  release.
+- UI: redesigned the popup with grouped stacked cards. Items are grouped by
+  New / Improved / Fixed / Removed. Each category shows as a compact card with
+  a count + preview; hover (desktop) or tap (mobile) fans out the stack to
+  reveal all items. Uses `group-hover` CSS for desktop, tap-to-toggle state for
+  touch devices. Smooth `transition-all duration-300` consistent with the
+  liquid glass theme. Touch device detection via `matchMedia("(pointer: coarse)")`.
+
+**D4: Notification dismiss animation.**
+- Badge toasts now slide out to the right (iOS-style) instead of disappearing
+  instantly. Added `lp-toast-slide-out` keyframe + `.lp-toast-dismissing` class
+  in `globals.css`. The `BadgeToastContainer` now tracks a `dismissing` Set;
+  `triggerDismiss()` applies the animation class, then removes the toast after
+  350ms.
+
+**D5: Animation consistency audit.**
+- Audited glass primitives (`GlassButton`: `duration-300` + `active:scale-[0.97]`;
+  `ProgressBar`: `duration-700 ease-out`; `ProgressRing`:
+  `cubic-bezier(0.16, 1, 0.3, 1)`). All consistent. New animations
+  (`lp-hint-slide-in`, `lp-toast-slide-out`) use the same `cubic-bezier(0.16, 1, 0.3, 1)`
+  easing as the existing `viewEnter` / `staggerIn` / `badge-toast-in` animations.
+
+**D6: PWA install screenshot reference fixed.**
+- Removed the `screenshots` array from `public/manifest.json` (referenced
+  `/screenshot-wide.png` and `/screenshot-narrow.png` which were deleted from
+  the public folder). The install prompt no longer shows a broken/loading state.
+
+### Additional bugs found and fixed during this pass (per the mandatory instruction)
+
+- **`useStream` variable removal:** removing streaming from AIChat left the
+  `const useStream = true;` variable unused — removed it to avoid dead code.
+- **`stream` field in `/api/chat` request type:** removed the `stream?: boolean`
+  field from the destructured body type to match the server-side removal.
+- **Career Readiness `challengeScore` references:** the `SuggestedNextSteps`
+  component still referenced `readiness.challengeScore` (removed from the return
+  type) — updated to use only the 4 remaining dimensions.
+
+### Version bump
+
+`package.json` 5.925.0 → 5.926.0.
 
 ---
 

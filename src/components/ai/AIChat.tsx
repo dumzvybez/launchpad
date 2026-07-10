@@ -137,10 +137,7 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
     try {
       // v5.78/v5.79: use SSE streaming for ALL providers (groq, openrouter,
       // openai, custom, gemini, anthropic). v5.79 added Gemini + Anthropic.
-      // v5.85 fix (4.5): always use streaming — the first message in a new chat
-    // was non-streaming because activeConversation was null. Now always streams.
-    const useStream = true;
-
+      // v5.926 (B1): streaming removed — plain request/response for all surfaces.
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -161,8 +158,6 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
           // leading to confusing behavior (interview banner still shown
           // but messages sent with the code-review prompt).
           ...(activeSystemPrompt ? { systemPrompt: activeSystemPrompt } : {}),
-          // v5.78: request streaming if the provider supports it.
-          stream: useStream,
         }),
       });
 
@@ -171,69 +166,16 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
         throw new Error(errorData.error || `HTTP ${response.status}`);
       }
 
-      if (useStream && response.body) {
-        // v5.78: consume the SSE stream token-by-token, updating the
-        // assistant message in real time.
-        const assistantMsgId = `msg-${Date.now()}-ai`;
-        const initialAssistantMessage: ChatMessage = {
-          id: assistantMsgId,
-          role: "assistant",
-          content: "",
-          timestamp: new Date().toISOString(),
-          provider: aiSettings.provider,
-        };
-        addMessage(chatId, initialAssistantMessage);
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-        let accumulated = "";
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n\n");
-          buffer = lines.pop() ?? "";
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed.startsWith("data: ")) continue;
-            const data = trimmed.slice(6);
-            try {
-              const parsed = JSON.parse(data);
-              // v5.86 fix (B.1): handle error events from the server stream
-              if (parsed.error) {
-                accumulated = `⚠️ Error: ${parsed.error}`;
-                useStore.getState().updateChatMessage(chatId, assistantMsgId, { content: accumulated });
-                break;
-              }
-              if (parsed.content) {
-                accumulated += parsed.content;
-                // Update the assistant message with the accumulated content.
-                // We use a direct store update to avoid stale closures.
-                useStore.getState().updateChatMessage(chatId, assistantMsgId, { content: accumulated });
-              }
-            } catch {
-              // Skip malformed chunks.
-            }
-          }
-        }
-        // If nothing was streamed (e.g., empty response), show a fallback.
-        if (!accumulated) {
-          useStore.getState().updateChatMessage(chatId, assistantMsgId, { content: "(no response)" });
-        }
-      } else {
-        // Non-streaming path (Gemini, Anthropic, or stream not requested).
-        const data = await response.json();
-        const assistantMessage: ChatMessage = {
-          id: `msg-${Date.now()}-ai`,
-          role: "assistant",
-          content: data.content || "(no response)",
-          timestamp: new Date().toISOString(),
-          provider: data.provider,
-        };
-        addMessage(chatId, assistantMessage);
-      }
+      // v5.926 (B1): non-streaming — await the full response, display at once.
+      const data = await response.json();
+      const assistantMessage: ChatMessage = {
+        id: `msg-${Date.now()}-ai`,
+        role: "assistant",
+        content: data.content || "(no response)",
+        timestamp: new Date().toISOString(),
+        provider: data.provider,
+      };
+      addMessage(chatId, assistantMessage);
     } catch (err) {
       const errorMessage: ChatMessage = {
         id: `msg-${Date.now()}-err`,
@@ -303,7 +245,6 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
             temperature: aiSettings.temperature,
             customEndpoint: aiSettings.customEndpoint,
             ...(activeSystemPrompt ? { systemPrompt: activeSystemPrompt } : {}),
-            stream: true,  // v5.868: use streaming
           }),
         });
         if (!response.ok) {
@@ -311,64 +252,16 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
           throw new Error(data.error || `HTTP ${response.status}`);
         }
 
-        if (response.body) {
-          // v5.868: streaming path — same logic as handleSend
-          const assistantMsgId = `msg-${Date.now()}-ai`;
-          const initialAssistantMessage: ChatMessage = {
-            id: assistantMsgId,
-            role: "assistant",
-            content: "",
-            timestamp: new Date().toISOString(),
-            provider: aiSettings.provider,
-          };
-          useStore.getState().addChatMessage(chatId!, initialAssistantMessage);
-
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder();
-          let buffer = "";
-          let accumulated = "";
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n\n");
-            buffer = lines.pop() ?? "";
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (!trimmed.startsWith("data: ")) continue;
-              const data = trimmed.slice(6);
-              try {
-                const parsed = JSON.parse(data);
-                if (parsed.error) {
-                  accumulated = `⚠️ Error: ${parsed.error}`;
-                  useStore.getState().updateChatMessage(chatId!, assistantMsgId, { content: accumulated });
-                  break;
-                }
-                if (parsed.content) {
-                  accumulated += parsed.content;
-                  useStore.getState().updateChatMessage(chatId!, assistantMsgId, { content: accumulated });
-                }
-              } catch {
-                // Skip malformed chunks.
-              }
-            }
-          }
-          if (!accumulated) {
-            useStore.getState().updateChatMessage(chatId!, assistantMsgId, { content: "(no response)" });
-          }
-        } else {
-          // Non-streaming fallback
-          const data = await response.json();
-          const assistantMessage: ChatMessage = {
-            id: `msg-${Date.now()}-ai`,
-            role: "assistant",
-            content: data.content || "(no response)",
-            timestamp: new Date().toISOString(),
-            provider: data.provider,
-          };
-          useStore.getState().addChatMessage(chatId!, assistantMessage);
-        }
+        // v5.926 (B1): non-streaming — await full response, display at once.
+        const data = await response.json();
+        const assistantMessage: ChatMessage = {
+          id: `msg-${Date.now()}-ai`,
+          role: "assistant",
+          content: data.content || "(no response)",
+          timestamp: new Date().toISOString(),
+          provider: data.provider,
+        };
+        useStore.getState().addChatMessage(chatId!, assistantMessage);
       } catch (err) {
         const errorMessage: ChatMessage = {
           id: `msg-${Date.now()}-err`,
@@ -497,67 +390,22 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
             temperature: aiSettings.temperature,
             customEndpoint: aiSettings.customEndpoint,
             systemPrompt: sysPrompt,
-            stream: true, // v5.90 (PART 5): consistent streaming
           }),
         });
         if (!response.ok) {
           const data = await response.json().catch(() => ({}));
           throw new Error(data.error || `HTTP ${response.status}`);
         }
-        // v5.90 (PART 5): streaming path — same logic as handleSend
-        if (response.body) {
-          const assistantMsgId = `msg-${Date.now()}-ai`;
-          const initialAssistantMessage: ChatMessage = {
-            id: assistantMsgId,
-            role: "assistant",
-            content: "",
-            timestamp: new Date().toISOString(),
-            provider: aiSettings.provider,
-          };
-          addChatMessage(chatId, initialAssistantMessage);
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder();
-          let buffer = "";
-          try {
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              buffer += decoder.decode(value, { stream: true });
-              const lines = buffer.split("\n\n");
-              buffer = lines.pop() || "";
-              for (const line of lines) {
-                if (line.startsWith("data: ")) {
-                  const jsonStr = line.slice(6).trim();
-                  if (jsonStr === "[DONE]") break;
-                  try {
-                    const parsed = JSON.parse(jsonStr);
-                    if (parsed.content) {
-                      useStore.getState().updateChatMessage(chatId, assistantMsgId, {
-                        content: (useStore.getState().state.chatConversations.find((c) => c.id === chatId)?.messages.find((m) => m.id === assistantMsgId)?.content || "") + parsed.content,
-                      });
-                    }
-                    if (parsed.error) {
-                      throw new Error(parsed.error);
-                    }
-                  } catch { /* skip malformed */ }
-                }
-              }
-            }
-          } finally {
-            reader.releaseLock();
-          }
-        } else {
-          // Fallback: non-streaming (shouldn't happen with stream:true, but be safe)
-          const data = await response.json();
-          const assistantMessage: ChatMessage = {
-            id: `msg-${Date.now()}-ai`,
-            role: "assistant",
-            content: data.content || "(no response)",
-            timestamp: new Date().toISOString(),
-            provider: data.provider,
-          };
-          addMessage(chatId, assistantMessage);
-        }
+        // v5.926 (B1): non-streaming — await full response, display at once.
+        const data = await response.json();
+        const assistantMessage: ChatMessage = {
+          id: `msg-${Date.now()}-ai`,
+          role: "assistant",
+          content: data.content || "(no response)",
+          timestamp: new Date().toISOString(),
+          provider: data.provider,
+        };
+        addMessage(chatId, assistantMessage);
       } catch (err) {
         const errorMessage: ChatMessage = {
           id: `msg-${Date.now()}-err`,
@@ -841,67 +689,22 @@ Be honest but encouraging. This is a learning context. Use code blocks for all c
                       temperature: aiSettings.temperature,
                       customEndpoint: aiSettings.customEndpoint,
                       systemPrompt: sysPrompt,
-                      stream: true, // v5.90 (PART 5): consistent streaming
                     }),
                   });
                   if (!response.ok) {
                     const data = await response.json().catch(() => ({}));
                     throw new Error(data.error || `HTTP ${response.status}`);
                   }
-                  // v5.90 (PART 5): streaming path — same logic as handleSend
-                  if (response.body) {
-                    const assistantMsgId = `msg-${Date.now()}-ai`;
-                    const initialAssistantMessage: ChatMessage = {
-                      id: assistantMsgId,
-                      role: "assistant",
-                      content: "",
-                      timestamp: new Date().toISOString(),
-                      provider: aiSettings.provider,
-                    };
-                    addMessage(chatId, initialAssistantMessage);
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder();
-                    let buffer = "";
-                    try {
-                      while (true) {
-                        const { done, value } = await reader.read();
-                        if (done) break;
-                        buffer += decoder.decode(value, { stream: true });
-                        const lines = buffer.split("\n\n");
-                        buffer = lines.pop() || "";
-                        for (const line of lines) {
-                          if (line.startsWith("data: ")) {
-                            const jsonStr = line.slice(6).trim();
-                            if (jsonStr === "[DONE]") break;
-                            try {
-                              const parsed = JSON.parse(jsonStr);
-                              if (parsed.content) {
-                                useStore.getState().updateChatMessage(chatId, assistantMsgId, {
-                                  content: (useStore.getState().state.chatConversations.find((c) => c.id === chatId)?.messages.find((m) => m.id === assistantMsgId)?.content || "") + parsed.content,
-                                });
-                              }
-                              if (parsed.error) {
-                                throw new Error(parsed.error);
-                              }
-                            } catch { /* skip malformed */ }
-                          }
-                        }
-                      }
-                    } finally {
-                      reader.releaseLock();
-                    }
-                  } else {
-                    // Fallback: non-streaming
-                    const data = await response.json();
-                    const assistantMessage: ChatMessage = {
-                      id: `msg-${Date.now()}-ai`,
-                      role: "assistant",
-                      content: data.content || "(no response)",
-                      timestamp: new Date().toISOString(),
-                      provider: data.provider,
-                    };
-                    addMessage(chatId, assistantMessage);
-                  }
+                  // v5.926 (B1): non-streaming — await full response, display at once.
+                  const data = await response.json();
+                  const assistantMessage: ChatMessage = {
+                    id: `msg-${Date.now()}-ai`,
+                    role: "assistant",
+                    content: data.content || "(no response)",
+                    timestamp: new Date().toISOString(),
+                    provider: data.provider,
+                  };
+                  addMessage(chatId, assistantMessage);
                   // Track badge progress
                   if (typeof window !== "undefined") {
                     try {
@@ -1058,7 +861,7 @@ function InterviewSetupScreen({
   const languageNames = languages.map((id) => ALL_LANGUAGE_INFO[id]?.name ?? id);
 
   return (
-    <div className="rounded-xl border border-violet-500/40 bg-violet-500/5 p-4 space-y-3 my-2">
+    <div className="rounded-xl border border-violet-500/40 bg-violet-500/5 p-4 space-y-3 my-2 max-h-[50vh] overflow-y-auto">
       <div className="flex items-start gap-3">
         <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shrink-0">
           <Target className="h-4 w-4 text-white" />
@@ -1462,7 +1265,7 @@ function CodeReviewSetupScreen({
   };
 
   return (
-    <div className="rounded-xl border border-fuchsia-500/40 bg-fuchsia-500/5 p-4 space-y-3 my-2">
+    <div className="rounded-xl border border-fuchsia-500/40 bg-fuchsia-500/5 p-4 space-y-3 my-2 max-h-[50vh] overflow-y-auto">
       <div className="flex items-start gap-3">
         <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center shrink-0">
           <Search className="h-4 w-4 text-white" />

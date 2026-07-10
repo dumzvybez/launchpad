@@ -316,9 +316,11 @@ export function AIVerifyDialog({ open, onOpenChange, target, onVerified }: AIVer
         return;
       }
       const data = await res.json();
-      const assistantMsg = data.messages?.find((m: { role: string }) => m.role === "assistant");
-      const rawResponse: string =
-        assistantMsg?.content ?? data.response ?? data.message ?? "";
+      // v5.926 (A1) FIX: the /api/chat non-streaming response returns
+      // { content: string, provider: string }. Previously we looked for
+      // data.messages / data.response / data.message (all wrong) → always
+      // empty → "The AI returned an empty response" bug. Now reads data.content.
+      const rawResponse: string = data.content ?? "";
       if (!rawResponse) {
         setError("The AI returned an empty response. Please try again.");
         setReviewing(false);

@@ -11,7 +11,7 @@
 // `lastSeenReleaseVersion` preference differs from APP_VERSION.
 // ============================================================
 
-export const APP_VERSION = "5.925.0";
+export const APP_VERSION = "5.926.0";
 
 export type ReleaseHighlightType = "new" | "improved" | "removed" | "fixed";
 
@@ -33,126 +33,65 @@ export type ReleaseInfo = {
   highlights: ReleaseHighlight[];
 };
 
-// Newest first. Only the LATEST entry (RELEASES[0]) is shown in the popup,
-// but keeping a history lets you add a "previous releases" view later.
+// Newest first. Only the LATEST entry (RELEASES[0]) is shown in the popup.
+//
+// v5.926 (D3) DUAL-FORMAT RELEASE NOTES:
+//   - This file (version-info.ts) holds the USER-FACING summary shown in the
+//     popup. Plain language a non-developer understands — no file names, no
+//     internal component/function names, no "root cause" technical detail.
+//   - CHANGELOG.md holds the TECHNICAL developer-facing record (unchanged).
+//   To ship a new release: bump APP_VERSION, add a ReleaseInfo here (user-
+//   facing), AND add a technical entry to CHANGELOG.md. Both are required.
 export const RELEASES: ReleaseInfo[] = [
+  {
+    version: "5.926.0",
+    date: "2026-07-09",
+    title: "Faster AI, fairer scoring, cleaner design",
+    summary:
+      "AI responses now arrive all at once (no more token-by-token waiting). Projects must be AI-verified to count toward your Career Readiness. The Career Readiness Score is simpler and fairer. Plus a cleaner capstone layout, first-visit tips, and smoother animations.",
+    highlights: [
+      { type: "new", text: "First-visit tips: the first time you open each tab, a brief hint explains what it's for. Plus a one-time tip about Ctrl+K (the Command Palette — jump anywhere fast)." },
+      { type: "improved", text: "AI responses are now displayed all at once instead of streaming in word-by-word. This is simpler, faster to read, and works consistently across all AI providers." },
+      { type: "improved", text: "Career Readiness Score simplified to 4 dimensions (Roadmap, Knowledge, Projects, Interviews) — the daily-challenges dimension was removed. Your Interview score now shows how many sessions you've completed and how many questions you've answered." },
+      { type: "improved", text: "Capstone project lessons (lesson 21 of each language) have a cleaner, better-organized layout with a clear status indicator and AI Verify button." },
+      { type: "improved", text: "Version-update popup redesigned: changes are grouped by New / Fixed / Improved / Removed, shown as expandable stacked cards. Hover (desktop) or tap (mobile) to explore each category." },
+      { type: "fixed", text: "Flashcard review position now actually survives a page refresh (a previous fix didn't hold — the index was being reset during app startup)." },
+      { type: "fixed", text: "AI Code Review and Interview Mode setup screens no longer push the chat input out of view on smaller windows." },
+      { type: "fixed", text: "AI-Verify no longer shows 'empty response' when you submit code — the full review now displays correctly." },
+      { type: "removed", text: "Self-marking a project as 'Shipped' is gone. The only way a project counts toward your Career Readiness now is passing the AI verification — so your score reflects real, verified work." },
+      { type: "removed", text: "Server-side rate limiting on AI chat removed — since you use your own API key, there's no need for a shared limit." },
+    ],
+  },
   {
     version: "5.925.0",
     date: "2026-07-09",
-    title: "Integrity fixes + AI-Verify flow",
+    title: "Quiz scoring fix + AI-Verify for projects and capstones",
     summary:
-      "Seven correctness/integrity fixes plus a new shared AI-Verify flow for Projects and Capstones. Quiz scoring is now deterministic, badges require real actions, roadmap sync is scoped correctly, Career Readiness math is fixed, flashcards persist, and Career-tab popups no longer overlap.",
+      "Quiz answers are now scored deterministically (no more correct answers marked wrong on retry). Badges require real actions. The new AI-Verify flow lets you submit project or capstone code for AI review — verified work counts toward your certificates and Career Readiness.",
     highlights: [
-      {
-        type: "fixed",
-        text: "Quiz answer-scoring race condition (review mode): the score was computed against a question set that shrank mid-submit (SM-2 promoted answered questions out of the “due” set), so correct answers appeared marked wrong. Now a snapshot of questions + answers is frozen at submit time — scoring is 100% deterministic.",
-      },
-      {
-        type: "fixed",
-        text: "Badges no longer fire on page views. “Video Scholar” now requires actually expanding 5 video supplements; “Code Typer” now requires actually clicking Run 10 times (was: fired after 5/10 quiz passes with zero real action).",
-      },
-      {
-        type: "fixed",
-        text: "Roadmap auto-completion scope: lesson/quiz completion no longer auto-completes tasks in Foundations, Milestone, AI Bonus, or Capstone phases. Only “Second Language: X” phases (the only true 1:1 language-track mapping) auto-sync. Other phases use manual Mark Complete.",
-      },
-      {
-        type: "new",
-        text: "AI-Verify flow (shared): one reusable dialog powers both the Projects tab (“Verify Project”) and capstone lessons (“AI Verify Capstone”). Submit code via paste-text (multi-file with “+” button) or text-file upload; the AI assesses against requirements and returns a parseable VERDICT: PASS/FAIL. Verified projects count toward Career Readiness; verified capstones mark the lesson complete (unblocks certificates).",
-      },
-      {
-        type: "new",
-        text: "Multi-file input + text-file upload added to the AI Tutor’s Code Review mode too (same UX, no verdict UI).",
-      },
-      {
-        type: "fixed",
-        text: "Career Readiness Score math: the quiz dimension divided by attempted-lesson count (not total lessons), so 20/126 lessons at 95% avg showed 95% instead of ~15%. Now divides by total lessons — score is now consistent with the Analytics tab.",
-      },
-      {
-        type: "fixed",
-        text: "Flashcard review position + filter now persist across refresh (was resetting to card 1 / “due” filter every time).",
-      },
-      {
-        type: "fixed",
-        text: "Career tab popups (Resume builder + Suggested Next Steps) no longer overlap underlying content — both now portal to document.body, escaping the GlassCard backdrop-filter containing block that trapped them.",
-      },
+      { type: "fixed", text: "Quiz scoring bug fixed: in review mode, correct answers were sometimes marked wrong due to a timing issue. Now scoring is 100% consistent — the same answer always gets the same result." },
+      { type: "fixed", text: "Badges now require real actions: 'Video Scholar' needs you to actually open 5 video supplements; 'Code Typer' needs you to actually run code 10 times (not just complete quizzes)." },
+      { type: "fixed", text: "Career Readiness Score was showing ~98% after completing only 1/6 of the curriculum — now it correctly reflects your actual progress." },
+      { type: "fixed", text: "Flashcard review position now persists across refresh (was resetting to card 1 every time)." },
+      { type: "fixed", text: "Career-tab popups (Resume builder, Suggested Next Steps) no longer overlap underlying content." },
+      { type: "new", text: "AI-Verify: submit your project or capstone code for AI review. Verified projects count toward Career Readiness; verified capstones complete the lesson and count toward your certificate." },
+      { type: "improved", text: "Roadmap auto-completion no longer over-fires — only 'Second Language' phases auto-complete from lesson progress; other phases use manual Mark Complete." },
     ],
   },
   {
     version: "5.924.0",
     date: "2026-07-09",
-    title: "Certificate Hub + PDF export fixes",
+    title: "Certificate hub + PDF export fixes",
     summary:
       "All your earned certificates are now in one place on the Dashboard, and the recurring PDF 2-page-split bug is fixed across every printable surface — verified with actual generated PDFs.",
     highlights: [
-      {
-        type: "new",
-        text: "Certificate Hub on the Dashboard — every earned certificate (language tracks + Career Master) in one list, each opening a detail popup with the cert ID, completion date, and a download button.",
-      },
-      {
-        type: "new",
-        text: "\"Certified\" badge next to completed languages in the Learn tab — click it to open the same certificate detail popup.",
-      },
-      {
-        type: "new",
-        text: "Sensible empty state on the hub when you have no certificates yet, with a shortcut to start learning.",
-      },
-      {
-        type: "fixed",
-        text: "PDF 2-page-split bug fixed across all 5 printable surfaces (both certificate types, achievement & dashboard share cards, career resume). Root cause: an unconditional @page { margin: 0 } injected by the print wrapper was overriding each surface's own page sizing, plus min-height: 100vh let certificates overflow. Now each surface locks to a fixed paper size + height.",
-      },
-      {
-        type: "fixed",
-        text: "Text contrast on share cards — the dark gradient card background was being dropped in print (white text on white). Added print-color-adjust: exact everywhere and bumped low-opacity text.",
-      },
-      {
-        type: "fixed",
-        text: "Orientation consistency — certificates and share cards now always render in A4 landscape; the resume always renders in A4 portrait. No more device-dependent orientation flips.",
-      },
-      {
-        type: "improved",
-        text: "Certificate PDF generation logic extracted to a shared module (certificate-pdf.ts) so the Learn tab, Career tab, and new Dashboard hub all reuse the exact same code — no duplication.",
-      },
-    ],
-  },
-  {
-    version: "5.923.0",
-    date: "2026-07-09",
-    title: "Instant roadmaps — onboarding, simplified",
-    summary:
-      "Roadmap generation is now always instant and 100% on-device. The optional API-key step and all AI roadmap code have been removed — the built-in deterministic engine is the only generator.",
-    highlights: [
-      {
-        type: "removed",
-        text: "The optional API-key onboarding step. Onboarding now flows straight from your time commitment to an instant roadmap — no key prompt, no skip choice, no test-connection button.",
-      },
-      {
-        type: "removed",
-        text: "All AI-powered roadmap generation code (Gemini / Groq / OpenRouter / OpenAI / Anthropic) and the Pass 1 / Pass 2 retry logic. The deterministic engine is called directly.",
-      },
-      {
-        type: "removed",
-        text: "The “AI services unavailable” fallback choice screen — with a single generation path it’s no longer needed.",
-      },
-      {
-        type: "new",
-        text: "Version-update notification (this popup). You’ll see what changed once after every release, and new users see it once after onboarding.",
-      },
-      {
-        type: "improved",
-        text: "The onboarding summary page no longer mentions AI for roadmap generation — your plan is always instant and built-in.",
-      },
-      {
-        type: "improved",
-        text: "Help Centre, Privacy Policy, and README updated to reflect on-device roadmap generation.",
-      },
-      {
-        type: "fixed",
-        text: "Removed a dead import of a non-existent export in the onboarding prerequisites step.",
-      },
+      { type: "new", text: "Certificate Hub on the Dashboard — every earned certificate (language tracks + Career Master) in one list, each opening a detail popup with the cert ID, completion date, and a download button." },
+      { type: "new", text: "'Certified' badge next to completed languages in the Learn tab — click it to view the certificate." },
+      { type: "fixed", text: "PDF export no longer splits across 2 pages — fixed for certificates, share cards, and the career resume. Text contrast on share cards is also fixed." },
+      { type: "fixed", text: "PDF orientation is now consistent: certificates and share cards always render in landscape; the resume always renders in portrait, regardless of device." },
     ],
   },
 ];
-
 /** Convenience: the latest release info (shown in the popup). */
 export const LATEST_RELEASE: ReleaseInfo = RELEASES[0];
 

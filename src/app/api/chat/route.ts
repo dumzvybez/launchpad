@@ -306,71 +306,16 @@ async function fetchProviderChat(
 }
 
 // ============================================================
-// v5.875 (HIGH-9): Server-side rate limiting for /api/chat.
-// Prevents abuse/cost-runaway on AI provider API keys. Uses the same
-// in-memory pattern as the certificate endpoints (per-instance on Vercel;
-// for production, upgrade to Vercel KV/Upstash Redis for distributed limits).
-// Limit: 30 requests per 2 minutes per IP (streaming + non-streaming combined).
-// Test Connection calls are limited separately: 10 per hour per IP.
-// ============================================================
-const CHAT_RATE_LIMIT_WINDOW_MS = 2 * 60 * 1000; // 2 minutes
-const CHAT_RATE_LIMIT_MAX = 30;
-const TEST_RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
-const TEST_RATE_LIMIT_MAX = 10;
-const chatRateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const testRateLimitMap = new Map<string, { count: number; resetAt: number }>();
-
-function checkChatRateLimit(ip: string, isTest: boolean): { allowed: boolean; retryAfterSec: number } {
-  const now = Date.now();
-  const map = isTest ? testRateLimitMap : chatRateLimitMap;
-  const windowMs = isTest ? TEST_RATE_LIMIT_WINDOW_MS : CHAT_RATE_LIMIT_WINDOW_MS;
-  const maxReqs = isTest ? TEST_RATE_LIMIT_MAX : CHAT_RATE_LIMIT_MAX;
-
-  // Clean up expired entries
-  for (const [key, val] of map) {
-    if (now >= val.resetAt) map.delete(key);
-  }
-
-  const entry = map.get(ip);
-  if (!entry || now >= entry.resetAt) {
-    map.set(ip, { count: 1, resetAt: now + windowMs });
-    return { allowed: true, retryAfterSec: 0 };
-  }
-  if (entry.count >= maxReqs) {
-    return { allowed: false, retryAfterSec: Math.ceil((entry.resetAt - now) / 1000) };
-  }
-  entry.count++;
-  return { allowed: true, retryAfterSec: 0 };
-}
-
-function getChatClientIp(req: NextRequest): string {
-  const xff = req.headers.get("x-forwarded-for");
-  if (xff) {
-    const parts = xff.split(",").map((s) => s.trim()).filter(Boolean);
-    if (parts.length > 0) return parts[parts.length - 1];
-  }
-  return req.headers.get("x-real-ip") ?? "unknown";
-}
-
-// ============================================================
 // POST handler — supports both real chat and POST-based Test Connection
 // (test=1 in the JSON body sends "Hi" instead of the messages array,
 //  so the API key is never leaked in URL query strings)
 // ============================================================
 export async function POST(req: NextRequest) {
   try {
-    // v5.875 (HIGH-9): Rate limit check. Test Connection has a stricter
-    // limit (10/hour) to prevent API-key enumeration against upstream providers.
-    const clientIp = getChatClientIp(req);
+    // v5.926 (B2): rate limiter removed — this is a BYOK endpoint (users
+    // use their own API key + provider quota), so server-side rate limiting
+    // is no longer necessary. The body is parsed directly.
     const body = await req.json();
-    const isTest = !!body.test;
-    const rl = checkChatRateLimit(clientIp, isTest);
-    if (!rl.allowed) {
-      return NextResponse.json(
-        { error: `Rate limit exceeded. Try again in ${rl.retryAfterSec}s.` },
-        { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
-      );
-    }
     const {
       messages,
       provider,
@@ -380,7 +325,6 @@ export async function POST(req: NextRequest) {
       customEndpoint,
       systemPrompt,
       test,
-      stream,
     }: {
       messages?: ChatMsg[];
       provider: AIProviderKey;
@@ -392,8 +336,6 @@ export async function POST(req: NextRequest) {
       systemPrompt?: string;
       /** When truthy, run the "Test Connection" path: send "Hi" instead of messages. */
       test?: boolean;
-      /** v5.78: when truthy, stream the response as SSE (token-by-token). */
-      stream?: boolean;
     } = body;
 
     // BYOK: every user must provide their own API key — no free default
@@ -446,225 +388,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No valid messages after filtering" }, { status: 400 });
     }
 
-    // v5.78/v5.79: SSE streaming path. Streams token-by-token for ALL 6 providers.
-    // v5.78 added: OpenAI-compatible (groq, openrouter, openai, custom).
-    // v5.79 added: Gemini (streamGenerateContent + alt=sse) and Anthropic (messages + stream:true).
-    if (stream) {
-      const encoder = new TextEncoder();
-      const decoder = new TextDecoder();
-
-      // Build the upstream request based on provider.
-      let upstreamUrl: string;
-      let upstreamHeaders: Record<string, string>;
-      let upstreamBody: string;
-      // Parser type: "openai" | "gemini" | "anthropic"
-      let sseFormat: "openai" | "gemini" | "anthropic";
-
-      if (provider === "groq" || provider === "openrouter" || provider === "openai" || provider === "custom") {
-        sseFormat = "openai";
-        if (provider === "groq") {
-          upstreamUrl = "https://api.groq.com/openai/v1/chat/completions";
-          upstreamHeaders = { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` };
-        } else if (provider === "openrouter") {
-          upstreamUrl = "https://openrouter.ai/api/v1/chat/completions";
-          upstreamHeaders = {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-            "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "https://launchpad--dev.vercel.app",
-            "X-Title": "Launchpad",
-          };
-        } else if (provider === "openai") {
-          upstreamUrl = "https://api.openai.com/v1/chat/completions";
-          upstreamHeaders = { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` };
-        } else {
-          if (!customEndpoint) throw new Error("Custom endpoint URL is required");
-          await assertSafeExternalUrl(customEndpoint);
-          upstreamUrl = customEndpoint;
-          upstreamHeaders = { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` };
-        }
-        const fullMessages = [
-          { role: "system", content: systemPrompt ?? SYSTEM_PROMPT },
-          ...sanitized,
-        ];
-        upstreamBody = JSON.stringify({
-          model,
-          messages: fullMessages,
-          temperature: temperature ?? 0.7,
-          max_tokens: 2048,
-          stream: true,
-        });
-      } else if (provider === "gemini") {
-        // v5.79: Gemini streaming via streamGenerateContent?alt=sse
-        sseFormat = "gemini";
-        upstreamUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
-        upstreamHeaders = { "Content-Type": "application/json" };
-        const contents = sanitized.map((m) => ({
-          role: m.role === "assistant" ? "model" : "user",
-          parts: [{ text: m.content }],
-        }));
-        upstreamBody = JSON.stringify({
-          contents,
-          systemInstruction: { parts: [{ text: systemPrompt ?? SYSTEM_PROMPT }] },
-          generationConfig: { temperature: temperature ?? 0.7, maxOutputTokens: 2048 },
-        });
-      } else if (provider === "anthropic") {
-        // v5.79: Anthropic streaming via messages endpoint with stream:true
-        sseFormat = "anthropic";
-        upstreamUrl = "https://api.anthropic.com/v1/messages";
-        upstreamHeaders = {
-          "Content-Type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-        };
-        upstreamBody = JSON.stringify({
-          model,
-          max_tokens: 2048,
-          system: systemPrompt ?? SYSTEM_PROMPT,
-          temperature: temperature ?? 0.7,
-          stream: true,
-          messages: sanitized.map((m) => ({ role: m.role, content: m.content })),
-        });
-      } else {
-        // Unknown provider — fall through to non-streaming.
-        sseFormat = "openai"; // unreachable but satisfies TS
-        upstreamUrl = "";
-        upstreamHeaders = {};
-        upstreamBody = "{}";
-      }
-
-      if (sseFormat && upstreamUrl) {
-        // v5.866 BUG 2A FIX: replaced AbortSignal.any() (which may not exist
-        // in all Node.js versions on Vercel) with a simple timeout signal.
-        // AbortSignal.any() was added in Node v20.3.0 — if the Vercel
-        // deployment uses an older v20.x, it would throw TypeError
-        // "AbortSignal.any is not a function", which was caught by the
-        // outer try/catch and returned a 502 — but the client had already
-        // created an empty assistant message, producing the "static bubble
-        // with no content" symptom.
-        const upstreamRes = await fetch(upstreamUrl, {
-          method: "POST",
-          headers: upstreamHeaders,
-          body: upstreamBody,
-          signal: AbortSignal.timeout(CHAT_FETCH_TIMEOUT_MS),
-          // v5.875 (HIGH-2): Prevent SSRF via redirect on custom endpoints.
-          redirect: "manual",
-        });
-
-        // v5.875 (HIGH-2): Reject any 3xx redirect response (SSRF protection).
-        if (upstreamRes.status >= 300 && upstreamRes.status < 400) {
-          throw new Error(`Upstream returned a redirect (${upstreamRes.status}) — redirects are blocked for security (SSRF protection).`);
-        }
-
-        if (!upstreamRes.ok || !upstreamRes.body) {
-          const txt = await upstreamRes.text().catch(() => "");
-          console.error("[chat] upstream error:", { provider, status: upstreamRes.status, body: txt.slice(0, 200) });
-          throw new Error(`${provider} HTTP ${upstreamRes.status}: ${txt.slice(0, 200)}`);
-        }
-
-        console.log("[chat] streaming started:", { provider, sseFormat, model });
-
-        const transformedStream = new ReadableStream({
-          async start(controller) {
-            const reader = upstreamRes.body!.getReader();
-            let buffer = "";
-            try {
-              while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                buffer += decoder.decode(value, { stream: true });
-
-                // v5.86 fix (B.1): SSE messages are delimited by \n\n (double newline),
-                // NOT single \n. Splitting on \n caused partial/mangled parsing that
-                // broke streaming for ALL providers.
-                const messages = buffer.split("\n\n");
-                buffer = messages.pop() ?? ""; // keep incomplete message
-
-                for (const message of messages) {
-                  // An SSE message can have multiple lines (event:, data:, id:, etc.)
-                  // We only care about data: lines.
-                  const lines = message.split("\n");
-                  for (const line of lines) {
-                    const trimmed = line.trim();
-                    if (!trimmed || !trimmed.startsWith("data: ")) continue;
-                    const data = trimmed.slice(6);
-
-                    // OpenAI-compatible: data: [DONE] marks the end.
-                    if (sseFormat === "openai" && data === "[DONE]") {
-                      controller.close();
-                      return;
-                    }
-
-                    // Skip non-JSON data lines (some providers send comments)
-                    if (data === "[DONE]" || data === "") continue;
-
-                    try {
-                      const parsed = JSON.parse(data);
-                      let delta: string | undefined;
-
-                      if (sseFormat === "openai") {
-                        // {choices: [{delta: {content: "..."}}]}
-                        delta = parsed?.choices?.[0]?.delta?.content;
-                      } else if (sseFormat === "gemini") {
-                        // Gemini SSE format:
-                        // {candidates: [{content: {parts: [{text: "..."}]}}]}
-                        delta = parsed?.candidates?.[0]?.content?.parts
-                          ?.map((p: { text?: string }) => p.text)
-                          .join("");
-                      } else if (sseFormat === "anthropic") {
-                        // Anthropic SSE format:
-                        // data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"..."}}
-                        if (parsed?.type === "content_block_delta" && parsed?.delta?.text) {
-                          delta = parsed.delta.text;
-                        }
-                        // message_stop event marks the end.
-                        if (parsed?.type === "message_stop") {
-                          controller.close();
-                          return;
-                        }
-                      }
-
-                      if (delta) {
-                        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: delta })}\n\n`));
-                      }
-                    } catch {
-                      // Skip malformed JSON chunks (keepalive comments, partial data).
-                    }
-                  }
-                }
-              }
-              controller.close();
-            } catch (err) {
-              // v5.865 fix (B.12): sanitize the error before sending to the client.
-              // The raw error may contain upstream HTTP response bodies with API
-              // key fragments or internal URLs.
-              // v5.90 (PART 6): PRIVACY FIX — also sanitize the server-side log.
-              // The raw error may include the Gemini URL (which contains ?key=...).
-              // Strip ?key=... before logging to prevent API key leaking to Vercel logs.
-              const streamErr = err instanceof Error ? err : new Error(String(err));
-              const sanitizedStreamMsg = streamErr.message.replace(/\?key=[^&\s"]+/g, "?key=[REDACTED]");
-              console.error("[chat] streaming error:", streamErr.name, sanitizedStreamMsg);
-              try {
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: "The AI provider returned an error during streaming. Please check your API key and try again." })}\n\n`));
-              } catch {
-                // controller already closed
-              }
-              controller.close();
-            }
-          },
-        });
-
-        return new Response(transformedStream, {
-          headers: {
-            "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache, no-transform",
-            Connection: "keep-alive",
-          },
-        });
-      }
-    }
-
-    // Non-streaming path (default, or Gemini/Anthropic which don't support
-    // the OpenAI-compatible SSE format above).
+    // v5.926 (B1): streaming removed — all AI surfaces now use plain
+    // request/response. The full response is awaited and returned as JSON
+    // { content, provider }. This applies uniformly to ALL 6 providers.
     const content = await fetchProviderChat(
       provider,
       apiKey,

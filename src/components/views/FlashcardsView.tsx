@@ -132,17 +132,16 @@ export function FlashcardsView() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentCard, flipped, handleResult]);
 
-  // Reset index when filter changes. Uses the "adjust state during render"
-  // pattern (recommended by React docs) instead of setState-in-useEffect.
-  const [prevFilter, setPrevFilter] = useState(filter);
-  // v5.865 fix (4.9/B.6): removed the render-path clamp — it raced with
-  // handleResult's index update. The clamp is now inside handleResult.
-  if (filter !== prevFilter) {
-    setPrevFilter(filter);
-    setCurrentIndex(0);
-    setFlipped(false);
-    setShowHint(false);
-  }
+  // v5.926 (C1) FIX: flashcard persistence — REAL root cause.
+  // The v5.925 fix added flashcardsTabState but the `prevFilter` render-path
+  // reset below fired during store HYDRATION: the store starts with
+  // DEFAULT_STATE (filter="due"), then hydrates to the persisted filter (e.g.
+  // "all"). That filter change triggered `setCurrentIndex(0)`, wiping the
+  // persisted index. The fix: REMOVE the render-path reset entirely. The
+  // `setFilter` function already resets currentIndex to 0 when the USER
+  // changes the filter (line 32), so the render-path reset was redundant AND
+  // caused the hydration race. The index now survives refresh correctly.
+  // (No prevFilter / render-path reset needed.)
 
   return (
     <div className="space-y-5">

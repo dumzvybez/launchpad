@@ -103,7 +103,8 @@ export function CareerView() {
             <Target className="h-4 w-4" /> Career Readiness Score
           </h2>
           <span className="text-[10px] text-muted-foreground font-mono">
-            weighted: roadmap {Math.round(readiness.weights.roadmap * 100)}% · quiz {Math.round(readiness.weights.quiz * 100)}% · projects {Math.round(readiness.weights.projects * 100)}% · challenges {Math.round(readiness.weights.challenges * 100)}%{readiness.weights.interviews > 0 ? ` · interviews ${Math.round(readiness.weights.interviews * 100)}%` : ""}
+            {/* v5.926 (A2): 4 components — Challenges removed. */}
+            weighted: roadmap {Math.round(readiness.weights.roadmap * 100)}% · knowledge {Math.round(readiness.weights.quiz * 100)}% · projects {Math.round(readiness.weights.projects * 100)}%{readiness.weights.interviews > 0 ? ` · interviews ${Math.round(readiness.weights.interviews * 100)}%` : ""}
           </span>
         </div>
         <div className="flex items-center gap-4 mb-4">
@@ -125,7 +126,8 @@ export function CareerView() {
             </p>
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+        {/* v5.926 (A2): 4 dimensions (Challenges removed; Interview transparent). */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
           <div>
             <div className="text-[10px] uppercase text-muted-foreground flex items-center gap-1">Roadmap</div>
             <div className="font-mono font-semibold">{readiness.roadmapProgress}%</div>
@@ -142,16 +144,22 @@ export function CareerView() {
             <ProgressBar value={readiness.projectsCompleted} className="h-1 mt-1" />
           </div>
           <div>
-            <div className="text-[10px] uppercase text-muted-foreground flex items-center gap-1">Challenges 🎯</div>
-            <div className="font-mono font-semibold">{readiness.challengeScore}%</div>
-            <ProgressBar value={readiness.challengeScore} className="h-1 mt-1" />
-          </div>
-          <div>
             <div className="text-[10px] uppercase text-muted-foreground flex items-center gap-1">Interviews 🎤</div>
-            <div className="font-mono font-semibold">
-              {readiness.interviewScore === null ? "—" : `${readiness.interviewScore}%`}
-            </div>
-            <ProgressBar value={readiness.interviewScore ?? 0} className="h-1 mt-1" />
+            {/* v5.926 (A2): transparent Interview scoring — show sessions + questions. */}
+            {readiness.interviewScore === null ? (
+              <>
+                <div className="font-mono font-semibold text-muted-foreground">—</div>
+                <div className="text-[9px] text-muted-foreground mt-0.5">No sessions yet</div>
+              </>
+            ) : (
+              <>
+                <div className="font-mono font-semibold">{readiness.interviewScore}%</div>
+                <div className="text-[9px] text-muted-foreground mt-0.5">
+                  {readiness.interviewSessions} session{readiness.interviewSessions === 1 ? "" : "s"} · ~{readiness.interviewQuestions} Q answered
+                </div>
+                <ProgressBar value={readiness.interviewScore ?? 0} className="h-1 mt-1" />
+              </>
+            )}
           </div>
         </div>
 
@@ -367,12 +375,11 @@ function SuggestedNextSteps({ readiness }: {
   const [open, setOpen] = useState(false);
   const setView = useStore((s) => s.setView);
 
-  // Build suggestions based on which dimension is lowest
+  // v5.926 (A2): 4 dimensions (Challenges removed).
   const dims = [
     { key: "roadmap", label: "Roadmap", value: readiness.roadmapProgress, suggestion: "Complete the next roadmap task in your current phase to boost roadmap progress.", cta: "Go to Roadmap", view: "roadmap" as const },
     { key: "quiz", label: "Knowledge", value: readiness.quizAverage, suggestion: "Retake quizzes from completed lessons — your average quiz score is below 75%.", cta: "Go to Learn", view: "learn" as const },
-    { key: "projects", label: "Projects", value: readiness.projectsCompleted, suggestion: "Ship a project to boost project completion. Pick one from the Projects tab and follow the step-by-step instructions.", cta: "Go to Projects", view: "projects" as const },
-    { key: "challenges", label: "Challenges", value: readiness.challengeScore, suggestion: "Complete today's daily challenge to extend your streak — streaks boost this score.", cta: "Go to Daily Challenge", view: "daily-challenge" as const },
+    { key: "projects", label: "Projects", value: readiness.projectsCompleted, suggestion: "Verify a project with AI to boost project completion. Pick one from the Projects tab, submit your code, and pass the AI review.", cta: "Go to Projects", view: "projects" as const },
     { key: "interviews", label: "Interviews", value: readiness.interviewScore ?? 0, suggestion: "Run a 10-question mock interview to practice your knowledge. Interview Mode is in the AI Tutor tab.", cta: "Open AI Tutor", view: "ai-tutor" as const },
   ];
   const sorted = [...dims].sort((a, b) => a.value - b.value);

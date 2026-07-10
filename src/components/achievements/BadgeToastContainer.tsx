@@ -3,16 +3,33 @@
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
 import { ACHIEVEMENT_MAP, RARITY_META } from "@/lib/achievements-data";
+import { cn } from "@/lib/utils";
 
 export function BadgeToastContainer() {
   const pendingToasts = useStore((s) => s.pendingBadgeToasts);
   const dismissBadgeToast = useStore((s) => s.dismissBadgeToast);
   const [visibleToasts, setVisibleToasts] = useState<string[]>([]);
+  // v5.926 (D4): track which toasts are in the dismissing (slide-out) phase
+  // so we can animate them out instead of removing instantly.
+  const [dismissing, setDismissing] = useState<Set<string>>(new Set());
   // Per-toast dismiss timers, keyed by badge id. Previously a single
   // useEffect with `[visibleToasts]` deps reset ALL timers whenever a new
   // toast arrived — so a sequence of badges A, B, C earned 1s apart kept
   // toast A visible for ~5.5s after C arrived, not 5.5s after A arrived.
   const dismissTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  // v5.926 (D4): unified dismiss — triggers slide-out animation, then removes.
+  const triggerDismiss = (id: string) => {
+    const t = dismissTimersRef.current.get(id);
+    if (t) { clearTimeout(t); dismissTimersRef.current.delete(id); }
+    setDismissing((prev) => new Set(prev).add(id));
+    // After the slide-out animation (350ms), actually remove.
+    setTimeout(() => {
+      dismissBadgeToast(id);
+      setVisibleToasts((prev) => prev.filter((v) => v !== id));
+      setDismissing((prev) => { const n = new Set(prev); n.delete(id); return n; });
+    }, 350);
+  };
 
   // Delay showing new toasts by 0.5s so they don't clash with ongoing actions
   useEffect(() => {
@@ -38,9 +55,8 @@ export function BadgeToastContainer() {
       // Already scheduled — skip.
       if (dismissTimersRef.current.has(id)) continue;
       const t = setTimeout(() => {
-        dismissBadgeToast(id);
-        setVisibleToasts((prev) => prev.filter((v) => v !== id));
-        dismissTimersRef.current.delete(id);
+        // v5.926 (D4): use triggerDismiss for animated slide-out.
+        triggerDismiss(id);
       }, 5500);
       dismissTimersRef.current.set(id, t);
     }
@@ -76,11 +92,14 @@ export function BadgeToastContainer() {
         return (
           <div
             key={badgeId}
-            className="pointer-events-auto rounded-2xl border-2 p-4 min-w-[280px] max-w-[360px] bg-popover shadow-2xl flex items-center gap-3"
+            className={cn(
+              "pointer-events-auto rounded-2xl border-2 p-4 min-w-[280px] max-w-[360px] bg-popover shadow-2xl flex items-center gap-3",
+              dismissing.has(badgeId) && "lp-toast-dismissing",
+            )}
             style={{
               borderColor: rarity.color,
               boxShadow: `0 8px 32px -8px ${rarity.glow}, 0 0 0 1px ${rarity.color}40`,
-              animation: "badge-toast-in 500ms cubic-bezier(0.16, 1, 0.3, 1)",
+              animation: dismissing.has(badgeId) ? undefined : "badge-toast-in 500ms cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           >
             <div
@@ -100,12 +119,7 @@ export function BadgeToastContainer() {
               <div className="text-[11px] text-muted-foreground">{badge.description}</div>
             </div>
             <button
-              onClick={() => {
-                const t = dismissTimersRef.current.get(badgeId);
-                if (t) { clearTimeout(t); dismissTimersRef.current.delete(badgeId); }
-                dismissBadgeToast(badgeId);
-                setVisibleToasts((prev) => prev.filter((v) => v !== badgeId));
-              }}
+              onClick={() => triggerDismiss(badgeId)}
               className="p-1 rounded hover:bg-foreground/10 shrink-0"
               aria-label="Dismiss"
             >

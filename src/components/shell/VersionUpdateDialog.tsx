@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Sparkles, Check, ArrowUpRight, GitBranch } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -18,41 +18,148 @@ import {
   LATEST_RELEASE,
   HIGHLIGHT_LABELS,
   type ReleaseHighlightType,
+  type ReleaseHighlight,
 } from "@/lib/version-info";
 
 // Per-type badge colours. Kept in sync with the app's teal/violet/amber/rose palette
 // (no indigo/blue per the project styling rules).
-const HIGHLIGHT_STYLES: Record<ReleaseHighlightType, { badge: string; dot: string }> = {
+const HIGHLIGHT_STYLES: Record<ReleaseHighlightType, { badge: string; dot: string; accent: string }> = {
   new: {
     badge: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
     dot: "bg-emerald-500",
+    accent: "from-emerald-500/20 to-emerald-500/5 border-emerald-500/30",
   },
   improved: {
     badge: "bg-teal-500/15 text-teal-600 dark:text-teal-400 border-teal-500/30",
     dot: "bg-teal-500",
+    accent: "from-teal-500/20 to-teal-500/5 border-teal-500/30",
   },
   removed: {
     badge: "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30",
     dot: "bg-rose-500",
+    accent: "from-rose-500/20 to-rose-500/5 border-rose-500/30",
   },
   fixed: {
     badge: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
     dot: "bg-amber-500",
+    accent: "from-amber-500/20 to-amber-500/5 border-amber-500/30",
   },
 };
+
+const CATEGORY_ORDER: ReleaseHighlightType[] = ["new", "improved", "fixed", "removed"];
+
+/**
+ * StackedCardCategory — a single category shown as a stack of cards.
+ * Collapsed: shows the category label + count + a peek of card edges behind.
+ * Expanded (hover on desktop, tap on mobile): cards fan out to reveal items.
+ */
+function StackedCardCategory({
+  type,
+  items,
+  isTouch,
+}: {
+  type: ReleaseHighlightType;
+  items: ReleaseHighlight[];
+  isTouch: boolean;
+}) {
+  const [tapExpanded, setTapExpanded] = useState(false);
+  const style = HIGHLIGHT_STYLES[type];
+  // On touch devices, use tap to toggle. On desktop, hover via CSS group-hover.
+  const expanded = isTouch ? tapExpanded : false; // desktop uses CSS :hover
+
+  return (
+    <div
+      className={cn("relative", !isTouch && "group")}
+      onClick={() => { if (isTouch) setTapExpanded((v) => !v); }}
+      role={isTouch ? "button" : undefined}
+      tabIndex={isTouch ? 0 : undefined}
+      onKeyDown={(e) => { if (isTouch && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); setTapExpanded((v) => !v); } }}
+    >
+      {/* Stacked card peek (the "cards behind" effect) */}
+      <div className="relative">
+        {/* Back cards (peek) — only visible when collapsed */}
+        {items.slice(0, Math.min(3, items.length - 1)).map((_, i) => (
+          <div
+            key={i}
+            className={cn(
+              "absolute inset-x-0 rounded-xl border bg-gradient-to-br transition-all duration-300",
+              style.accent,
+              // Offset each back card slightly
+              isTouch
+                ? tapExpanded ? "opacity-0" : ""
+                : "group-hover:opacity-0",
+            )}
+            style={{
+              top: `${(i + 1) * 3}px`,
+              zIndex: 10 - i,
+              opacity: (isTouch ? !tapExpanded : true) ? 1 : 0,
+              transform: (isTouch ? !tapExpanded : true) ? `scale(${1 - (i + 1) * 0.02})` : "scale(1)",
+            }}
+          />
+        ))}
+
+        {/* Front card (the category header / expanded content) */}
+        <div
+          className={cn(
+            "relative rounded-xl border bg-gradient-to-br p-3.5 transition-all duration-300 cursor-pointer",
+            style.accent,
+          )}
+          style={{ zIndex: 20 }}
+        >
+          {/* Collapsed view: just the label + count */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className={cn("h-2 w-2 rounded-full", style.dot)} />
+              <span className="text-sm font-semibold">{HIGHLIGHT_LABELS[type]}</span>
+            </div>
+            <span className="text-[10px] font-mono text-muted-foreground">
+              {items.length} {items.length === 1 ? "item" : "items"}
+            </span>
+          </div>
+
+          {/* Preview text (first item, truncated) — only when collapsed */}
+          {(!isTouch || !tapExpanded) && (
+            <p className="text-[11px] text-muted-foreground mt-1.5 line-clamp-1 transition-opacity duration-200 group-hover:opacity-0">
+              {items[0].text}
+            </p>
+          )}
+
+          {/* Expanded items — all items shown */}
+          <div
+            className={cn(
+              "overflow-hidden transition-all duration-300 ease-out",
+              isTouch
+                ? tapExpanded ? "max-h-[500px] opacity-100 mt-2" : "max-h-0 opacity-0"
+                : "max-h-0 opacity-0 group-hover:max-h-[500px] group-hover:opacity-100 group-hover:mt-2",
+            )}
+          >
+            <div className="space-y-1.5">
+              {items.map((h, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-2 p-2 rounded-lg bg-background/40 border border-border/30"
+                >
+                  <span className={cn("shrink-0 mt-0.5 h-1.5 w-1.5 rounded-full", style.dot)} />
+                  <p className="text-xs leading-relaxed text-foreground/90">{h.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /**
  * VersionUpdateDialog — shows "what's new" once per release.
  *
- * - Existing users: shows on their first visit after an update (when
- *   `lastSeenReleaseVersion` !== `APP_VERSION`).
- * - New users: shows once after they complete onboarding (onboardingCompleted
- *   flips to true, lastSeenReleaseVersion is still unset).
- * - Dismissing (close button or "Got it") records the current version so the
- *   popup never reappears for the same release.
+ * v5.926 (D3): redesigned with grouped stacked-card UI. Items are grouped by
+ * category (New/Improved/Fixed/Removed) and shown as expandable card stacks.
+ * Hover (desktop) or tap (mobile) to fan out the cards and reveal items.
  *
- * The release notes live in src/lib/version-info.ts — update that file (and
- * package.json) on every new release.
+ * Content is USER-FACING (plain language) — see version-info.ts for the
+ * dual-format release-notes process (user-facing here, technical in CHANGELOG).
  */
 export function VersionUpdateDialog() {
   const onboardingCompleted = useStore((s) => s.state.onboardingCompleted);
@@ -61,21 +168,18 @@ export function VersionUpdateDialog() {
   );
   const setPreference = useStore((s) => s.setPreference);
 
-  // Whether the dialog is visually open. We control this separately from the
-  // "should show" condition so we can animate the close before recording.
   const [open, setOpen] = useState(false);
-
-  // The version we're currently showing notes for (frozen at show-time so a
-  // mid-display version change can't desync the record we write on dismiss).
   const [shownVersion, setShownVersion] = useState<string | null>(null);
 
+  // Detect touch device for the hover-vs-tap interaction.
+  const [isTouch, setIsTouch] = useState(false);
   useEffect(() => {
-    // Only show after onboarding is done, and only if this release's notes
-    // haven't been seen yet. The small delay lets the dashboard settle before
-    // the popup appears (smoother for new users right after onboarding).
+    setIsTouch(window.matchMedia("(pointer: coarse)").matches || "ontouchstart" in window);
+  }, []);
+
+  useEffect(() => {
     if (!onboardingCompleted) return;
     if (lastSeenReleaseVersion === APP_VERSION) return;
-
     const t = setTimeout(() => {
       setShownVersion(APP_VERSION);
       setOpen(true);
@@ -86,7 +190,6 @@ export function VersionUpdateDialog() {
 
   const dismiss = () => {
     setOpen(false);
-    // Record the version we just showed so it never reappears for this release.
     if (shownVersion) {
       setPreference("lastSeenReleaseVersion", shownVersion);
     }
@@ -96,6 +199,17 @@ export function VersionUpdateDialog() {
 
   const release = LATEST_RELEASE;
   const formattedDate = formatDate(release.date);
+
+  // Group highlights by category.
+  const grouped = useMemo(() => {
+    const map: Record<ReleaseHighlightType, ReleaseHighlight[]> = {
+      new: [], improved: [], fixed: [], removed: [],
+    };
+    for (const h of release.highlights) {
+      map[h.type].push(h);
+    }
+    return map;
+  }, [release]);
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) dismiss(); }}>
@@ -132,27 +246,21 @@ export function VersionUpdateDialog() {
           </div>
         </div>
 
-        {/* Highlights list */}
-        <div className="space-y-2 mt-1">
-          {release.highlights.map((h, i) => {
-            const style = HIGHLIGHT_STYLES[h.type];
+        {/* v5.926 (D3): grouped stacked cards — hover (desktop) or tap (mobile) to expand. */}
+        <div className="space-y-2.5 mt-2">
+          <p className="text-[10px] text-muted-foreground text-center">
+            {isTouch ? "Tap a category to expand" : "Hover a category to expand"}
+          </p>
+          {CATEGORY_ORDER.map((type) => {
+            const items = grouped[type];
+            if (items.length === 0) return null;
             return (
-              <div
-                key={i}
-                className="flex items-start gap-3 p-3 rounded-xl border border-border/50 bg-card/30 hover:bg-card/50 transition-colors"
-              >
-                <span
-                  className={cn(
-                    "shrink-0 mt-0.5 inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold border",
-                    style.badge,
-                  )}
-                >
-                  {HIGHLIGHT_LABELS[h.type]}
-                </span>
-                <p className="text-sm leading-relaxed text-foreground/90 flex-1">
-                  {h.text}
-                </p>
-              </div>
+              <StackedCardCategory
+                key={type}
+                type={type}
+                items={items}
+                isTouch={isTouch}
+              />
             );
           })}
         </div>

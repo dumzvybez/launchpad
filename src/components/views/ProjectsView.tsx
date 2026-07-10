@@ -309,28 +309,35 @@ export function ProjectsView() {
                     )}
                   </div>
 
-                  {/* Status switcher */}
+                  {/* Status switcher — v5.926 (A1): "Shipped" removed from
+                      self-marking. The ONLY way a project reaches "shipped"
+                      status is a successful AI-Verify pass (which sets status
+                      + shippedAt + verifiedAt). Users can move between
+                      Planned → In Progress → Abandoned manually. */}
                   <div className="flex items-center gap-1 pt-1">
                     <select
-                      value={status}
+                      value={tracker?.verifiedAt ? "shipped" : status}
                       onChange={(e) => {
                         const newStatus = e.target.value as ProjectTracker["status"];
+                        // Guard: "shipped" can only be set via AI-Verify, not
+                        // via the dropdown. If somehow selected, ignore.
+                        if (newStatus === "shipped") return;
                         updateProjectTracker(proj.id, {
                           status: newStatus,
                           startedAt: newStatus === "in_progress" ? new Date().toISOString() : tracker?.startedAt,
-                          shippedAt: newStatus === "shipped" ? new Date().toISOString() : tracker?.shippedAt,
                         });
                       }}
                       className="text-[11px] bg-foreground/4 rounded-lg px-2 py-1 outline-none border border-border/40"
                     >
                       <option value="planned">Planned</option>
                       <option value="in_progress">In Progress</option>
-                      <option value="shipped">Shipped</option>
+                      {/* "shipped" option only appears when already AI-verified */}
+                      {tracker?.verifiedAt && <option value="shipped">✓ Verified</option>}
                       <option value="abandoned">Abandoned</option>
                     </select>
-                    {tracker?.shippedAt && (
+                    {tracker?.verifiedAt && (
                       <GlassPill className="ml-auto bg-emerald-400/10 border-emerald-400/30 text-emerald-400">
-                        <Award className="h-3 w-3" /> Shipped
+                        <Award className="h-3 w-3" /> Verified
                       </GlassPill>
                     )}
                   </div>

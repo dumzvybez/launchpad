@@ -257,27 +257,31 @@ export function selectCertificateEligible(
  * still returns roadmapPct/lessonsPct/projectsPct/overall but now uses the
  * new formula under the hood.
  */
+/**
+ * v5.926 (A2): Career Readiness Score — redesigned to 4 components.
+ * Removed "Challenges" (daily challenges) entirely. Now weights:
+ *   Without interviews: Roadmap 40%, Knowledge 40%, Projects 20%
+ *   With interviews:    Roadmap 30%, Knowledge 30%, Projects 20%, Interviews 20%
+ *
+ * Interview scoring is now transparent: reports sessionsCompleted +
+ * questionsAnswered (approximated from message count). The interview
+ * dimension only contributes when the user has completed at least 1 session.
+ */
 export function selectCareerReadinessScore(state: AppState): {
   roadmapProgress: number;       // 0-100
-  quizAverage: number;           // 0-100
-  projectsCompleted: number;     // 0-100
-  challengeScore: number;        // 0-100
+  quizAverage: number;           // 0-100 (knowledge mastery across curriculum)
+  projectsCompleted: number;     // 0-100 (AI-verified projects / assigned)
   interviewScore: number | null; // 0-100, or null if never used
+  interviewSessions: number;     // v5.926: transparent count
+  interviewQuestions: number;    // v5.926: approx questions answered
   overall: number;               // 0-100 weighted
-  weights: { roadmap: number; quiz: number; projects: number; challenges: number; interviews: number };
+  weights: { roadmap: number; quiz: number; projects: number; interviews: number };
 } {
   // 1. Roadmap progress
   const roadmapProgress = selectOverallProgress(state).pct;
 
-  // 2. Quiz average — across ALL lessons in the user's roadmap languages.
-  // v5.925 FIX (BUG 5 — Career Readiness math wildly inflated): previously
-  // this divided by `quizCount` (the number of ATTEMPTED lessons only), so a
-  // user who attempted 20 of 126 lessons with avg 95% got quizAverage=95%
-  // instead of ~15%. That made the Career Readiness Score reach 98% after
-  // completing ~1/6 of the curriculum. Now we divide by the TOTAL number of
-  // lessons across all roadmap languages (treating unattempted lessons as 0),
-  // so quizAverage reflects true curriculum mastery. This matches the
-  // Analytics tab's `lessonsPct = completedLessons / totalLessons` denominator.
+  // 2. Knowledge (quiz average) — across ALL lessons in the user's roadmap languages.
+  // v5.925: divides by totalLessons (not attempted) so unattempted = 0.
   const userLangs = state.roadmap?.languageIds ?? [];
   let quizSum = 0;
   let totalLessons = 0;
@@ -287,69 +291,53 @@ export function selectCareerReadinessScore(state: AppState): {
       totalLessons += lessons.length;
       for (const l of lessons) {
         const prog = state.lessonProgress[l.id];
-        // Count the best quiz score if present; unattempted lessons contribute 0.
         if (prog?.bestQuizScore !== undefined && prog.bestQuizScore !== null) {
           quizSum += prog.bestQuizScore;
         }
       }
     }
   }
-  // quizAverage = total mastery across the curriculum (0-100).
-  // If a track has 21 lessons and you scored 100% on all 21, quizAverage=100.
-  // If you scored 100% on 20 of 126 lessons, quizAverage ≈ 16%.
   const quizAverage = totalLessons > 0 ? Math.round((quizSum / totalLessons)) : 0;
 
-  // 3. Projects completed — % of assigned projects AI-VERIFIED shipped.
-  // v5.875 (HIGH-3): was hardcoded /3, but 8 projects are assigned per roadmap.
-  // v5.925 (BUG 4): was `status === "shipped"` (self-marked, gameable). Now
-  // requires `verifiedAt` set via the AI-Verify flow — a project only counts
-  // toward Career Readiness after the AI has verified the code fulfills the
-  // deliverables. Falls back to counting shipped-without-verified for existing
-  // users who shipped before v5.925 (grace period — they can re-verify).
-  const shippedCount = state.projects.filter(
-    (p) => p.status === "shipped" && p.verifiedAt,
-  ).length;
-  const legacyShipped = state.projects.filter(
-    (p) => p.status === "shipped" && !p.verifiedAt,
-  ).length;
-  const effectiveShipped = shippedCount + legacyShipped;
+  // 3. Projects — % of assigned projects AI-VERIFIED.
+  // v5.926 (A1): only verifiedAt counts (Shipped self-marking removed).
+  const verifiedCount = state.projects.filter((p) => p.verifiedAt).length;
   const totalProjects = state.assignedProjectCount && state.assignedProjectCount > 0
     ? state.assignedProjectCount
     : 8;
-  const projectsCompleted = Math.min(100, Math.round((effectiveShipped / totalProjects) * 100));
+  const projectsCompleted = Math.min(100, Math.round((verifiedCount / totalProjects) * 100));
 
-  // 4. Daily challenges — streak + % completion.
-  // Use the *daily-challenge* streak (state.dailyChallenge.currentStreak),
-  // not the task-completion streak (state.streak.current) — they are tracked
-  // separately and only the former reflects daily-challenge activity.
-  const streakScore = Math.min(100, state.dailyChallenge.currentStreak * 5); // 20-day streak = 100%
-  // Completion %: totalCompletedChallenges / 30 (cap), each completed lesson = 1 challenge
-  const completedLessons = Object.values(state.lessonProgress).filter((p) => p.status === "complete").length;
-  const completionScore = Math.min(100, Math.round((completedLessons / 30) * 100));
-  const challengeScore = Math.round((streakScore + completionScore) / 2);
-
-  // 5. Interview readiness — null if no interviews completed
-  // We approximate using chat conversations that started with the Interview Mode kickoff message
+  // 4. Interview readiness — transparent scoring.
+  // v5.926 (A2): reports sessionsCompleted + questionsAnswered for UI
+  // transparency. A "session" = a chat conversation containing the Interview
+  // Mode kickoff message. "Questions answered" = approximated as the number
+  // of user messages in interview conversations (minus the kickoff message).
+  // Score = min(100, sessionsCompleted / 5 * 100). Only contributes when
+  // sessionsCompleted >= 1 (otherwise null — the dimension is hidden).
   const interviewConversations = state.chatConversations.filter((c) =>
     c.messages.some((m) => m.content?.includes("I'm ready to start my mock interview")),
   );
-  const interviewScore: number | null = interviewConversations.length > 0
-    ? Math.min(100, Math.round((interviewConversations.length / 5) * 100))
+  const interviewSessions = interviewConversations.length;
+  const interviewQuestions = interviewConversations.reduce((sum, c) => {
+    // Count user messages after the kickoff (each ≈ one answered question).
+    const userMsgs = c.messages.filter((m) => m.role === "user").length;
+    return sum + Math.max(0, userMsgs - 1); // -1 for the kickoff message
+  }, 0);
+  const interviewScore: number | null = interviewSessions > 0
+    ? Math.min(100, Math.round((interviewSessions / 5) * 100))
     : null;
 
-  // Weighted formula
-  // v5.77 fix: redistributed weights now sum to exactly 1.000 (was 0.999,
-  // which made the `target-locked` achievement (>=100%) unreachable without
-  // interviews due to rounding down).
+  // v5.926 (A2): new 4-component weights (Challenges removed).
+  // Without interviews: Roadmap 40% + Knowledge 40% + Projects 20% = 100%.
+  // With interviews: Roadmap 30% + Knowledge 30% + Projects 20% + Interviews 20% = 100%.
   const weights = interviewScore === null
-    ? { roadmap: 0.294, quiz: 0.294, projects: 0.235, challenges: 0.177, interviews: 0 }
-    : { roadmap: 0.25, quiz: 0.25, projects: 0.20, challenges: 0.15, interviews: 0.15 };
+    ? { roadmap: 0.40, quiz: 0.40, projects: 0.20, interviews: 0 }
+    : { roadmap: 0.30, quiz: 0.30, projects: 0.20, interviews: 0.20 };
 
   const overall = Math.round(
     roadmapProgress * weights.roadmap +
     quizAverage * weights.quiz +
     projectsCompleted * weights.projects +
-    challengeScore * weights.challenges +
     (interviewScore ?? 0) * weights.interviews,
   );
 
@@ -357,8 +345,9 @@ export function selectCareerReadinessScore(state: AppState): {
     roadmapProgress,
     quizAverage,
     projectsCompleted,
-    challengeScore,
     interviewScore,
+    interviewSessions,
+    interviewQuestions,
     overall,
     weights,
   };
