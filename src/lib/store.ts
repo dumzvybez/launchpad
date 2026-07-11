@@ -1165,8 +1165,10 @@ export const useStore = create<Store>((set, get) => {
         if (status === "complete" && s.roadmap) {
           const today = todayKey();
           for (const phase of s.roadmap.phases) {
-            // v5.925: only auto-complete tasks in "Second Language: X" phases.
-            if (!/^Second Language:\s/.test(phase.title)) continue;
+            // v5.929 (#1): auto-complete tasks in ALL language phases (primary +
+            // secondary), identified by lessonGroups presence. The old regex
+            // /^Second Language:\s/ no longer matches the new unique titles.
+            if (!phase.lessonGroups || phase.lessonGroups.length === 0) continue;
             for (const mod of phase.modules) {
               for (const task of mod.tasks) {
                 if (task.lessonId === lessonId && !s.tasks[task.id]?.completedAt) {

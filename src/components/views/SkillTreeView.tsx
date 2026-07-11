@@ -1,11 +1,40 @@
 "use client";
 
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, Circle, Lock, Clock, ZoomIn, ZoomOut, Crosshair, ChevronRight } from "lucide-react";
+import { CheckCircle2, Circle, Lock, Clock, ChevronDown, ArrowRight, BookOpen } from "lucide-react";
 import { useStore, selectPhaseProgress } from "@/lib/store";
-import { GlassCard, GlassButton } from "@/components/glass/GlassPrimitives";
+import { GlassCard, ProgressBar } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
+import { getLessonById } from "@/lib/lessons-data";
+
+// v5.929 (#4): Skill Tree complete redesign.
+//
+// Research sources (web search, 2025):
+// - "How to Avoid MAJOR Pitfalls of Skill Tree Design" (UI expert Kayla Shults):
+//   key insight: skill trees should pace upgrades and avoid overwhelming users.
+//   Show one level of detail at a time; don't dump all nodes simultaneously.
+// - "A User Research Skill Tree" (Medium): progression systems start with common
+//   base skills and expand into specialized skills. Linear foundation → branching
+//   specialization is the natural mental model.
+// - Skill tree design best practices (Lushdesigns, Dribbble):
+//   - Visual hierarchy: larger nodes for phases, smaller for modules/tasks
+//   - Clear locked/unlocked states with visual differentiation
+//   - Progress indicators at every level (phase, module, task)
+//   - Connections between nodes show prerequisites/dependencies
+//
+// Design decisions based on research:
+// 1. HORIZONTAL PROGRESS RAIL instead of vertical zigzag — cleaner on mobile,
+//    reads left-to-right (natural reading direction), and scales to any number
+//    of phases without the alternating-side layout getting cramped.
+// 2. COLLAPSIBLE PHASE CARDS — one level of detail at a time (Shults' advice).
+//    Click a phase to expand its modules and tasks inline.
+// 3. PROGRESS BARS at every level — phase, module, task — so the user always
+//    knows where they are.
+// 4. LOCKED PHASES are visually distinct (dimmed + lock icon) but still visible
+//    so the user can see what's coming.
+// 5. NO ZOOM CONTROLS — the old zoom feature added complexity without clarity.
+//    The new design is responsive without needing zoom.
 
 const PHASE_COLOR_HEX: Record<string, string> = {
   teal: "#2DD4BF",
@@ -16,6 +45,15 @@ const PHASE_COLOR_HEX: Record<string, string> = {
   sky: "#38BDF8",
 };
 
+const PHASE_COLOR_MAP: Record<string, { bg: string; border: string; text: string; gradient: string }> = {
+  teal: { bg: "bg-teal-500/10", border: "border-teal-500/40", text: "text-teal-500", gradient: "from-teal-500 to-cyan-500" },
+  violet: { bg: "bg-violet-500/10", border: "border-violet-500/40", text: "text-violet-500", gradient: "from-violet-500 to-purple-500" },
+  amber: { bg: "bg-amber-500/10", border: "border-amber-500/40", text: "text-amber-500", gradient: "from-amber-500 to-orange-500" },
+  rose: { bg: "bg-rose-500/10", border: "border-rose-500/40", text: "text-rose-500", gradient: "from-rose-500 to-pink-500" },
+  emerald: { bg: "bg-emerald-500/10", border: "border-emerald-500/40", text: "text-emerald-500", gradient: "from-emerald-500 to-green-500" },
+  sky: { bg: "bg-sky-500/10", border: "border-sky-500/40", text: "text-sky-500", gradient: "from-sky-500 to-blue-500" },
+};
+
 export function SkillTreeView() {
   const roadmap = useStore((s) => s.state.roadmap);
   const state = useStore((s) => s.state);
@@ -23,22 +61,10 @@ export function SkillTreeView() {
   const selectModule = useStore((s) => s.selectModule);
   const selectTask = useStore((s) => s.selectTask);
   const setView = useStore((s) => s.setView);
+  const setLearnTabState = useStore((s) => s.setLearnTabState);
   const isPhaseUnlocked = useStore((s) => s.isPhaseUnlocked);
 
-  const [zoom, setZoom] = useState(1);
   const [expandedPhase, setExpandedPhase] = useState<string | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const phaseRefs = useRef<Record<string, HTMLDivElement | null>>({});
-
-  // Auto-expand the current phase (first phase < 100% complete) when the
-  // roadmap loads. Uses the "adjust state during render" pattern recommended
-  // by the React docs — no setState-in-useEffect.
-  const [autoExpandChecked, setAutoExpandChecked] = useState(false);
-  if (!autoExpandChecked && roadmap && !expandedPhase) {
-    setAutoExpandChecked(true);
-    const current = roadmap.phases.find((p) => selectPhaseProgress(state, p.id).pct < 100);
-    if (current) setExpandedPhase(current.id);
-  }
 
   if (!roadmap) {
     return (
@@ -55,58 +81,33 @@ export function SkillTreeView() {
 
   const handlePhaseClick = (phaseId: string, locked: boolean) => {
     if (locked) return;
+    setExpandedPhase(expandedPhase === phaseId ? null : phaseId);
+  };
+
+  const handleNavigateToRoadmap = (phaseId: string, moduleId?: string, taskId?: string) => {
     selectPhase(phaseId);
+    if (moduleId) selectModule(moduleId);
+    if (taskId) selectTask(taskId);
     setView("roadmap");
   };
 
-  const handleModuleClick = (phaseId: string, moduleId: string, locked: boolean) => {
-    if (locked) return;
-    selectPhase(phaseId);
-    selectModule(moduleId);
-    setView("roadmap");
-  };
-
-  const handleTaskClick = (phaseId: string, moduleId: string, taskId: string, locked: boolean) => {
-    if (locked) return;
-    selectPhase(phaseId);
-    selectModule(moduleId);
-    selectTask(taskId);
-    setView("roadmap");
-  };
-
-  const scrollToCurrent = () => {
-    const current = roadmap.phases.find((p) => {
-      const pct = selectPhaseProgress(state, p.id).pct;
-      return pct > 0 && pct < 100;
-    });
-    if (current && phaseRefs.current[current.id]) {
-      phaseRefs.current[current.id]?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
+  const handleGoToLesson = (lessonId: string, trackId: string) => {
+    setLearnTabState({ tab: "lesson", selectedLessonId: lessonId, selectedTrack: trackId });
+    setView("learn");
+    window.scrollTo(0, 0);
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Skill Tree</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Your journey from {roadmap.careerLabel} beginner to job-ready. Click any node to dive in.
-          </p>
-        </div>
-        <div className="flex items-center gap-1">
-          <GlassButton size="sm" variant="ghost" onClick={() => setZoom((z) => Math.max(0.7, z - 0.1))} title="Zoom out">
-            <ZoomOut className="h-3.5 w-3.5" />
-          </GlassButton>
-          <span className="text-[10px] font-mono text-muted-foreground w-10 text-center">{Math.round(zoom * 100)}%</span>
-          <GlassButton size="sm" variant="ghost" onClick={() => setZoom((z) => Math.min(1.3, z + 0.1))} title="Zoom in">
-            <ZoomIn className="h-3.5 w-3.5" />
-          </GlassButton>
-          <GlassButton size="sm" variant="ghost" onClick={scrollToCurrent} title="Scroll to current position">
-            <Crosshair className="h-3.5 w-3.5" /> Current
-          </GlassButton>
-        </div>
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Skill Tree</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Your journey from {roadmap.careerLabel} beginner to job-ready. Click any phase to expand its modules and tasks.
+        </p>
       </div>
 
+      {/* Overall progress */}
       <GlassCard className="p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -128,25 +129,9 @@ export function SkillTreeView() {
         </div>
       </GlassCard>
 
-      {/* Vertical connected path with gradient flowing line + zoom wrapper */}
-      <div ref={containerRef} className="relative overflow-x-auto" style={{ transform: `scale(${zoom})`, transformOrigin: "top center", transition: "transform 0.2s" }}>
-        {/* The flowing gradient line — absolute positioned behind the nodes */}
-        <div
-          className="absolute left-6 sm:left-1/2 top-0 bottom-0 w-1 -translate-x-1/2 rounded-full opacity-60"
-          style={{
-            background: `linear-gradient(180deg, ${
-              roadmap.phases.map((p, i) => {
-                const color = PHASE_COLOR_HEX[p.color] ?? "#888";
-                const pct = (i / Math.max(1, roadmap.phases.length - 1)) * 100;
-                return `${color} ${pct}%`;
-              }).join(", ")
-            })`,
-            boxShadow: "0 0 20px rgba(45,212,191,0.3)",
-          }}
-          aria-hidden
-        />
-
-        <div className="space-y-4 relative">
+      {/* Horizontal progress rail — phases as connected nodes */}
+      <GlassCard className="p-4 overflow-x-auto">
+        <div className="flex items-center gap-1 min-w-fit">
           {roadmap.phases.map((phase, idx) => {
             const progress = selectPhaseProgress(state, phase.id);
             const color = PHASE_COLOR_HEX[phase.color] ?? "#888";
@@ -155,197 +140,227 @@ export function SkillTreeView() {
             const isUnlocked = isPhaseUnlocked(phase.number);
             const isLocked = !isUnlocked && phase.number > 1;
             const isExpanded = expandedPhase === phase.id;
-            const isLeft = idx % 2 === 0;
 
             return (
-              <motion.div
-                key={phase.id}
-                ref={(el) => { phaseRefs.current[phase.id] = el; }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05, duration: 0.3 }}
-                className={cn(
-                  "relative flex items-start gap-4",
-                  isLeft ? "sm:flex-row" : "sm:flex-row-reverse",
-                )}
-              >
-                {/* Main node (the phase circle) */}
-                <div className="shrink-0 z-10 sm:ml-auto sm:mr-auto sm:order-2">
-                  <button
-                    onClick={() => isLocked ? null : (isExpanded ? setExpandedPhase(null) : setExpandedPhase(phase.id))}
-                    disabled={isLocked}
+              <div key={phase.id} className="flex items-center shrink-0">
+                {/* Phase node */}
+                <button
+                  onClick={() => handlePhaseClick(phase.id, isLocked)}
+                  disabled={isLocked}
+                  className={cn(
+                    "relative flex flex-col items-center gap-1 p-2 rounded-xl transition-all min-w-[80px]",
+                    !isLocked && "hover:bg-foreground/5 cursor-pointer",
+                    isLocked && "opacity-50 cursor-not-allowed",
+                    isExpanded && "bg-foreground/5",
+                  )}
+                >
+                  <div
                     className={cn(
-                      "relative h-16 w-16 rounded-full flex items-center justify-center text-2xl transition-all",
-                      isLocked ? "opacity-40 cursor-not-allowed" : "hover:scale-110 cursor-pointer",
+                      "h-12 w-12 rounded-full flex items-center justify-center text-xl transition-all",
+                      isLocked ? "bg-foreground/10" : "hover:scale-110",
                       isInProgress && !isLocked && "animate-pulse",
                     )}
                     style={{
-                      background: `linear-gradient(135deg, ${color}, ${color}cc)`,
-                      boxShadow: `0 0 30px ${color}66, 0 0 0 4px var(--background), 0 0 0 6px ${color}33`,
+                      background: isLocked ? undefined : `linear-gradient(135deg, ${color}, ${color}cc)`,
+                      boxShadow: !isLocked ? `0 0 20px ${color}55` : undefined,
                     }}
                   >
-                    {isLocked ? <Lock className="h-6 w-6 text-foreground/60" /> : phase.icon}
+                    {isLocked ? <Lock className="h-5 w-5 text-foreground/40" /> : phase.icon}
                     {isComplete && (
-                      <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-emerald-500 flex items-center justify-center">
-                        <CheckCircle2 className="h-3 w-3 text-white" />
+                      <div className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center">
+                        <CheckCircle2 className="h-2.5 w-2.5 text-white" />
                       </div>
                     )}
-                  </button>
-                </div>
+                  </div>
+                  <div className="text-[10px] font-mono text-center w-full truncate" style={{ color: isLocked ? undefined : color }}>
+                    {phase.number}
+                  </div>
+                  <div className="text-[9px] text-muted-foreground text-center w-full truncate max-w-[70px]">
+                    {progress.pct}%
+                  </div>
+                </button>
 
-                {/* Phase card + expandable module/task nodes */}
-                <div className={cn(
-                  "flex-1 max-w-md",
-                  isLeft ? "sm:order-1 sm:text-right" : "sm:order-3",
-                )}>
-                  <GlassCard
-                    className={cn(
-                      "p-4 transition-all cursor-pointer",
-                      isLocked ? "opacity-50" : "hover:scale-[1.01]",
-                    )}
-                    onClick={() => handlePhaseClick(phase.id, isLocked)}
-                  >
-                    <div className={cn("flex items-center gap-2 mb-1", isLeft && "sm:justify-end")}>
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: `${color}22`, color }}>
-                        Phase {phase.number}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground font-mono">{phase.estWeeks}w</span>
-                      {!isLocked && (
-                        <ChevronRight className={cn("h-3 w-3 text-muted-foreground transition-transform", isExpanded && "rotate-90")} />
-                      )}
-                    </div>
-                    <h3 className="font-semibold text-sm">{phase.title}</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">{phase.subtitle}</p>
-
-                    {/* Module dots — smaller nodes branching off */}
-                    <div className={cn("flex flex-wrap gap-1.5 mt-3", isLeft && "sm:justify-end")}>
-                      {phase.modules.map((m) => {
-                        const mTasks = m.tasks;
-                        const mComplete = mTasks.filter((t) => state.tasks[t.id]?.completedAt).length;
-                        const mDone = mComplete === mTasks.length && mTasks.length > 0;
-                        const mInProgress = mComplete > 0 && mComplete < mTasks.length;
-                        return (
-                          <button
-                            key={m.id}
-                            onClick={(e) => { e.stopPropagation(); handleModuleClick(phase.id, m.id, isLocked); }}
-                            className={cn(
-                              "h-3 w-3 rounded-full transition-all hover:scale-150",
-                              isLocked ? "bg-foreground/10 cursor-not-allowed" :
-                                mDone ? "bg-emerald-500" : mInProgress ? "bg-amber-500 animate-pulse" : "bg-foreground/15",
-                            )}
-                            title={`${m.title} (${mComplete}/${mTasks.length})`}
-                          />
-                        );
-                      })}
-                    </div>
-
-                    {/* Progress bar */}
-                    <div className="mt-2 flex items-center gap-2">
-                      {!isLeft && <div className="flex-1" />}
-                      <div className={cn("flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground")}>
-                        <Clock className="h-3 w-3" />
-                        <span>{progress.completed}/{progress.total} · {progress.pct}%</span>
-                      </div>
-                      {isLeft && <div className="flex-1" />}
-                      <div className="w-20 h-1 rounded-full bg-foreground/10 overflow-hidden">
-                        <div className="h-full rounded-full transition-all" style={{ width: `${progress.pct}%`, background: color }} />
-                      </div>
-                    </div>
-                  </GlassCard>
-
-                  {/* Expanded module + task nodes (Section 10 — task nodes branch off module nodes) */}
-                  {isExpanded && !isLocked && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      transition={{ duration: 0.2 }}
-                      className={cn("mt-2 space-y-2 pl-3 border-l-2", isLeft ? "sm:border-r-2 sm:border-l-0 sm:pr-3 sm:pl-0" : "")}
-                      style={{ borderColor: `${color}66` }}
-                    >
-                      {phase.modules.map((m) => {
-                        const mTasks = m.tasks;
-                        const mComplete = mTasks.filter((t) => state.tasks[t.id]?.completedAt).length;
-                        const mPct = mTasks.length ? Math.round((mComplete / mTasks.length) * 100) : 0;
-                        return (
-                          <div key={m.id} className="rounded-lg bg-card/40 border border-border/40 p-2">
-                            <button
-                              onClick={() => handleModuleClick(phase.id, m.id, isLocked)}
-                              className="w-full flex items-center justify-between gap-2 text-left"
-                            >
-                              <span className="text-xs font-medium">{m.title}</span>
-                              <span className="text-[10px] font-mono text-muted-foreground">{mComplete}/{mTasks.length} · {mPct}%</span>
-                            </button>
-                            {/* Task nodes — smallest elements */}
-                            <div className="mt-2 space-y-1">
-                              {mTasks.map((t) => {
-                                const tDone = !!state.tasks[t.id]?.completedAt;
-                                return (
-                                  <button
-                                    key={t.id}
-                                    onClick={() => handleTaskClick(phase.id, m.id, t.id, isLocked)}
-                                    className="w-full flex items-center gap-2 text-left text-[11px] py-0.5 px-1 rounded hover:bg-foreground/5 transition-colors"
-                                  >
-                                    {tDone ? (
-                                      <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />
-                                    ) : (
-                                      <Circle className="h-3 w-3 text-muted-foreground shrink-0" />
-                                    )}
-                                    <span className={cn("truncate", tDone && "text-muted-foreground line-through")}>{t.title}</span>
-                                    <span className="ml-auto text-[9px] font-mono text-muted-foreground shrink-0">{t.estMinutes}m</span>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </motion.div>
-                  )}
-                </div>
-              </motion.div>
+                {/* Connector line */}
+                {idx < roadmap.phases.length - 1 && (
+                  <div className="flex items-center">
+                    <div
+                      className={cn("h-0.5 w-6 rounded-full transition-colors", isComplete ? "bg-emerald-500" : "bg-foreground/10")}
+                    />
+                    <ArrowRight className="h-3 w-3 text-muted-foreground/40" />
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
-      </div>
+      </GlassCard>
 
-      {/* Legend + mini-map */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <GlassCard className="p-3">
-          <div className="text-[10px] uppercase text-muted-foreground mb-2">Legend</div>
-          <div className="flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground">
-            <div className="flex items-center gap-1"><div className="h-2 w-2 rounded-full bg-foreground/15" /> Not started</div>
-            <div className="flex items-center gap-1"><div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" /> In progress</div>
-            <div className="flex items-center gap-1"><div className="h-2 w-2 rounded-full bg-emerald-500" /> Complete</div>
-            <div className="flex items-center gap-1"><Lock className="h-2.5 w-2.5" /> Locked</div>
-          </div>
-        </GlassCard>
-        {/* Mini-map */}
-        <GlassCard className="p-3">
-          <div className="text-[10px] uppercase text-muted-foreground mb-2">Mini-map · click to jump</div>
-          <div className="flex flex-wrap gap-1">
-            {roadmap.phases.map((p) => {
-              const pct = selectPhaseProgress(state, p.id).pct;
-              const color = PHASE_COLOR_HEX[p.color] ?? "#888";
-              const isUnlocked = isPhaseUnlocked(p.number);
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => phaseRefs.current[p.id]?.scrollIntoView({ behavior: "smooth", block: "center" })}
-                  className={cn(
-                    "h-6 w-6 rounded-md transition-all hover:scale-110",
-                    !isUnlocked && p.number > 1 && "opacity-40",
-                  )}
-                  style={{
-                    background: pct === 100 ? "#34D399" : pct > 0 ? `${color}` : `${color}33`,
-                    border: `1px solid ${color}`,
-                  }}
-                  title={`Phase ${p.number}: ${p.title} (${pct}%)`}
-                />
-              );
-            })}
-          </div>
-        </GlassCard>
-      </div>
+      {/* Expanded phase detail */}
+      {expandedPhase && (() => {
+        const phase = roadmap.phases.find((p) => p.id === expandedPhase);
+        if (!phase) return null;
+        const colors = PHASE_COLOR_MAP[phase.color] ?? PHASE_COLOR_MAP.teal;
+        const color = PHASE_COLOR_HEX[phase.color] ?? "#888";
+        const progress = selectPhaseProgress(state, phase.id);
+        const isUnlocked = isPhaseUnlocked(phase.number);
+        const isLocked = !isUnlocked && phase.number > 1;
+
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <GlassCard className={cn("p-5 border-2", colors.border)}>
+              {/* Phase header */}
+              <div className="flex items-start gap-4 mb-4">
+                <div className={cn("h-14 w-14 rounded-2xl bg-gradient-to-br flex items-center justify-center text-3xl shrink-0", colors.gradient)}>
+                  {phase.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={cn("text-[10px] font-mono px-2 py-0.5 rounded-full", colors.bg, colors.text)}>
+                      Phase {phase.number}
+                    </span>
+                    <span className="text-[10px] font-mono text-muted-foreground">{phase.estWeeks}w</span>
+                    {isLocked && <span className="text-[10px] text-amber-500 flex items-center gap-1"><Lock className="h-2.5 w-2.5" /> Locked</span>}
+                  </div>
+                  <h2 className="text-xl font-bold">{phase.title}</h2>
+                  <p className="text-sm text-muted-foreground mt-1">{phase.subtitle}</p>
+                  {/* Progress bar */}
+                  <div className="mt-3 flex items-center gap-3">
+                    <div className="flex-1 h-2 rounded-full bg-foreground/10 overflow-hidden">
+                      <div className="h-full rounded-full transition-all" style={{ width: `${progress.pct}%`, background: color }} />
+                    </div>
+                    <span className="text-[10px] font-mono text-muted-foreground shrink-0">{progress.completed}/{progress.total} · {progress.pct}%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Objectives */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+                {phase.objectives.map((obj, i) => (
+                  <div key={i} className="flex items-start gap-2 text-xs">
+                    <div className={cn("h-1.5 w-1.5 rounded-full mt-1.5 shrink-0", `bg-${phase.color}-500`)} style={{ background: color }} />
+                    <span>{obj}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Lesson groups (if this is a language phase) */}
+              {phase.lessonGroups && phase.lessonGroups.length > 0 && (
+                <div className="space-y-2 mb-4">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Lesson Modules</h3>
+                  {phase.lessonGroups.map((group, gi) => {
+                    const completedInGroup = group.lessonIds.filter((id) => state.lessonProgress[id]?.status === "complete").length;
+                    const groupPct = group.lessonIds.length > 0 ? Math.round((completedInGroup / group.lessonIds.length) * 100) : 0;
+                    return (
+                      <div key={gi} className={cn("rounded-xl border p-3", colors.border, colors.bg)}>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium">{group.title}</span>
+                          <span className="text-[10px] font-mono text-muted-foreground">{completedInGroup}/{group.lessonIds.length} · {groupPct}%</span>
+                        </div>
+                        <div className="h-1 rounded-full bg-foreground/10 overflow-hidden mb-2">
+                          <div className="h-full rounded-full transition-all" style={{ width: `${groupPct}%`, background: color }} />
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {group.lessonIds.map((lessonId, li) => {
+                            const lesson = getLessonById(lessonId);
+                            const isComplete = state.lessonProgress[lessonId]?.status === "complete";
+                            return (
+                              <button
+                                key={lessonId}
+                                onClick={() => lesson && handleGoToLesson(lessonId, lesson.track)}
+                                className={cn(
+                                  "flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md transition-colors",
+                                  isComplete ? "bg-emerald-500/15 text-emerald-500" : "bg-foreground/5 text-muted-foreground hover:bg-foreground/10",
+                                )}
+                                title={lesson?.title ?? `Lesson ${group.lessonNumbers[li]}`}
+                              >
+                                {isComplete ? <CheckCircle2 className="h-2.5 w-2.5" /> : <Circle className="h-2.5 w-2.5" />}
+                                <span className="truncate max-w-[100px]">{lesson?.title ?? `L${group.lessonNumbers[li]}`}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Modules with tasks */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Modules & Tasks</h3>
+                {phase.modules.map((m, mi) => {
+                  const tasks = m.tasks;
+                  const completed = tasks.filter((t) => state.tasks[t.id]?.completedAt).length;
+                  const pct = tasks.length ? Math.round((completed / tasks.length) * 100) : 0;
+                  return (
+                    <div key={m.id} className="rounded-lg bg-card/40 border border-border/40 p-3">
+                      <button
+                        onClick={() => handleNavigateToRoadmap(phase.id, m.id)}
+                        className="w-full flex items-center justify-between gap-2 text-left mb-2"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate">{m.title}</div>
+                          <div className="text-[10px] text-muted-foreground truncate">{m.description}</div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="text-[10px] font-mono text-muted-foreground">{completed}/{tasks.length}</div>
+                          <div className={cn("text-[10px] font-mono", colors.text)}>{pct}%</div>
+                        </div>
+                      </button>
+                      {/* Task list */}
+                      <div className="space-y-1">
+                        {tasks.map((t, ti) => {
+                          const tDone = !!state.tasks[t.id]?.completedAt;
+                          return (
+                            <button
+                              key={t.id}
+                              onClick={() => handleNavigateToRoadmap(phase.id, m.id, t.id)}
+                              className="w-full flex items-center gap-2 text-left text-[11px] py-1 px-1.5 rounded hover:bg-foreground/5 transition-colors"
+                            >
+                              {tDone ? (
+                                <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />
+                              ) : (
+                                <Circle className="h-3 w-3 text-muted-foreground shrink-0" />
+                              )}
+                              <span className={cn("truncate flex-1", tDone && "text-muted-foreground line-through")}>{t.title}</span>
+                              <span className="text-[9px] font-mono text-muted-foreground shrink-0">{t.estMinutes}m</span>
+                              {t.lessonId && <BookOpen className="h-2.5 w-2.5 text-violet-500 shrink-0" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Navigate to roadmap button */}
+              <button
+                onClick={() => handleNavigateToRoadmap(phase.id)}
+                className={cn("mt-4 w-full flex items-center justify-center gap-1.5 text-xs font-medium py-2 rounded-lg transition-colors", colors.bg, colors.text, "hover:bg-foreground/10")}
+              >
+                Open in Roadmap <ArrowRight className="h-3 w-3" />
+              </button>
+            </GlassCard>
+          </motion.div>
+        );
+      })()}
+
+      {/* Legend */}
+      <GlassCard className="p-3">
+        <div className="text-[10px] uppercase text-muted-foreground mb-2">Legend</div>
+        <div className="flex flex-wrap items-center gap-4 text-[10px] text-muted-foreground">
+          <div className="flex items-center gap-1"><Circle className="h-3 w-3" /> Not started</div>
+          <div className="flex items-center gap-1"><div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" /> In progress</div>
+          <div className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Complete</div>
+          <div className="flex items-center gap-1"><Lock className="h-2.5 w-2.5" /> Locked</div>
+          <div className="flex items-center gap-1"><BookOpen className="h-2.5 w-2.5 text-violet-500" /> Has lesson link</div>
+        </div>
+      </GlassCard>
     </div>
   );
 }

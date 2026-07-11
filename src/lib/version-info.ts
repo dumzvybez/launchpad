@@ -11,7 +11,7 @@
 // `lastSeenReleaseVersion` preference differs from APP_VERSION.
 // ============================================================
 
-export const APP_VERSION = "5.928.0";
+export const APP_VERSION = "5.929.0";
 
 export type ReleaseHighlightType = "new" | "improved" | "removed" | "fixed";
 
@@ -43,6 +43,23 @@ export type ReleaseInfo = {
 //   To ship a new release: bump APP_VERSION, add a ReleaseInfo here (user-
 //   facing), AND add a technical entry to CHANGELOG.md. Both are required.
 export const RELEASES: ReleaseInfo[] = [
+  {
+    version: "5.929.0",
+    date: "2026-07-11",
+    title: "Roadmap engine overhaul + Skill Tree redesign",
+    summary:
+      "Your primary language now gets the same real-lesson-content treatment as secondary languages — with 'Go to Lesson' links and auto-completion tied to quiz progress. Every language phase has a unique title. The Foundation phase now includes Git/GitHub and terminal basics. The AI Bonus Track and Capstone phases have genuine research-backed depth. And the Skill Tree has been completely redesigned.",
+    highlights: [
+      { type: "improved", text: "Roadmap overhaul: your primary language now uses real Learn-tab lesson content (the same modules, 'Go to Lesson' links, and auto-completion as secondary languages) instead of generic non-lesson phases. Every language phase — primary and secondary — now has the same high-quality content sourcing." },
+      { type: "fixed", text: "Duplicate-modules bug eliminated: old generic 2-module engine content that was appearing alongside real lesson-group content has been fully removed across ALL language phases, not just patched for one case." },
+      { type: "improved", text: "Each language phase now has a unique, descriptive title (e.g., 'Python Mastery', 'React Development', 'PostgreSQL & Databases') instead of the generic 'Second Language: X' pattern." },
+      { type: "new", text: "Foundation phase redesigned: VS Code setup, Git/GitHub basics, terminal essentials, and your first program — all in one phase with genuine explanatory content (what each tool is, why it matters, how to use it)." },
+      { type: "improved", text: "AI Bonus Track content researched via web search and updated with real 2025 industry practices per career (e.g., Copilot/Cursor for SE, MLOps/MLflow for DevOps, Core ML/ML Kit for Mobile, TinyML for Embedded)." },
+      { type: "improved", text: "Capstone & Career phase deepened with research-backed content: portfolio best practices, ATS-optimized resume guidance, LeetCode pattern strategy, and mock interview prep with real platform recommendations." },
+      { type: "new", text: "Skill Tree completely redesigned: horizontal progress rail instead of vertical zigzag, collapsible phase cards (one level of detail at a time per UX research), lesson-group integration, and no zoom controls needed." },
+      { type: "fixed", text: "Sidebar collapse: smooth animation added (was instant), and the expand button is now vertically centered to match the TopBar position." },
+    ],
+  },
   {
     version: "5.928.0",
     date: "2026-07-10",

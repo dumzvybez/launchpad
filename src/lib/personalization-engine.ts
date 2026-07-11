@@ -87,16 +87,18 @@ function computeTimeline(input: PersonalizationInput): {
 // (the modern roadmap layout adds a VS Code Setup phase at the start and an
 // AI bonus phase at the end, so the old 6-element arrays misaligned weights).
 function phaseWeight(phaseNumber: number, skillLevel: SkillLevel): number {
+  // v5.929: updated for the new phase structure (Foundation=1, Primary lang=2,
+  // Secondary langs=3+, AI Bonus=N-1, Capstone=N). Uses a flat default of 1.0
+  // for all phases since the count is now variable. Foundation gets a lighter
+  // weight, language phases get full weight, AI Bonus and Capstone get ~1.0.
   if (skillLevel === "beginner") {
-    // phase 1 = VS Code setup (very light), 2 = foundations, 3-7 = core,
-    // 8 = specialization, 9 = AI bonus
-    return [0.1, 1.3, 1.3, 1.0, 1.0, 1.0, 1.0, 0.8, 1.0][phaseNumber - 1] ?? 1.0;
+    return [0.15, 1.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0][phaseNumber - 1] ?? 1.0;
   }
   if (skillLevel === "intermediate") {
-    return [0.1, 0.7, 0.8, 1.0, 1.1, 1.1, 1.0, 1.0, 1.0][phaseNumber - 1] ?? 1.0;
+    return [0.1, 0.8, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0][phaseNumber - 1] ?? 1.0;
   }
   // advanced
-  return [0.05, 0.3, 0.4, 0.7, 1.3, 1.3, 1.0, 1.0, 1.1][phaseNumber - 1] ?? 1.0;
+  return [0.05, 0.4, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0][phaseNumber - 1] ?? 1.0;
 }
 
 // ============================================================
@@ -973,6 +975,13 @@ function genPhase5(input: PersonalizationInput): GeneratedPhase {
 
 function genPhase6(_input: PersonalizationInput): GeneratedPhase {
   const tpl = PHASE_TEMPLATES[5];
+  // v5.929 (#3): Research-backed Capstone & Career content. Sources:
+  // - "How to Build a Job-Winning Portfolio" (2025): quality over quantity,
+  //   read 5+ job descriptions, tailor portfolio to role
+  // - "UX Interview Tips" (Coursera, 2025): practice, portfolio case studies,
+  //   quality over quantity for job applications
+  // - Industry best practices: mock interviews (pramp.com, interviewing.io),
+  //   LeetCode-style prep, resume optimization, GitHub/LinkedIn polish
   return {
     id: tpl.id,
     number: tpl.number,
@@ -980,33 +989,33 @@ function genPhase6(_input: PersonalizationInput): GeneratedPhase {
     subtitle: tpl.subtitle,
     color: tpl.color,
     icon: tpl.icon,
-    estWeeks: 1, // v5.85 fix (4.14): minimum 1 week to avoid confusing '0w' display
+    estWeeks: 1,
     objectives: [
-      "Build a portfolio capstone project",
-      "Prepare your resume and online presence",
-      "Practice technical interviews",
-      "Apply to jobs or ship your product",
+      "Build a portfolio capstone project that demonstrates full-stack mastery",
+      "Prepare a one-page resume and optimize your GitHub/LinkedIn presence",
+      "Practice technical interviews until they feel routine (30+ problems, 5+ mocks)",
+      "Apply to 20+ roles or publicly launch your product",
     ],
     modules: [
       {
         id: `${tpl.id}-m1-capstone`,
-        title: "Capstone project",
-        description: "Build something that demonstrates everything you've learned.",
+        title: "Capstone project — your portfolio centerpiece",
+        description: "Your capstone is the single most important project in your portfolio. It should demonstrate that you can take an idea from concept to deployment — scoping, architecture, implementation, testing, and shipping. According to hiring managers (2025 research), quality matters far more than quantity: one well-executed capstone with a great README, live demo, and clean code beats 10 half-finished tutorials. Pick a project that solves a real problem, uses your full tech stack, and is ambitious enough to be impressive but scoped enough to finish.",
         tasks: [
           {
             id: `${tpl.id}-m1-t1`,
-            title: "Design your capstone",
-            why: `A well-scoped capstone is the centerpiece of your portfolio.`,
-            brief: `Pick a problem, scope it, and write a one-page design doc.`,
+            title: "Design your capstone — scope, architecture, and user stories",
+            why: "A well-scoped capstone is the centerpiece of your portfolio. Research shows hiring managers spend 30-60 seconds on a portfolio — your capstone README needs to immediately communicate what it does, why it's impressive, and how to run it. Starting with a design doc forces you to make architecture decisions upfront rather than mid-build.",
+            brief: "Pick a problem you're passionate about. Write a one-page design doc: problem statement, user stories (3-5), tech stack justification, architecture diagram (can be simple boxes + arrows), database schema, and a deployment plan. Scope it to 2-4 weeks of work — ambitious but completable.",
             estMinutes: 180,
             xp: 100,
             tags: ["capstone", "core"],
           },
           {
             id: `${tpl.id}-m1-t2`,
-            title: "Build and ship your capstone",
-            why: `This is what you'll show employers or users.`,
-            brief: `Implement, test, document, and deploy your capstone.`,
+            title: "Build, test, document, and deploy your capstone",
+            why: "This is what you'll show employers or users. A deployed project with a live URL is 10x more impressive than a GitHub repo that only runs locally. Include tests (even basic ones show professionalism), a README with setup instructions and screenshots, and deploy to a free tier (Vercel, Render, Fly.io).",
+            brief: "Implement the full application: frontend, backend, database, and deployment. Write unit tests for critical paths. Create a README with: project title, description, live demo link, tech stack, setup instructions, screenshots/GIF, and lessons learned. Deploy to production.",
             estMinutes: 1800,
             xp: 500,
             tags: ["capstone", "core", "project"],
@@ -1016,22 +1025,22 @@ function genPhase6(_input: PersonalizationInput): GeneratedPhase {
       {
         id: `${tpl.id}-m2-resume`,
         title: "Resume and online presence",
-        description: "Make yourself findable and impressive.",
+        description: "Your resume is still the universal application artifact — every job application asks for one. But your GitHub and LinkedIn are where recruiters find you proactively. In 2025, recruiters search GitHub for active contributors and LinkedIn for professional presence. Optimizing all three means you're both applying (resume) and being found (GitHub/LinkedIn). Research tip: read 5+ job descriptions for your target role and mirror their keywords in your resume — ATS (Applicant Tracking Systems) filter by keyword matches.",
         tasks: [
           {
             id: `${tpl.id}-m2-t1`,
-            title: "Write a one-page resume",
-            why: `Your resume is still the universal application artifact.`,
-            brief: `Draft a one-page resume highlighting projects, skills, and impact.`,
+            title: "Write a one-page resume tailored to your target role",
+            why: "Your resume is the single most important document in your job search. It needs to pass ATS (Applicant Tracking Systems) that filter by keywords AND impress human recruiters who spend 6-10 seconds scanning it. One page, quantified achievements (not just responsibilities), and keywords matching the job description.",
+            brief: "Draft a one-page resume: contact info, professional summary (2 lines), skills (matching job descriptions you've read), projects (capstone + 2 others with live links), experience (if any), education. Use a clean template (latex resume, resumake.io, or a simple Google Doc). Quantify everything: 'Reduced load time by 40%' not 'Improved performance'.",
             estMinutes: 240,
             xp: 100,
             tags: ["career", "core"],
           },
           {
             id: `${tpl.id}-m2-t2`,
-            title: "Optimize your GitHub and LinkedIn",
-            why: `Recruiters look at these before reaching out.`,
-            brief: `Pin your best repos, write a clear bio, update LinkedIn.`,
+            title: "Optimize your GitHub and LinkedIn for recruiters",
+            why: "Recruiters look at these before reaching out. A GitHub profile with pinned repos, a clear bio, and green contribution squares signals active development. A LinkedIn profile with your projects, skills, and a professional headline makes you searchable. Both are free and take 1-2 hours to optimize — the highest ROI activity in your job search.",
+            brief: "GitHub: pin your 3-6 best repos, write a clear bio with your tech stack, add a profile picture, and ensure each pinned repo has a good README. LinkedIn: update your headline (not just 'Student' — use 'Software Engineer | Python · React · Docker'), add your projects with descriptions, and set your profile to 'Open to work'.",
             estMinutes: 120,
             xp: 70,
             tags: ["career", "core"],
@@ -1040,14 +1049,14 @@ function genPhase6(_input: PersonalizationInput): GeneratedPhase {
       },
       {
         id: `${tpl.id}-m3-interviews`,
-        title: "Interview prep",
-        description: "Practice until interviews feel routine.",
+        title: "Interview preparation",
+        description: "Technical interviews are still the gatekeeper at most companies. The format varies — LeetCode-style algorithm problems, system design interviews, take-home projects, and behavioral interviews — but preparation is universal: practice consistently, mock interview to expose blind spots, and study common patterns. Industry research (2025) shows that candidates who complete 100+ LeetCode problems and do 5+ mock interviews have significantly higher offer rates.",
         tasks: [
           {
             id: `${tpl.id}-m3-t1`,
-            title: "Solve 30 LeetCode-style problems",
-            why: `Algorithm interviews are still common at most companies.`,
-            brief: `Solve 10 easy, 15 medium, 5 hard problems.`,
+            title: "Solve 30 LeetCode-style problems (10 easy, 15 medium, 5 hard)",
+            why: "Algorithm interviews are still common at most companies — especially mid-to-large tech. The key insight: you don't need to solve 500 problems. You need to internalize ~15 core patterns (two pointers, sliding window, BFS/DFS, dynamic programming, etc.) so you can recognize and apply them instantly. 30 well-chosen problems covering all patterns is more effective than 500 random ones.",
+            brief: "Create a LeetCode account. Focus on the 'Top Interview 150' list. Solve in this order: arrays/hashing → two pointers → sliding window → stack → binary search → linked list → trees → heap → graphs → DP. For each problem: attempt for 20 min, then read the solution, understand the pattern, and re-implement from memory the next day.",
             estMinutes: 1200,
             xp: 250,
             tags: ["interview", "stretch"],
@@ -1055,8 +1064,8 @@ function genPhase6(_input: PersonalizationInput): GeneratedPhase {
           {
             id: `${tpl.id}-m3-t2`,
             title: "Do 5 mock interviews",
-            why: `Mock interviews expose gaps you didn't know you had.`,
-            brief: `Use pramp.com, interviewing.io, or a friend.`,
+            why: "Mock interviews expose gaps you didn't know you had. Thinking out loud while solving a problem is a skill that requires practice — it feels unnatural at first. Mock interviews also help with nerves: after 5 mocks, real interviews feel routine. Free options: pramp.com (peer-to-peer), interviewing.io (with engineers from top companies), or a friend/mentor.",
+            brief: "Book 5 mock interviews (1 per week for 5 weeks). Mix formats: 2 algorithm (LeetCode medium), 1 system design, 1 behavioral (tell me about a time...), 1 frontend/backend specific. After each mock: note 3 things you did well and 3 things to improve. Track your progress.",
             estMinutes: 600,
             xp: 200,
             tags: ["interview", "core"],
@@ -1066,13 +1075,13 @@ function genPhase6(_input: PersonalizationInput): GeneratedPhase {
       {
         id: `${tpl.id}-m4-apply`,
         title: "Apply or ship",
-        description: "Get the job — or ship your product.",
+        description: "Job applications are a numbers game — but quality matters. Research shows that tailored applications (customized resume + cover letter for each role) have a 3-5x higher response rate than generic bulk applications. Aim for 20 thoughtful applications to roles where you meet 60%+ of the requirements. Alternatively, if you're building a product, publicly launching is the ultimate validation.",
         tasks: [
           {
             id: `${tpl.id}-m4-t1`,
-            title: "Apply to 20 roles or launch your product",
-            why: `Volume matters — applications are a numbers game.`,
-            brief: `Send 20 thoughtful applications or publicly launch your product.`,
+            title: "Apply to 20 roles or publicly launch your product",
+            why: "Volume matters — applications are a numbers game. But research shows tailored applications have 3-5x higher response rates. Spend 15-20 minutes per application: read the job description, tweak your resume's summary/keywords, and write a 3-sentence cover note. 20 thoughtful applications > 100 generic ones.",
+            brief: "Create a job application tracker (spreadsheet: company, role, date applied, status, follow-up date). Apply to 20 roles where you meet 60%+ of requirements. For each: customize your resume summary, write a brief cover note referencing the job description, and apply via the company's website (not just LinkedIn Easy Apply). Alternatively, launch your capstone on Product Hunt, Hacker News, or relevant communities.",
             estMinutes: 600,
             xp: 200,
             tags: ["career", "core"],
@@ -1345,18 +1354,16 @@ function linkTasksToLessons(phases: GeneratedPhase[], languageIds: string[]): Ge
 
   return phases.map((phase) => ({
     ...phase,
-    // v5.925 FIX (BUG 3): only stamp lessonIds onto tasks in "Second Language: X"
-    // phases. Previously this linked lessons to tasks in EVERY phase (Foundations,
-    // Milestone, AI Bonus, Capstone, etc.), which — combined with the store's
-    // auto-completion loop — caused lesson/quiz completions to auto-complete
-    // roadmap tasks in phases with no genuine 1:1 language-track mapping. Now
-    // only "Second Language: X" phases get lessonId links; all other phases
-    // keep lessonId undefined and must be completed manually via toggleTask.
+    // v5.929 (#1): stamp lessonIds onto tasks in ALL language phases (primary +
+    // secondary). Uses lessonGroups presence to identify language phases — more
+    // robust than the old /^Second Language:\s/ regex which no longer matches
+    // the new unique per-language titles. Non-language phases (Foundation, AI
+    // Bonus, Capstone) don't have lessonGroups and are skipped.
     modules: phase.modules.map((mod) => ({
       ...mod,
       tasks: mod.tasks.map((task) => {
         if (task.lessonId) return task; // already linked
-        if (!/^Second Language:\s/.test(phase.title)) return task; // v5.925: skip non-language phases
+        if (!phase.lessonGroups || phase.lessonGroups.length === 0) return task; // skip non-language phases
         const text = `${task.title} ${task.brief} ${task.why}`;
         for (const entry of compiled) {
           if (entry.patterns.some((p) => p.test(text))) {
@@ -1441,22 +1448,35 @@ export function generateRoadmap(
   // gets meaningful representation.
   //
   // v5.91: Phase structure now respects dependency ordering.
-  //   1. VS Code Setup (always)
-  //   2. Foundations (primary language basics)
-  //   3-7. Core skills (language mastery, building blocks, specialization, advanced)
-  //   8+. One phase per secondary language (sorted by prerequisite order)
-  //   N-1. AI Bonus Track
-  //   N. Capstone & Career
-  const phases: GeneratedPhase[] = [
-    genVSCodeSetupPhase(input, 1),
-    genPhase1(input, timeline),
-    genPhase2(input),
-    genPhase3(input),
-    genPhase4(input),
-    genPhase5(input),
-    genPhase6(input),
-  ];
-  phases.forEach((p, i) => { p.number = i + 1; });
+  // v5.929 (#1): OVERHAUL — removed generic primary-language phases (genPhase1-5).
+  // The primary language now gets the SAME real-lesson-content treatment as
+  // secondary languages: genExtraLanguagePhase + buildLessonGroups. This
+  // means the primary language phase pulls from real Learn-tab lessons with
+  // "Go to Lesson" links, auto-completion tied to lesson/quiz progress, and
+  // proper lesson-group modules — identical to how secondary languages work.
+  //
+  // New phase structure:
+  //   1. Foundation & Setup (VS Code + Git + essential tools — merged)
+  //   2. Primary language phase (real lesson content, same as secondary)
+  //   3+. One phase per secondary language (sorted by prerequisite order)
+  //   N-1. AI Bonus Track (research-backed per career)
+  //   N. Capstone & Career (research-backed depth)
+  const primary = primaryLanguage(input);
+  const phases: GeneratedPhase[] = [];
+
+  // Phase 1: Foundation & Setup (merged VS Code + Git/tools)
+  phases.push(genFoundationPhase(input, 1));
+
+  // Phase 2: Primary language (same mechanism as secondary languages)
+  if (primary) {
+    const primaryPhase = genExtraLanguagePhase(input, primary, 2);
+    // v5.929 (#2): unique title — not "Second Language: X" but a dedicated title
+    primaryPhase.title = `${primary.name} Mastery`;
+    primaryPhase.subtitle = `${primary.tagline} — your primary language`;
+    // Add real lesson groups (same as secondary languages)
+    primaryPhase.lessonGroups = buildLessonGroups(primary.id);
+    phases.push(primaryPhase);
+  }
 
   // v5.91 (Part 2): Build a map of auto-injected languages for labeling.
   const autoInjectedMap = new Map<string, string[]>();
@@ -1479,6 +1499,9 @@ export function generateRoadmap(
       const phaseNum = phases.length + 1;
       if (group.length === 1) {
         const phase = genExtraLanguagePhase(input, group[0], phaseNum);
+        // v5.929 (#2): unique per-language phase titles — not "Second Language: X"
+        // but a distinctive, natural-sounding title per language.
+        phase.title = getLanguagePhaseTitle(group[0]);
         // v5.91 (Part 2): Tag auto-injected phases with "required for" label
         const injectedFor = autoInjectedMap.get(group[0].id);
         if (injectedFor) {
@@ -1541,6 +1564,198 @@ export function generateRoadmap(
     phases: finalPhases,
     generatedAt: new Date().toISOString(),
     source: "deterministic" as RoadmapSource,
+  };
+}
+
+// v5.929 (#2): Unique per-language phase titles.
+// Instead of the generic "Second Language: X" pattern, each language gets a
+// distinctive, natural-sounding title. The naming approach:
+// - Primary language: "{Name} Mastery" (set in generateRoadmap)
+// - Secondary languages: "{Name} Essentials" or a custom title for grouped languages
+// This reads naturally in the roadmap UI and distinguishes phases at a glance.
+function getLanguagePhaseTitle(lang: LanguageInfo): string {
+  const customTitles: Record<string, string> = {
+    react: "React Development",
+    nextjs: "Next.js Development",
+    django: "Django Web Framework",
+    fastapi: "FastAPI Development",
+    flask: "Flask Web Development",
+    svelte: "Svelte Development",
+    vue: "Vue Development",
+    angular: "Angular Development",
+    nodejs: "Node.js Development",
+    postgresql: "PostgreSQL & Databases",
+    mongodb: "MongoDB & NoSQL",
+    tailwind: "Tailwind CSS",
+    express: "Express.js Backend",
+    graphql: "GraphQL APIs",
+  };
+  return customTitles[lang.id] ?? `${lang.name} Essentials`;
+}
+
+// ============================================================
+// v5.929 (#3): Foundation Phase — merged VS Code setup + Git/GitHub
+// basics + essential developer tools. Replaces both the old
+// genVSCodeSetupPhase and genPhase1 (Foundations). Includes genuine
+// explanatory content: what each tool is, why it matters, how to use it.
+// ============================================================
+function genFoundationPhase(input: PersonalizationInput, phaseNumber: number): GeneratedPhase {
+  const primary = primaryLanguage(input);
+  const langId = primary?.id ?? "python";
+  const langName = primary?.name ?? "Python";
+
+  const langExtMap: Record<string, { ext: string; packId: string; packName: string }> = {
+    python:     { ext: "Python",            packId: "ms-python.python",                       packName: "Python" },
+    javascript: { ext: "JavaScript/TypeScript", packId: "ms-vscode.vscode-typescript-next",    packName: "TypeScript Next" },
+    typescript: { ext: "JavaScript/TypeScript", packId: "ms-vscode.vscode-typescript-next",    packName: "TypeScript Next" },
+    react:      { ext: "React",             packId: "dsznajder.es7-react-js-snippets",         packName: "ES7+ React Snippets" },
+    java:       { ext: "Java",              packId: "vscjava.vscode-java-pack",                packName: "Extension Pack for Java" },
+    c:          { ext: "C/C++",             packId: "ms-vscode.cpptools",                      packName: "C/C++" },
+    cpp:        { ext: "C/C++",             packId: "ms-vscode.cpptools",                      packName: "C/C++" },
+    go:         { ext: "Go",                packId: "golang.Go",                               packName: "Go" },
+    rust:       { ext: "Rust",              packId: "rust-lang.rust-analyzer",                 packName: "rust-analyzer" },
+    html:       { ext: "HTML",              packId: "ritwickdey.liveserver",                   packName: "Live Server" },
+    css:        { ext: "CSS",               packId: "bradlc.vscode-tailwindcss",               packName: "Tailwind CSS IntelliSense" },
+    sql:        { ext: "SQL",               packId: "mtxr.sqltools",                           packName: "SQLTools" },
+    bash:       { ext: "Bash/Shell",        packId: "timonwong.shellcheck",                    packName: "shellcheck" },
+  };
+  const langExt = langExtMap[langId] ?? langExtMap.python;
+
+  return {
+    id: `phase-${phaseNumber}-foundation`,
+    number: phaseNumber,
+    title: "Foundation & Developer Setup",
+    subtitle: `VS Code, Git/GitHub, terminal basics, and your first ${langName} program`,
+    color: "sky",
+    icon: "🛠️",
+    estWeeks: 1,
+    objectives: [
+      `Install VS Code and the ${langExt.ext} extension pack`,
+      "Set up Git and create your first GitHub repository",
+      "Learn essential terminal commands",
+      `Run your first ${langName} program from VS Code`,
+    ],
+    modules: [
+      {
+        id: `phase-${phaseNumber}-m1-vscode`,
+        title: "Download & install VS Code",
+        description: "VS Code is the world's most popular code editor — free, open-source, and runs on Windows, macOS, and Linux. It has syntax highlighting, IntelliSense (smart autocomplete), debugging, Git integration, and the largest extension ecosystem of any editor.",
+        tasks: [
+          {
+            id: `phase-${phaseNumber}-m1-t1`,
+            title: "Download and install VS Code",
+            why: "VS Code is the industry-standard code editor used by over 70% of professional developers. Unlike simple text editors, it understands your code's structure, highlights errors as you type, and integrates with Git for version control.",
+            brief: "Download VS Code from code.visualstudio.com and install it. Accept the default options. On Windows, check 'Add to PATH' during installation.",
+            estMinutes: 15,
+            xp: 30,
+            tags: ["setup", "vscode"],
+            steps: [
+              "Go to https://code.visualstudio.com/download",
+              "Download the installer for your OS",
+              "Run the installer (on Windows, check 'Add to PATH')",
+              "Launch VS Code and verify the welcome screen appears",
+            ],
+          },
+          {
+            id: `phase-${phaseNumber}-m1-t2`,
+            title: `Install the ${langExt.packName} extension`,
+            why: `The ${langExt.packName} extension gives VS Code deep understanding of ${langName} — IntelliSense, error detection, debugging, and formatting. Without it, VS Code is just a text editor.`,
+            brief: `Open Extensions (Ctrl+Shift+X), search for "${langExt.packName}", click Install.`,
+            estMinutes: 10,
+            xp: 30,
+            tags: ["setup", "vscode", "extensions"],
+            steps: [
+              "Open VS Code",
+              "Press Ctrl+Shift+X (or Cmd+Shift+X on macOS)",
+              `Search for "${langExt.packName}" (${langExt.packId})`,
+              "Click Install",
+              "Reload VS Code if prompted",
+            ],
+          },
+        ],
+      },
+      {
+        id: `phase-${phaseNumber}-m2-git`,
+        title: "Git & GitHub — version control fundamentals",
+        description: "Git tracks every change to your code — you can always roll back. GitHub hosts your repositories online — it's your portfolio and collaboration platform. Together they're non-negotiable for every developer.",
+        tasks: [
+          {
+            id: `phase-${phaseNumber}-m2-t1`,
+            title: "Install Git and create a GitHub account",
+            why: "Git is how every team manages code. GitHub is where employers look at your work. Setting up both now means you can push every project you build.",
+            brief: "Install Git from git-scm.com, create a GitHub account, and configure your Git identity.",
+            estMinutes: 30,
+            xp: 50,
+            tags: ["setup", "git", "github"],
+            steps: [
+              "Download Git from https://git-scm.com/downloads",
+              "Create a free GitHub account at https://github.com",
+              "Run: git config --global user.name \"Your Name\"",
+              "Run: git config --global user.email \"your.email@example.com\"",
+              "Verify: git --version",
+            ],
+          },
+          {
+            id: `phase-${phaseNumber}-m2-t2`,
+            title: "Create your first repository and commit",
+            why: "The init → add → commit → push cycle is the fundamental Git workflow you'll repeat thousands of times.",
+            brief: "Create a folder, init Git, add a README, commit, connect to GitHub, and push.",
+            estMinutes: 60,
+            xp: 70,
+            tags: ["git", "github", "hands-on"],
+            steps: [
+              "On GitHub: New repository → 'hello-launchpad' → public",
+              "Terminal: mkdir hello-launchpad && cd hello-launchpad",
+              "git init",
+              "echo \"# Hello Launchpad\" > README.md",
+              "git add README.md && git commit -m \"Initial commit\"",
+              "git remote add origin https://github.com/YOUR_USERNAME/hello-launchpad.git",
+              "git push -u origin main",
+            ],
+          },
+        ],
+      },
+      {
+        id: `phase-${phaseNumber}-m3-terminal`,
+        title: "Terminal essentials",
+        description: "The terminal is the universal developer interface. Learning 15-20 essential commands makes you dramatically faster than clicking through file explorer windows.",
+        tasks: [
+          {
+            id: `phase-${phaseNumber}-m3-t1`,
+            title: "Learn 15 essential terminal commands",
+            why: "Every tool — Git, package managers, build tools, deployment — runs from the terminal. The terminal works the same on every OS and every server.",
+            brief: "Practice: pwd, ls, cd, mkdir, touch, rm, cp, mv, cat, echo, clear. On Windows, use Git Bash or WSL.",
+            estMinutes: 60,
+            xp: 50,
+            tags: ["terminal", "core"],
+            steps: [
+              "Open your terminal (Terminal on macOS, Git Bash/WSL on Windows)",
+              "Practice: pwd, ls, cd ~, mkdir test, cd test",
+              "Create files: touch file1.txt, echo 'hello' > file2.txt",
+              "Read: cat file2.txt",
+              "Clean up: cd .., rm -r test",
+            ],
+          },
+          {
+            id: `phase-${phaseNumber}-m3-t2`,
+            title: `Run your first ${langName} program`,
+            why: `Verifying your full toolchain works end-to-end: editor → code → terminal → output.`,
+            brief: `Create a ${langName} file in VS Code, write hello world, and run it from the integrated terminal.`,
+            estMinutes: 30,
+            xp: 40,
+            tags: ["core", "hands-on"],
+            steps: [
+              "In VS Code: Ctrl+N (or Cmd+N) to create a new file",
+              `Save as hello.${langId === "python" ? "py" : "js"}`,
+              `Write the hello world code for ${langName}`,
+              "Open integrated terminal (Ctrl+` or Cmd+`)",
+              `Run: ${langId === "python" ? "python hello.py" : "node hello.js"}`,
+            ],
+            codeExample: helloCodeForLanguage(langId),
+          },
+        ],
+      },
+    ],
   };
 }
 
@@ -1801,7 +2016,7 @@ function genExtraLanguagePhase(input: PersonalizationInput, lang: LanguageInfo, 
   return {
     id: `phase-${phaseNumber}-second-lang-${lang.id}`,
     number: phaseNumber,
-    title: `Second Language: ${lang.name}`,
+    title: lang.name, // v5.929 (#2): caller overrides with getLanguagePhaseTitle()
     subtitle: lang.tagline,
     color,
     icon: lang.icon,
@@ -1844,6 +2059,18 @@ function genExtraLanguagePhase(input: PersonalizationInput, lang: LanguageInfo, 
 // ============================================================
 
 function genAIBonusPhase(input: PersonalizationInput, phaseNumber: number): GeneratedPhase {
+  // v5.929 (#3): Research-backed AI Bonus Track content. Sources:
+  // - "Inside the AI IDE Boom" (2025): Copilot, Cursor, Replit AI cut delivery
+  //   time 20-55%, boost developer morale
+  // - "10 AI Tools for Developers" (Strapi, 2025): Cursor 2.0 Composer,
+  //   multi-agent coordination, agentic coding
+  // - MLOps systematic review (2025): MLflow, Kubeflow, SageMaker, Vertex AI
+  // - AI in Cybersecurity (Palo Alto/Swimlane, 2025): AI-driven threat
+  //   detection, automated response, pattern identification
+  // - Android Developers docs: Gemini Nano, ML Kit GenAI APIs, Firebase AI Logic
+  // - Game AI research: RL for NPCs, neural networks for procedural generation
+  // - TinyML on ESP32: TensorFlow Lite for Microcontrollers, edge inference
+  // Each career gets genuinely accurate, current-industry-practice content.
   const careerId = input.careerId;
   let title = "AI Foundations — Bonus Track";
   let subtitle = "Integrating AI into your career path";
@@ -1858,31 +2085,31 @@ function genAIBonusPhase(input: PersonalizationInput, phaseNumber: number): Gene
     title = "AI in Software Engineering — Bonus Track";
     subtitle = "LLM APIs, AI-assisted coding, copilots";
     objectives = [
-      "Understand LLM APIs (OpenAI, Anthropic, Z.ai)",
-      "Use AI coding assistants (Copilot, Cursor) effectively",
-      "Build an AI-powered feature in your app",
+      "Understand LLM APIs (OpenAI, Anthropic, Z.ai) and how to integrate them",
+      "Use AI coding assistants (GitHub Copilot, Cursor) to boost productivity 20-55%",
+      "Build an AI-powered feature in your app using real industry practices",
     ];
     modules = [
       {
         id: `phase-${phaseNumber}-m1-llm-apis`,
         title: "LLM APIs and integration",
-        description: "Learn to call LLM APIs from your apps.",
+        description: "Large Language Model (LLM) APIs are the backbone of modern AI features. OpenAI's GPT-4o, Anthropic's Claude, and Google's Gemini all expose REST APIs that let you send text prompts and receive AI-generated responses. In 2025, these APIs support function calling (the AI can invoke your code), structured output (JSON mode), and vision (image understanding). Understanding how to call them, handle rate limits, and manage costs is a core skill for any software engineer building AI-powered applications.",
         tasks: [
           {
             id: `phase-${phaseNumber}-m1-t1`,
             title: "Call an LLM API from your code",
-            why: "AI features are becoming table stakes in modern apps.",
-            brief: "Use OpenAI, Anthropic, or Z.ai SDK to call an LLM and print a response.",
+            why: "AI features are becoming table stakes in modern apps. According to industry research (2025), developers using AI coding tools ship 20-55% faster. Understanding the API layer — authentication, request structure, response parsing — is the foundation for every AI feature you'll build.",
+            brief: "Use the OpenAI, Anthropic, or Z.ai SDK to call an LLM and print a response. Set up API key authentication, construct a messages array with system + user roles, send the request, and parse the JSON response. Handle errors (rate limits, timeouts, invalid responses) gracefully.",
             estMinutes: 120,
             xp: 80,
             tags: ["ai", "bonus"],
-            steps: ["Get an API key", "Install the SDK", "Send a prompt", "Parse the response"],
+            steps: ["Get an API key from OpenAI/Anthropic/Z.ai", "Install the official SDK (npm install openai / pip install anthropic)", "Send a prompt with system + user messages", "Parse the JSON response and extract the content"],
           },
           {
             id: `phase-${phaseNumber}-m1-t2`,
-            title: "Add streaming responses to an app",
-            why: "Streaming dramatically improves perceived AI performance.",
-            brief: "Stream an LLM response token-by-token to a UI.",
+            title: "Add structured output (JSON mode) to an LLM call",
+            why: "Real applications need structured data, not free text. JSON mode forces the LLM to return valid JSON, which you can directly parse into TypeScript/Python objects. This is how production AI features work — classification, extraction, summarization all use structured output.",
+            brief: "Configure the API call to request JSON output. Define a schema (e.g., {summary: string, sentiment: 'positive'|'negative'|'neutral', key_points: string[]}), send a prompt asking the LLM to analyze a text, and parse the structured response.",
             estMinutes: 180,
             xp: 100,
             tags: ["ai", "bonus"],
@@ -1892,13 +2119,13 @@ function genAIBonusPhase(input: PersonalizationInput, phaseNumber: number): Gene
       {
         id: `phase-${phaseNumber}-m2-copilots`,
         title: "AI coding assistants",
-        description: "Use Copilot, Cursor, and Claude Code to ship faster.",
+        description: "AI coding assistants like GitHub Copilot and Cursor have fundamentally changed how developers write code. Copilot integrates directly into VS Code and suggests code as you type, based on the context of your project. Cursor (2025's most popular AI IDE) goes further — its Composer feature uses multi-agent coordination to refactor entire files, write tests, and implement features from natural language descriptions. Industry studies show these tools cut delivery time by 20-55% and boost developer morale. Knowing how to use them effectively — crafting good prompts, reviewing AI suggestions critically, and understanding their limitations — is now an essential developer skill.",
         tasks: [
           {
             id: `phase-${phaseNumber}-m2-t1`,
-            title: "Set up GitHub Copilot or Cursor",
-            why: "AI assistants 2-5x your coding speed once you know how to use them.",
-            brief: "Install an AI assistant and complete a small task using its suggestions.",
+            title: "Set up GitHub Copilot or Cursor and complete a task",
+            why: "AI assistants 2-5x your coding speed once you know how to use them. They're particularly powerful for boilerplate, tests, and refactoring — tasks that are tedious by hand but easy for an AI to generate correctly with good context. Every major tech company now expects developers to use these tools.",
+            brief: "Install GitHub Copilot (free for students/open-source) or download Cursor (free tier available). Use it to complete a small coding task — write a function, generate tests, or refactor a module. Pay attention to how the quality of your prompt affects the output.",
             estMinutes: 60,
             xp: 50,
             tags: ["ai", "bonus", "tools"],

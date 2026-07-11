@@ -1,13 +1,166 @@
 # Launchpad CHANGELOG
 
 This file merges all previous changelogs and adds the new
-**v5.928 (Version Popup Bug Fixes + Command Palette Navigation Fix + Roadmap Deep-Linking + Sidebar Collapse + Analytics Data Bugs)**
+**v5.929 (Roadmap Engine Overhaul + Skill Tree Redesign + Sidebar Polish)**
 entries. Entries are in reverse chronological order.
 
 > **Dual-format release notes (v5.926+):** This CHANGELOG.md is the TECHNICAL
 > developer-facing record. The user-facing plain-language summary shown in the
 > app's version-update popup lives in `src/lib/version-info.ts`. Both must be
 > updated on every release.
+
+---
+
+## v5.929 — Roadmap Engine Overhaul + Skill Tree Redesign + Sidebar Polish
+
+### 1. Roadmap engine — remove generic primary-language phases, extend real-content treatment
+
+**Root cause:** `generateRoadmap` created 7 generic phases: `genVSCodeSetupPhase`
++ `genPhase1`-`genPhase5` + `genPhase6`. Phases 1-5 were generic, hardcoded
+content for the primary language that did NOT pull from real Learn-tab lesson
+content. Only secondary languages got `genExtraLanguagePhase` + `buildLessonGroups`
+(real lesson modules with "Go to Lesson" links + auto-completion).
+
+**Fix:** Removed `genPhase1`-`genPhase5` from the `generateRoadmap` phase array.
+The primary language now gets the SAME treatment as secondary languages:
+`genExtraLanguagePhase` + `buildLessonGroups` (real lesson content, "Go to
+Lesson" links, auto-completion tied to lesson/quiz progress). The primary
+language phase is titled "{Name} Mastery" (set in `generateRoadmap`).
+
+**New phase structure:** Foundation (1) → Primary language (2) → Secondary
+languages (3+) → AI Bonus Track (N-1) → Capstone & Career (N).
+
+**Duplicate-modules bug:** The old generic `genPhase1`-`genPhase5` code still
+existed in the file but was no longer called — confirmed dead code, no residual
+content. The `linkTasksToLessons` function was updated to use `lessonGroups`
+presence (instead of the old `/^Second Language:\s/` regex) to identify language
+phases, which correctly matches ALL language phases (primary + secondary) with
+their new unique titles.
+
+**Architectural note on primary vs. secondary tracking:** The primary language
+was already tracked identically to secondary languages in terms of lesson
+progress (`state.lessonProgress`), certificate eligibility
+(`selectCertificateEligible`), and Career Readiness (`selectCareerReadinessScore`).
+The only difference was the roadmap generation — the primary language got
+generic phases while secondary languages got real lesson content. Now both use
+the same mechanism. No changes needed to certificate eligibility or Career
+Readiness — they already iterate `state.roadmap.languageIds` (which includes
+the primary language) and `getTrackLessons(lang)` for each.
+
+### 2. Unique per-language phase titles
+
+**Old:** All secondary language phases were titled "Second Language: X" (a
+repeated template). The primary language's phases were titled "Foundations",
+"Core Language Mastery", etc.
+
+**New:** Each language phase gets a unique, descriptive title via
+`getLanguagePhaseTitle(lang)`:
+- Primary: "{Name} Mastery" (e.g., "Python Mastery")
+- Secondary: custom titles per language (e.g., "React Development", "Django Web
+  Framework", "PostgreSQL & Databases") or "{Name} Essentials" as default.
+
+**Naming approach:** Custom titles for framework/technology languages that
+benefit from a more descriptive name (14 custom mappings); generic "{Name}
+Essentials" for programming languages where the name alone is sufficient.
+
+### 3. Research-backed content overhaul for non-language phases
+
+**Foundation phase (new `genFoundationPhase`):** Merged the old
+`genVSCodeSetupPhase` + `genPhase1` into a single "Foundation & Developer Setup"
+phase with 3 modules:
+1. VS Code setup (download, install, language extension)
+2. Git & GitHub fundamentals (install Git, create account, first repo + commit)
+3. Terminal essentials (15 essential commands, first program run)
+
+Each module description and task `why`/`brief` has genuine explanatory depth:
+what each tool is, why it matters, how to use it — not just a task title.
+
+**AI Bonus Track (`genAIBonusPhase`):** Research sources (web search, 2025):
+- "Inside the AI IDE Boom" (2025): Copilot, Cursor, Replit AI cut delivery
+  time 20-55%, boost developer morale
+- "10 AI Tools for Developers" (Strapi, 2025): Cursor 2.0 Composer,
+  multi-agent coordination, agentic coding
+- MLOps systematic review (2025): MLflow, Kubeflow, SageMaker, Vertex AI
+- AI in Cybersecurity (Palo Alto/Swimlane, 2025): AI-driven threat detection
+- Android Developers docs: Gemini Nano, ML Kit GenAI APIs, Firebase AI Logic
+- Game AI research: RL for NPCs, neural networks for procedural generation
+- TinyML on ESP32: TensorFlow Lite for Microcontrollers, edge inference
+
+The Software Engineering AI Bonus Track now has deep module descriptions
+explaining what LLM APIs are, how they work (function calling, JSON mode,
+vision), and why AI coding assistants matter (20-55% productivity boost per
+industry research). Task `why` and `brief` fields include specific tools,
+techniques, and real-world context.
+
+**Capstone & Career phase (`genPhase6`):** Research sources (web search, 2025):
+- "How to Build a Job-Winning Portfolio" (2025): quality over quantity, read
+  5+ job descriptions, tailor portfolio to role
+- "UX Interview Tips" (Coursera, 2025): practice, portfolio case studies
+- Industry best practices: mock interviews (pramp.com, interviewing.io),
+  LeetCode patterns, ATS-optimized resumes, GitHub/LinkedIn optimization
+
+All 4 modules (capstone, resume, interviews, apply) now have detailed
+descriptions explaining the "why" behind each step, with specific actionable
+guidance (e.g., "solve in this order: arrays/hashing → two pointers → sliding
+window → ...", "pin your 3-6 best repos", "quantify everything: 'Reduced load
+time by 40%'").
+
+### 4. Skill Tree — complete redesign
+
+**Research sources (web search, 2025):**
+- "How to Avoid MAJOR Pitfalls of Skill Tree Design" (UI expert Kayla Shults):
+  key insight: pace upgrades, don't overwhelm users. Show one level of detail
+  at a time.
+- "A User Research Skill Tree" (Medium): progression systems start with common
+  base skills and expand into specialized skills. Linear foundation → branching
+  specialization is the natural mental model.
+- Skill tree design best practices (Lushdesigns, Dribbble): visual hierarchy
+  (larger nodes for phases, smaller for tasks), clear locked/unlocked states,
+  progress indicators at every level, connections show dependencies.
+
+**Design decisions based on research:**
+1. HORIZONTAL PROGRESS RAIL instead of vertical zigzag — cleaner on mobile,
+   reads left-to-right (natural reading direction), scales to any phase count.
+2. COLLAPSIBLE PHASE CARDS — one level of detail at a time (Shults' advice).
+   Click a phase node to expand its modules and tasks inline.
+3. PROGRESS BARS at every level — phase, module, task — so the user always
+   knows where they are.
+4. LOCKED PHASES are visually distinct (dimmed + lock icon) but still visible.
+5. NO ZOOM CONTROLS — removed the old zoom feature (added complexity without
+   clarity). The new design is responsive without needing zoom.
+6. LESSON-GROUP INTEGRATION — language phases show their real lesson modules
+   with lesson chips (click to go to the lesson in the Learn tab).
+
+**Old design:** Vertical zigzag with alternating left/right cards, zoom
+controls, mini-map, all phases visible simultaneously (overwhelming).
+
+**New design:** Horizontal rail of phase nodes → click to expand one phase
+at a time → see modules + tasks + lesson groups inline → click any item to
+navigate to the Roadmap or Learn tab.
+
+### 5. Sidebar collapse — animation + alignment fix
+
+**Animation:** Added `transition-all duration-300` to the collapsed hover zone
+container, so the width transition animates smoothly instead of snapping.
+
+**Alignment fix:** Changed the collapsed container from `items-start p-3` to
+`items-center justify-center` with a fixed 48px width, and added `marginTop: 8px`
+to the button so it vertically aligns with the TopBar/navbar position instead
+of being at the very top of the viewport.
+
+### Additional notes
+
+- **`genPhase1`-`genPhase5` + `genVSCodeSetupPhase`** are still in the file as
+  dead code (not called by `generateRoadmap` anymore). They could be removed
+  for cleanliness but leaving them avoids any risk of breaking imports elsewhere.
+  They are effectively unreachable.
+- **`PHASE_TEMPLATES`** (the 6-element array) is still used by `genPhase6`
+  (Capstone & Career) for its template metadata. Only template index 5 is
+  actively used; templates 0-4 are vestigial but harmless.
+
+### Version bump
+
+`package.json` 5.928.0 → 5.929.0.
 
 ---
 

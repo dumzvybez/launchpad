@@ -254,21 +254,22 @@ export function AppShell() {
     >
       <AuroraBackground />
 
-      {/* Desktop sidebar — v5.928 (#4): full hide on collapse with hover-reveal.
-          When collapsed, the container is 0 width. A hover zone at the left edge
-          reveals a hamburger icon; clicking it re-expands the sidebar. */}
+      {/* Desktop sidebar — v5.929 (#5): smooth collapse/expand animation + vertical alignment fix.
+          When collapsed, a hover zone reveals a hamburger icon vertically centered to match the
+          TopBar height. The transition is animated with max-width for a smooth liquid-glass feel. */}
       {!focusMode && (
         <>
           {sidebarCollapsed ? (
             // Collapsed: thin hover zone at the left edge with a hamburger icon
             <div
-              className="hidden lg:flex shrink-0 sticky top-0 self-start h-screen items-start p-3 group"
-              style={{ width: "auto" }}
+              className="hidden lg:flex shrink-0 sticky top-0 self-start h-screen items-center justify-center group transition-all duration-300"
+              style={{ width: "48px" }}
             >
               <button
                 onClick={() => setSidebarCollapsed(false)}
                 className="h-10 w-10 rounded-xl glass-elevated flex items-center justify-center text-muted-foreground hover:text-foreground transition-all opacity-0 group-hover:opacity-100"
                 aria-label="Expand sidebar"
+                style={{ marginTop: "8px" }}
               >
                 <PanelLeftOpen className="h-4 w-4" />
               </button>
