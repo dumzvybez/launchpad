@@ -61,11 +61,21 @@ export function RoadmapView() {
     [roadmap, selectedPhaseId],
   );
 
-  // v5.92 (Part 5): Push URL when phase selection changes.
+  // v5.92 (Part 5): Push URL when phase/module/task selection changes.
+  // v5.928 (#3): Extended to module/task level for deep-linking:
+  //   /roadmap/phase/3                           → phase 3 selected
+  //   /roadmap/phase/3/module/[moduleId]         → phase 3 + module selected
+  //   /roadmap/phase/3/module/[moduleId]/task/[taskId] → phase 3 + module + task
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (selectedPhase) {
-      const expectedPath = `/roadmap/phase/${selectedPhase.number}`;
+      let expectedPath = `/roadmap/phase/${selectedPhase.number}`;
+      if (selectedModuleId) {
+        expectedPath += `/module/${selectedModuleId}`;
+        if (selectedTaskId) {
+          expectedPath += `/task/${selectedTaskId}`;
+        }
+      }
       if (window.location.pathname !== expectedPath) {
         window.history.pushState(null, "", expectedPath);
       }
@@ -74,7 +84,7 @@ export function RoadmapView() {
       window.history.pushState(null, "", "/roadmap");
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPhaseId, selectedPhase]);
+  }, [selectedPhaseId, selectedPhase, selectedModuleId, selectedTaskId]);
 
   const selectedModule = useMemo(
     () => selectedPhase?.modules.find((m) => m.id === selectedModuleId),

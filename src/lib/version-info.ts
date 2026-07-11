@@ -11,7 +11,7 @@
 // `lastSeenReleaseVersion` preference differs from APP_VERSION.
 // ============================================================
 
-export const APP_VERSION = "5.927.0";
+export const APP_VERSION = "5.928.0";
 
 export type ReleaseHighlightType = "new" | "improved" | "removed" | "fixed";
 
@@ -43,6 +43,23 @@ export type ReleaseInfo = {
 //   To ship a new release: bump APP_VERSION, add a ReleaseInfo here (user-
 //   facing), AND add a technical entry to CHANGELOG.md. Both are required.
 export const RELEASES: ReleaseInfo[] = [
+  {
+    version: "5.928.0",
+    date: "2026-07-10",
+    title: "Command Palette fix, version popup polish, deeper roadmap links",
+    summary:
+      "The Command Palette finally navigates instead of marking tasks complete. The version-update popup lost its duplicate title and auto-scroll bug. Roadmap URLs now go down to the task level. The sidebar fully hides when collapsed. And the Analytics tab no longer counts lessons from languages you don't study.",
+    highlights: [
+      { type: "fixed", text: "Command Palette: searching for a roadmap task and clicking it now NAVIGATES to that task in the Roadmap view. Previously it was marking the task complete — a bug reported multiple times that's now genuinely fixed (the click handler was wired to toggleTask instead of navigation)." },
+      { type: "fixed", text: "Version-update popup: the latest version's title and description no longer appear twice (once as a header, once in the expanded card). Each piece of info now appears exactly once." },
+      { type: "fixed", text: "Version-update popup: opens scrolled to the TOP (showing the latest version first), not the bottom. The auto-scroll was caused by autoFocus on the 'Got it' button." },
+      { type: "fixed", text: "Version-update popup: the latest version's categories now behave like all others — collapsed by default, expanding on hover (desktop) or tap (mobile), not all shown open simultaneously." },
+      { type: "fixed", text: "Analytics tab: the 'Lessons completed' count no longer includes lessons from languages you browsed but aren't in your plan. It now only counts lessons from your assigned roadmap languages." },
+      { type: "improved", text: "Roadmap URLs now extend to the module and task level (e.g. /roadmap/phase/3/module/phase-3-m-1/task/phase-3-m-1-t-1). The browser Back button works correctly at each depth — going back from a task returns to the module, then the phase, then the roadmap grid." },
+      { type: "improved", text: "Sidebar: collapsing the side panel now fully hides it (was leaving a thin 68px bar with icons). A hamburger icon appears when you hover near the left edge — click it to re-expand." },
+      { type: "new", text: "'When you study' feature verified functional — it tracks real task completion timestamps and unlocks after 10 tasks with a time-of-day pattern chart and an Early Bird / Day Sprinter / Evening Coder / Night Owl personality badge." },
+    ],
+  },
   {
     version: "5.927.0",
     date: "2026-07-10",

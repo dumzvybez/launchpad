@@ -65,8 +65,18 @@ export function AnalyticsView() {
     progress: selectPhaseProgress(state, p.id),
   }));
 
-  // Lesson progress
-  const lessonProgress = Object.values(state.lessonProgress);
+  // Lesson progress — v5.928 (#5): filter to ONLY count lessons from the
+  // user's assigned roadmap languages. Previously this counted ALL lessons
+  // the user had ever interacted with (including languages they browsed but
+  // weren't in their plan), inflating the count.
+  const userLangs = roadmap?.languageIds ?? [];
+  const lessonProgress = Object.entries(state.lessonProgress)
+    .filter(([lessonId]) => {
+      // Only count lessons whose ID starts with one of the user's roadmap language IDs
+      // (lesson IDs are formatted as "python-01", "javascript-05", etc.)
+      return userLangs.some((langId) => lessonId.startsWith(`${langId}-`));
+    })
+    .map(([, p]) => p);
   const lessonsComplete = lessonProgress.filter((p) => p.status === "complete").length;
   // Compute the actual total from the user's roadmap languages by summing
   // the real per-track lesson counts. Previously this hardcoded 21 lessons

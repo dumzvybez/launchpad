@@ -47,7 +47,7 @@ import { FirstVisitHints } from "@/components/shell/FirstVisitHints";
 import { MobileBottomNav } from "@/components/shell/MobileBottomNav";
 import { OfflineBanner } from "@/components/pwa/OfflineBanner";
 import { Footer } from "@/components/shell/Footer";
-import { X } from "lucide-react";
+import { X, PanelLeftOpen } from "lucide-react";
 
 export function AppShell() {
   const currentView = useStore((s) => s.currentView);
@@ -117,12 +117,25 @@ export function AppShell() {
       }
 
       // v5.92 (Part 5): Handle sub-paths for deep-linking
+      // v5.928 (#3): Extended to module/task level:
+      //   /roadmap/phase/3/module/[moduleId]/task/[taskId]
       if (view === "roadmap" && subPath.length >= 2 && subPath[0] === "phase") {
         const phaseNum = parseInt(subPath[1], 10);
         if (!isNaN(phaseNum) && phaseNum > 0) {
           const phase = useStore.getState().state.roadmap?.phases.find(p => p.number === phaseNum);
           if (phase) {
             useStore.getState().selectPhase(phase.id);
+            // v5.928 (#3): parse module/task if present
+            // subPath: ["phase", "3", "module", "moduleId", "task", "taskId"]
+            const moduleIdx = subPath.indexOf("module");
+            if (moduleIdx !== -1 && moduleIdx + 1 < subPath.length) {
+              const moduleId = subPath[moduleIdx + 1];
+              useStore.getState().selectModule(moduleId);
+              const taskIdx = subPath.indexOf("task");
+              if (taskIdx !== -1 && taskIdx + 1 < subPath.length) {
+                useStore.getState().selectTask(subPath[taskIdx + 1]);
+              }
+            }
           }
         }
       } else if (view === "roadmap" && subPath.length === 0) {
@@ -241,14 +254,31 @@ export function AppShell() {
     >
       <AuroraBackground />
 
-      {/* Desktop sidebar — width responds to collapsed state */}
+      {/* Desktop sidebar — v5.928 (#4): full hide on collapse with hover-reveal.
+          When collapsed, the container is 0 width. A hover zone at the left edge
+          reveals a hamburger icon; clicking it re-expands the sidebar. */}
       {!focusMode && (
-        <div className={cn(
-          "hidden lg:block shrink-0 p-3 sticky top-0 self-start h-screen transition-all duration-300",
-          sidebarCollapsed ? "w-[80px]" : "w-[244px]",
-        )}>
-          <Sidebar collapsedState={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />
-        </div>
+        <>
+          {sidebarCollapsed ? (
+            // Collapsed: thin hover zone at the left edge with a hamburger icon
+            <div
+              className="hidden lg:flex shrink-0 sticky top-0 self-start h-screen items-start p-3 group"
+              style={{ width: "auto" }}
+            >
+              <button
+                onClick={() => setSidebarCollapsed(false)}
+                className="h-10 w-10 rounded-xl glass-elevated flex items-center justify-center text-muted-foreground hover:text-foreground transition-all opacity-0 group-hover:opacity-100"
+                aria-label="Expand sidebar"
+              >
+                <PanelLeftOpen className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="hidden lg:block shrink-0 p-3 sticky top-0 self-start h-screen transition-all duration-300 w-[244px]">
+              <Sidebar collapsedState={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />
+            </div>
+          )}
+        </>
       )}
 
       {/* Mobile slide-out drawer */}

@@ -157,7 +157,8 @@ function VersionSection({ release, isLatest, isTouch }: { release: ReleaseInfo; 
       {/* Summary + categories — always shown for latest, toggle for older */}
       {(isLatest || headerExpanded) && (
         <div className="space-y-2.5 pl-1">
-          <p className="text-xs text-muted-foreground leading-relaxed">{release.summary}</p>
+          {/* v5.928 (#1a): removed duplicate summary — it's already in the header banner for the latest version. */}
+          {!isLatest && <p className="text-xs text-muted-foreground leading-relaxed">{release.summary}</p>}
           {CATEGORY_ORDER.map((type) => {
             const items = grouped[type];
             if (items.length === 0) return null;
@@ -167,7 +168,7 @@ function VersionSection({ release, isLatest, isTouch }: { release: ReleaseInfo; 
                 type={type}
                 items={items}
                 isTouch={isTouch}
-                expandedByDefault={isLatest}
+                expandedByDefault={false}
               />
             );
           })}
@@ -286,7 +287,6 @@ export function VersionUpdateDialog({ forceOpen = false, onForceClose }: { force
             size="lg"
             className="w-full sm:w-auto"
             onClick={dismiss}
-            autoFocus
           >
             <Check className="h-4 w-4" />
             Got it

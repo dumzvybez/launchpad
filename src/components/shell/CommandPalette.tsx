@@ -88,7 +88,9 @@ export function CommandPalette() {
   const open = useStore((s) => s.commandOpen);
   const setOpen = useStore((s) => s.setCommandOpen);
   const setView = useStore((s) => s.setView);
-  const toggleTask = useStore((s) => s.toggleTask);
+  const selectPhase = useStore((s) => s.selectPhase);
+  const selectModule = useStore((s) => s.selectModule);
+  const selectTask = useStore((s) => s.selectTask);
   const state = useStore((s) => s.state);
   const exportBackup = useStore((s) => s.exportBackup);
   const resetAll = useStore((s) => s.resetAll);
@@ -114,13 +116,19 @@ export function CommandPalette() {
     handleClose();
   };
 
-  // Toggle a task from search results
-  const handleTaskToggle = (taskId: string) => {
-    toggleTask(taskId);
-    const wasComplete = !!state.tasks[taskId]?.completedAt;
-    toast.success(wasComplete ? "Marked incomplete" : "Task completed", {
-      description: `XP ${wasComplete ? "removed" : "added"}`,
-    });
+  // v5.928 FIX (#2): Command Palette roadmap search result click now NAVIGATES
+  // to the task in the Roadmap view instead of marking it complete. Previously
+  // `handleTaskToggle` was wired to the onSelect handler — it called
+  // `toggleTask(taskId)` which MARKED THE TASK COMPLETE. This was the root
+  // cause reported multiple times: the handler name sounded like a toggle but
+  // the user expectation was navigation. Now we navigate: set view to roadmap,
+  // select the phase, module, and task, then close the palette.
+  const handleTaskNavigate = (taskId: string, phaseId: string, moduleId: string) => {
+    selectPhase(phaseId);
+    selectModule(moduleId);
+    selectTask(taskId);
+    setView("roadmap");
+    handleClose();
   };
 
   // Filter tasks by search query (only show first ~15)
@@ -131,7 +139,9 @@ export function CommandPalette() {
       p.modules.flatMap((m) =>
         m.tasks.map((t) => ({
           ...t,
+          phaseId: p.id,
           phaseTitle: p.title,
+          moduleId: m.id,
           moduleTitle: m.title,
         })),
       ),
@@ -244,7 +254,7 @@ export function CommandPalette() {
               return (
                 <CommandItem
                   key={t.id}
-                  onSelect={() => handleTaskToggle(t.id)}
+                  onSelect={() => handleTaskNavigate(t.id, t.phaseId, t.moduleId)}
                   className="group"
                 >
                   {isDone ? (

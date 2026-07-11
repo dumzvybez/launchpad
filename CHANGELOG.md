@@ -1,13 +1,134 @@
 # Launchpad CHANGELOG
 
 This file merges all previous changelogs and adds the new
-**v5.927 (Career Score Consistency + Interview Scoring + Playground UX + Flashcard Fix + Polish)**
+**v5.928 (Version Popup Bug Fixes + Command Palette Navigation Fix + Roadmap Deep-Linking + Sidebar Collapse + Analytics Data Bugs)**
 entries. Entries are in reverse chronological order.
 
 > **Dual-format release notes (v5.926+):** This CHANGELOG.md is the TECHNICAL
 > developer-facing record. The user-facing plain-language summary shown in the
 > app's version-update popup lives in `src/lib/version-info.ts`. Both must be
 > updated on every release.
+
+---
+
+## v5.928 — Version Popup Bug Fixes + Command Palette Navigation Fix + Roadmap Deep-Linking + Sidebar Collapse + Analytics Data Bugs
+
+### 1. Version Update popup — three bugs fixed
+
+**1a. Duplicate title/description:** The latest version's title and summary
+appeared TWICE — once in the header banner (lines 252-257) and again in the
+`VersionSection` body (line 146 + 160). **Fix:** removed the duplicate summary
+from the `VersionSection` body for the latest version (`!isLatest && <p>`).
+
+**1b. Auto-scroll to bottom on open:** The `autoFocus` on the "Got it" button
+(line 289) caused the browser to scroll the button into view, scrolling the
+dialog to the bottom. **Fix:** removed `autoFocus` from the button. The dialog
+now opens scrolled to the top.
+
+**1c. Latest version fully expanded:** `expandedByDefault={isLatest}` (line 170)
+caused the latest version's categories to be fully expanded (no hover/touch
+required). **Fix:** changed to `expandedByDefault={false}` for ALL versions
+including the latest. The latest version's categories now collapse/expand on
+hover (desktop) or touch (mobile) like every other version.
+
+### 2. Command Palette — roadmap search marks complete instead of navigating (FIXED)
+
+**Root cause (confirmed):** `CommandPalette.tsx` line 247 wired the task
+search result's `onSelect` to `handleTaskToggle(t.id)`, which called
+`toggleTask(taskId)` — MARKING THE TASK COMPLETE. This was the exact root
+cause that was missed in every previous "fix" attempt. The handler name
+`handleTaskToggle` sounded like a toggle, but the user expectation was
+navigation.
+
+**Fix:** Replaced `handleTaskToggle` with `handleTaskNavigate(taskId, phaseId,
+moduleId)` which calls `selectPhase(phaseId)` → `selectModule(moduleId)` →
+`selectTask(taskId)` → `setView("roadmap")` → `handleClose()`. Also added
+`phaseId` and `moduleId` to the `filteredTasks` mapping so the navigation
+handler has the data it needs. Removed the unused `toggleTask` import + the
+`toast` usage for task toggling.
+
+**Why previous fixes failed:** Previous attempts likely changed the wrong
+handler or added a separate "navigate" action without removing the toggle
+handler, or didn't add the `phaseId`/`moduleId` to the search results so
+navigation wasn't possible. This fix replaces the handler entirely and
+ensures the necessary data is available.
+
+### 3. Roadmap URLs extended to module/task level
+
+**Previous:** `/roadmap/phase/3` (phase level only).
+
+**New:** `/roadmap/phase/3/module/[moduleId]/task/[taskId]` (full depth).
+
+**Implementation:**
+- `RoadmapView.tsx`: the pushState effect now builds the URL from
+  `selectedPhase.number` + `selectedModuleId` + `selectedTaskId`.
+- `AppShell.tsx`: the `viewFromPath` parser now extracts `module` and `task`
+  segments from the subPath and calls `selectModule` / `selectTask`.
+
+**Back button:** the popstate handler in AppShell re-parses the URL on every
+back/forward navigation. Going back from `/roadmap/phase/3/module/m1/task/t1`
+returns to `/roadmap/phase/3/module/m1` (the module view), then to
+`/roadmap/phase/3` (the phase view), then to `/roadmap` (the grid). Each
+level is a separate history entry thanks to pushState.
+
+### 4. Sidebar collapse — full hide with hover-reveal
+
+**Previous:** collapsed sidebar was `w-[68px]` showing group icons + flyout
+menus on hover.
+
+**New:** collapsed sidebar is fully hidden (0 width). A thin hover zone at the
+left edge reveals a hamburger icon (`PanelLeftOpen`); clicking it re-expands
+the sidebar to its full `w-[244px]` width. The hover zone uses
+`opacity-0 group-hover:opacity-100` so the icon is invisible until the user
+hovers near the edge.
+
+**Implementation:** `AppShell.tsx` now conditionally renders either the full
+sidebar (when not collapsed) or a minimal hover-reveal zone (when collapsed).
+The `Sidebar` component itself is only mounted when not collapsed.
+
+### 5. Analytics tab — two data bugs
+
+**5a. Lesson-count cross-language miscounting:**
+**Root cause:** `AnalyticsView.tsx` line 69 computed
+`lessonProgress = Object.values(state.lessonProgress)` — counting ALL lessons
+the user had ever interacted with, including languages they browsed but
+weren't in their plan. **Fix:** filter `lessonProgress` to only include
+lessons whose ID starts with one of the user's roadmap language IDs
+(`lessonId.startsWith(\`${langId}-\`)`).
+
+**5b. Career Readiness "Knowledge" component cross-check:**
+The Knowledge component uses `selectCareerReadinessScore` which computes
+`quizAverage = quizSum / totalLessons`. It iterates `userLangs` (roadmap
+languages only) and `getTrackLessons(lang)` for each — so it ALREADY filters
+by the user's assigned languages. **No cross-language bug found** in the
+Knowledge component. It was already correctly scoped.
+
+**Knowledge calculation basis:** `quizAverage` is computed from `quizSum`
+(sum of `bestQuizScore` across all lessons in the user's roadmap languages)
+divided by `totalLessons` (total lesson count across all roadmap languages).
+Unattempted lessons contribute 0 to the sum. This produces a mastery-weighted
+average (0-100) that reflects what % of the curriculum the user has mastered,
+not just what % of attempted lessons they passed. This is a reasonable,
+well-weighted result.
+
+**5c. "When you study" feature verification:**
+**Functional.** `hourlyActivity` is populated by `toggleTask` in the store
+(line 848-849) — it records the hour of day (`new Date().getHours()`) every
+time a task is completed. The `TimeOfDayChart` component checks
+`totalActivity < 10` and shows the placeholder text if so; otherwise it shows
+a 24-hour bar chart with a personality badge (Early Bird / Day Sprinter /
+Evening Coder / Night Owl). The feature tracks real completion timestamps and
+unlocks correctly after 10 task completions. No fix needed.
+
+### Additional bugs found + fixed during this pass
+
+- **Command Palette unused `toast` import:** the `toast` import was used only
+  by the removed `handleTaskToggle` handler. Left in place (still used by
+  other handlers like `handleExport` / `handleReset`).
+
+### Version bump
+
+`package.json` 5.927.0 → 5.928.0.
 
 ---
 
