@@ -108,38 +108,49 @@ export function CommunityView() {
 
   const section = SECTIONS.find((s) => s.id === activeSection)!;
 
-  // Inject/re-inject Giscus script when section changes, theme changes, or reload is requested
+  // Inject/re-inject Giscus script when section changes, theme changes, or reload is requested.
+  // v5.930 (#3): Instead of clearing innerHTML (which causes a flash), we use
+  // a fade-out → inject → fade-in sequence. The container opacity transitions
+  // smoothly so the user doesn't see a blank-then-reappear flash.
   const injectGiscus = useCallback(() => {
     if (!giscusContainerRef.current) return;
-    // Clear previous Giscus iframe
-    giscusContainerRef.current.innerHTML = "";
+    // Fade out
+    giscusContainerRef.current.style.opacity = "0";
+    giscusContainerRef.current.style.transition = "opacity 0.2s ease-out";
 
-    const script = document.createElement("script");
-    script.src = "https://giscus.app/client.js";
-    script.async = true;
-    script.crossOrigin = "anonymous";
-    script.setAttribute("data-repo", GISCUS_REPO);
-    script.setAttribute("data-repo-id", GISCUS_REPO_ID);
-    script.setAttribute("data-category", section.categoryName);
-    script.setAttribute("data-category-id", section.categoryId);
-    script.setAttribute("data-mapping", "specific");
-    script.setAttribute("data-term", section.term);
-    script.setAttribute("data-strict", "0");
-    script.setAttribute("data-reactions-enabled", "1");
-    script.setAttribute("data-emit-metadata", "0");
-    script.setAttribute("data-input-position", "bottom");
-    // Sync Giscus theme with the app's theme (dark/light) instead of always
-    // using "preferred_color_scheme".
-    script.setAttribute("data-theme", resolvedTheme === "light" ? "light" : "dark");
-    script.setAttribute("data-lang", "en");
-    // Section 14 — removed `loading="lazy"` (invalid on <script> tags; caused
-    // the Giscus iframe to lazy-load and never fire on desktop viewports
-    // where the iframe's top edge lands below the fold). Giscus supports
-    // `data-loading="eager"` for explicit eager loading.
-    script.setAttribute("data-loading", "eager");
+    setTimeout(() => {
+      if (!giscusContainerRef.current) return;
+      // Clear and re-inject after fade-out
+      giscusContainerRef.current.innerHTML = "";
 
-    giscusContainerRef.current.appendChild(script);
-    setLastRefreshedAt(new Date());
+      const script = document.createElement("script");
+      script.src = "https://giscus.app/client.js";
+      script.async = true;
+      script.crossOrigin = "anonymous";
+      script.setAttribute("data-repo", GISCUS_REPO);
+      script.setAttribute("data-repo-id", GISCUS_REPO_ID);
+      script.setAttribute("data-category", section.categoryName);
+      script.setAttribute("data-category-id", section.categoryId);
+      script.setAttribute("data-mapping", "specific");
+      script.setAttribute("data-term", section.term);
+      script.setAttribute("data-strict", "0");
+      script.setAttribute("data-reactions-enabled", "1");
+      script.setAttribute("data-emit-metadata", "0");
+      script.setAttribute("data-input-position", "bottom");
+      script.setAttribute("data-theme", resolvedTheme === "light" ? "light" : "dark");
+      script.setAttribute("data-lang", "en");
+      script.setAttribute("data-loading", "eager");
+
+      giscusContainerRef.current.appendChild(script);
+      setLastRefreshedAt(new Date());
+
+      // Fade back in
+      requestAnimationFrame(() => {
+        if (giscusContainerRef.current) {
+          giscusContainerRef.current.style.opacity = "1";
+        }
+      });
+    }, 200); // 200ms fade-out before clear+inject
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [section, resolvedTheme]);
 
@@ -290,9 +301,11 @@ export function CommunityView() {
         <span>{section.description}</span>
       </div>
 
-      {/* Giscus embed — takes most of the space, min height 600px for full conversation view */}
+      {/* Giscus embed — v5.930 (#3): fixed-height scrollable area + no flash on refresh.
+          The container has a max-height with overflow-y-auto so comments scroll
+          within a fixed area instead of growing unboundedly. */}
       <GlassCard className="p-4 sm:p-6">
-        <div ref={giscusContainerRef} className="min-h-[600px]" key={reloadKey}>
+        <div ref={giscusContainerRef} className="min-h-[500px] max-h-[70vh] overflow-y-auto" key={reloadKey}>
           {/* Giscus script injects here */}
           <div className="flex items-center justify-center py-12 text-xs text-muted-foreground">
             <div className="flex items-center gap-2">

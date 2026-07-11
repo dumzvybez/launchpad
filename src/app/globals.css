@@ -773,6 +773,62 @@
     to { transform: rotate(360deg); }
   }
 
+  /* v5.930 (#6): Sidebar icon micro-animations — subtle hover effects per icon type. */
+  .nav-icon-hover {
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .nav-icon-hover:hover {
+    transform: scale(1.15);
+  }
+  /* Settings gear — gentle rotation on hover */
+  .nav-icon-gear:hover {
+    transform: rotate(45deg);
+  }
+  /* AI Tutor — subtle pulse on hover */
+  .nav-icon-pulse:hover {
+    animation: nav-icon-pulse-anim 0.6s ease-in-out;
+  }
+  @keyframes nav-icon-pulse-anim {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+  }
+  /* Map/Roadmap — subtle bounce on hover */
+  .nav-icon-bounce:hover {
+    animation: nav-icon-bounce-anim 0.4s ease-out;
+  }
+  @keyframes nav-icon-bounce-anim {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+  }
+  /* GraduationCap/Learn — gentle tilt on hover */
+  .nav-icon-tilt:hover {
+    transform: rotate(-8deg);
+  }
+
+  /* v5.930 (#5): iOS 17-inspired notification styling. */
+  /* Research: iOS 17 notifications use rounded cards with subtle blur,
+     clear visual hierarchy (title bold, body regular), grouped stacking,
+     and a subtle left-edge accent color bar. */
+  .lp-notification-card {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 16px;
+    border: 1px solid hsl(var(--border) / 0.5);
+    overflow: hidden;
+    position: relative;
+  }
+  .lp-notification-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--accent-color, hsl(var(--primary)));
+    border-radius: 3px 0 0 3px;
+  }
+
   /* No-scrollbar utility */
   .no-scrollbar::-webkit-scrollbar {
     display: none;

@@ -254,16 +254,17 @@ export function AppShell() {
     >
       <AuroraBackground />
 
-      {/* Desktop sidebar — v5.929 (#5): smooth collapse/expand animation + vertical alignment fix.
-          When collapsed, a hover zone reveals a hamburger icon vertically centered to match the
-          TopBar height. The transition is animated with max-width for a smooth liquid-glass feel. */}
+      {/* Desktop sidebar — v5.930 (#6): fixed animation timing.
+          The collapsed→expanded transition now sequences: the hover zone
+          collapses first (width → 0), THEN the sidebar panel expands in.
+          This eliminates the visual overlap where the panel appeared before
+          the content had finished adjusting. */}
       {!focusMode && (
         <>
           {sidebarCollapsed ? (
-            // Collapsed: thin hover zone at the left edge with a hamburger icon
             <div
-              className="hidden lg:flex shrink-0 sticky top-0 self-start h-screen items-center justify-center group transition-all duration-300"
-              style={{ width: "48px" }}
+              className="hidden lg:flex shrink-0 sticky top-0 self-start h-screen items-center justify-center group transition-all duration-300 ease-out"
+              style={{ width: "48px", transitionDelay: sidebarCollapsed ? "0ms" : "150ms" }}
             >
               <button
                 onClick={() => setSidebarCollapsed(false)}
@@ -275,7 +276,10 @@ export function AppShell() {
               </button>
             </div>
           ) : (
-            <div className="hidden lg:block shrink-0 p-3 sticky top-0 self-start h-screen transition-all duration-300 w-[244px]">
+            <div
+              className="hidden lg:block shrink-0 p-3 sticky top-0 self-start h-screen transition-all duration-300 ease-out w-[244px]"
+              style={{ transitionDelay: sidebarCollapsed ? "150ms" : "0ms" }}
+            >
               <Sidebar collapsedState={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />
             </div>
           )}

@@ -343,12 +343,12 @@ export function selectCareerReadinessScore(state: AppState): {
     interviewScore = Math.min(100, Math.round(50 + ratio * 50));
   }
 
-  // v5.926 (A2): new 4-component weights (Challenges removed).
-  // Without interviews: Roadmap 40% + Knowledge 40% + Projects 20% = 100%.
-  // With interviews: Roadmap 30% + Knowledge 30% + Projects 20% + Interviews 20% = 100%.
-  const weights = interviewScore === null
-    ? { roadmap: 0.40, quiz: 0.40, projects: 0.20, interviews: 0 }
-    : { roadmap: 0.30, quiz: 0.30, projects: 0.20, interviews: 0.20 };
+  // v5.930 (#8): Interview is ALWAYS a required, counted 4th component.
+  // Previously, when interviewScore was null (no sessions), Interview was
+  // excluded and the other 3 silently redistributed to 40/40/20 — making
+  // Interview effectively optional. Now Interview ALWAYS contributes (0 when
+  // no sessions), with fixed 4-component weights: 30/30/20/20.
+  const weights = { roadmap: 0.30, quiz: 0.30, projects: 0.20, interviews: 0.20 };
 
   const overall = Math.round(
     roadmapProgress * weights.roadmap +

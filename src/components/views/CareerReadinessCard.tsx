@@ -93,10 +93,13 @@ export function CareerReadinessCard({
         </div>
         <div>
           <div className="text-[10px] uppercase text-muted-foreground">Interviews 🎤</div>
+          {/* v5.930 (#8): Interview is ALWAYS counted — shows 0% when no sessions
+              instead of "—", making it clear it's a required 4th component. */}
           {readiness.interviewScore === null ? (
             <>
-              <div className="font-mono font-semibold text-muted-foreground">—</div>
+              <div className="font-mono font-semibold">0%</div>
               <div className="text-[9px] text-muted-foreground mt-0.5">No sessions yet</div>
+              <ProgressBar value={0} className="h-1 mt-1" />
             </>
           ) : readiness.interviewQuestions < readiness.minInterviewQuestions ? (
             <>

@@ -11,7 +11,7 @@
 // `lastSeenReleaseVersion` preference differs from APP_VERSION.
 // ============================================================
 
-export const APP_VERSION = "5.929.0";
+export const APP_VERSION = "5.930.0";
 
 export type ReleaseHighlightType = "new" | "improved" | "removed" | "fixed";
 
@@ -43,6 +43,24 @@ export type ReleaseInfo = {
 //   To ship a new release: bump APP_VERSION, add a ReleaseInfo here (user-
 //   facing), AND add a technical entry to CHANGELOG.md. Both are required.
 export const RELEASES: ReleaseInfo[] = [
+  {
+    version: "5.930.0",
+    date: "2026-07-12",
+    title: "Duplicate modules fixed (for real), Career Score Interview fix, Community tab polish",
+    summary:
+      "The roadmap duplicate-modules bug is genuinely fixed — language phases now show ONLY real lesson content, not both lesson content and generic engine modules. Every language has a unique phase title. The Community tab no longer flashes on refresh. Career Readiness always counts Interview as a required 4th component. Plus a toast-first version popup, sidebar animation fixes, and a redesigned mobile bottom nav.",
+    highlights: [
+      { type: "fixed", text: "Roadmap duplicate modules: language phases no longer show both 'X fundamentals' / 'Build with X' generic modules AND real lesson groups. Now only real lesson content is shown — the generic engine modules are hidden when lesson groups exist. (Root cause: RoadmapView rendered both phase.modules AND phase.lessonGroups for the same phase — confirmed by tracing the exact code path.)" },
+      { type: "fixed", text: "Career Readiness Score: Interview is now ALWAYS counted as a required 4th component (30/30/20/20 weighting) — previously it was excluded when no sessions existed, silently redistributing to 40/40/20." },
+      { type: "improved", text: "Every language in the catalog (38+) now has a unique, descriptive phase title — no more generic '{Name} Essentials' fallback. Examples: 'Python Programming', 'HTML & Semantic Markup', 'PostgreSQL & Relational Databases', 'GLSL & Shader Programming'." },
+      { type: "improved", text: "Community tab: no more flash when auto-refreshing (fade-out → inject → fade-in transition). Comments now scroll within a fixed-height area instead of growing unboundedly." },
+      { type: "new", text: "Version Update popup: now shows a small toast banner first ('Updated to v5.930') with a 'More details' link. The full popup only opens if you click. No more title/description duplication." },
+      { type: "improved", text: "Version popup categories are now always visible (collapsible sections with icon labels) — no more hover-to-reveal. Historical versions shown in minimal compact form." },
+      { type: "improved", text: "Sidebar: collapse/expand animation timing fixed (no more visual overlap). Nav icons now have subtle hover micro-animations (gear rotates, AI pulses, roadmap bounces, learn tilts)." },
+      { type: "improved", text: "Mobile bottom nav redesigned: Home, Roadmap, Learn, AI, Skills, More. AI button is proportionate and styled with liquid-glass." },
+      { type: "improved", text: "Navbar restructured into 2 grouped sections: utility toggles (fullscreen + theme) and profile/account." },
+    ],
+  },
   {
     version: "5.929.0",
     date: "2026-07-11",

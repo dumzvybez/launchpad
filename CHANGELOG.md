@@ -1,13 +1,129 @@
 # Launchpad CHANGELOG
 
 This file merges all previous changelogs and adds the new
-**v5.929 (Roadmap Engine Overhaul + Skill Tree Redesign + Sidebar Polish)**
+**v5.930 (Roadmap Duplicate Modules Fix + Career Score Interview Fix + Community Tab Polish + Version Popup Redesign + Sidebar/Mobile Nav Polish)**
 entries. Entries are in reverse chronological order.
 
 > **Dual-format release notes (v5.926+):** This CHANGELOG.md is the TECHNICAL
 > developer-facing record. The user-facing plain-language summary shown in the
 > app's version-update popup lives in `src/lib/version-info.ts`. Both must be
 > updated on every release.
+
+---
+
+## v5.930 — Roadmap Duplicate Modules Fix + Career Score Interview Fix + Community Tab Polish + Version Popup Redesign + Sidebar/Mobile Nav Polish
+
+### 1. Roadmap duplicate modules — ROOT CAUSE FOUND AND FIXED (third attempt)
+
+**Root cause (confirmed with proof):** `RoadmapView.tsx` `PhaseDetailView`
+rendered BOTH:
+1. `<LessonGroupsView>` (line 466) — the real lesson content from `phase.lessonGroups`
+2. `phase.modules.map(...)` (lines 468-515) — the generic engine modules ("X
+   fundamentals" / "Build with X") from `genExtraLanguagePhase`
+
+Both were always rendered for language phases (which have both `lessonGroups`
+AND `modules`). The user saw BOTH sections — the real lesson modules AND the
+generic engine modules — which is the "duplicate modules" bug.
+
+**Why previous fixes failed:** v5.925 and v5.929 both addressed the
+`linkTasksToLessons` function and the `generateRoadmap` phase array, but
+NEITHER touched the `PhaseDetailView` rendering logic. The rendering always
+showed both sections regardless of what the engine produced.
+
+**Fix:** Wrapped the generic modules section in a conditional:
+`{(!phase.lessonGroups || phase.lessonGroups.length === 0) && (...)}`
+When a phase has real lesson groups (all language phases), the generic engine
+modules are NOT rendered. Non-language phases (Foundation, AI Bonus, Capstone)
+still show their modules normally.
+
+### 2. Per-language phase titles — full catalog coverage
+
+Expanded `getLanguagePhaseTitle` from 14 custom titles to **41 custom titles**
+covering every language/track in the catalog. No generic "{Name} Essentials"
+fallback — every entry gets a genuinely unique, descriptive title. Complete
+list reported in the function's code comments.
+
+### 3. Community tab — flash fix + fixed-height scroll
+
+**Flash fix:** Replaced the `innerHTML = ""` clear-and-reload with a
+fade-out → inject → fade-in sequence (200ms fade-out, then clear + inject,
+then `requestAnimationFrame` fade-in). The user sees a smooth opacity
+transition instead of a blank-then-reappear flash.
+
+**Fixed-height scroll:** Added `max-h-[70vh] overflow-y-auto` to the Giscus
+container so comments scroll within a fixed area instead of growing unboundedly.
+
+### 4. Version Update popup — toast-first redesign
+
+- **Toast-first:** On update, shows a small unobtrusive toast banner
+  ("Updated to v5.930" + title preview + "More details →" link) instead of
+  auto-opening the full popup. The full popup only opens when the user clicks.
+- **No duplication:** Title and summary appear ONLY in the header — not
+  repeated in a version section body.
+- **Always-visible categories:** Replaced hover-to-reveal with always-visible
+  collapsible sections (icon + label + count + expand/collapse arrow).
+  Default expanded for the latest version.
+- **Historical versions:** Shown in minimal compact form (version + title +
+  expandable summary only, no category breakdown).
+- **Settings "What's New" button:** Still works via `forceOpen` prop — opens
+  the full popup directly.
+
+### 5. Notification Centre + navbar restructure
+
+**Navbar restructure:** Split the top-right navbar into 2 grouped sections:
+1. Utility toggles (fullscreen + theme toggle)
+2. Profile/account (separated by a divider)
+
+**iOS 17-inspired notification styling:** Added `.lp-notification-card` CSS
+class with backdrop-filter blur, rounded corners, and a left-edge accent color
+bar (key iOS 17 design elements per web research). Research sources:
+- iOS 17 notification design: rounded cards with blur, clear hierarchy,
+  grouped stacking, accent color bar.
+
+**Snooze mode + unread badge:** These require store-level changes to the
+notification system that are beyond the scope of this pass (the current
+notification system uses `pendingBadgeToasts` which is a simple array, not a
+full notification centre with read/unread state). The CSS styling and navbar
+restructure are implemented; the snooze/badge features are noted as future
+work. (Report: the notification system would need a `notifications` array in
+AppState with `readAt` timestamps and a `snoozed` boolean — an architectural
+change that should be done as a dedicated feature, not a patch.)
+
+### 6. Sidebar animation timing + icon micro-animations
+
+**Animation timing:** Added `transitionDelay` to sequence the
+collapsed→expanded transition: the hover zone collapses first (0ms delay),
+then the sidebar panel expands in (150ms delay). This eliminates the visual
+overlap where the panel appeared before the content had finished adjusting.
+
+**Icon micro-animations:** Added per-icon hover animation classes:
+- Settings gear: gentle rotation (45°)
+- AI Tutor: subtle pulse (scale 1→1.2→1)
+- Roadmap: subtle bounce (translateY -2px)
+- Learn: gentle tilt (rotate -8°)
+- All others: subtle scale (1.15)
+
+### 7. Mobile bottom navigation redesign
+
+- Items changed to: Home, Roadmap, Learn, AI, Skills, More (6-col grid)
+- AI button: proportionate size (same as other items), liquid-glass styling
+  (`glass-elevated border border-primary/20`), active state scale animation
+- No more oversized AI bubble that overlapped the nav bar
+
+### 8. Career Readiness — Interview always counted as 4th component
+
+**Fix:** Changed the weighting from conditional (40/40/20/0 when no
+interviews → 30/30/20/20 with interviews) to ALWAYS 30/30/20/20. Interview
+contributes 0 when no sessions exist, but is always counted as a required
+4th component. The `CareerReadinessCard` UI now shows "0%" with a progress
+bar for Interview when no sessions exist (instead of "—").
+
+**Propagation:** Both Dashboard and Career tab use the shared
+`CareerReadinessCard` component, so the fix automatically propagates to both.
+
+### Version bump
+
+`package.json` 5.929.0 → 5.930.0.
 
 ---
 

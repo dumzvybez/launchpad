@@ -465,7 +465,12 @@ function PhaseDetailView({
       {/* v5.92 (Part 3): Real lesson groups — collapsible modules with real lesson content */}
       <LessonGroupsView phase={phase} colors={colors} />
 
-      {/* Modules as connected arrows */}
+      {/* v5.930 (#1): DUPLICATE-MODULES FIX — only show generic engine modules
+          when the phase does NOT have real lesson groups. When lessonGroups
+          exist (all language phases), the lesson groups ARE the modules — the
+          generic engine modules ("X fundamentals" / "Build with X") are
+          redundant and were causing the duplicate-modules bug reported 3 times. */}
+      {(!phase.lessonGroups || phase.lessonGroups.length === 0) && (
       <div>
         <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Modules — complete in order</h3>
         <div className="flex flex-col gap-0">
@@ -508,6 +513,7 @@ function PhaseDetailView({
           })}
         </div>
       </div>
+      )}
     </div>
   );
 }

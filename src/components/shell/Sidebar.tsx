@@ -191,6 +191,13 @@ export function Sidebar({
             {!collapsed && items.map((item) => {
               const Icon = item.icon;
               const active = currentView === item.id;
+              // v5.930 (#6): icon micro-animation classes per nav item type
+              const iconAnimClass =
+                item.id === "settings" ? "nav-icon-hover nav-icon-gear" :
+                item.id === "ai-tutor" ? "nav-icon-hover nav-icon-pulse" :
+                item.id === "roadmap" ? "nav-icon-hover nav-icon-bounce" :
+                item.id === "learn" ? "nav-icon-hover nav-icon-tilt" :
+                "nav-icon-hover";
               return (
                 <button
                   key={item.id}
@@ -207,7 +214,8 @@ export function Sidebar({
                 >
                   <Icon
                     className={cn(
-                      "h-4 w-4 shrink-0 transition-transform group-hover:scale-110",
+                      "h-4 w-4 shrink-0",
+                      iconAnimClass,
                       active && "text-primary",
                     )}
                   />

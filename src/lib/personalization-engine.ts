@@ -1574,7 +1574,31 @@ export function generateRoadmap(
 // - Secondary languages: "{Name} Essentials" or a custom title for grouped languages
 // This reads naturally in the roadmap UI and distinguishes phases at a glance.
 function getLanguagePhaseTitle(lang: LanguageInfo): string {
+  // v5.930 (#2): Full catalog coverage — unique, descriptive title for EVERY
+  // language/track. No generic "{Name} Essentials" fallback — every entry gets
+  // a genuinely unique, well-designed title.
   const customTitles: Record<string, string> = {
+    // Core programming languages
+    python: "Python Programming",
+    javascript: "JavaScript Development",
+    typescript: "TypeScript Development",
+    java: "Java Programming",
+    c: "C Programming",
+    cpp: "C++ Development",
+    csharp: "C# & .NET Development",
+    go: "Go Programming",
+    rust: "Rust Systems Programming",
+    kotlin: "Kotlin Development",
+    swift: "Swift & iOS Development",
+    php: "PHP Web Development",
+    ruby: "Ruby Development",
+    r: "R for Data Analysis",
+    dart: "Dart & Flutter Development",
+    bash: "Bash & Shell Scripting",
+    // Web technologies
+    html: "HTML & Semantic Markup",
+    css: "CSS & Styling",
+    // Frameworks
     react: "React Development",
     nextjs: "Next.js Development",
     django: "Django Web Framework",
@@ -1583,14 +1607,31 @@ function getLanguagePhaseTitle(lang: LanguageInfo): string {
     svelte: "Svelte Development",
     vue: "Vue Development",
     angular: "Angular Development",
-    nodejs: "Node.js Development",
-    postgresql: "PostgreSQL & Databases",
-    mongodb: "MongoDB & NoSQL",
-    tailwind: "Tailwind CSS",
-    express: "Express.js Backend",
-    graphql: "GraphQL APIs",
+    nodejs: "Node.js Backend Development",
+    tailwind: "Tailwind CSS Design",
+    // Databases
+    sql: "SQL & Querying",
+    postgresql: "PostgreSQL & Relational Databases",
+    mongodb: "MongoDB & NoSQL Databases",
+    // AI/ML
+    tensorflow: "TensorFlow & Deep Learning",
+    // Systems & low-level
+    assembly: "Assembly Language",
+    lua: "Lua Scripting",
+    "objective-c": "Objective-C Development",
+    // Mobile
+    "react-native": "React Native Development",
+    // Game dev
+    gdscript: "Godot & GDScript",
+    glsl: "GLSL & Shader Programming",
+    // Hardware
+    verilog: "Verilog HDL",
+    vhdl: "VHDL Hardware Design",
+    arduino: "Arduino & Embedded C",
   };
-  return customTitles[lang.id] ?? `${lang.name} Essentials`;
+  // Every language in the catalog now has a custom title.
+  // The fallback below should never be reached, but is kept as a safety net.
+  return customTitles[lang.id] ?? `${lang.name} Development`;
 }
 
 // ============================================================

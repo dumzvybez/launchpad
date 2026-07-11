@@ -109,6 +109,9 @@ export function TopBar() {
           </kbd>
         </button>
 
+        {/* v5.930 (#5): Navbar restructured into 2 grouped sections.
+            Group 1: fullscreen + theme (utility toggles)
+            Group 2: profile (account) — separated by a divider */}
         <div className="flex items-center gap-1 ml-auto md:ml-0">
           {/* Mobile search */}
           <GlassButton
@@ -121,20 +124,23 @@ export function TopBar() {
             <Search className="h-4 w-4" />
           </GlassButton>
 
-          {/* Fullscreen toggle */}
-          <GlassButton
-            variant="ghost"
-            size="icon"
-            onClick={toggleFullscreen}
-            aria-label="Toggle fullscreen"
-            title="Toggle fullscreen (Ctrl+F equivalent)"
-          >
-            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-          </GlassButton>
+          {/* Group 1: utility toggles */}
+          <div className="flex items-center gap-1">
+            {/* Fullscreen toggle */}
+            <GlassButton
+              variant="ghost"
+              size="icon"
+              onClick={toggleFullscreen}
+              aria-label="Toggle fullscreen"
+              title="Toggle fullscreen"
+            >
+              {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            </GlassButton>
 
-          <ThemeToggle />
+            <ThemeToggle />
+          </div>
 
-          {/* Profile chip — dropdown on click */}
+          {/* Group 2: profile — separated by a divider */}
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
