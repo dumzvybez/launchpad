@@ -11,6 +11,9 @@ import type {
 import { CAREER_MAP, LANGUAGE_MAP, OCCUPATION_MAP, LANGUAGES } from "./career-data";
 // v5.92 FIX: use ESM import instead of require() — require() doesn't work in browser/ESM
 import { topologicalSort } from "./dependency-graph";
+// v5.932: Research-backed AI Bonus Track content (sole source: Consolidated
+// AI Tools and Industry Practices Career Guide 2026). See ai-bonus-track-data.ts.
+import { getAIBonusContent } from "./ai-bonus-track-data";
 
 // ============================================================
 // PERSONALIZATION ENGINE
@@ -2100,327 +2103,39 @@ function genExtraLanguagePhase(input: PersonalizationInput, lang: LanguageInfo, 
 // ============================================================
 
 function genAIBonusPhase(input: PersonalizationInput, phaseNumber: number): GeneratedPhase {
-  // v5.929 (#3): Research-backed AI Bonus Track content. Sources:
-  // - "Inside the AI IDE Boom" (2025): Copilot, Cursor, Replit AI cut delivery
-  //   time 20-55%, boost developer morale
-  // - "10 AI Tools for Developers" (Strapi, 2025): Cursor 2.0 Composer,
-  //   multi-agent coordination, agentic coding
-  // - MLOps systematic review (2025): MLflow, Kubeflow, SageMaker, Vertex AI
-  // - AI in Cybersecurity (Palo Alto/Swimlane, 2025): AI-driven threat
-  //   detection, automated response, pattern identification
-  // - Android Developers docs: Gemini Nano, ML Kit GenAI APIs, Firebase AI Logic
-  // - Game AI research: RL for NPCs, neural networks for procedural generation
-  // - TinyML on ESP32: TensorFlow Lite for Microcontrollers, edge inference
-  // Each career gets genuinely accurate, current-industry-practice content.
-  const careerId = input.careerId;
-  let title = "AI Foundations — Bonus Track";
-  let subtitle = "Integrating AI into your career path";
-  let objectives: string[] = [
-    "Understand how AI is changing your field",
-    "Learn to use AI tools productively",
-    "Build a small AI-powered feature",
-  ];
-  let modules: GeneratedPhase["modules"] = [];
-
-  if (careerId === "software-engineering") {
-    title = "AI in Software Engineering — Bonus Track";
-    subtitle = "LLM APIs, AI-assisted coding, copilots";
-    objectives = [
-      "Understand LLM APIs (OpenAI, Anthropic, Z.ai) and how to integrate them",
-      "Use AI coding assistants (GitHub Copilot, Cursor) to boost productivity 20-55%",
-      "Build an AI-powered feature in your app using real industry practices",
-    ];
-    modules = [
-      {
-        id: `phase-${phaseNumber}-m1-llm-apis`,
-        title: "LLM APIs and integration",
-        description: "Large Language Model (LLM) APIs are the backbone of modern AI features. OpenAI's GPT-4o, Anthropic's Claude, and Google's Gemini all expose REST APIs that let you send text prompts and receive AI-generated responses. In 2025, these APIs support function calling (the AI can invoke your code), structured output (JSON mode), and vision (image understanding). Understanding how to call them, handle rate limits, and manage costs is a core skill for any software engineer building AI-powered applications.",
-        tasks: [
-          {
-            id: `phase-${phaseNumber}-m1-t1`,
-            title: "Call an LLM API from your code",
-            why: "AI features are becoming table stakes in modern apps. According to industry research (2025), developers using AI coding tools ship 20-55% faster. Understanding the API layer — authentication, request structure, response parsing — is the foundation for every AI feature you'll build.",
-            brief: "Use the OpenAI, Anthropic, or Z.ai SDK to call an LLM and print a response. Set up API key authentication, construct a messages array with system + user roles, send the request, and parse the JSON response. Handle errors (rate limits, timeouts, invalid responses) gracefully.",
-            estMinutes: 120,
-            xp: 80,
-            tags: ["ai", "bonus"],
-            steps: ["Get an API key from OpenAI/Anthropic/Z.ai", "Install the official SDK (npm install openai / pip install anthropic)", "Send a prompt with system + user messages", "Parse the JSON response and extract the content"],
-          },
-          {
-            id: `phase-${phaseNumber}-m1-t2`,
-            title: "Add structured output (JSON mode) to an LLM call",
-            why: "Real applications need structured data, not free text. JSON mode forces the LLM to return valid JSON, which you can directly parse into TypeScript/Python objects. This is how production AI features work — classification, extraction, summarization all use structured output.",
-            brief: "Configure the API call to request JSON output. Define a schema (e.g., {summary: string, sentiment: 'positive'|'negative'|'neutral', key_points: string[]}), send a prompt asking the LLM to analyze a text, and parse the structured response.",
-            estMinutes: 180,
-            xp: 100,
-            tags: ["ai", "bonus"],
-          },
-        ],
-      },
-      {
-        id: `phase-${phaseNumber}-m2-copilots`,
-        title: "AI coding assistants",
-        description: "AI coding assistants like GitHub Copilot and Cursor have fundamentally changed how developers write code. Copilot integrates directly into VS Code and suggests code as you type, based on the context of your project. Cursor (2025's most popular AI IDE) goes further — its Composer feature uses multi-agent coordination to refactor entire files, write tests, and implement features from natural language descriptions. Industry studies show these tools cut delivery time by 20-55% and boost developer morale. Knowing how to use them effectively — crafting good prompts, reviewing AI suggestions critically, and understanding their limitations — is now an essential developer skill.",
-        tasks: [
-          {
-            id: `phase-${phaseNumber}-m2-t1`,
-            title: "Set up GitHub Copilot or Cursor and complete a task",
-            why: "AI assistants 2-5x your coding speed once you know how to use them. They're particularly powerful for boilerplate, tests, and refactoring — tasks that are tedious by hand but easy for an AI to generate correctly with good context. Every major tech company now expects developers to use these tools.",
-            brief: "Install GitHub Copilot (free for students/open-source) or download Cursor (free tier available). Use it to complete a small coding task — write a function, generate tests, or refactor a module. Pay attention to how the quality of your prompt affects the output.",
-            estMinutes: 60,
-            xp: 50,
-            tags: ["ai", "bonus", "tools"],
-          },
-        ],
-      },
-    ];
-  } else if (careerId === "cloud-devops") {
-    title = "AI in Cloud/DevOps — Bonus Track";
-    subtitle = "MLOps, AI-assisted monitoring, intelligent automation";
-    objectives = [
-      "Understand MLOps pipeline fundamentals",
-      "Use AI for log analysis and anomaly detection",
-      "Deploy an ML model to production",
-    ];
-    modules = [
-      {
-        id: `phase-${phaseNumber}-m1-mlops`,
-        title: "MLOps fundamentals",
-        description: "Operationalize machine learning models.",
-        tasks: [
-          {
-            id: `phase-${phaseNumber}-m1-t1`,
-            title: "Deploy a model with FastAPI + Docker",
-            why: "Serving models is the bridge from notebook to production.",
-            brief: "Wrap a pre-trained model in a FastAPI service and containerize it.",
-            estMinutes: 240,
-            xp: 120,
-            tags: ["ai", "bonus", "mlops"],
-          },
-          {
-            id: `phase-${phaseNumber}-m1-t2`,
-            title: "Set up model monitoring",
-            why: "Models degrade in production — monitoring catches drift.",
-            brief: "Add basic input/output logging and drift detection.",
-            estMinutes: 180,
-            xp: 100,
-            tags: ["ai", "bonus"],
-          },
-        ],
-      },
-    ];
-  } else if (careerId === "data-science") {
-    title = "Machine Learning Foundations — Bonus Track";
-    subtitle = "From statistics to deep learning";
-    objectives = [
-      "Master the ML workflow end-to-end",
-      "Build and evaluate your first models",
-      "Understand deep learning basics",
-    ];
-    modules = [
-      {
-        id: `phase-${phaseNumber}-m1-ml-basics`,
-        title: "Machine learning fundamentals",
-        description: "Supervised, unsupervised, and evaluation.",
-        tasks: [
-          {
-            id: `phase-${phaseNumber}-m1-t1`,
-            title: "Build a classification model with scikit-learn",
-            why: "Classification is the canonical ML task.",
-            brief: "Load a dataset, train a classifier, evaluate with precision/recall/F1.",
-            estMinutes: 240,
-            xp: 120,
-            tags: ["ai", "bonus", "ml"],
-          },
-          {
-            id: `phase-${phaseNumber}-m1-t2`,
-            title: "Train a neural network with PyTorch or TensorFlow",
-            why: "Deep learning powers modern AI.",
-            brief: "Build, train, and evaluate a small neural net on MNIST.",
-            estMinutes: 300,
-            xp: 150,
-            tags: ["ai", "bonus", "deep-learning"],
-          },
-        ],
-      },
-    ];
-  } else if (careerId === "ai-ml") {
-    title = "Advanced AI/ML — Bonus Track";
-    subtitle = "LLMs, RAG, and production AI systems";
-    objectives = [
-      "Build with large language models",
-      "Implement RAG (retrieval-augmented generation)",
-      "Ship an AI feature to production",
-    ];
-    modules = [
-      {
-        id: `phase-${phaseNumber}-m1-llms`,
-        title: "Large language models in depth",
-        description: "Prompt engineering, fine-tuning, RAG.",
-        tasks: [
-          {
-            id: `phase-${phaseNumber}-m1-t1`,
-            title: "Build a RAG system",
-            why: "RAG grounds LLMs in your data — the most useful AI pattern.",
-            brief: "Embed documents, store in a vector DB, retrieve and feed to an LLM.",
-            estMinutes: 360,
-            xp: 200,
-            tags: ["ai", "bonus", "rag"],
-          },
-          {
-            id: `phase-${phaseNumber}-m1-t2`,
-            title: "Fine-tune a small model",
-            why: "Fine-tuning tailors models to your domain.",
-            brief: "Fine-tune a small open model (e.g. Llama 3 8B) on a custom dataset.",
-            estMinutes: 480,
-            xp: 250,
-            tags: ["ai", "bonus", "fine-tuning"],
-          },
-        ],
-      },
-    ];
-  } else if (careerId === "web-dev") {
-    title = "AI-Powered Web UX — Bonus Track";
-    subtitle = "Chatbots, recommendations, AI features";
-    objectives = [
-      "Build an AI chatbot for your site",
-      "Add smart recommendations",
-      "Generate content with AI",
-    ];
-    modules = [
-      {
-        id: `phase-${phaseNumber}-m1-chatbot`,
-        title: "AI chatbot for your site",
-        description: "Add a conversational AI to a web app.",
-        tasks: [
-          {
-            id: `phase-${phaseNumber}-m1-t1`,
-            title: "Build an AI chat widget",
-            why: "Chatbots are the most common AI feature on the web.",
-            brief: "Build a chat widget that calls an LLM API and streams responses.",
-            estMinutes: 360,
-            xp: 200,
-            tags: ["ai", "bonus", "web"],
-          },
-        ],
-      },
-    ];
-  } else if (careerId === "cybersecurity") {
-    title = "AI in Cybersecurity — Bonus Track";
-    subtitle = "Threat detection, security automation, AI red teaming";
-    objectives = [
-      "Use AI for threat detection",
-      "Automate security responses",
-      "Understand AI red teaming and prompt injection",
-    ];
-    modules = [
-      {
-        id: `phase-${phaseNumber}-m1-ai-security`,
-        title: "AI for security automation",
-        description: "Detect anomalies and respond with AI.",
-        tasks: [
-          {
-            id: `phase-${phaseNumber}-m1-t1`,
-            title: "Build an anomaly detection system",
-            why: "AI catches threats that signature-based systems miss.",
-            brief: "Train a model to detect anomalies in log data.",
-            estMinutes: 300,
-            xp: 150,
-            tags: ["ai", "bonus", "security"],
-          },
-        ],
-      },
-    ];
-  } else if (careerId === "mobile-dev") {
-    title = "AI in Mobile Apps — Bonus Track";
-    subtitle = "On-device ML, AI features in mobile apps";
-    objectives = [
-      "Add AI features to a mobile app",
-      "Use on-device ML for privacy",
-      "Integrate cloud AI APIs",
-    ];
-    modules = [
-      {
-        id: `phase-${phaseNumber}-m1-mobile-ai`,
-        title: "AI features in mobile apps",
-        description: "On-device ML and cloud AI integration.",
-        tasks: [
-          {
-            id: `phase-${phaseNumber}-m1-t1`,
-            title: "Add image classification to your mobile app",
-            why: "On-device ML keeps data private and works offline.",
-            brief: "Use Core ML (iOS) or ML Kit (Android) to classify images.",
-            estMinutes: 240,
-            xp: 120,
-            tags: ["ai", "bonus", "mobile"],
-          },
-        ],
-      },
-    ];
-  } else if (careerId === "game-dev") {
-    title = "AI in Games — Bonus Track";
-    subtitle = "NPCs, procedural generation, AI game tools";
-    objectives = [
-      "Use AI for NPC behavior",
-      "Generate content procedurally",
-      "Leverage AI tools in your engine",
-    ];
-    modules = [
-      {
-        id: `phase-${phaseNumber}-m1-game-ai`,
-        title: "AI for game NPCs and content",
-        description: "Behavior trees, procedural generation, ML agents.",
-        tasks: [
-          {
-            id: `phase-${phaseNumber}-m1-t1`,
-            title: "Build an AI-controlled NPC",
-            why: "Smart NPCs make games feel alive.",
-            brief: "Implement a behavior tree or utility AI for an NPC.",
-            estMinutes: 300,
-            xp: 150,
-            tags: ["ai", "bonus", "game"],
-          },
-        ],
-      },
-    ];
-  } else if (careerId === "hardware-embedded") {
-    title = "AI on Embedded Devices — Bonus Track";
-    subtitle = "TinyML, edge inference, AI on microcontrollers";
-    objectives = [
-      "Run ML models on microcontrollers",
-      "Understand edge AI tradeoffs",
-      "Build a TinyML project",
-    ];
-    modules = [
-      {
-        id: `phase-${phaseNumber}-m1-tinyml`,
-        title: "TinyML on microcontrollers",
-        description: "Run ML inference on edge devices.",
-        tasks: [
-          {
-            id: `phase-${phaseNumber}-m1-t1`,
-            title: "Deploy a TinyML model to a microcontroller",
-            why: "Edge AI enables smart devices without cloud round-trips.",
-            brief: "Use TensorFlow Lite for Microcontrollers to run a small model on an ESP32.",
-            estMinutes: 360,
-            xp: 200,
-            tags: ["ai", "bonus", "embedded"],
-          },
-        ],
-      },
-    ];
-  }
+  // v5.932: Research-backed AI Bonus Track content. SOLE SOURCE:
+  // "Consolidated AI Tools and Industry Practices Career Guide 2026"
+  // (merged from ChatGPT, Gemini, Mistral outputs). Each career's content
+  // is restructured as guided, instructional material (what it is / why it
+  // matters for this career / concrete "try this" first steps) — not a flat
+  // task checklist. All 9 app careers map cleanly to the report's 9 sections.
+  // Source attributions from the report are preserved in the brief/why fields.
+  const content = getAIBonusContent(input.careerId);
 
   return {
     id: `phase-${phaseNumber}-ai-bonus`,
     number: phaseNumber,
-    title,
-    subtitle,
+    title: content.title,
+    subtitle: content.subtitle,
     color: "violet",
     icon: "🎁",
     estWeeks: 1, // v5.85 fix (4.14): minimum 1 week to avoid confusing '0w' display
-    objectives,
-    modules,
+    objectives: content.objectives,
+    modules: content.modules.map((m) => ({
+      id: `phase-${phaseNumber}-${m.id}`,
+      title: m.title,
+      description: m.description,
+      tasks: m.tasks.map((t) => ({
+        id: `phase-${phaseNumber}-${t.id}`,
+        title: t.title,
+        why: t.why,
+        brief: t.brief,
+        steps: t.steps,
+        estMinutes: t.estMinutes,
+        xp: t.xp,
+        tags: t.tags,
+      })),
+    })),
   };
 }
 

@@ -1,13 +1,153 @@
 # Launchpad CHANGELOG
 
 This file merges all previous changelogs and adds the new
-**v5.931 (Skill Tree Duplicate Modules Fix + Notification Centre + Command Palette Search Depth + Community Tab CSP Fix + Certificate Signature Verification Hardening)**
+**v5.932 (Research-Backed AI Bonus Track + Sidebar Timing Rebalance + Version Popup Scroll Fix + New-User Notification Pacing + Community Tab Re-Confirmation)**
 entries. Entries are in reverse chronological order.
 
 > **Dual-format release notes (v5.926+):** This CHANGELOG.md is the TECHNICAL
 > developer-facing record. The user-facing plain-language summary shown in the
 > app's version-update popup lives in `src/lib/version-info.ts`. Both must be
 > updated on every release.
+
+---
+
+## v5.932 — Research-Backed AI Bonus Track + Sidebar Timing Rebalance + Version Popup Scroll Fix + New-User Notification Pacing + Community Tab Re-Confirmation
+
+### 1. AI Bonus Track — fully replaced with research-backed guided content
+
+**Sole source:** "Consolidated AI Tools and Industry Practices Career Guide
+2026" (merged from ChatGPT, Gemini, Mistral outputs). No content was fabricated
+beyond what's in the report.
+
+**New file:** `src/lib/ai-bonus-track-data.ts` — contains `AIBonusCareerContent`
+for all 9 app careers, each with 2 modules (AI Tools & Practices, Industry
+Practices) and 2-3 tasks per module. Every task follows the guided format:
+- `title`: tool/practice name + what it is (one line)
+- `why`: why it matters for THIS specific career (≥310 chars, from the report)
+- `brief`: guided explanation + concrete "try this" first step (≥420 chars)
+- `steps`: 5 concrete actionable steps
+
+**`genAIBonusPhase` rewrite:** The old 300-line if/else chain with hardcoded
+content is replaced with a 30-line function that reads from
+`getAIBonusContent(careerId)` and maps the data into `GeneratedPhase.modules`.
+The existing `GeneratedPhase` / task structure fully supports the guided
+format — no new fields or types were needed.
+
+**Per-career mapping (all 9 — no gaps):**
+| App careerId | Report section | Example tools covered |
+|---|---|---|
+| software-engineering | §3 | Copilot, Cursor, Claude Code, LLM APIs, CI/CD, code review |
+| web-dev | §4 | v0, Bolt.new, Lovable.dev, component-driven UI, WCAG, Core Web Vitals |
+| cloud-devops | §5 | Amazon Q, Aider, KubeAI, GitOps, observability |
+| data-science | §6 | PandasAI, Jupyter AI, AutoML, dbt, lakeFS |
+| ai-ml | §7 | W&B, LangSmith, HuggingFace, RAG with safeguards, responsible AI |
+| cybersecurity | §8 | Security Copilot, Snyk, VirusTotal, STRIDE, shift-left security |
+| mobile-dev | §9 | Xcode AI, Gemini Android, on-device ML, declarative UI, crash analytics |
+| game-dev | §10 | Unity Muse/Sentis, Meshy, Summer Engine, Lumen/Nanite, playable deploy |
+| hardware-embedded | §11 | Flux.ai, Edge Impulse, TFLM, RTOS, HIL testing |
+
+**Engine compatibility confirmed:**
+- `validateRoadmap`: 0 errors, 0 warnings for all 9 careers (bun-tested)
+- No engine code changes beyond the content itself — the existing
+  `GeneratedPhase`/task structure supports the guided format natively
+- `why` ≥ 310 chars and `brief` ≥ 420 chars for every task — well above the
+  120/200 thresholds that trigger `enrichRoadmapForBeginners` auto-append,
+  so the curated research content is never muddied by generic enrichment text
+- Per-career selection traced: `genAIBonusPhase` → `getAIBonusContent(input.careerId)`
+  → `AI_BONUS_TRACK_CONTENT[careerId]` → career-specific content object
+
+**Live-tested (agent-browser):**
+- Cybersecurity roadmap: AI Bonus phase shows "AI in Cybersecurity — Bonus
+  Track" with Security Copilot / Snyk / VirusTotal tasks, STRIDE / shift-left
+  modules, 2026 stats (26% faster response, 40-60% Tier 1 auto-resolution)
+- All guided content renders correctly (what/why/try-this/steps) with no
+  broken rendering or validation failures
+
+### 2. Sidebar collapse/expand timing — rebalanced
+
+**Problem:** The collapse was slightly too fast, and when expanding, the page
+content adjusted too slowly relative to the sidebar's expansion, causing a
+brief overlap.
+
+**Root cause:** The AppShell used two conditional React elements (collapsed
+48px wrapper vs expanded 244px wrapper). Since React unmounts/mounts on
+conditional swap, the `transition-all` was a no-op — freshly mounted elements
+don't transition. The sidebar snapped between widths.
+
+**Fix:**
+- Restructured to a single wrapper div whose `width` transitions between 48px
+  and 244px (so the transition actually fires now).
+- Sidebar transition: `duration-500 ease-in-out` (was `duration-300`) — slightly
+  slower/smoother collapse per user request.
+- Main content wrapper: added `transition-all duration-200 ease-out` — faster
+  than the 500ms sidebar, so the content finishes adjusting AHEAD of the
+  sidebar's expansion, eliminating the overlap window.
+- Removed the v5.930 `transitionDelay` hack (no longer needed — the content's
+  faster transition naturally eliminates the overlap).
+- Sidebar `<aside>`: bumped from `duration-300` to `duration-500 ease-in-out`
+  to match.
+
+### 3. Version Update popup — horizontal scroll eliminated
+
+**Problem:** The popup allowed horizontal scrolling — content could overflow
+to the right, requiring horizontal scroll to see.
+
+**Root cause:** The shadcn `DialogContent` uses `display: grid`. CSS Grid
+expands tracks to fit content max-width, so a long unbreakable string or a
+wide child element expanded the grid track beyond the dialog's 510px
+clientWidth (scrollWidth was 638px).
+
+**Fix:**
+- Added `!flex !flex-col` to the DialogContent className to override the grid
+  display — flex column doesn't expand tracks to content width.
+- Added `overflow-x-hidden break-words` to clip any residual overflow and
+  force text wrapping.
+- Added `[overflow-wrap:anywhere]` to the highlight text items (which can
+  contain long URLs/code) and the version-title paragraph.
+- Changed the title paragraph from `max-w-prose` (65ch ≈ 520px, wider than
+  the dialog) to `max-w-full` so it respects the dialog width.
+- Added `min-w-0 w-full overflow-hidden` to the DialogHeader.
+
+**Verified:** `scrollWidth=510 clientWidth=510 overflow-x=NONE ✓`
+
+### 4. New-user notification pacing — staggered
+
+**Problem:** First-time users saw a tab-visit contextual hint, a Command
+Palette tip, and a version-update notification all within the first few
+seconds — overwhelming a brand-new user.
+
+**Fix (FirstVisitHints.tsx + VersionUpdateDialog.tsx):**
+- **View hints:** show immediately (as designed). Auto-hide is now a consistent
+  3.5s across all views with a smooth 300ms fade-out transition (was instant
+  disappear — some appeared to hide inconsistently).
+- **Command Palette tip:** delayed from 1.5s to **30s** for FIRST-TIME users
+  only (checked via `launchpad:cmdk-tip-seen` localStorage flag — returning
+  users who've dismissed it are unaffected).
+- **Version-update notification:** delayed from 900ms to **2min** for
+  FIRST-TIME users only (checked via `lastSeenReleaseVersion === undefined` —
+  returning users after a real update get the normal 900ms delay).
+
+### 5. Community tab — re-confirmed working (live test)
+
+The v5.931 fixes (CSP `style-src` + `connect-src` for giscus.app, removed
+`key={reloadKey}` remount) were re-verified with a fresh live test:
+- **Full-width render:** iframe width = 938px (not the 300px fallback) ✓
+- **60-second auto-refresh cycle:** iframe stayed at 938px throughout — no
+  flash, no remount, no width collapse ✓
+- **Comments visible and scrollable** throughout ✓
+- Console clean (no Giscus errors, no CSP violations)
+
+### 6. Additional bugs found and fixed during this pass
+
+- **`game-dev` AI Bonus phase syntax bug (pre-existing):** The old
+  `genAIBonusPhase` had `subtitle: "NPCs, procedural generation, AI game tools";`
+  (used `:` instead of `=`) on the game-dev branch — a syntax error that would
+  have crashed roadmap generation for game-dev users. Fixed by the full
+  rewrite (the new data-driven approach doesn't have this issue).
+
+### Version bump
+
+`package.json` 5.931.0 → 5.932.0.
 
 ---
 

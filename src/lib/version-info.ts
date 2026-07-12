@@ -11,7 +11,7 @@
 // `lastSeenReleaseVersion` preference differs from APP_VERSION.
 // ============================================================
 
-export const APP_VERSION = "5.931.0";
+export const APP_VERSION = "5.932.0";
 
 export type ReleaseHighlightType = "new" | "improved" | "removed" | "fixed";
 
@@ -43,6 +43,20 @@ export type ReleaseInfo = {
 //   To ship a new release: bump APP_VERSION, add a ReleaseInfo here (user-
 //   facing), AND add a technical entry to CHANGELOG.md. Both are required.
 export const RELEASES: ReleaseInfo[] = [
+  {
+    version: "5.932.0",
+    date: "2026-07-14",
+    title: "Research-backed AI Bonus Track + sidebar timing + version popup scroll + new-user pacing",
+    summary:
+      "The AI Bonus Track phase for every career is now built from a real consolidated research report (merged from ChatGPT, Gemini, Mistral) — each tool gets a guided what/why/try-this lesson, not a flat checklist. Plus four polish fixes: smoother sidebar collapse, no horizontal scroll in the version popup, staggered first-time-user notifications, and a re-confirmed Community tab fix.",
+    highlights: [
+      { type: "new", text: "AI Bonus Track fully replaced with research-backed guided content. Every career path (Software Engineering, Web Dev, Cloud/DevOps, Data Science, AI/ML, Cybersecurity, Mobile, Game, Hardware) now gets a dedicated AI Bonus Track built from the Consolidated AI Tools and Industry Practices Career Guide 2026. Each tool/practice is a guided lesson: what it is, why it matters for your career, and a concrete 'try this' first step with 5 actionable steps — not a flat task checklist." },
+      { type: "improved", text: "Sidebar collapse/expand timing rebalanced: collapse is slightly smoother (500ms ease-in-out), and the page content now adjusts faster (200ms) than the sidebar so it finishes ahead — eliminating the brief overlap where the expanding sidebar overlapped the still-adjusting content." },
+      { type: "fixed", text: "Version Update popup no longer has horizontal scroll. The grid layout was expanding tracks to content width; switching to flex column with overflow-x-hidden and break-words ensures everything wraps to fit — only vertical scrolling is ever needed." },
+      { type: "improved", text: "New-user notification pacing: first-time users no longer get hit with a tab-visit hint, a Command Palette tip, and a version-update notification all at once. View hints show immediately (consistent 3.5s auto-hide with smooth fade-out), the Command Palette tip is delayed to ~30s, and the version notification is delayed to ~2min — returning users after a real update are unaffected." },
+      { type: "fixed", text: "Community tab re-confirmed working: the Giscus embed renders at full width (938px, not the 300px fallback) and stays full-width through a 60-second auto-refresh cycle with no flash or remount. Comments remain visible and scrollable throughout." },
+    ],
+  },
   {
     version: "5.931.0",
     date: "2026-07-13",

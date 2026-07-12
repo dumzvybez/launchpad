@@ -64,6 +64,12 @@ export function VersionUpdateDialog({ forceOpen = false, onForceClose }: { force
   const [shownVersion, setShownVersion] = useState<string | null>(null);
 
   // Auto-show toast on first visit after update / new user.
+  // v5.932: New-user pacing — brand-new users (lastSeenReleaseVersion ===
+  // undefined, meaning they've never seen ANY release) get a ~2min delay so
+  // the version notification doesn't stack with view hints and the Cmd+K tip
+  // during their very first session. Returning users after a real update
+  // (lastSeenReleaseVersion is set but differs from APP_VERSION) get the
+  // normal 900ms delay — this stagger applies ONLY to first-time users.
   useEffect(() => {
     if (forceOpen) {
       setShowFullPopup(true);
@@ -71,10 +77,15 @@ export function VersionUpdateDialog({ forceOpen = false, onForceClose }: { force
     }
     if (!onboardingCompleted) return;
     if (lastSeenReleaseVersion === APP_VERSION) return;
+
+    // v5.932: determine if this is a brand-new user (never seen any release).
+    const isFirstTimeUser = lastSeenReleaseVersion === undefined;
+    const delayMs = isFirstTimeUser ? 120_000 : 900; // 2min for new users, 900ms for returning
+
     const t = setTimeout(() => {
       setShownVersion(APP_VERSION);
       setShowToast(true);
-    }, 900);
+    }, delayMs);
     // v5.931: record the update as a persistent system notification in the
     // Notification Centre (so the user sees it even if the toast is missed).
     // Dedup on the version string so re-renders don't duplicate it.
@@ -168,7 +179,7 @@ export function VersionUpdateDialog({ forceOpen = false, onForceClose }: { force
       {/* Full popup — opened from toast "More details" or Settings "What's New" */}
       <Dialog open={showFullPopup || forceOpen} onOpenChange={(v) => { if (!v) dismissFullPopup(); }}>
         <DialogContent
-          className="sm:max-w-lg max-h-[88vh] overflow-y-auto"
+          className="sm:max-w-lg max-h-[88vh] overflow-y-auto overflow-x-hidden break-words !flex !flex-col"
           showCloseButton
         >
           {/* v5.931 header redesign: "What's New" is now the main heading
@@ -176,7 +187,7 @@ export function VersionUpdateDialog({ forceOpen = false, onForceClose }: { force
               cleanly centered beneath it. The prose summary paragraph is
               removed entirely — only the categorized point-by-point list
               shows (matching the historical-versions treatment below). */}
-          <DialogHeader className="gap-0 text-center items-center">
+          <DialogHeader className="gap-0 text-center items-center min-w-0 w-full overflow-hidden">
             <div className="flex justify-center mb-2">
               <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-teal-400 via-fuchsia-400 to-amber-300 flex items-center justify-center shadow-sm">
                 <Sparkles className="h-5 w-5 text-white" />
@@ -194,7 +205,7 @@ export function VersionUpdateDialog({ forceOpen = false, onForceClose }: { force
                 {formatDate(LATEST_RELEASE.date)}
               </span>
             </div>
-            <p className="text-sm font-medium leading-snug text-foreground mt-2 max-w-prose mx-auto">
+            <p className="text-sm font-medium leading-snug text-foreground mt-2 max-w-full mx-auto break-words [overflow-wrap:anywhere]">
               {LATEST_RELEASE.title}
             </p>
           </DialogHeader>
@@ -313,7 +324,7 @@ function CategorySection({ type, items, defaultExpanded, compact = false }: { ty
               )}
             >
               <span className={cn("shrink-0 mt-0.5 rounded-full", dot, compact ? "h-1 w-1" : "h-1.5 w-1.5")} />
-              <p className={cn("leading-relaxed text-foreground/90", compact ? "text-[11px]" : "text-xs")}>{h.text}</p>
+              <p className={cn("leading-relaxed text-foreground/90 break-words [overflow-wrap:anywhere]", compact ? "text-[11px]" : "text-xs")}>{h.text}</p>
             </div>
           ))}
         </div>

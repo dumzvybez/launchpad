@@ -254,21 +254,28 @@ export function AppShell() {
     >
       <AuroraBackground />
 
-      {/* Desktop sidebar — v5.931: reverted the v5.930 speed-feel change
-          (removed the `ease-out` easing that v5.930 added on top of v5.929's
-          baseline `duration-300`). The collapse/expand SPEED is now back to the
-          v5.929 baseline (duration-300, default easing) — no reported problem
-          ever existed with the speed itself. KEPT: the v5.930 timing-sequence
-          fix (`transitionDelay`) which sequences the hover-zone collapse and
-          the sidebar-panel expand so the panel no longer appears before the
-          content has finished adjusting — eliminating the brief overlap. */}
+      {/* Desktop sidebar — v5.932: rebalanced collapse/expand timing.
+          CHANGES from v5.931:
+          1. Single wrapper div (was two conditional divs that snapped without
+             transitioning, because freshly-mounted elements don't transition).
+             Now the width transitions smoothly between 48px and 244px.
+          2. Sidebar transition: duration-500 ease-in-out (was duration-300) —
+             slightly slower/smoother collapse per user request.
+          3. Main content wrapper: duration-200 ease-out (faster than the
+             500ms sidebar) so the content finishes adjusting AHEAD of the
+             sidebar's expansion, eliminating the overlap window.
+          4. Removed the transitionDelay hack (no longer needed — the content's
+             faster transition naturally eliminates the overlap). */}
       {!focusMode && (
-        <>
+        <div
+          className="hidden lg:block shrink-0 sticky top-0 self-start h-screen transition-all ease-in-out overflow-hidden"
+          style={{
+            width: sidebarCollapsed ? "48px" : "244px",
+            transitionDuration: "500ms",
+          }}
+        >
           {sidebarCollapsed ? (
-            <div
-              className="hidden lg:flex shrink-0 sticky top-0 self-start h-screen items-center justify-center group transition-all duration-300"
-              style={{ width: "48px", transitionDelay: sidebarCollapsed ? "0ms" : "150ms" }}
-            >
+            <div className="h-full flex items-center justify-center group">
               <button
                 onClick={() => setSidebarCollapsed(false)}
                 className="h-10 w-10 rounded-xl glass-elevated flex items-center justify-center text-muted-foreground hover:text-foreground transition-all opacity-0 group-hover:opacity-100"
@@ -279,14 +286,11 @@ export function AppShell() {
               </button>
             </div>
           ) : (
-            <div
-              className="hidden lg:block shrink-0 p-3 sticky top-0 self-start h-screen transition-all duration-300 w-[244px]"
-              style={{ transitionDelay: sidebarCollapsed ? "150ms" : "0ms" }}
-            >
+            <div className="h-full p-3">
               <Sidebar collapsedState={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />
             </div>
           )}
-        </>
+        </div>
       )}
 
       {/* Mobile slide-out drawer */}
@@ -309,8 +313,9 @@ export function AppShell() {
         </div>
       )}
 
-      {/* Main content */}
-      <div className="flex-1 min-w-0 flex flex-col">
+      {/* Main content — v5.932: duration-200 ease-out so the content adjusts
+          FASTER than the 500ms sidebar, eliminating the expand overlap. */}
+      <div className="flex-1 min-w-0 flex flex-col transition-all duration-200 ease-out">
         {!focusMode && <TopBar />}
 
         {/* Offline banner (Section 14.2) */}
