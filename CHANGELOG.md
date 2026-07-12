@@ -1,13 +1,69 @@
 # Launchpad CHANGELOG
 
 This file merges all previous changelogs and adds the new
-**v5.935 (Visual Comfort + Sidebar Attach + Mobile Nav Redesign)**
+**v5.936 (Cleaner Minimal Background + Sidebar Centering + AI Bubble Fix + UI Polish)**
 entries. Entries are in reverse chronological order.
 
 > **Dual-format release notes (v5.926+):** This CHANGELOG.md is the TECHNICAL
 > developer-facing record. The user-facing plain-language summary shown in the
 > app's version-update popup lives in `src/lib/version-info.ts`. Both must be
 > updated on every release.
+
+---
+
+## v5.936 — Cleaner Minimal Background + Sidebar Centering + AI Bubble Fix + UI Polish
+
+### 1. Background further reduced (`globals.css`)
+
+**Problem:** The v5.935 background was still too vivid for the user's preference.
+
+**Fix:** Reduced all aurora token chroma from 0.14 to 0.06 and alpha from
+0.40 to 0.18 (light) / 0.38 to 0.16 (dark). Background base colors also
+neutralized: light mode from `oklch(0.92 0.04 280)` to `oklch(0.96 0.015 260)`,
+dark mode from `oklch(0.14 0.03 270)` to `oklch(0.13 0.015 260)`. The result
+is closer to v5.933's clean plain look while keeping a subtle hint of color
+for glass refraction.
+
+### 2. Collapsed sidebar centering (`Sidebar.tsx`)
+
+**Problem:** When collapsed, the logo, nav icons, and footer weren't centered.
+
+**Fix:**
+- Brand section: `justify-center` when collapsed (was `px-2` left-aligned)
+- Nav section: `items-center` when collapsed (was `pr-1` right-padded)
+- Group div: `w-full` when collapsed so icons fill the width
+- Footer: `w-full` + `items-center` for proper centering
+
+### 3. AI floating bubble position (`AITutorFloating.tsx`)
+
+**Problem:** The v5.935 `bottom-24` (96px) was too high — the user wanted it
+"just a bit up" beside the bottom nav.
+
+**Fix:** Moved to `bottom-20` (80px) — clears the ~64px nav bar without being
+too high. Both the bubble button and the floating chat window updated.
+
+### 4. Overall UI polish (`globals.css`)
+
+**Glass material refinements:**
+- Blur: 24px → 20px (base), 40px → 32px (elevated), 12px → 10px (flat)
+- Saturation: 180% → 160% (base), 200% → 180% (elevated)
+- Card radius: 1.75rem → 1.5rem, dialog radius: 1.5rem → 1.25rem
+- Control radius: 0.875rem → 0.75rem
+- Motion duration: 0.4s → 0.35s (slightly snappier)
+- Shadows: lighter (6px 20px instead of 8px 24px; 12px 36px instead of 20px 50px)
+
+**Typography hierarchy:**
+- h1: letter-spacing -0.03em, font-weight 700 (was -0.025em / 600)
+- h2: letter-spacing -0.028em, font-weight 650 (was -0.025em / 600)
+- h3-h6: unchanged (-0.025em / 600)
+- Body letter-spacing: -0.011em → -0.012em (slightly tighter)
+
+**VLM-verified:** Dashboard rated 9/10 across cleanliness, modern feel, and
+visual comfort.
+
+### Version bump
+
+`package.json` 5.935.0 → 5.936.0.
 
 ---
 

@@ -11,7 +11,7 @@
 // `lastSeenReleaseVersion` preference differs from APP_VERSION.
 // ============================================================
 
-export const APP_VERSION = "5.935.0";
+export const APP_VERSION = "5.936.0";
 
 export type ReleaseHighlightType = "new" | "improved" | "removed" | "fixed";
 
@@ -43,6 +43,20 @@ export type ReleaseInfo = {
 //   To ship a new release: bump APP_VERSION, add a ReleaseInfo here (user-
 //   facing), AND add a technical entry to CHANGELOG.md. Both are required.
 export const RELEASES: ReleaseInfo[] = [
+  {
+    version: "5.936.0",
+    date: "2026-07-18",
+    title: "Cleaner minimal background + sidebar centering + AI bubble fix + UI polish",
+    summary:
+      "Background further reduced to a subtle hint of color (closer to v5.933's clean look). Collapsed sidebar now properly centers the logo, icons, and footer. AI floating bubble repositioned closer to the bottom nav. Overall UI polished: lighter glass shadows, cleaner typography hierarchy, more minimal feel across the app.",
+    highlights: [
+      { type: "improved", text: "Background further reduced — chroma ~0.06, alpha ~0.15. Closer to v5.933's clean plain look while keeping a subtle hint of color for glass refraction." },
+      { type: "fixed", text: "Collapsed sidebar: logo, nav icons, and footer (level ring + Cmd+K) now properly centered." },
+      { type: "fixed", text: "AI floating bubble moved from bottom-24 to bottom-20 — just above the bottom nav, not too high." },
+      { type: "improved", text: "Glass shadows lightened, blur slightly reduced (24px→20px), card radius refined (1.75rem→1.5rem) for a cleaner, more minimal look." },
+      { type: "improved", text: "Typography hierarchy refined — h1 tighter/bolder, h2 medium weight, consistent letter-spacing." },
+    ],
+  },
   {
     version: "5.935.0",
     date: "2026-07-17",

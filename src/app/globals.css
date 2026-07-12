@@ -63,10 +63,11 @@
 :root {
   --radius: 0.875rem;
 
-  /* Background — vivid multi-color gradient base (the glass needs richness to refract) */
-  --background: oklch(0.92 0.04 280);
-  --background-2: oklch(0.88 0.06 200);
-  --background-3: oklch(0.90 0.05 340);
+  /* v5.936: Background — more neutral, less chroma (closer to v5.933's plain look).
+   * A subtle hint of warmth/coolness remains for depth, but not vivid. */
+  --background: oklch(0.96 0.015 260);
+  --background-2: oklch(0.94 0.02 230);
+  --background-3: oklch(0.95 0.02 300);
   --foreground: oklch(0.16 0.02 260);
 
   --card: oklch(1 0 0 / 0.55);
@@ -112,13 +113,14 @@
   --glass-shadow-deep: oklch(0.25 0.04 280 / 0.28);
   --glass-refraction: 1; /* multiplier for refraction intensity */
 
-  /* v5.935: Aurora background — softened for eye comfort (reduced chroma + alpha).
-   * Still vivid enough for glass refraction to read, but no longer overwhelming. */
-  --aurora-1: oklch(0.72 0.14 195 / 0.40); /* teal — reduced from 0.22/0.65 */
-  --aurora-2: oklch(0.68 0.16 320 / 0.32); /* magenta — reduced from 0.26/0.55 */
-  --aurora-3: oklch(0.78 0.14 80 / 0.32);  /* amber — reduced from 0.22/0.55 */
-  --aurora-4: oklch(0.74 0.14 155 / 0.32); /* green — reduced from 0.22/0.55 */
-  --aurora-5: oklch(0.66 0.16 280 / 0.28); /* violet — reduced from 0.24/0.50 */
+  /* v5.936: Aurora background — further reduced for a cleaner, more minimal look.
+   * Closer to v5.933's plain background but keeping a subtle hint of color so
+   * the glass panels still have something to refract. Chroma ~0.06, alpha ~0.18. */
+  --aurora-1: oklch(0.72 0.06 195 / 0.18); /* teal */
+  --aurora-2: oklch(0.68 0.07 320 / 0.15); /* magenta */
+  --aurora-3: oklch(0.78 0.06 80 / 0.15);  /* amber */
+  --aurora-4: oklch(0.74 0.06 155 / 0.15); /* green */
+  --aurora-5: oklch(0.66 0.07 280 / 0.12); /* violet */
 
   --sidebar: oklch(1 0 0 / 0.5);
   --sidebar-foreground: oklch(0.16 0.02 260);
@@ -135,9 +137,10 @@
  * v5.934: Dark mode also gets a richer background (deeper but still chromatic)
  * so glass refraction reads. Glass uses darker tint with bright specular edges. */
 .dark {
-  --background: oklch(0.14 0.03 270);
-  --background-2: oklch(0.12 0.04 220);
-  --background-3: oklch(0.15 0.035 320);
+  /* v5.936: Dark background — more neutral, less chroma */
+  --background: oklch(0.13 0.015 260);
+  --background-2: oklch(0.11 0.02 240);
+  --background-3: oklch(0.14 0.02 280);
   --foreground: oklch(0.97 0.005 240);
 
   --card: oklch(0.20 0.02 260 / 0.55);
@@ -179,12 +182,12 @@
   --glass-shadow-deep: oklch(0 0 0 / 0.70);
   --glass-refraction: 1.2; /* stronger refraction in dark to compensate for less light */
 
-  /* v5.935: Aurora — softened in dark too for eye comfort */
-  --aurora-1: oklch(0.72 0.14 195 / 0.38);
-  --aurora-2: oklch(0.68 0.16 320 / 0.30);
-  --aurora-3: oklch(0.78 0.14 80 / 0.28);
-  --aurora-4: oklch(0.74 0.14 155 / 0.28);
-  --aurora-5: oklch(0.66 0.16 280 / 0.26);
+  /* v5.936: Aurora — further reduced in dark mode for a cleaner look */
+  --aurora-1: oklch(0.72 0.06 195 / 0.16);
+  --aurora-2: oklch(0.68 0.07 320 / 0.13);
+  --aurora-3: oklch(0.78 0.06 80 / 0.12);
+  --aurora-4: oklch(0.74 0.06 155 / 0.12);
+  --aurora-5: oklch(0.66 0.07 280 / 0.10);
 
   --sidebar: oklch(0.16 0.02 260 / 0.5);
   --sidebar-foreground: oklch(0.97 0.005 240);
@@ -213,14 +216,13 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     overflow-x: hidden;
-    letter-spacing: -0.011em;
+    letter-spacing: -0.012em;
   }
 
-  /* Headings — tighter, more confident */
-  h1, h2, h3, h4, h5, h6 {
-    letter-spacing: -0.025em;
-    font-weight: 600;
-  }
+  /* v5.936: Headings — tighter, more confident, cleaner hierarchy */
+  h1 { letter-spacing: -0.03em; font-weight: 700; }
+  h2 { letter-spacing: -0.028em; font-weight: 650; }
+  h3, h4, h5, h6 { letter-spacing: -0.025em; font-weight: 600; }
 
   /* Scrollbar — refined thin glass */
   ::-webkit-scrollbar {
@@ -261,19 +263,20 @@
    ============================================================ */
 
 @layer components {
-  /* ---- v5.934 Liquid Glass material tokens (reusable) ---- */
+  /* ---- v5.934 Liquid Glass material tokens (reusable) ----
+   * v5.936: slightly reduced blur for a cleaner, more minimal look. */
   :root {
-    --lg-blur: 24px;
-    --lg-blur-elevated: 40px;
-    --lg-blur-flat: 12px;
-    --lg-saturate: 180%;
-    --lg-saturate-elevated: 200%;
+    --lg-blur: 20px;
+    --lg-blur-elevated: 32px;
+    --lg-blur-flat: 10px;
+    --lg-saturate: 160%;
+    --lg-saturate-elevated: 180%;
     --lg-easing: cubic-bezier(0.16, 1, 0.3, 1);
-    --lg-duration: 0.4s;
+    --lg-duration: 0.35s;
     --lg-radius-pill: 999px;
-    --lg-radius-card: 1.75rem;
-    --lg-radius-dialog: 1.5rem;
-    --lg-radius-control: 0.875rem;
+    --lg-radius-card: 1.5rem;
+    --lg-radius-dialog: 1.25rem;
+    --lg-radius-control: 0.75rem;
   }
 
   /*
@@ -289,16 +292,14 @@
     backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate));
     -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate));
     border: 1px solid var(--glass-border);
+    /* v5.936: lighter shadow for a cleaner, more minimal look */
     box-shadow:
-      /* inner top specular */
       0 1px 0 0 var(--glass-highlight) inset,
-      0 1px 2px 0 oklch(1 0 0 / 0.12) inset,
-      /* inner bottom depth */
-      0 -1px 2px 0 oklch(0 0 0 / 0.06) inset,
-      /* outer soft separating shadow */
-      0 1px 3px 0 oklch(0 0 0 / 0.08),
-      0 8px 24px -6px var(--glass-shadow),
-      0 2px 8px -2px oklch(0 0 0 / 0.06);
+      0 1px 2px 0 oklch(1 0 0 / 0.10) inset,
+      0 -1px 2px 0 oklch(0 0 0 / 0.04) inset,
+      0 1px 2px 0 oklch(0 0 0 / 0.06),
+      0 6px 20px -8px var(--glass-shadow),
+      0 2px 6px -2px oklch(0 0 0 / 0.04);
     transition:
       border-color var(--lg-duration) var(--lg-easing),
       box-shadow var(--lg-duration) var(--lg-easing),
@@ -387,7 +388,8 @@
     transform: translateY(-2px);
   }
 
-  /* Elevated glass — stronger blur + deeper shadow (dialogs, popovers) */
+  /* Elevated glass — stronger blur + deeper shadow (dialogs, popovers)
+   * v5.936: lighter shadow for cleaner look */
   .glass-elevated {
     background: var(--glass-tint-strong);
     backdrop-filter: blur(var(--lg-blur-elevated)) saturate(var(--lg-saturate-elevated));
@@ -395,11 +397,11 @@
     border-color: var(--glass-border);
     box-shadow:
       0 1px 0 0 var(--glass-highlight) inset,
-      0 2px 4px 0 oklch(1 0 0 / 0.16) inset,
-      0 -1px 2px 0 oklch(0 0 0 / 0.08) inset,
-      0 1px 3px 0 oklch(0 0 0 / 0.10),
-      0 20px 50px -12px var(--glass-shadow-deep),
-      0 6px 16px -4px oklch(0 0 0 / 0.12);
+      0 2px 3px 0 oklch(1 0 0 / 0.12) inset,
+      0 -1px 2px 0 oklch(0 0 0 / 0.06) inset,
+      0 1px 3px 0 oklch(0 0 0 / 0.08),
+      0 12px 36px -12px var(--glass-shadow-deep),
+      0 4px 12px -4px oklch(0 0 0 / 0.08);
   }
 
   /* Flat glass — minimal, for subtle surfaces (input backgrounds, dividers) */

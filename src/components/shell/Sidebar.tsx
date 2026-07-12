@@ -118,8 +118,8 @@ export function Sidebar({
         "glass-elevated flex flex-col rounded-3xl p-3 transition-all duration-500 ease-in-out h-full overflow-hidden w-full border border-border/40",
       )}
     >
-      {/* Brand */}
-      <div className="flex items-center gap-3 px-2 py-2.5 shrink-0">
+      {/* Brand — v5.936: centered when collapsed */}
+      <div className={cn("flex items-center gap-3 py-2.5 shrink-0", collapsed ? "justify-center" : "px-2")}>
         <div className="relative h-9 w-9 shrink-0">
           <LogoMark />
         </div>
@@ -133,11 +133,12 @@ export function Sidebar({
         )}
       </div>
 
-      <nav className="flex flex-col gap-2.5 mt-1 flex-1 min-h-0 overflow-y-auto no-scrollbar pr-1">
+      {/* v5.936: nav centered when collapsed, with proper spacing */}
+      <nav className={cn("flex flex-col gap-2.5 mt-1 flex-1 min-h-0 overflow-y-auto no-scrollbar", collapsed ? "items-center" : "pr-1")}>
         {Object.entries(grouped).map(([group, items]) => (
           <div
             key={group}
-            className="flex flex-col gap-0.5 relative"
+            className={cn("flex flex-col gap-0.5 relative", collapsed && "w-full")}
             onMouseEnter={() => collapsed && setHoveredGroup(group)}
             onMouseLeave={() => collapsed && setHoveredGroup(null)}
           >
@@ -229,7 +230,7 @@ export function Sidebar({
         ))}
       </nav>
 
-      {/* Footer */}
+      {/* Footer — v5.936: centered when collapsed */}
       {!collapsed ? (
         <div className="mt-2 shrink-0">
           <div className="glass rounded-xl p-2.5 flex items-center gap-2.5">
@@ -264,7 +265,7 @@ export function Sidebar({
           </div>
         </div>
       ) : (
-        <div className="mt-2 shrink-0 flex flex-col items-center gap-2">
+        <div className="mt-2 shrink-0 flex flex-col items-center gap-2 w-full">
           <ProgressRing value={level.pct} size={36} strokeWidth={3.5}>
             <span className="text-[10px] font-bold">{level.level}</span>
           </ProgressRing>
