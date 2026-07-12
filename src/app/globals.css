@@ -55,125 +55,146 @@
   --color-aurora-4: var(--aurora-4);
 }
 
-/* ============== LIGHT MODE — soft daylight glass ============== */
+/* ============== LIGHT MODE — vivid liquid glass (default) ==============
+ * v5.934: Complete overhaul. The background is now a rich vivid gradient mesh
+ * (not flat), so the glass refraction effect reads correctly. Glass elements
+ * use stronger backdrop-blur + saturation + edge highlights for genuine depth.
+ */
 :root {
   --radius: 0.875rem;
 
-  --background: oklch(0.985 0.005 240);
-  --foreground: oklch(0.18 0.01 250);
+  /* Background — vivid multi-color gradient base (the glass needs richness to refract) */
+  --background: oklch(0.92 0.04 280);
+  --background-2: oklch(0.88 0.06 200);
+  --background-3: oklch(0.90 0.05 340);
+  --foreground: oklch(0.16 0.02 260);
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.01 250);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.01 250);
+  --card: oklch(1 0 0 / 0.55);
+  --card-foreground: oklch(0.16 0.02 260);
+  --popover: oklch(1 0 0 / 0.75);
+  --popover-foreground: oklch(0.16 0.02 260);
 
-  /* Brand: aurora teal — NOT blue/indigo */
-  --primary: oklch(0.55 0.18 195);
+  /* Brand: aurora teal — vivid */
+  --primary: oklch(0.62 0.20 195);
   --primary-foreground: oklch(0.99 0 0);
 
-  --secondary: oklch(0.96 0.005 240);
-  --secondary-foreground: oklch(0.25 0.01 250);
+  --secondary: oklch(1 0 0 / 0.4);
+  --secondary-foreground: oklch(0.20 0.02 260);
 
-  --muted: oklch(0.96 0.005 240);
-  --muted-foreground: oklch(0.5 0.01 250);
+  --muted: oklch(1 0 0 / 0.35);
+  --muted-foreground: oklch(0.40 0.02 260);
 
-  --accent: oklch(0.55 0.18 195);
+  --accent: oklch(0.62 0.20 195);
   --accent-foreground: oklch(0.99 0 0);
 
-  --destructive: oklch(0.62 0.24 27);
-  --border: oklch(0.9 0.005 240);
-  --input: oklch(0.94 0.005 240);
-  --ring: oklch(0.55 0.18 195);
+  --destructive: oklch(0.60 0.24 22);
+  --border: oklch(1 0 0 / 0.5);
+  --input: oklch(1 0 0 / 0.5);
+  --ring: oklch(0.62 0.20 195);
 
-  /* Chart palette — aurora spectrum */
-  --chart-1: oklch(0.65 0.18 195); /* teal */
-  --chart-2: oklch(0.7 0.18 155);  /* green */
-  --chart-3: oklch(0.72 0.16 80);  /* amber */
-  --chart-4: oklch(0.62 0.22 320); /* magenta */
-  --chart-5: oklch(0.6 0.18 25);   /* coral */
+  /* Chart palette — aurora spectrum (vivid) */
+  --chart-1: oklch(0.65 0.20 195); /* teal */
+  --chart-2: oklch(0.70 0.20 155); /* green */
+  --chart-3: oklch(0.75 0.18 80);  /* amber */
+  --chart-4: oklch(0.65 0.24 320); /* magenta */
+  --chart-5: oklch(0.62 0.20 25);  /* coral */
 
-  /* Glass tokens — light: 3-layer depth system */
-  --glass-tint: oklch(1 0 0 / 0.65);
-  --glass-tint-strong: oklch(1 0 0 / 0.85);
-  --glass-border: oklch(1 0 0 / 0.75);
-  --glass-border-subtle: oklch(0.2 0.02 250 / 0.06);
-  --glass-highlight: oklch(1 0 0 / 0.95);
-  --glass-shadow: oklch(0.2 0.02 250 / 0.10);
-  --glass-shadow-deep: oklch(0.2 0.02 250 / 0.18);
+  /* v5.934 Liquid Glass material tokens — light mode
+   * Translucent white glass over vivid background. Strong specular highlight,
+   * soft separating shadow. Refraction simulated via backdrop-blur + saturate. */
+  --glass-tint: oklch(1 0 0 / 0.55);
+  --glass-tint-strong: oklch(1 0 0 / 0.72);
+  --glass-tint-subtle: oklch(1 0 0 / 0.35);
+  --glass-border: oklch(1 0 0 / 0.6);
+  --glass-border-subtle: oklch(1 0 0 / 0.3);
+  --glass-highlight: oklch(1 0 0 / 0.9);
+  --glass-shadow: oklch(0.25 0.04 280 / 0.18);
+  --glass-shadow-deep: oklch(0.25 0.04 280 / 0.28);
+  --glass-refraction: 1; /* multiplier for refraction intensity */
 
-  /* Aurora background blobs */
-  --aurora-1: oklch(0.7 0.18 195 / 0.4);
-  --aurora-2: oklch(0.72 0.16 320 / 0.32);
-  --aurora-3: oklch(0.75 0.16 80 / 0.28);
-  --aurora-4: oklch(0.72 0.18 155 / 0.3);
+  /* v5.934: Aurora background blobs — VIVID (higher chroma + alpha so glass refracts visibly) */
+  --aurora-1: oklch(0.72 0.22 195 / 0.65); /* teal */
+  --aurora-2: oklch(0.68 0.26 320 / 0.55); /* magenta */
+  --aurora-3: oklch(0.78 0.22 80 / 0.55);  /* amber */
+  --aurora-4: oklch(0.74 0.22 155 / 0.55); /* green */
+  --aurora-5: oklch(0.66 0.24 280 / 0.50); /* violet */
 
-  --sidebar: oklch(0.97 0.005 240);
-  --sidebar-foreground: oklch(0.18 0.01 250);
-  --sidebar-primary: oklch(0.55 0.18 195);
+  --sidebar: oklch(1 0 0 / 0.5);
+  --sidebar-foreground: oklch(0.16 0.02 260);
+  --sidebar-primary: oklch(0.62 0.20 195);
   --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.93 0.008 240);
-  --sidebar-accent-foreground: oklch(0.2 0.01 250);
-  --sidebar-border: oklch(0.9 0.005 240);
-  --sidebar-ring: oklch(0.55 0.18 195);
+  --sidebar-accent: oklch(0.62 0.20 195 / 0.15);
+  --sidebar-accent-foreground: oklch(0.20 0.02 260);
+  --sidebar-border: oklch(1 0 0 / 0.4);
+  --sidebar-ring: oklch(0.62 0.20 195);
 }
 
-/* ============== DARK MODE — deep aurora glass ============== */
+
+/* ============== DARK MODE — deep vivid glass ==============
+ * v5.934: Dark mode also gets a richer background (deeper but still chromatic)
+ * so glass refraction reads. Glass uses darker tint with bright specular edges. */
 .dark {
-  --background: oklch(0.11 0.012 250);
-  --foreground: oklch(0.98 0.003 240);
+  --background: oklch(0.14 0.03 270);
+  --background-2: oklch(0.12 0.04 220);
+  --background-3: oklch(0.15 0.035 320);
+  --foreground: oklch(0.97 0.005 240);
 
-  --card: oklch(0.16 0.014 250);
-  --card-foreground: oklch(0.98 0.003 240);
-  --popover: oklch(0.14 0.014 250);
-  --popover-foreground: oklch(0.98 0.003 240);
+  --card: oklch(0.20 0.02 260 / 0.55);
+  --card-foreground: oklch(0.97 0.005 240);
+  --popover: oklch(0.18 0.02 260 / 0.75);
+  --popover-foreground: oklch(0.97 0.005 240);
 
-  --primary: oklch(0.80 0.16 195);
-  --primary-foreground: oklch(0.11 0.012 250);
+  --primary: oklch(0.78 0.18 195);
+  --primary-foreground: oklch(0.12 0.02 260);
 
-  --secondary: oklch(0.20 0.014 250);
-  --secondary-foreground: oklch(0.98 0.003 240);
+  --secondary: oklch(1 0 0 / 0.08);
+  --secondary-foreground: oklch(0.97 0.005 240);
 
-  --muted: oklch(0.20 0.014 250);
-  --muted-foreground: oklch(0.78 0.008 250);
+  --muted: oklch(1 0 0 / 0.06);
+  --muted-foreground: oklch(0.72 0.01 250);
 
-  --accent: oklch(0.80 0.16 195);
-  --accent-foreground: oklch(0.11 0.012 250);
+  --accent: oklch(0.78 0.18 195);
+  --accent-foreground: oklch(0.12 0.02 260);
 
-  --destructive: oklch(0.7 0.2 22);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.80 0.16 195);
+  --destructive: oklch(0.68 0.22 22);
+  --border: oklch(1 0 0 / 0.14);
+  --input: oklch(1 0 0 / 0.10);
+  --ring: oklch(0.78 0.18 195);
 
-  --chart-1: oklch(0.80 0.16 195);
-  --chart-2: oklch(0.80 0.16 155);
-  --chart-3: oklch(0.84 0.16 80);
-  --chart-4: oklch(0.76 0.2 320);
-  --chart-5: oklch(0.74 0.18 25);
+  --chart-1: oklch(0.78 0.18 195);
+  --chart-2: oklch(0.80 0.18 155);
+  --chart-3: oklch(0.84 0.18 80);
+  --chart-4: oklch(0.76 0.22 320);
+  --chart-5: oklch(0.74 0.20 25);
 
-  /* Glass tokens — dark: 3-layer depth system with stronger highlights */
-  --glass-tint: oklch(0.18 0.014 250 / 0.62);
-  --glass-tint-strong: oklch(0.22 0.014 250 / 0.85);
-  --glass-border: oklch(1 0 0 / 0.12);
-  --glass-border-subtle: oklch(1 0 0 / 0.06);
-  --glass-highlight: oklch(1 0 0 / 0.18);
-  --glass-shadow: oklch(0 0 0 / 0.55);
-  --glass-shadow-deep: oklch(0 0 0 / 0.75);
+  /* v5.934 Liquid Glass — dark mode: darker glass, bright specular */
+  --glass-tint: oklch(0.20 0.02 260 / 0.55);
+  --glass-tint-strong: oklch(0.24 0.02 260 / 0.72);
+  --glass-tint-subtle: oklch(0.20 0.02 260 / 0.30);
+  --glass-border: oklch(1 0 0 / 0.16);
+  --glass-border-subtle: oklch(1 0 0 / 0.08);
+  --glass-highlight: oklch(1 0 0 / 0.22);
+  --glass-shadow: oklch(0 0 0 / 0.50);
+  --glass-shadow-deep: oklch(0 0 0 / 0.70);
+  --glass-refraction: 1.2; /* stronger refraction in dark to compensate for less light */
 
-  /* Aurora — brighter in dark */
-  --aurora-1: oklch(0.80 0.18 195 / 0.34);
-  --aurora-2: oklch(0.76 0.2 320 / 0.28);
-  --aurora-3: oklch(0.84 0.18 80 / 0.24);
-  --aurora-4: oklch(0.80 0.18 155 / 0.26);
+  /* Aurora — vivid in dark too (higher chroma) */
+  --aurora-1: oklch(0.72 0.22 195 / 0.55);
+  --aurora-2: oklch(0.68 0.26 320 / 0.45);
+  --aurora-3: oklch(0.78 0.22 80 / 0.42);
+  --aurora-4: oklch(0.74 0.22 155 / 0.42);
+  --aurora-5: oklch(0.66 0.24 280 / 0.40);
 
-  --sidebar: oklch(0.14 0.012 250);
-  --sidebar-foreground: oklch(0.98 0.003 240);
-  --sidebar-primary: oklch(0.80 0.16 195);
-  --sidebar-primary-foreground: oklch(0.11 0.012 250);
-  --sidebar-accent: oklch(0.20 0.014 250);
-  --sidebar-accent-foreground: oklch(0.98 0.003 240);
-  --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.80 0.16 195);
+  --sidebar: oklch(0.16 0.02 260 / 0.5);
+  --sidebar-foreground: oklch(0.97 0.005 240);
+  --sidebar-primary: oklch(0.78 0.18 195);
+  --sidebar-primary-foreground: oklch(0.12 0.02 260);
+  --sidebar-accent: oklch(0.78 0.18 195 / 0.18);
+  --sidebar-accent-foreground: oklch(0.97 0.005 240);
+  --sidebar-border: oklch(1 0 0 / 0.10);
+  --sidebar-ring: oklch(0.78 0.18 195);
 }
+
 
 @layer base {
   * {
@@ -226,43 +247,65 @@
 }
 
 /* ============================================================
-   LIQUID GLASS DESIGN SYSTEM v2 — 10/10 polish
-   Multi-layer depth, consistent blur, premium specular highlights
-   Inspired by iOS 26, visionOS, Linear, and Arc Browser
+   LIQUID GLASS DESIGN SYSTEM v3 — v5.934
+   True Apple-style Liquid Glass (iOS 26 / visionOS era).
+
+   PHASE 1 DESIGN SYSTEM:
+   - Glass material: backdrop-blur + saturate (refraction simulation),
+     specular highlight (top edge light), depth shadow (soft, separating).
+   - Shape language: pill (999px) for buttons/nav/toggles,
+     rounded-3xl (1.75rem) for cards/dialogs.
+   - Motion: consistent 0.4s cubic-bezier(0.16,1,0.3,1) easing.
+   - Background: vivid multi-color gradient mesh (not flat) so glass refracts.
    ============================================================ */
 
 @layer components {
+  /* ---- v5.934 Liquid Glass material tokens (reusable) ---- */
+  :root {
+    --lg-blur: 24px;
+    --lg-blur-elevated: 40px;
+    --lg-blur-flat: 12px;
+    --lg-saturate: 180%;
+    --lg-saturate-elevated: 200%;
+    --lg-easing: cubic-bezier(0.16, 1, 0.3, 1);
+    --lg-duration: 0.4s;
+    --lg-radius-pill: 999px;
+    --lg-radius-card: 1.75rem;
+    --lg-radius-dialog: 1.5rem;
+    --lg-radius-control: 0.875rem;
+  }
+
   /*
-   * Base glass surface — 3-layer composition:
-   *   1. Tint (translucent background)
-   *   2. Specular highlight (top-left light refraction)
-   *   3. Depth shadow (bottom-right darkness)
-   * This creates the "real glass" look — not just blur.
+   * Base glass surface — v5.934 true liquid glass.
+   * 3-layer composition: tint + specular highlight + depth shadow.
+   * The ::before pseudo-element adds the diagonal refraction sheen.
+   * The ::after pseudo-element adds the top-edge specular highlight (the
+   * "light hitting curved glass" effect from the reference images).
    */
   .glass {
     position: relative;
     background: var(--glass-tint);
-    backdrop-filter: blur(28px) saturate(180%);
-    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate));
+    -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate));
     border: 1px solid var(--glass-border);
     box-shadow:
-      /* Layer 1: inner top highlight (specular) — STRONG */
+      /* inner top specular */
       0 1px 0 0 var(--glass-highlight) inset,
-      0 2px 3px 0 oklch(1 0 0 / 0.10) inset,
-      /* Layer 2: inner bottom shadow (depth) */
-      0 -1px 2px 0 oklch(0 0 0 / 0.08) inset,
-      /* Layer 3: outer ambient shadow — DEEPER */
-      0 1px 3px 0 oklch(0 0 0 / 0.06),
-      0 12px 32px -8px var(--glass-shadow),
-      0 4px 12px -2px oklch(0 0 0 / 0.10);
+      0 1px 2px 0 oklch(1 0 0 / 0.12) inset,
+      /* inner bottom depth */
+      0 -1px 2px 0 oklch(0 0 0 / 0.06) inset,
+      /* outer soft separating shadow */
+      0 1px 3px 0 oklch(0 0 0 / 0.08),
+      0 8px 24px -6px var(--glass-shadow),
+      0 2px 8px -2px oklch(0 0 0 / 0.06);
     transition:
-      border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-      box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-      transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-      backdrop-filter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      border-color var(--lg-duration) var(--lg-easing),
+      box-shadow var(--lg-duration) var(--lg-easing),
+      transform var(--lg-duration) var(--lg-easing),
+      backdrop-filter var(--lg-duration) var(--lg-easing);
   }
 
-  /* Specular sheen — diagonal light refraction — STRONGER */
+  /* Diagonal refraction sheen — simulates light bending through glass */
   .glass::before {
     content: "";
     position: absolute;
@@ -270,11 +313,27 @@
     border-radius: inherit;
     background: linear-gradient(
       135deg,
-      oklch(1 0 0 / 0.30) 0%,
-      oklch(1 0 0 / 0.08) 20%,
-      transparent 45%,
-      transparent 75%,
-      oklch(1 0 0 / 0.06) 100%
+      oklch(1 0 0 / 0.28) 0%,
+      oklch(1 0 0 / 0.06) 18%,
+      transparent 40%,
+      transparent 70%,
+      oklch(1 0 0 / 0.05) 100%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Top-edge specular highlight — the "light hitting curved glass" effect */
+  .glass::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      to bottom,
+      oklch(1 0 0 / 0.22) 0%,
+      oklch(1 0 0 / 0.04) 8%,
+      transparent 18%
     );
     pointer-events: none;
     z-index: 0;
@@ -283,70 +342,72 @@
   .dark .glass::before {
     background: linear-gradient(
       135deg,
-      oklch(1 0 0 / 0.20) 0%,
-      oklch(1 0 0 / 0.05) 20%,
-      transparent 45%,
-      transparent 75%,
-      oklch(1 0 0 / 0.04) 100%
+      oklch(1 0 0 / 0.18) 0%,
+      oklch(1 0 0 / 0.04) 18%,
+      transparent 40%,
+      transparent 70%,
+      oklch(1 0 0 / 0.03) 100%
+    );
+  }
+  .dark .glass::after {
+    background: linear-gradient(
+      to bottom,
+      oklch(1 0 0 / 0.14) 0%,
+      oklch(1 0 0 / 0.02) 8%,
+      transparent 18%
     );
   }
 
-  /* Inner content always sits above the sheen */
+  /* Inner content always sits above the sheen + highlight */
   .glass > * {
     position: relative;
     z-index: 1;
   }
 
-  /* Hover lift — premium, smooth, with stronger depth */
+  /* Hover lift — premium, smooth, with stronger refraction */
   .glass-hover {
     transition:
-      border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-      box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-      transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-      backdrop-filter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      border-color var(--lg-duration) var(--lg-easing),
+      box-shadow var(--lg-duration) var(--lg-easing),
+      transform var(--lg-duration) var(--lg-easing),
+      backdrop-filter var(--lg-duration) var(--lg-easing);
   }
   .glass-hover:hover {
-    border-color: oklch(0.80 0.16 195 / 0.45);
-    backdrop-filter: blur(36px) saturate(200%);
-    -webkit-backdrop-filter: blur(36px) saturate(200%);
+    border-color: oklch(0.62 0.20 195 / 0.5);
+    backdrop-filter: blur(32px) saturate(200%);
+    -webkit-backdrop-filter: blur(32px) saturate(200%);
     box-shadow:
       0 1px 0 0 var(--glass-highlight) inset,
       0 -1px 1px 0 oklch(0 0 0 / 0.06) inset,
       0 1px 2px 0 oklch(0 0 0 / 0.06),
-      0 16px 40px -8px var(--glass-shadow-deep),
-      0 4px 12px -2px oklch(0 0 0 / 0.10),
-      0 0 0 1px oklch(0.80 0.16 195 / 0.12);
+      0 12px 32px -6px var(--glass-shadow-deep),
+      0 4px 12px -2px oklch(0 0 0 / 0.08),
+      0 0 0 1px oklch(0.62 0.20 195 / 0.15);
     transform: translateY(-2px);
   }
 
-  /* Glass variants by elevation */
+  /* Elevated glass — stronger blur + deeper shadow (dialogs, popovers) */
   .glass-elevated {
     background: var(--glass-tint-strong);
-    backdrop-filter: blur(40px) saturate(200%);
-    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    backdrop-filter: blur(var(--lg-blur-elevated)) saturate(var(--lg-saturate-elevated));
+    -webkit-backdrop-filter: blur(var(--lg-blur-elevated)) saturate(var(--lg-saturate-elevated));
     border-color: var(--glass-border);
     box-shadow:
       0 1px 0 0 var(--glass-highlight) inset,
-      0 2px 4px 0 oklch(1 0 0 / 0.14) inset,
-      0 -1px 2px 0 oklch(0 0 0 / 0.10) inset,
-      0 1px 3px 0 oklch(0 0 0 / 0.08),
-      0 28px 70px -16px var(--glass-shadow-deep),
-      0 8px 20px -4px oklch(0 0 0 / 0.16);
-  }
-  .dark .glass-elevated {
-    background: oklch(0.20 0.014 250 / 0.82);
+      0 2px 4px 0 oklch(1 0 0 / 0.16) inset,
+      0 -1px 2px 0 oklch(0 0 0 / 0.08) inset,
+      0 1px 3px 0 oklch(0 0 0 / 0.10),
+      0 20px 50px -12px var(--glass-shadow-deep),
+      0 6px 16px -4px oklch(0 0 0 / 0.12);
   }
 
+  /* Flat glass — minimal, for subtle surfaces (input backgrounds, dividers) */
   .glass-flat {
-    backdrop-filter: blur(16px) saturate(150%);
-    -webkit-backdrop-filter: blur(16px) saturate(150%);
-    background: oklch(1 0 0 / 0.4);
+    backdrop-filter: blur(var(--lg-blur-flat)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--lg-blur-flat)) saturate(150%);
+    background: var(--glass-tint-subtle);
     border: 1px solid var(--glass-border-subtle);
     box-shadow: none;
-  }
-  .dark .glass-flat {
-    background: oklch(1 0 0 / 0.04);
-    border-color: oklch(1 0 0 / 0.06);
   }
 
   /* Locked / disabled glass — grayscale, dimmed */
@@ -358,24 +419,32 @@
     filter: saturate(0.4);
     opacity: 0.55;
   }
-  .glass-locked::before {
+  .glass-locked::before,
+  .glass-locked::after {
     background: none;
   }
 
-  /* Aurora ambient background — never competes with content */
+  /* ---- v5.934: Vivid gradient-mesh background (the glass needs richness to refract) ---- */
   .aurora-bg {
     position: fixed;
     inset: 0;
     z-index: -1;
     overflow: hidden;
     pointer-events: none;
-    background: var(--background);
+    /* Multi-color gradient mesh base — vivid enough for glass refraction to read */
+    background:
+      radial-gradient(ellipse 80% 60% at 15% 10%, var(--aurora-1) 0%, transparent 50%),
+      radial-gradient(ellipse 70% 50% at 85% 20%, var(--aurora-2) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 50% at 75% 85%, var(--aurora-3) 0%, transparent 50%),
+      radial-gradient(ellipse 65% 55% at 20% 80%, var(--aurora-4) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 40% at 50% 50%, var(--aurora-5) 0%, transparent 60%),
+      linear-gradient(135deg, var(--background) 0%, var(--background-2) 50%, var(--background-3) 100%);
   }
 
   .aurora-blob {
     position: absolute;
     border-radius: 50%;
-    filter: blur(90px);
+    filter: blur(80px);
     mix-blend-mode: normal;
     will-change: transform;
   }
@@ -388,52 +457,72 @@
   .specular-light {
     position: fixed;
     pointer-events: none;
-    width: 500px;
-    height: 500px;
+    width: 600px;
+    height: 600px;
     border-radius: 50%;
     background: radial-gradient(
       circle,
-      oklch(0.80 0.16 195 / 0.10) 0%,
-      transparent 60%
+      oklch(1 0 0 / 0.12) 0%,
+      oklch(0.62 0.20 195 / 0.06) 30%,
+      transparent 65%
     );
     transform: translate(-50%, -50%);
     z-index: 0;
     transition: opacity 0.4s ease;
     will-change: transform;
   }
+  .dark .specular-light {
+    background: radial-gradient(
+      circle,
+      oklch(1 0 0 / 0.06) 0%,
+      oklch(0.78 0.18 195 / 0.04) 30%,
+      transparent 65%
+    );
+  }
 
-  /* Pill — used for badges, tags, mini stats */
+  /* Pill — v5.934: fully-rounded pill shape for badges, tags, mini stats.
+   * Matches the reference images' consistent pill vocabulary. */
   .glass-pill {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
-    padding: 0.25rem 0.625rem;
-    border-radius: 999px;
+    padding: 0.3rem 0.75rem;
+    border-radius: var(--lg-radius-pill);
     font-size: 0.7rem;
-    font-weight: 500;
-    background: oklch(1 0 0 / 0.55);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid oklch(1 0 0 / 0.7);
+    font-weight: 600;
+    background: var(--glass-tint);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow:
+      0 1px 0 0 var(--glass-highlight) inset,
+      0 2px 8px -2px var(--glass-shadow);
     color: var(--foreground);
   }
-  .dark .glass-pill {
-    background: oklch(1 0 0 / 0.06);
-    border-color: oklch(1 0 0 / 0.12);
-  }
 
-  /* Gradient text — for hero numbers */
+  /* Gradient text — for hero numbers (vivid aurora spectrum) */
   .text-aurora-gradient {
     background: linear-gradient(
       135deg,
-      oklch(0.80 0.16 195) 0%,
-      oklch(0.76 0.2 320) 50%,
-      oklch(0.84 0.18 80) 100%
+      oklch(0.62 0.20 195) 0%,
+      oklch(0.68 0.26 320) 50%,
+      oklch(0.78 0.22 80) 100%
     );
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
     color: transparent;
+  }
+  .dark .text-aurora-gradient {
+    background: linear-gradient(
+      135deg,
+      oklch(0.78 0.18 195) 0%,
+      oklch(0.76 0.22 320) 50%,
+      oklch(0.84 0.18 80) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
   /* Animated gradient border for focused elements */
@@ -448,9 +537,9 @@
     padding: 1px;
     background: linear-gradient(
       135deg,
-      oklch(0.80 0.16 195 / 0.7),
-      oklch(0.76 0.2 320 / 0.5),
-      oklch(0.84 0.18 80 / 0.5)
+      oklch(0.62 0.20 195 / 0.7),
+      oklch(0.68 0.26 320 / 0.5),
+      oklch(0.78 0.22 80 / 0.5)
     );
     -webkit-mask:
       linear-gradient(#fff 0 0) content-box,
@@ -470,7 +559,7 @@
     width: 12px;
     height: 12px;
     border-radius: 3px;
-    background: oklch(0.5 0.02 250 / 0.08);
+    background: oklch(0.5 0.02 250 / 0.10);
     transition: transform 0.15s ease, background 0.2s ease;
   }
   .heat-cell:hover {
@@ -479,14 +568,23 @@
     position: relative;
   }
 
-  /* Sidebar item active state */
+  /* v5.934: Nav item active state — liquid glass selection.
+   * Uses a glass-tint background + primary-tinted border + soft glow,
+   * matching the reference nav bar's "glowing/distorted highlight on selected item". */
   .nav-item-active {
-    background: oklch(0.80 0.16 195 / 0.14);
-    border-color: oklch(0.80 0.16 195 / 0.32);
+    background: oklch(0.62 0.20 195 / 0.18);
+    border-color: oklch(0.62 0.20 195 / 0.40);
     color: var(--primary);
+    box-shadow:
+      0 1px 0 0 oklch(1 0 0 / 0.3) inset,
+      0 0 12px 0 oklch(0.62 0.20 195 / 0.25);
   }
   .dark .nav-item-active {
-    background: oklch(0.80 0.16 195 / 0.16);
+    background: oklch(0.78 0.18 195 / 0.20);
+    border-color: oklch(0.78 0.18 195 / 0.40);
+    box-shadow:
+      0 1px 0 0 oklch(1 0 0 / 0.2) inset,
+      0 0 12px 0 oklch(0.78 0.18 195 / 0.3);
   }
 
   /* Premium typography helpers */
@@ -501,10 +599,10 @@
     font-weight: 600;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: oklch(0.6 0.02 250 / 0.85);
+    color: oklch(0.35 0.02 260 / 0.85);
   }
   .dark .text-eyebrow {
-    color: oklch(0.82 0.01 250 / 0.9);
+    color: oklch(0.78 0.01 250 / 0.9);
   }
 
   /* Number — tabular for stats */
@@ -512,6 +610,40 @@
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum", "lnum";
     letter-spacing: -0.03em;
+  }
+
+  /* ---- v5.934: Liquid Glass shape utilities ---- */
+  .lg-pill { border-radius: var(--lg-radius-pill) !important; }
+  .lg-card { border-radius: var(--lg-radius-card) !important; }
+  .lg-dialog { border-radius: var(--lg-radius-dialog) !important; }
+  .lg-control { border-radius: var(--lg-radius-control) !important; }
+
+  /* v5.934: Verify page (server component) — liquid glass background + card */
+  .verify-bg {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background:
+      radial-gradient(ellipse 80% 60% at 15% 10%, var(--aurora-1) 0%, transparent 50%),
+      radial-gradient(ellipse 70% 50% at 85% 20%, var(--aurora-2) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 50% at 75% 85%, var(--aurora-3) 0%, transparent 50%),
+      linear-gradient(135deg, var(--background) 0%, var(--background-2) 50%, var(--background-3) 100%);
+  }
+  .verify-card {
+    max-width: 36rem;
+    width: 100%;
+    border-radius: var(--lg-radius-card);
+    overflow: hidden;
+    background: var(--glass-tint-strong);
+    backdrop-filter: blur(40px) saturate(200%);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    border: 1px solid var(--glass-border);
+    box-shadow:
+      0 1px 0 0 var(--glass-highlight) inset,
+      0 20px 50px -12px var(--glass-shadow-deep),
+      0 6px 16px -4px oklch(0 0 0 / 0.12);
   }
 }
 

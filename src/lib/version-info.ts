@@ -11,7 +11,7 @@
 // `lastSeenReleaseVersion` preference differs from APP_VERSION.
 // ============================================================
 
-export const APP_VERSION = "5.933.0";
+export const APP_VERSION = "5.934.0";
 
 export type ReleaseHighlightType = "new" | "improved" | "removed" | "fixed";
 
@@ -43,6 +43,21 @@ export type ReleaseInfo = {
 //   To ship a new release: bump APP_VERSION, add a ReleaseInfo here (user-
 //   facing), AND add a technical entry to CHANGELOG.md. Both are required.
 export const RELEASES: ReleaseInfo[] = [
+  {
+    version: "5.934.0",
+    date: "2026-07-16",
+    title: "Complete Liquid Glass visual overhaul",
+    summary:
+      "The entire app now uses a true Apple-style Liquid Glass design system — vivid multi-color gradient backgrounds, genuine glass refraction (blur + saturation + specular highlights), pill-shaped buttons and controls, and consistent motion. Every view, dialog, and page updated, including the certificate verification page and Learn tab's lesson content.",
+    highlights: [
+      { type: "new", text: "True Liquid Glass design system: vivid gradient-mesh background (teal/magenta/amber/violet), glass with backdrop-blur + saturation + edge specular highlights + soft separating shadows." },
+      { type: "new", text: "Pill-shaped buttons, nav, and controls — matching Apple's iOS 26 / visionOS design language. Cards use generously-rounded rectangles." },
+      { type: "improved", text: "Default theme is now light (vivid background) so the glass refraction effect reads correctly. Dark mode also gets a richer chromatic background." },
+      { type: "fixed", text: "Learn tab: 'messy colorful boxes' replaced with unified glass panels. Accent colors now appear only on icons/labels, not full-box backgrounds." },
+      { type: "improved", text: "Certificate verification page (/verify/[id]) now uses the same glass background + card treatment as the rest of the app." },
+      { type: "improved", text: "Consistent motion tokens (0.4s cubic-bezier easing) across all glass elements — hover, selection, transitions." },
+    ],
+  },
   {
     version: "5.933.0",
     date: "2026-07-15",

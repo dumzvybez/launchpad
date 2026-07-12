@@ -19,7 +19,8 @@ export const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
       <Comp
         ref={ref}
         className={cn(
-          "glass rounded-2xl",
+          // v5.934: card radius from the shape-token system (rounded-3xl = 1.75rem)
+          "glass rounded-3xl",
           variant === "elevated" && "glass-elevated",
           variant === "flat" && "glass-flat",
           hover && "glass-hover cursor-pointer",
@@ -72,7 +73,10 @@ export const GlassCardContent = ({
 );
 
 /**
- * GlassButton — primary interactive element
+ * GlassButton — v5.934: pill-shaped liquid glass button.
+ * Primary: vivid gradient fill with glass sheen. Ghost/outline/subtle: glass
+ * surface with backdrop-blur. All variants use the pill shape from the reference
+ * images and the shared motion tokens (0.4s cubic-bezier easing).
  */
 type GlassButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "ghost" | "outline" | "subtle";
@@ -88,21 +92,29 @@ export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>
       <button
         ref={ref}
         className={cn(
-          "relative inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 active:scale-[0.97]",
+          "relative inline-flex items-center justify-center gap-2 font-medium transition-all disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 active:scale-[0.97]",
+          // v5.934: pill shape for all button variants (matches reference)
+          "rounded-full",
+          // v5.934: shared motion token
+          "duration-[var(--lg-duration)] ease-[var(--lg-easing)]",
           {
-            sm: "h-8 px-3 text-xs",
-            md: "h-10 px-4 text-sm",
-            lg: "h-12 px-6 text-base",
+            sm: "h-8 px-4 text-xs",
+            md: "h-10 px-5 text-sm",
+            lg: "h-12 px-7 text-base",
             icon: "h-10 w-10",
           }[size],
+          // v5.934: primary = vivid gradient with glass sheen
           variant === "primary" &&
-            "bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:brightness-110",
+            "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/40 hover:brightness-110 backdrop-blur-sm",
+          // v5.934: ghost = transparent glass with hover tint
           variant === "ghost" &&
-            "text-foreground/70 hover:text-foreground hover:bg-foreground/5",
+            "text-foreground/70 hover:text-foreground hover:bg-foreground/8 backdrop-blur-sm",
+          // v5.934: outline = glass border, transparent fill
           variant === "outline" &&
-            "border border-border bg-transparent hover:bg-foreground/5 text-foreground",
+            "glass-flat text-foreground hover:bg-foreground/8",
+          // v5.934: subtle = soft glass surface
           variant === "subtle" &&
-            "bg-foreground/5 text-foreground/80 hover:bg-foreground/10",
+            "glass-flat text-foreground/80 hover:bg-foreground/10",
           className,
         )}
         {...props}
@@ -115,7 +127,8 @@ export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>
 GlassButton.displayName = "GlassButton";
 
 /**
- * GlassPill — small badge/tag
+ * GlassPill — v5.934: small badge/tag using the .glass-pill CSS class
+ * (pill-shaped, glass material, matches the reference images' pill vocabulary).
  */
 export function GlassPill({
   className,
@@ -125,8 +138,7 @@ export function GlassPill({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
-        "bg-foreground/6 text-foreground/75 border border-border/50",
+        "glass-pill",
         className,
       )}
       {...props}

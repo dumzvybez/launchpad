@@ -47,8 +47,8 @@ export default async function VerifyCertificatePage({
   // Basic format validation
   if (!isValidCertificateFormat(id)) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-6">
-        <div className="max-w-xl w-full bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+      <main className="min-h-screen flex items-center justify-center p-6 verify-bg">
+        <div className="max-w-xl w-full rounded-3xl overflow-hidden verify-card">
           <div className="bg-gradient-to-r from-rose-500 to-amber-500 p-1" />
           <div className="p-8">
             <div className="flex items-center gap-3 mb-4">
@@ -122,8 +122,8 @@ export default async function VerifyCertificatePage({
 
   if (serviceUnavailable) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-6">
-        <div className="max-w-xl w-full bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+      <main className="min-h-screen flex items-center justify-center p-6 verify-bg">
+        <div className="max-w-xl w-full rounded-3xl overflow-hidden verify-card">
           <div className="bg-gradient-to-r from-amber-500 to-rose-500 p-1" />
           <div className="p-8">
             <div className="flex items-center gap-3 mb-4">
@@ -157,8 +157,8 @@ export default async function VerifyCertificatePage({
   // Certificate not found in database
   if (!certData || !certData.valid) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-6">
-        <div className="max-w-xl w-full bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+      <main className="min-h-screen flex items-center justify-center p-6 verify-bg">
+        <div className="max-w-xl w-full rounded-3xl overflow-hidden verify-card">
           <div className="bg-gradient-to-r from-rose-500 to-amber-500 p-1" />
           <div className="p-8">
             <div className="flex items-center gap-3 mb-4">
@@ -236,8 +236,8 @@ export default async function VerifyCertificatePage({
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-6">
-      <div className="max-w-xl w-full bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+    <main className="min-h-screen flex items-center justify-center p-6 verify-bg">
+      <div className="max-w-xl w-full rounded-3xl overflow-hidden verify-card">
         {/* Top gradient bar — teal/violet/amber = Launchpad brand */}
         <div className="bg-gradient-to-r from-teal-500 via-violet-500 to-amber-500 p-1" />
 

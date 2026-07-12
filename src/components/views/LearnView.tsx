@@ -1325,8 +1325,9 @@ function LessonBlockView({
     );
   }
   if (block.kind === "whyItMatters") {
+    // v5.934: unified glass panel — accent only on icon/label, not the whole box
     return (
-      <div className="rounded-lg border border-teal-500/30 bg-teal-500/5 p-3 flex items-start gap-2">
+      <div className="glass-flat rounded-xl p-3 flex items-start gap-2">
         <Target className="h-4 w-4 text-teal-500 shrink-0 mt-0.5" />
         <div>
           <div className="text-[10px] font-semibold uppercase text-teal-600 dark:text-teal-400 mb-0.5">Why this matters</div>
@@ -1337,7 +1338,7 @@ function LessonBlockView({
   }
   if (block.kind === "prerequisites") {
     return (
-      <div className="rounded-lg border border-sky-500/30 bg-sky-500/5 p-3">
+      <div className="glass-flat rounded-xl p-3">
         <div className="flex items-center gap-2 mb-2">
           <BookOpen className="h-4 w-4 text-sky-500" />
           <div className="text-[10px] font-semibold uppercase text-sky-600 dark:text-sky-400">Before you start</div>
@@ -1370,7 +1371,7 @@ function LessonBlockView({
   }
   if (block.kind === "keyConcepts") {
     return (
-      <div className="rounded-lg border border-violet-500/20 bg-violet-500/5 p-3">
+      <div className="glass-flat rounded-xl p-3">
         <div className="text-[10px] font-semibold uppercase text-violet-600 dark:text-violet-400 mb-2">Key concepts</div>
         <ul className="space-y-1">
           {block.items.map((it, i) => (
@@ -1384,9 +1385,6 @@ function LessonBlockView({
     );
   }
   if (block.kind === "code") {
-    // Section 1 — InlineCodeEditor replaces the static code block
-    // Keeps the existing Copy + Run (Try in Playground) buttons for backward compat
-    // while adding Edit & Run inline execution.
     return (
       <InlineCodeEditor
         code={block.code}
@@ -1397,7 +1395,7 @@ function LessonBlockView({
   }
   if (block.kind === "pitfalls") {
     return (
-      <div className="rounded-lg border border-rose-500/30 bg-rose-500/5 p-3">
+      <div className="glass-flat rounded-xl p-3">
         <div className="flex items-center gap-2 mb-2">
           <AlertTriangle className="h-4 w-4 text-rose-500" />
           <div className="text-[10px] font-semibold uppercase text-rose-600 dark:text-rose-400">Common pitfalls</div>
@@ -1415,7 +1413,7 @@ function LessonBlockView({
   }
   if (block.kind === "realWorldApps") {
     return (
-      <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
+      <div className="glass-flat rounded-xl p-3">
         <div className="flex items-center gap-2 mb-2">
           <Trophy className="h-4 w-4 text-amber-500" />
           <div className="text-[10px] font-semibold uppercase text-amber-600 dark:text-amber-400">In the wild</div>
@@ -1433,7 +1431,7 @@ function LessonBlockView({
   }
   if (block.kind === "interviewQuestions") {
     return (
-      <details className="rounded-lg border border-border/60 bg-card/30 p-3 group">
+      <details className="glass-flat rounded-xl p-3 group">
         <summary className="cursor-pointer flex items-center gap-2 text-xs font-semibold">
           <ChevronRight className="h-3.5 w-3.5 group-open:rotate-90 transition-transform" />
           Interview prep ({block.items.length} questions)
@@ -1451,7 +1449,7 @@ function LessonBlockView({
   }
   if (block.kind === "miniProject") {
     return (
-      <div className="rounded-lg border-2 border-emerald-500/40 bg-emerald-500/5 p-4">
+      <div className="glass-flat rounded-xl p-4 border-l-4 border-l-emerald-500/50">
         <div className="flex items-center gap-2 mb-2">
           <Play className="h-4 w-4 text-emerald-500" />
           <div className="text-[10px] font-semibold uppercase text-emerald-600 dark:text-emerald-400">Try it yourself</div>
@@ -1461,21 +1459,16 @@ function LessonBlockView({
     );
   }
   if (block.kind === "exercises") {
-    // Filter out quiz content that was accidentally included in the exercises block
-    // during the database → lessons-data.ts conversion. The quiz is rendered separately
-    // via the dedicated "Take the quiz" button — these raw quiz lines should NOT appear
-    // as exercises in the lesson body.
     const cleanedItems = block.items.filter(item => {
       const trimmed = item.trim();
-      // Skip lines that are clearly quiz markers/structure, not exercises
       if (/^>>>\s*QUIZ/i.test(trimmed)) return false;
       if (/^Z AI: render this as/i.test(trimmed)) return false;
-      if (/^Q\d+\s*[:.]/i.test(trimmed)) return false;  // "Q1: ..." or "Q1. ..."
-      if (/^[A-D]\)\s/.test(trimmed)) return false;     // "A) ...", "B) ...", etc.
-      if (/^\([A-D]\)\s/.test(trimmed)) return false;   // "(A) ..."
+      if (/^Q\d+\s*[:.]/i.test(trimmed)) return false;
+      if (/^[A-D]\)\s/.test(trimmed)) return false;
+      if (/^\([A-D]\)\s/.test(trimmed)) return false;
       if (/^Explanation\s*:/i.test(trimmed)) return false;
       if (/^Answer\s*:/i.test(trimmed)) return false;
-      if (/^\(\*\)$/.test(trimmed)) return false;        // "(*)" correct answer marker
+      if (/^\(\*\)$/.test(trimmed)) return false;
       if (/^\(Z AI/.test(trimmed)) return false;
       return true;
     });
@@ -1496,7 +1489,7 @@ function LessonBlockView({
   }
   if (block.kind === "tip") {
     return (
-      <div className="rounded-lg border border-sky-500/30 bg-sky-500/5 p-3 flex items-start gap-2">
+      <div className="glass-flat rounded-xl p-3 flex items-start gap-2">
         <Lightbulb className="h-4 w-4 text-sky-500 shrink-0 mt-0.5" />
         <div>
           <div className="text-[10px] font-semibold uppercase text-sky-600 dark:text-sky-400 mb-0.5">Tip</div>
@@ -1507,7 +1500,7 @@ function LessonBlockView({
   }
   if (block.kind === "warning") {
     return (
-      <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 flex items-start gap-2">
+      <div className="glass-flat rounded-xl p-3 flex items-start gap-2 border-l-4 border-l-amber-500/50">
         <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
         <div>
           <div className="text-[10px] font-semibold uppercase text-amber-600 dark:text-amber-400 mb-0.5">Warning</div>
@@ -1517,13 +1510,14 @@ function LessonBlockView({
     );
   }
   if (block.kind === "callout") {
-    const colorMap = {
-      info: "border-sky-500/30 bg-sky-500/5 text-sky-600 dark:text-sky-400",
-      success: "border-emerald-500/30 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400",
-      warning: "border-amber-500/30 bg-amber-500/5 text-amber-600 dark:text-amber-400",
+    // v5.934: unified glass panel — accent only via left border color
+    const accentMap = {
+      info: "border-l-sky-500/50",
+      success: "border-l-emerald-500/50",
+      warning: "border-l-amber-500/50",
     };
     return (
-      <div className={`rounded-lg border p-3 ${colorMap[block.variant]}`}>
+      <div className={`glass-flat rounded-xl p-3 border-l-4 ${accentMap[block.variant]}`}>
         <p className="text-sm">{block.content}</p>
       </div>
     );

@@ -1,13 +1,119 @@
 # Launchpad CHANGELOG
 
 This file merges all previous changelogs and adds the new
-**v5.933 (Version Popup Header Restore + Sidebar Edge Fix + Native Dialog Replacement + Content Readability)**
+**v5.934 (Complete Liquid Glass Visual Overhaul)**
 entries. Entries are in reverse chronological order.
 
 > **Dual-format release notes (v5.926+):** This CHANGELOG.md is the TECHNICAL
 > developer-facing record. The user-facing plain-language summary shown in the
 > app's version-update popup lives in `src/lib/version-info.ts`. Both must be
 > updated on every release.
+
+---
+
+## v5.934 — Complete Liquid Glass Visual Overhaul
+
+### Overview
+
+The single largest visual change in the project's history. Replaced the
+entire dark "aurora blob + glass card" theme with a true Apple-style Liquid
+Glass design system (iOS 26 / visionOS era), applied consistently across
+every page, tab, and component.
+
+### PHASE 1 — Design system foundation (`globals.css`)
+
+**Background treatment:** New vivid multi-color gradient-mesh background.
+The `.aurora-bg` now uses 5 radial-gradient layers (teal, magenta, amber,
+green, violet) over a 3-stop linear gradient base. This richness is essential
+— glass refraction only reads when the background has visual detail to distort.
+Light mode (default): `oklch(0.92 0.04 280)` base with vivid aurora blobs.
+Dark mode: `oklch(0.14 0.03 270)` base with vivid aurora blobs (higher chroma).
+
+**Glass material system:** Rebuilt `.glass` with a 3-layer composition:
+1. Tint (translucent background via `--glass-tint`)
+2. `::before` — diagonal refraction sheen (135deg gradient simulating light bend)
+3. `::after` — top-edge specular highlight (the "light hitting curved glass" effect)
+Plus `backdrop-filter: blur(24px) saturate(180%)` for refraction, and a 6-layer
+box-shadow (inner specular + inner depth + outer separating shadow).
+
+**Shape language tokens:** `--lg-radius-pill` (999px), `--lg-radius-card`
+(1.75rem), `--lg-radius-dialog` (1.5rem), `--lg-radius-control` (0.875rem).
+Utility classes: `.lg-pill`, `.lg-card`, `.lg-dialog`, `.lg-control`.
+
+**Motion system tokens:** `--lg-easing: cubic-bezier(0.16, 1, 0.3, 1)`,
+`--lg-duration: 0.4s`. All glass elements use these for hover/selection/
+transition consistency.
+
+**Nav item active state:** Rebuilt with glass-tint background + primary-tinted
+border + soft glow (matching the reference nav bar's "glowing/distorted
+highlight on selected item").
+
+### PHASE 2 — Rebuilt shared primitives (`GlassPrimitives.tsx`)
+
+- **GlassCard:** `rounded-2xl` → `rounded-3xl` (card shape token)
+- **GlassButton:** `rounded-xl` → `rounded-full` (pill shape, matching reference).
+  Primary variant now uses vivid gradient fill. Ghost/outline/subtle use
+  `glass-flat` surface. All variants use shared motion tokens.
+- **GlassPill:** Now uses the `.glass-pill` CSS class (pill shape + glass material)
+- **ProgressBar, ProgressRing, StatChip:** Inherit the new glass tokens
+  (unchanged structurally — the token updates propagate automatically)
+
+### PHASE 3 — Applied across every page/tab
+
+**Default theme:** Changed from `dark` to `light` in `layout.tsx` ThemeProvider.
+The vivid gradient background reads best in light mode (glass refraction needs
+light to bend). Dark mode also gets a richer chromatic background.
+
+**Learn tab ("messy colorful boxes" fix):** All lesson block types
+(`whyItMatters`, `prerequisites`, `keyConcepts`, `pitfalls`, `realWorldApps`,
+`interviewQuestions`, `miniProject`, `tip`, `warning`, `callout`) now use
+unified `glass-flat rounded-xl` panels. Accent colors appear ONLY on
+icons/labels, not full-box backgrounds. `callout` and `warning` use a
+subtle left-border accent instead of full colored backgrounds.
+
+**Certificate verify page (`/verify/[id]`):** All 4 render states (invalid,
+unavailable, not found, valid) now use `.verify-bg` (vivid gradient) +
+`.verify-card` (glass card) — matching the rest of the app. Previously used
+old `from-slate-50` gradients and `bg-white` cards.
+
+**All other views (Dashboard, Roadmap, Playground, Projects, AI Tutor,
+Flashcards, Tools, Analytics, Career, Community, Account, Settings,
+Onboarding):** Inherit the new design automatically via the updated tokens
+(`--card`, `--popover`, `--background`, `--glass-tint`, etc.) and primitives
+(`GlassCard`, `GlassButton`, `GlassPill`). Views that used `bg-card/` patterns
+now get translucent glass backgrounds automatically.
+
+**Shell components (Sidebar, TopBar, MobileBottomNav, CommandPalette,
+NotificationCentre, VersionUpdateDialog, ConfirmDialog):** All inherit the
+new glass material. Sidebar uses `glass-elevated` with the new specular
+highlights. Mobile bottom nav uses the glass pill aesthetic.
+
+### PHASE 4 — Visual verification (VLM-rated)
+
+6 representative pages verified via VLM (vision language model), all rated 8/10:
+- **Dashboard:** vivid gradient, glass panels, readable text ✓
+- **Roadmap:** glass phase cards, consistent ✓
+- **Learn:** unified glass lesson blocks (no more messy colored boxes) ✓
+- **Settings:** glass panels, readable ✓
+- **Dialog (What's New):** glass over vivid background ✓
+- **Mobile bottom nav:** floating pill nav ✓
+
+VLM confirmed across all pages: vivid multi-color gradient background, glass
+blur/transparency/highlights, text readability, consistent Liquid Glass
+aesthetic.
+
+### Additional notes
+
+- The existing file organization is preserved (same primitive-component
+  pattern, same `globals.css` structure) — only the internals were rebuilt.
+- Dark mode remains fully functional with a richer chromatic background.
+- All glass tokens use OKLCH color space for perceptual consistency.
+- The `--glass-refraction` token (1.0 light / 1.2 dark) is available for
+  future per-mode refraction intensity adjustments.
+
+### Version bump
+
+`package.json` 5.933.0 → 5.934.0.
 
 ---
 
