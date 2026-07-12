@@ -254,38 +254,28 @@ export function AppShell() {
     >
       <AuroraBackground />
 
-      {/* Desktop sidebar — v5.933: fixed right-edge visual glitch.
-          The v5.932 `overflow-hidden` on the wrapper was clipping the Sidebar
-          <aside>'s `rounded-3xl` corners, producing a hard rectangular cutoff.
-          Fix: removed `overflow-hidden` from the wrapper (the Sidebar aside
-          has its own `overflow-hidden` + `rounded-3xl` which handles internal
-          clipping correctly). The wrapper just sets the width and transitions.
-          Timing fix from v5.932 is preserved: single wrapper div, duration-500
-          ease-in-out sidebar, duration-200 content. */}
+      {/* Desktop sidebar — v5.935: attached to left edge (not floating).
+          - Always renders the Sidebar component (which handles its own
+            collapsed vs expanded view internally).
+          - Collapsed state shows mini group icons (not completely hidden)
+            with flyout menus on hover — restores the v5.928 behavior.
+          - Collapse animation: width shrinks R→L (244px → 64px). The sidebar
+            panel is flush-left, so collapsing clips from the right edge inward.
+          - Expand animation: width grows L→R (64px → 244px).
+          - The Sidebar aside is flush-left (no left padding), attached to
+            the viewport's left edge. Right padding is kept so the rounded
+            right edge is visible against the content. */}
       {!focusMode && (
         <div
           className="hidden lg:block shrink-0 sticky top-0 self-start h-screen transition-all ease-in-out"
           style={{
-            width: sidebarCollapsed ? "48px" : "244px",
+            width: sidebarCollapsed ? "64px" : "244px",
             transitionDuration: "500ms",
           }}
         >
-          {sidebarCollapsed ? (
-            <div className="h-full flex items-center justify-center group">
-              <button
-                onClick={() => setSidebarCollapsed(false)}
-                className="h-10 w-10 rounded-xl glass-elevated flex items-center justify-center text-muted-foreground hover:text-foreground transition-all opacity-0 group-hover:opacity-100"
-                aria-label="Expand sidebar"
-                style={{ marginTop: "8px" }}
-              >
-                <PanelLeftOpen className="h-4 w-4" />
-              </button>
-            </div>
-          ) : (
-            <div className="h-full p-3">
-              <Sidebar collapsedState={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />
-            </div>
-          )}
+          <div className="h-full pl-0 pr-3 py-3">
+            <Sidebar collapsedState={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />
+          </div>
         </div>
       )}
 
@@ -310,8 +300,10 @@ export function AppShell() {
       )}
 
       {/* Main content — v5.932: duration-200 ease-out so the content adjusts
-          FASTER than the 500ms sidebar, eliminating the expand overlap. */}
-      <div className="flex-1 min-w-0 flex flex-col transition-all duration-200 ease-out">
+          FASTER than the 500ms sidebar, eliminating the expand overlap.
+          v5.935: added pb-24 lg:pb-0 so the footer isn't blocked by the mobile
+          bottom nav bar. */}
+      <div className="flex-1 min-w-0 flex flex-col transition-all duration-200 ease-out pb-24 lg:pb-0">
         {!focusMode && <TopBar />}
 
         {/* Offline banner (Section 14.2) */}

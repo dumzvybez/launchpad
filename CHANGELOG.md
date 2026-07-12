@@ -1,13 +1,84 @@
 # Launchpad CHANGELOG
 
 This file merges all previous changelogs and adds the new
-**v5.934 (Complete Liquid Glass Visual Overhaul)**
+**v5.935 (Visual Comfort + Sidebar Attach + Mobile Nav Redesign)**
 entries. Entries are in reverse chronological order.
 
 > **Dual-format release notes (v5.926+):** This CHANGELOG.md is the TECHNICAL
 > developer-facing record. The user-facing plain-language summary shown in the
 > app's version-update popup lives in `src/lib/version-info.ts`. Both must be
 > updated on every release.
+
+---
+
+## v5.935 — Visual Comfort + Sidebar Attach + Mobile Nav Redesign
+
+### 1. Background colors softened (`globals.css`)
+
+**Problem:** The v5.934 vivid gradient background was too harsh on the eyes.
+
+**Fix:** Reduced chroma and alpha on all 5 aurora tokens in both light and
+dark mode. Light mode: chroma 0.22→0.14, alpha 0.65→0.40. Dark mode: chroma
+0.22→0.14, alpha 0.55→0.38. Still vivid enough for glass refraction to read,
+but no longer overwhelming.
+
+### 2. Sidebar attached to left edge + collapse animation (`AppShell.tsx`, `Sidebar.tsx`)
+
+**Problem:** The sidebar was floating (not attached to the left edge), and
+when collapsed it completely hid instead of showing mini icons.
+
+**Fix:**
+- AppShell sidebar wrapper: removed the conditional rendering that showed
+  only a PanelLeftOpen button when collapsed. Now always renders the Sidebar
+  component, which handles its own collapsed vs expanded view internally.
+- Collapsed width: 64px (was 48px) to accommodate the mini group icons.
+- Wrapper padding: `pl-0 pr-3 py-3` — flush left (attached to edge), right
+  padding kept so the rounded right edge is visible.
+- Collapse animation: width shrinks R→L (244px → 64px). Expand: L→R.
+- Sidebar collapse toggle button: now visible in controlled mode (when
+  `onToggleCollapse` is provided), not just legacy internal-state mode.
+- Collapsed state shows mini group icons (Dashboard/Learn/Productivity/System)
+  with hover flyout menus — restores the v5.928 behavior the user wanted back.
+
+### 3. Badge notification position (`BadgeToastContainer.tsx`)
+
+**Problem:** Badge-earned toast notifications appeared at `top-4 right-4`,
+overlapping the floating TopBar.
+
+**Fix:** Moved to `top-20 right-4` (below the ~56px TopBar + its top-3 offset).
+
+### 4. Mobile bottom nav redesign (`MobileBottomNav.tsx`)
+
+**Problem:** The AI button had an always-showing green pill; there was a
+"More" button; the AI floating bubble overlapped the nav bar; the footer was
+blocked by the nav bar on mobile.
+
+**Fix:**
+- Removed the "More" button (5 items only: Home, Roadmap, Learn, AI, Skills).
+- Removed the `glass-elevated border border-primary/20` always-showing styling
+  on the AI button — all items now use the same transparent treatment.
+- Active item: pill-shaped `glass-flat` highlight with primary tint + glow
+  (matching the uploaded reference image's selected-item style).
+- Inactive items: plain icons, no background.
+- Full-width bar attached to the bottom (not floating).
+
+### 5. AI floating bubble (`AITutorFloating.tsx`)
+
+**Fix:**
+- Moved from `bottom-6` to `bottom-24 lg:bottom-6` on mobile so it clears
+  the ~64px bottom nav bar.
+- Removed the green emerald notification dot (`bg-emerald-400` span).
+- Floating chat window also moved up on mobile (`bottom-24`) with adjusted
+  `max-h` to prevent overflow.
+
+### 6. Footer overlap fix (`AppShell.tsx`)
+
+**Fix:** Added `pb-24 lg:pb-0` to the main content column so the footer
+isn't blocked by the mobile bottom nav bar.
+
+### Version bump
+
+`package.json` 5.934.0 → 5.935.0.
 
 ---
 

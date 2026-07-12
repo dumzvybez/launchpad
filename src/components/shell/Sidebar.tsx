@@ -278,10 +278,10 @@ export function Sidebar({
         </div>
       )}
 
-      {/* Section 27 — collapse/expand toggle button. Only shown on desktop
-          (the mobile drawer passes collapsedProp so this button is hidden
-          there to avoid confusion). */}
-      {collapsedProp === undefined && (
+      {/* Section 27 — collapse/expand toggle button.
+          v5.935: shown in desktop sidebar (controlled mode with onToggleCollapse
+          OR legacy internal-state mode). Hidden only in the mobile drawer. */}
+      {(onToggleCollapse || collapsedProp === undefined) && (
         <button
           onClick={toggleCollapsed}
           className="shrink-0 mt-2 mx-auto rounded-md hover:bg-foreground/10 p-1.5 transition-colors text-muted-foreground hover:text-foreground"

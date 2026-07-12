@@ -112,12 +112,13 @@
   --glass-shadow-deep: oklch(0.25 0.04 280 / 0.28);
   --glass-refraction: 1; /* multiplier for refraction intensity */
 
-  /* v5.934: Aurora background blobs — VIVID (higher chroma + alpha so glass refracts visibly) */
-  --aurora-1: oklch(0.72 0.22 195 / 0.65); /* teal */
-  --aurora-2: oklch(0.68 0.26 320 / 0.55); /* magenta */
-  --aurora-3: oklch(0.78 0.22 80 / 0.55);  /* amber */
-  --aurora-4: oklch(0.74 0.22 155 / 0.55); /* green */
-  --aurora-5: oklch(0.66 0.24 280 / 0.50); /* violet */
+  /* v5.935: Aurora background — softened for eye comfort (reduced chroma + alpha).
+   * Still vivid enough for glass refraction to read, but no longer overwhelming. */
+  --aurora-1: oklch(0.72 0.14 195 / 0.40); /* teal — reduced from 0.22/0.65 */
+  --aurora-2: oklch(0.68 0.16 320 / 0.32); /* magenta — reduced from 0.26/0.55 */
+  --aurora-3: oklch(0.78 0.14 80 / 0.32);  /* amber — reduced from 0.22/0.55 */
+  --aurora-4: oklch(0.74 0.14 155 / 0.32); /* green — reduced from 0.22/0.55 */
+  --aurora-5: oklch(0.66 0.16 280 / 0.28); /* violet — reduced from 0.24/0.50 */
 
   --sidebar: oklch(1 0 0 / 0.5);
   --sidebar-foreground: oklch(0.16 0.02 260);
@@ -178,12 +179,12 @@
   --glass-shadow-deep: oklch(0 0 0 / 0.70);
   --glass-refraction: 1.2; /* stronger refraction in dark to compensate for less light */
 
-  /* Aurora — vivid in dark too (higher chroma) */
-  --aurora-1: oklch(0.72 0.22 195 / 0.55);
-  --aurora-2: oklch(0.68 0.26 320 / 0.45);
-  --aurora-3: oklch(0.78 0.22 80 / 0.42);
-  --aurora-4: oklch(0.74 0.22 155 / 0.42);
-  --aurora-5: oklch(0.66 0.24 280 / 0.40);
+  /* v5.935: Aurora — softened in dark too for eye comfort */
+  --aurora-1: oklch(0.72 0.14 195 / 0.38);
+  --aurora-2: oklch(0.68 0.16 320 / 0.30);
+  --aurora-3: oklch(0.78 0.14 80 / 0.28);
+  --aurora-4: oklch(0.74 0.14 155 / 0.28);
+  --aurora-5: oklch(0.66 0.16 280 / 0.26);
 
   --sidebar: oklch(0.16 0.02 260 / 0.5);
   --sidebar-foreground: oklch(0.97 0.005 240);

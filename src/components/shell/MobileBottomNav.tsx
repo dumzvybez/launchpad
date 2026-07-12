@@ -5,7 +5,6 @@ import {
   Map,
   GraduationCap,
   Bot,
-  MoreHorizontal,
   Workflow,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
@@ -13,11 +12,17 @@ import { cn } from "@/lib/utils";
 import type { ViewId } from "@/lib/types";
 
 /**
- * MobileBottomNav — v5.930 (#7) redesigned.
- * Items: Home, Roadmap, Learn, AI, Skill Tree (replaces Flashcards).
- * AI bubble is proportionate, liquid-glass styled, cleanly integrated.
- * Order: Home → Roadmap → Learn → AI → Skill Tree → More (6 items in a 6-col grid).
- * Deviation note: added "More" as a 6th item for access to all other tabs.
+ * MobileBottomNav — v5.935: redesigned to match the uploaded reference image.
+ *
+ * Changes from v5.934:
+ * - Full-width bar attached to the bottom (not floating).
+ * - Removed the "More" button (5 items only: Home, Roadmap, Learn, AI, Skills).
+ * - Removed the green always-showing pill on the AI button — ALL items now use
+ *   the same transparent liquid-glass treatment.
+ * - Active item: pill-shaped glass highlight with primary tint + glow (matching
+ *   the reference image's selected-item style).
+ * - Inactive items: plain icons, no background.
+ * - Safe-area padding for iOS notch devices.
  */
 const NAV_ITEMS: { id: ViewId; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "dashboard", label: "Home", icon: LayoutDashboard },
@@ -30,29 +35,26 @@ const NAV_ITEMS: { id: ViewId; label: string; icon: typeof LayoutDashboard }[] =
 export function MobileBottomNav() {
   const currentView = useStore((s) => s.currentView);
   const setView = useStore((s) => s.setView);
-  const setMobileNavOpen = useStore((s) => s.setMobileNavOpen);
 
   return (
     <nav
-      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 glass-elevated border-t border-border/60 px-1 py-1 safe-area-bottom"
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 glass-elevated border-t border-border/60 safe-area-bottom"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 8px)" }}
     >
-      <div className="grid grid-cols-6 gap-1">
+      <div className="grid grid-cols-5 gap-1 px-2 py-1.5">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const active = currentView === item.id;
-          const isAI = item.id === "ai-tutor";
           return (
             <button
               key={item.id}
               onClick={() => setView(item.id)}
               className={cn(
-                "flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-lg transition-all",
+                // v5.935: pill-shaped active highlight (liquid glass), plain inactive
+                "flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-full transition-all",
                 active
-                  ? "text-primary bg-primary/10"
+                  ? "glass-flat text-primary border border-primary/30 shadow-[0_0_12px_-2px] shadow-primary/25"
                   : "text-muted-foreground hover:text-foreground",
-                // v5.930 (#7): AI button gets liquid-glass styling, proportionate size
-                isAI && "glass-elevated border border-primary/20",
               )}
             >
               <Icon className={cn("h-4 w-4 transition-transform", active && "scale-110")} />
@@ -60,14 +62,6 @@ export function MobileBottomNav() {
             </button>
           );
         })}
-        {/* More button — opens mobile drawer with all tabs */}
-        <button
-          onClick={() => setMobileNavOpen(true)}
-          className="flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <MoreHorizontal className="h-4 w-4" />
-          <span className="text-[10px] font-medium">More</span>
-        </button>
       </div>
     </nav>
   );

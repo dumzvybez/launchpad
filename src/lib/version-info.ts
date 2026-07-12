@@ -11,7 +11,7 @@
 // `lastSeenReleaseVersion` preference differs from APP_VERSION.
 // ============================================================
 
-export const APP_VERSION = "5.934.0";
+export const APP_VERSION = "5.935.0";
 
 export type ReleaseHighlightType = "new" | "improved" | "removed" | "fixed";
 
@@ -43,6 +43,21 @@ export type ReleaseInfo = {
 //   To ship a new release: bump APP_VERSION, add a ReleaseInfo here (user-
 //   facing), AND add a technical entry to CHANGELOG.md. Both are required.
 export const RELEASES: ReleaseInfo[] = [
+  {
+    version: "5.935.0",
+    date: "2026-07-17",
+    title: "Visual comfort + sidebar attach + mobile nav redesign",
+    summary:
+      "Softened the vivid background colors for eye comfort. Sidebar is now attached to the left edge (not floating) and shows mini group icons when collapsed (restoring the hover-flyout behavior). Badge notifications repositioned below the top bar. Mobile bottom nav redesigned: removed the More button and the green AI pill, all items use transparent liquid glass, AI bubble moved up to clear the nav, footer no longer blocked.",
+    highlights: [
+      { type: "improved", text: "Background colors softened — reduced chroma and alpha so the vivid gradient is easier on the eyes while still showing glass refraction." },
+      { type: "improved", text: "Sidebar attached to the left edge (was floating). Collapse animates right-to-left, expand left-to-right. Collapsed state shows mini group icons with hover flyouts (restored from v5.928)." },
+      { type: "fixed", text: "Badge-earned notifications repositioned below the floating top bar (were overlapping it)." },
+      { type: "improved", text: "Mobile bottom nav: removed More button (5 items only), removed green AI pill, all items use transparent liquid glass, active item gets pill-shaped highlight." },
+      { type: "fixed", text: "AI floating bubble moved up on mobile to clear the bottom nav bar. Removed the green notification dot." },
+      { type: "fixed", text: "Footer no longer blocked by the mobile bottom nav bar (added bottom padding on mobile)." },
+    ],
+  },
   {
     version: "5.934.0",
     date: "2026-07-16",
