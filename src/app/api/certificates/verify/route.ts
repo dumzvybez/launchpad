@@ -117,6 +117,13 @@ export async function GET(req: NextRequest) {
   }
 
   // v5.865 (B.CERT.1): verify HMAC signature if the ID is signed.
+  // v5.931 (cert-audit CRIT-1): normalize issue_date before signature check.
+  //   Postgres TIMESTAMPTZ stores the instant in UTC but returns the string
+  //   with a `+00:00` offset (or `+00` / space-separated) rather than the
+  //   `Z` suffix that `new Date().toISOString()` produced at create time.
+  //   Without normalization the HMAC payload differs and EVERY signed cert
+  //   would fail verification. We round-trip through `new Date(...).toISOString()`
+  //   on both sides so the canonical form matches.
   let signatureValid = false;
   let signed = false;
   if (isSignedCertificate(id)) {
@@ -124,14 +131,20 @@ export async function GET(req: NextRequest) {
     const certSecret = process.env.CERT_SECRET;
     if (certSecret && certSecret.length >= 32) {
       const trackOrLabel = data.certificate_type === "career"
-        ? "career"
+        ? (data.language_completed ?? "career")
         : (data.language_completed ?? "language");
+      let normalizedIssueDate: string;
+      try {
+        normalizedIssueDate = new Date(data.issue_date).toISOString();
+      } catch {
+        normalizedIssueDate = data.issue_date;
+      }
       try {
         signatureValid = await verifyCertificateSignature(
           id,
           data.holder_name,
           trackOrLabel,
-          data.issue_date,
+          normalizedIssueDate,
           certSecret,
         );
       } catch (err) {

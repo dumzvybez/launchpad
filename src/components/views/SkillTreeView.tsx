@@ -289,7 +289,18 @@ export function SkillTreeView() {
                 </div>
               )}
 
-              {/* Modules with tasks */}
+              {/* v5.931: DUPLICATE-MODULES FIX (third attempt — root cause confirmed).
+                  A language phase carries BOTH `lessonGroups` (real lesson content,
+                  rendered above as "Lesson Modules") AND `modules` (generic engine
+                  stubs like "X fundamentals" / "Build with X"). Rendering both
+                  produces duplicate module content. The RoadmapView was guarded in
+                  v5.930 (#1) but SkillTreeView — redesigned in v5.929 — was missed,
+                  so the duplicate persisted here. Guard: only render the generic
+                  `modules` block when the phase does NOT have real `lessonGroups`.
+                  No phase in this codebase legitimately needs both shown — language
+                  phases use lessonGroups exclusively; foundation/AI-bonus/capstone/
+                  multi-language phases use modules exclusively. */}
+              {(!phase.lessonGroups || phase.lessonGroups.length === 0) && (
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Modules & Tasks</h3>
                 {phase.modules.map((m, mi) => {
@@ -337,6 +348,7 @@ export function SkillTreeView() {
                   );
                 })}
               </div>
+              )}
 
               {/* Navigate to roadmap button */}
               <button

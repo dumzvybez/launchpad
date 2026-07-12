@@ -35,15 +35,29 @@ const nextConfig: NextConfig = {
           // v5.865 fix (5.8): keep unsafe-eval only for Pyodide (required for its internals).
           // A future hardening pass should move Pyodide to a Web Worker with a
           // more restrictive CSP.
+          // v5.931 fix (#6 / community-audit): add https://giscus.app to style-src.
+          //   Giscus injects a <link rel="stylesheet" href="https://giscus.app/default.css">
+          //   into the parent document. That stylesheet contains the rule
+          //   `.giscus-frame { width: 100%; }` — without it, the Giscus <iframe>
+          //   falls back to the HTML default width of 300px, leaving the comment
+          //   widget scrunched into a narrow column on the left of the Community
+          //   tab. The previous CSP (`style-src 'self' 'unsafe-inline'`) silently
+          //   blocked this cross-origin stylesheet (Chrome does not always log
+          //   style-src CSP violations to the console — the request shows up in
+          //   DevTools with no status code and `transferSize: 0`). Also add
+          //   https://giscus.app to connect-src defensively (the Giscus client.js
+          //   currently does not fetch from the parent context, but this guards
+          //   against future client-side changes and satisfies the CSP audit
+          //   checklist that asks for giscus.app in connect-src).
           {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://giscus.app",
-              "style-src 'self' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline' https://giscus.app",
               "img-src 'self' data: https:",
               "font-src 'self' data:",
-              "connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://api.groq.com https://openrouter.ai https://api.openai.com https://api.anthropic.com",
+              "connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://api.groq.com https://openrouter.ai https://api.openai.com https://api.anthropic.com https://giscus.app",
               "frame-src https://www.youtube-nocookie.com https://giscus.app",
               "frame-ancestors 'self'",
               "base-uri 'self'",

@@ -57,6 +57,7 @@ export function VersionUpdateDialog({ forceOpen = false, onForceClose }: { force
   const onboardingCompleted = useStore((s) => s.state.onboardingCompleted);
   const lastSeenReleaseVersion = useStore((s) => s.state.preferences.lastSeenReleaseVersion);
   const setPreference = useStore((s) => s.setPreference);
+  const pushNotification = useStore((s) => s.pushNotification);
 
   const [showToast, setShowToast] = useState(false);
   const [showFullPopup, setShowFullPopup] = useState(false);
@@ -74,6 +75,18 @@ export function VersionUpdateDialog({ forceOpen = false, onForceClose }: { force
       setShownVersion(APP_VERSION);
       setShowToast(true);
     }, 900);
+    // v5.931: record the update as a persistent system notification in the
+    // Notification Centre (so the user sees it even if the toast is missed).
+    // Dedup on the version string so re-renders don't duplicate it.
+    pushNotification({
+      id: `system:update:${APP_VERSION}`,
+      category: "system",
+      title: `Launchpad updated to v${APP_VERSION}`,
+      body: LATEST_RELEASE.title,
+      icon: "✨",
+      actionView: "settings",
+      actionLabel: "What's new",
+    });
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onboardingCompleted, lastSeenReleaseVersion, forceOpen]);
@@ -85,6 +98,18 @@ export function VersionUpdateDialog({ forceOpen = false, onForceClose }: { force
       setPreference("lastSeenReleaseVersion", shownVersion ?? APP_VERSION);
     }
   };
+
+  // v5.931: toast auto-dismiss — the "Updated to vX.X" toast previously
+  // stayed visible indefinitely until the user interacted with it. Standard
+  // toast behaviour is to auto-expire after a few seconds. 8s is long enough
+  // to read the title + decide to click "More details", short enough not to
+  // linger. Reset on every show; cleared on dismiss/unmount.
+  useEffect(() => {
+    if (!showToast) return;
+    const t = setTimeout(dismissToast, 8000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showToast]);
 
   const openFullPopup = () => {
     setShowToast(false);
@@ -146,47 +171,50 @@ export function VersionUpdateDialog({ forceOpen = false, onForceClose }: { force
           className="sm:max-w-lg max-h-[88vh] overflow-y-auto"
           showCloseButton
         >
-          {/* Header — title + summary appear ONLY here, not duplicated below */}
-          <div className="flex items-start gap-3 -mt-1">
-            <div className="h-11 w-11 shrink-0 rounded-2xl bg-gradient-to-br from-teal-400 via-fuchsia-400 to-amber-300 flex items-center justify-center shadow-sm">
-              <Sparkles className="h-5 w-5 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-2 mb-1">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-                  What&apos;s new
-                </span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20">
-                  <GitBranch className="h-3 w-3" />
-                  v{LATEST_RELEASE.version}
-                </span>
-                <span className="text-[10px] text-muted-foreground font-mono">
-                  {formatDate(LATEST_RELEASE.date)}
-                </span>
+          {/* v5.931 header redesign: "What's New" is now the main heading
+              (centered), with the latest version's own title + badge + date
+              cleanly centered beneath it. The prose summary paragraph is
+              removed entirely — only the categorized point-by-point list
+              shows (matching the historical-versions treatment below). */}
+          <DialogHeader className="gap-0 text-center items-center">
+            <div className="flex justify-center mb-2">
+              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-teal-400 via-fuchsia-400 to-amber-300 flex items-center justify-center shadow-sm">
+                <Sparkles className="h-5 w-5 text-white" />
               </div>
-              <DialogHeader className="gap-1">
-                <DialogTitle className="text-lg font-semibold leading-tight pr-6">
-                  {LATEST_RELEASE.title}
-                </DialogTitle>
-              </DialogHeader>
-              <p className="text-sm leading-relaxed text-muted-foreground mt-1">
-                {LATEST_RELEASE.summary}
-              </p>
             </div>
-          </div>
+            <DialogTitle className="text-xl font-bold tracking-tight">
+              What&apos;s New
+            </DialogTitle>
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                <GitBranch className="h-3 w-3" />
+                v{LATEST_RELEASE.version}
+              </span>
+              <span className="text-[10px] text-muted-foreground font-mono">
+                {formatDate(LATEST_RELEASE.date)}
+              </span>
+            </div>
+            <p className="text-sm font-medium leading-snug text-foreground mt-2 max-w-prose mx-auto">
+              {LATEST_RELEASE.title}
+            </p>
+          </DialogHeader>
 
-          {/* v5.930 (#4): Always-visible, compact, icon-labeled categories.
-              No hover-to-reveal — each category is a collapsible section that's
-              expanded by default for the latest version. */}
+          {/* v5.931: Latest version now shows ONLY the categorized point-by-point
+              list — the prose summary paragraph was removed. Categories are
+              always-visible collapsible sections (icon + label + count), expanded
+              by default for the latest version. */}
           <VersionCategories release={LATEST_RELEASE} defaultExpanded={true} />
 
-          {/* Historical versions — minimal compact form */}
+          {/* Historical versions — v5.931: now show categorized point-by-point
+              details (matching the latest version's style) instead of a prose
+              summary. Each category is collapsible and collapsed by default to
+              keep the list scannable; entries are kept compact/short. */}
           {RELEASES.length > 1 && (
             <div className="mt-4 pt-3 border-t border-border/40">
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono mb-2 flex items-center gap-1">
                 <History className="h-3 w-3" /> Previous versions
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {RELEASES.slice(1).map((release) => (
                   <HistoricalVersion key={release.version} release={release} />
                 ))}
@@ -220,8 +248,11 @@ export function VersionUpdateDialog({ forceOpen = false, onForceClose }: { force
   );
 }
 
-/** VersionCategories — always-visible collapsible category sections. */
-function VersionCategories({ release, defaultExpanded }: { release: ReleaseInfo; defaultExpanded: boolean }) {
+/** VersionCategories — always-visible collapsible category sections.
+ *  v5.931: `compact` mode for historical versions (tighter padding, smaller
+ *  text) so the previous-versions list stays scannable while still showing
+ *  the same categorized point-by-point detail as the latest version. */
+function VersionCategories({ release, defaultExpanded, compact = false }: { release: ReleaseInfo; defaultExpanded: boolean; compact?: boolean }) {
   const grouped = useMemo(() => {
     const map: Record<ReleaseHighlightType, ReleaseHighlight[]> = { new: [], improved: [], fixed: [], removed: [] };
     for (const h of release.highlights) map[h.type].push(h);
@@ -229,7 +260,7 @@ function VersionCategories({ release, defaultExpanded }: { release: ReleaseInfo;
   }, [release]);
 
   return (
-    <div className="space-y-2 mt-3">
+    <div className={cn("mt-3", compact ? "space-y-1" : "space-y-2")}>
       {CATEGORY_ORDER.map((type) => {
         const items = grouped[type];
         if (items.length === 0) return null;
@@ -239,6 +270,7 @@ function VersionCategories({ release, defaultExpanded }: { release: ReleaseInfo;
             type={type}
             items={items}
             defaultExpanded={defaultExpanded}
+            compact={compact}
           />
         );
       })}
@@ -247,32 +279,41 @@ function VersionCategories({ release, defaultExpanded }: { release: ReleaseInfo;
 }
 
 /** CategorySection — a single category with always-visible label + collapsible items. */
-function CategorySection({ type, items, defaultExpanded }: { type: ReleaseHighlightType; items: ReleaseHighlight[]; defaultExpanded: boolean }) {
+function CategorySection({ type, items, defaultExpanded, compact = false }: { type: ReleaseHighlightType; items: ReleaseHighlight[]; defaultExpanded: boolean; compact?: boolean }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const dot = TYPE_DOT[type];
 
   return (
-    <div className="rounded-xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/15 dark:border-white/10 overflow-hidden">
+    <div className={cn(
+      "rounded-xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/15 dark:border-white/10 overflow-hidden",
+      compact && "rounded-lg",
+    )}>
       {/* Always-visible header */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-2 p-3 hover:bg-white/5 dark:hover:bg-white/5 transition-colors"
+        className={cn(
+          "w-full flex items-center gap-2 hover:bg-white/5 dark:hover:bg-white/5 transition-colors",
+          compact ? "px-2.5 py-1.5" : "p-3",
+        )}
       >
-        <span className={cn("h-2 w-2 rounded-full shrink-0", dot)} />
-        <span className="text-xs font-semibold">{CATEGORY_ICON[type]} {HIGHLIGHT_LABELS[type]}</span>
+        <span className={cn("rounded-full shrink-0", dot, compact ? "h-1.5 w-1.5" : "h-2 w-2")} />
+        <span className={cn("font-semibold", compact ? "text-[11px]" : "text-xs")}>{CATEGORY_ICON[type]} {HIGHLIGHT_LABELS[type]}</span>
         <span className="text-[10px] text-muted-foreground ml-auto">{items.length}</span>
         {expanded ? <ChevronDown className="h-3 w-3 text-muted-foreground" /> : <ChevronRight className="h-3 w-3 text-muted-foreground" />}
       </button>
       {/* Collapsible items */}
       {expanded && (
-        <div className="px-3 pb-3 space-y-1.5">
+        <div className={cn(compact ? "px-2.5 pb-2 space-y-1" : "px-3 pb-3 space-y-1.5")}>
           {items.map((h, i) => (
             <div
               key={i}
-              className="flex items-start gap-2 p-2 rounded-lg bg-white/5 dark:bg-black/20 border border-white/10 dark:border-white/5"
+              className={cn(
+                "flex items-start gap-2 rounded-lg bg-white/5 dark:bg-black/20 border border-white/10 dark:border-white/5",
+                compact ? "p-1.5" : "p-2",
+              )}
             >
-              <span className={cn("shrink-0 mt-0.5 h-1.5 w-1.5 rounded-full", dot)} />
-              <p className="text-xs leading-relaxed text-foreground/90">{h.text}</p>
+              <span className={cn("shrink-0 mt-0.5 rounded-full", dot, compact ? "h-1 w-1" : "h-1.5 w-1.5")} />
+              <p className={cn("leading-relaxed text-foreground/90", compact ? "text-[11px]" : "text-xs")}>{h.text}</p>
             </div>
           ))}
         </div>
@@ -281,23 +322,27 @@ function CategorySection({ type, items, defaultExpanded }: { type: ReleaseHighli
   );
 }
 
-/** HistoricalVersion — minimal compact form for older versions. */
+/** HistoricalVersion — v5.931: now shows categorized point-by-point details
+ *  (matching the latest version's style, in compact form) instead of a prose
+ *  summary paragraph. The version row expands to reveal the same collapsible
+ *  New / Improved / Fixed / Removed category sections. */
 function HistoricalVersion({ release }: { release: ReleaseInfo }) {
   const [expanded, setExpanded] = useState(false);
   return (
-    <div>
+    <div className="rounded-xl bg-card/30 border border-border/40 overflow-hidden">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-2 p-1.5 rounded-lg hover:bg-foreground/5 transition-colors text-left"
+        className="w-full flex items-center gap-2 p-2 rounded-xl hover:bg-foreground/5 transition-colors text-left"
       >
-        {expanded ? <ChevronDown className="h-3 w-3 text-muted-foreground shrink-0" /> : <ChevronRight className="h-3 w-3 text-muted-foreground shrink-0" />}
-        <span className="text-[11px] font-mono text-muted-foreground">v{release.version}</span>
+        {expanded ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+        <span className="text-[11px] font-mono text-primary font-semibold">v{release.version}</span>
         <span className="text-[11px] text-muted-foreground">·</span>
-        <span className="text-[11px] text-muted-foreground truncate">{release.title}</span>
+        <span className="text-[11px] text-foreground/80 truncate flex-1">{release.title}</span>
+        <span className="text-[10px] text-muted-foreground font-mono shrink-0">{formatDate(release.date)}</span>
       </button>
       {expanded && (
-        <div className="pl-6 pr-2 py-1.5">
-          <p className="text-[11px] text-muted-foreground leading-relaxed">{release.summary}</p>
+        <div className="px-2 pb-2">
+          <VersionCategories release={release} defaultExpanded={false} compact />
         </div>
       )}
     </div>

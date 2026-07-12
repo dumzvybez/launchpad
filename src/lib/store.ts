@@ -20,6 +20,7 @@ import type {
   AISettings,
   AIProviderKey,
   Flashcard,
+  AppNotification,
 } from "./types";
 import {
   loadState,
@@ -655,6 +656,13 @@ type Store = {
   // Achievements
   checkAchievements: () => string[]; // returns newly earned badge ids
   dismissBadgeToast: (badgeId: string) => void;
+
+  // v5.931: Notification Centre — persistent notification history.
+  // NO read/unread state. Snooze suppresses popups but records still persist.
+  pushNotification: (n: Omit<AppNotification, "createdAt"> & { createdAt?: string }) => void;
+  dismissNotificationItem: (id: string) => void;
+  clearAllNotifications: () => void;
+  setNotificationSnooze: (on: boolean) => void;
 
   // Reset & backup
   resetAll: () => void;
@@ -1514,6 +1522,16 @@ export const useStore = create<Store>((set, get) => {
         ...s,
         certificates: { ...s.certificates, [trackId]: cert },
       }));
+      // v5.931: record the language-certificate issuance as a persistent notification.
+      get().pushNotification({
+        id: `certificate:language:${trackId}`,
+        category: "certificate",
+        title: `Certificate earned: ${trackName}`,
+        body: `Your ${trackName} certificate (ID ${certId}) has been issued and is ready to download.`,
+        icon: "🏆",
+        actionView: "dashboard",
+        actionLabel: "View certificate",
+      });
       return certId;
     },
 
@@ -1570,6 +1588,16 @@ export const useStore = create<Store>((set, get) => {
         careerLabel,
       };
       updateState((s) => ({ ...s, careerCertificate: cert }));
+      // v5.931: record the Career Master Certificate as a persistent notification.
+      get().pushNotification({
+        id: "certificate:career",
+        category: "certificate",
+        title: "Career Master Certificate earned!",
+        body: `Congratulations ${name}! Your Career Master Certificate (${careerLabel}) is ready to download. ID ${certId}.`,
+        icon: "🏆",
+        actionView: "career",
+        actionLabel: "View certificate",
+      });
       return certId;
     },
 
@@ -1830,6 +1858,23 @@ export const useStore = create<Store>((set, get) => {
       if (newlyEarned.length > 0) {
         updateState((s) => ({ ...s, badges: newBadges }));
         set({ pendingBadgeToasts: [...get().pendingBadgeToasts, ...newlyEarned] });
+        // v5.931: also record each newly-earned badge as a persistent
+        // notification (visible in the Notification Centre). pushNotification
+        // dedups on id, so repeated checkAchievements calls are safe.
+        for (const badgeId of newlyEarned) {
+          const ach = ACHIEVEMENTS.find((a) => a.id === badgeId);
+          if (ach) {
+            get().pushNotification({
+              id: `achievement:${badgeId}`,
+              category: "achievement",
+              title: `Badge unlocked: ${ach.title}`,
+              body: ach.description,
+              icon: ach.icon,
+              actionView: "account",
+              actionLabel: "View badges",
+            });
+          }
+        }
       }
       // v5.76 — Synchronously check career cert eligibility. The state
       // has already been committed by updateState above (if badges changed),
@@ -1840,6 +1885,30 @@ export const useStore = create<Store>((set, get) => {
 
     dismissBadgeToast: (badgeId) =>
       set({ pendingBadgeToasts: get().pendingBadgeToasts.filter((id) => id !== badgeId) }),
+
+    // v5.931: Notification Centre actions.
+    // pushNotification is idempotent on `id` (dedup) — safe to call from
+    // checkAchievements / issueCertificate which may fire repeatedly.
+    pushNotification: (n) => {
+      const now = n.createdAt ?? new Date().toISOString();
+      updateState((s) => {
+        const existing = s.notifications ?? [];
+        if (existing.some((x) => x.id === n.id)) return s; // dedup
+        const record: AppNotification = { ...n, createdAt: now };
+        // Cap at 200 (most recent first) to bound localStorage growth.
+        return { ...s, notifications: [record, ...existing].slice(0, 200) };
+      });
+    },
+    dismissNotificationItem: (id) =>
+      updateState((s) => ({
+        ...s,
+        notifications: (s.notifications ?? []).filter((x) => x.id !== id),
+      })),
+    clearAllNotifications: () =>
+      updateState((s) => ({ ...s, notifications: [] })),
+    setNotificationSnooze: (on) => {
+      get().setPreference("notificationSnooze", on);
+    },
 
     resetAll: () => {
       // v5.865 fix (3.3/B.8): set isResetting BEFORE clearing, clear AFTER.

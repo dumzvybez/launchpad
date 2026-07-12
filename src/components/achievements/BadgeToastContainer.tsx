@@ -8,6 +8,11 @@ import { cn } from "@/lib/utils";
 export function BadgeToastContainer() {
   const pendingToasts = useStore((s) => s.pendingBadgeToasts);
   const dismissBadgeToast = useStore((s) => s.dismissBadgeToast);
+  // v5.931: Notification Centre snooze — when ON, achievement popups are
+  // suppressed. The achievement is still recorded in the persistent
+  // notification history (pushNotification in checkAchievements), so the
+  // user can see it in the Centre — they just don't get the popup toast.
+  const snoozed = useStore((s) => s.state.preferences.notificationSnooze ?? false);
   const [visibleToasts, setVisibleToasts] = useState<string[]>([]);
   // v5.926 (D4): track which toasts are in the dismissing (slide-out) phase
   // so we can animate them out instead of removing instantly.
@@ -17,6 +22,15 @@ export function BadgeToastContainer() {
   // toast arrived — so a sequence of badges A, B, C earned 1s apart kept
   // toast A visible for ~5.5s after C arrived, not 5.5s after A arrived.
   const dismissTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  // v5.931: when snoozed, silently clear pending toasts without showing them.
+  // The notification history already captured the achievement via pushNotification.
+  useEffect(() => {
+    if (snoozed && pendingToasts.length > 0) {
+      pendingToasts.forEach((id) => dismissBadgeToast(id));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [snoozed, pendingToasts]);
 
   // v5.926 (D4): unified dismiss — triggers slide-out animation, then removes.
   const triggerDismiss = (id: string) => {

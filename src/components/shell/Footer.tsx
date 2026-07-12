@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { X } from "lucide-react";
@@ -58,6 +58,15 @@ export function Footer() {
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const year = new Date().getFullYear();
+
+  // v5.931: allow the Command Palette (and other components) to open the Help
+  // Centre via a CustomEvent, without a store-level flag. The Command Palette's
+  // help-topic search results dispatch "launchpad:open-help".
+  useEffect(() => {
+    const onOpenHelp = () => setHelpOpen(true);
+    window.addEventListener("launchpad:open-help", onOpenHelp);
+    return () => window.removeEventListener("launchpad:open-help", onOpenHelp);
+  }, []);
 
   return (
     <>

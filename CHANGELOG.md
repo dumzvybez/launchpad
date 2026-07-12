@@ -1,13 +1,263 @@
 # Launchpad CHANGELOG
 
 This file merges all previous changelogs and adds the new
-**v5.930 (Roadmap Duplicate Modules Fix + Career Score Interview Fix + Community Tab Polish + Version Popup Redesign + Sidebar/Mobile Nav Polish)**
+**v5.931 (Skill Tree Duplicate Modules Fix + Notification Centre + Command Palette Search Depth + Community Tab CSP Fix + Certificate Signature Verification Hardening)**
 entries. Entries are in reverse chronological order.
 
 > **Dual-format release notes (v5.926+):** This CHANGELOG.md is the TECHNICAL
 > developer-facing record. The user-facing plain-language summary shown in the
 > app's version-update popup lives in `src/lib/version-info.ts`. Both must be
 > updated on every release.
+
+---
+
+## v5.931 — Skill Tree Duplicate Modules Fix + Notification Centre + Command Palette Search Depth + Community Tab CSP Fix + Certificate Signature Verification Hardening
+
+### 1. Roadmap duplicate modules — ROOT CAUSE CONFIRMED AND FIXED (third attempt, with reproduction proof)
+
+**Root cause (confirmed with browser reproduction):** The v5.930 fix guarded
+`RoadmapView.tsx` `PhaseDetailView` (line 473: `{(!phase.lessonGroups || phase.lessonGroups.length === 0) && (...)}`).
+But the **same duplicate-modules bug persisted in `SkillTreeView.tsx`** —
+redesigned in v5.929, it rendered BOTH:
+1. `phase.lessonGroups` (line 251-290, titled "Lesson Modules") — real lesson content
+2. `phase.modules.map(...)` (line 295-339, titled "Modules & Tasks") — generic engine stubs
+
+Both rendered unconditionally for language phases (which carry both fields).
+The RoadmapView guard was applied in v5.930 (#1) but SkillTreeView was missed.
+
+**Reproduction proof (agent-browser, before fix):**
+- Generated a web-dev roadmap (HTML/CSS/JS) via the deterministic engine
+- Injected into localStorage, navigated to Skill Tree, expanded Phase 2 (HTML Mastery)
+- BEFORE: `h3` headings showed BOTH "Lesson Modules" AND "Modules & Tasks"
+  (screenshot: `before-duplicate-modules.png`). Full text showed 4 real lesson
+  groups (Module 1: Foundations, Module 2: Core Concepts, etc.) PLUS 2 generic
+  stubs ("HTML fundamentals" + "Build with HTML").
+- AFTER: `h3` headings show ONLY "Lesson Modules" (screenshot: `after-duplicate-modules.png`).
+- Phase 1 (Foundation, no lessonGroups) still correctly shows "Modules & Tasks" —
+  the guard preserves modules when lessonGroups is absent.
+
+**Fix:** `SkillTreeView.tsx` line 303 — wrapped the `phase.modules.map` block in
+`{(!phase.lessonGroups || phase.lessonGroups.length === 0) && (...)}`. No phase
+in this codebase legitimately needs both shown: language phases use lessonGroups
+exclusively; foundation/AI-bonus/capstone/multi-language phases use modules
+exclusively.
+
+### 2. Notification Centre — full feature (NO read/unread state, per user instruction)
+
+**Design research (web search, July 2026):** Confirmed the current iOS version
+is **iOS 26** (latest patch ~26.5.2) — an earlier attempt referenced an
+incorrect version. iOS 26 introduced the "Liquid Glass" design language and
+card-stacking notifications on the Lock Screen. Applied patterns:
+1. **Card stacking** — notifications of the same category collapse into a
+   stacked card showing a count; expanding reveals individual items.
+2. **Liquid Glass material** — the panel uses the app's existing `glass-elevated`
+   translucent layered material (the direct web analogue of iOS 26 Liquid Glass).
+3. **Grouping by category** — grouped by Achievement / Certificate / Reminder /
+   System / Challenge (mirrors iOS grouping by app).
+4. **Dismiss** — iOS uses swipe-to-dismiss; on web we provide a hover-revealed
+   X button on each card + Clear All for bulk.
+
+**Schema (`types.ts` + `storage.ts`):**
+- New `AppNotification` type: `{ id, category, title, body, createdAt, icon?, actionView?, actionLabel? }`.
+- New `NotificationCategory` union: `"achievement" | "certificate" | "reminder" | "system" | "challenge"`.
+- New persisted `AppState.notifications: AppNotification[]` (cap 200, most-recent-first).
+- New `AppState.preferences.notificationSnooze: boolean`.
+- `DEFAULT_STATE.notifications = []` + `loadState` merge — prevents an infinite
+  re-render loop that would have occurred from `notifications ?? []` returning a
+  new array reference each render (found and fixed proactively during this pass).
+- **No read/unread state** — per the user's explicit instruction. The bell badge
+  is a simple COUNT of notifications in the history (reset by Clear All).
+
+**Store actions (`store.ts`):** `pushNotification` (idempotent on `id`, dedup),
+`dismissNotificationItem`, `clearAllNotifications`, `setNotificationSnooze`.
+
+**Wired notification sources:**
+- `checkAchievements` → pushes an "achievement" notification per newly-earned
+  badge (deduped on `achievement:${badgeId}`).
+- `issueCertificate` / `issueCareerCertificate` → pushes a "certificate"
+  notification on successful issuance.
+- `CalendarNotifier.fireEvent` → pushes a "reminder" notification (deduped on
+  `reminder:${eventId}:${today}` so recurring events record once per day).
+- `VersionUpdateDialog` → pushes a "system" notification when a new version is
+  detected (deduped on `system:update:${APP_VERSION}`).
+
+**UI (`NotificationCentre.tsx`):** Bell button in the TopBar with a count badge
+(`min-w-[16px]`, shows `99+` for >99). Clicking opens a right-aligned popover
+panel with: header (count + Snooze toggle + Clear All + close), optional snooze
+banner, scrollable body with category stacks (collapsible, count + expand arrow),
+and an empty state. Each notification card has icon, title, body (line-clamp-3),
+relative time, optional action link (navigates to `actionView`), and a
+hover-revealed dismiss X.
+
+**Snooze behaviour:** `BadgeToastContainer` checks `notificationSnooze`; when ON,
+pending achievement toasts are silently cleared (the achievement is still recorded
+in the history via `pushNotification`). Calendar toasts (sonner) still show
+(currently) — snooze primarily suppresses the achievement popups. Clear All
+clears BOTH the UI state AND the persisted `notifications` array in localStorage
+(verified: `localStorage.getItem('launchpad:v4:state')).notifications.length`
+goes to 0).
+
+### 3. Command Palette — search depth expanded
+
+**Previously indexed:** Navigation (15 views, only when search empty), roadmap
+tasks (title/phase/module, cap 12), roadmap tasks tagged "project" (cap 5),
+Actions (only when search empty).
+
+**Now indexed (v5.931):**
+- **Navigate (15 views)** — now filtered by query (previously hidden when
+  searching). "dash" finds "Dashboard".
+- **Tasks (roadmap)** — existing, now ranked by relevance, cap 8.
+- **Lessons (630)** — NEW: searches all lesson titles + descriptions + track
+  names via `getLessons()`. Selecting navigates to Learn with the lesson
+  pre-selected. Cap 8.
+- **Projects (207 real)** — NEW: searches the real `PROJECTS` database (title +
+  description + languages + skills). Previously only searched roadmap tasks
+  tagged "project". Selecting sets `deepLinkProjectId` and navigates to Projects.
+  Cap 5.
+- **Notes (user's own)** — NEW: searches note titles + content. Cap 4.
+- **Help (8 topics)** — NEW: compact `HELP_TOPICS` index. Selecting dispatches
+  a `launchpad:open-help` CustomEvent that the Footer listens for, opening the
+  Help Centre modal.
+- **Actions** — existing, only when search empty.
+
+**Ranking:** Within each group, results are sorted by a relevance score:
+0 = exact match, 1 = starts-with, 2 = word-boundary, 3 = contains. Groups
+appear in priority order: Navigate → Tasks → Lessons → Projects → Notes → Help.
+
+### 4. Community tab — deep audit + fix (live-tested)
+
+**Root cause #1 (CRITICAL, CSP):** `next.config.ts` `style-src 'self'
+'unsafe-inline'` did NOT include `https://giscus.app`. Giscus injects
+`<link rel="stylesheet" href="https://giscus.app/default.css">` which contains
+`.giscus-frame { width: 100%; }`. Chrome silently blocked the cross-origin
+stylesheet (no console violation for style-src blocks on `<link>`). The iframe
+fell back to the HTML default width of **300px**, scrunched into a narrow left
+column — looked "broken / not loading properly."
+
+**Fix:** Added `https://giscus.app` to `style-src` AND `connect-src` in
+`next.config.ts`. After fix: iframe width = 938px (full container width),
+verified via `getComputedStyle(iframe).width`.
+
+**Root cause #2 (flash):** `CommunityView.tsx` line 308 had `key={reloadKey}`
+on the Giscus container div. Every 60s (auto-refresh) and on manual reload,
+`reloadKey` incremented, forcing React to FULLY REMOUNT the div — destroying
+the live Giscus iframe and instantly showing the "Loading…" placeholder. The
+v5.930 fade-out→inject→fade-in sequence ran on the NEWLY MOUNTED div, so it
+couldn't prevent the flash.
+
+**Fix:** Removed `key={reloadKey}`. The container div is now stable; reloads
+clear+reinject in place via `injectGiscus()` (fade-out → `innerHTML=""` → inject
+→ fade-in). Added a sibling loading overlay (driven by `isLoading` state) that
+survives the inner div's `innerHTML` wipe. Auto-refresh interval kept at 60s
+(pauses on user interaction). Live-tested: smooth ~1.5s overlay transition, no
+width collapse, no flash.
+
+**Giscus config verified correct:** `GISCUS_REPO = "dumzvybez/launchpad"`
+(lowercase — capital L silently fails), `GISCUS_REPO_ID`, 5 category IDs,
+`data-mapping="specific"`, `data-strict="0"`, all consistent across sections.
+
+### 5. Certificate system — security audit + 2 critical fixes
+
+**Audit (live-tested where possible — Supabase env vars not set in sandbox):**
+
+1. **ID generation ✓:** Format confirmed `LP-{random10}-{sig11}` (language) /
+   `LP-CAREER-{random10}-{sig11}` (career) via bun script. HMAC-SHA256 via Web
+   Crypto `subtle`, first 8 bytes → BigInt → base36 padded to 11 chars.
+   `CERT_SECRET` required ≥32 chars, read server-side only. Random uses
+   `crypto.getRandomValues(Uint32Array)` (no `Math.random`). Unforgeable —
+   tampering holder name / track / signature suffix all return `false` from
+   `verifyCertificateSignature` (proven empirically).
+
+2. **Issuance guards ✓ (no regression):** `certIssuingInProgress` (in-memory
+   Set), `certIssueAttempts` (persisted, `CERT_MAX_ATTEMPTS=3`,
+   `CERT_RETRY_COOLDOWN_MS=24h`, permanent-fail on 4xx) all wired correctly.
+
+3. **Rate limits ✓:** Create 5/hr per IP, Verify 30/hr per IP (in-memory Map,
+   lazy expiry, `Retry-After` header).
+
+4. **PDF generation ✓:** Cert ID rendered verbatim from `stored.certId` (the
+   exact value inserted into Supabase) — no substring/truncation. A4 landscape
+   locked. ID in a prominent monospace bar.
+
+5. **Verification page — 2 CRITICAL bugs fixed:**
+
+   **CRIT-1 (`/api/certificates/verify/route.ts:119-155`):** Signature
+   verification passed the raw Supabase-returned `issue_date` (which has a
+   `+00:00` offset) to `verifyCertificateSignature`, but the HMAC was computed
+   at create time over `new Date().toISOString()` (Z suffix). **Every signed
+   cert would have failed signature verification in production.** Fixed by
+   normalizing via `new Date(...).toISOString()` on the verify side. Proven
+   with a bun test: OLD=false, NEW=true.
+
+   **CRIT-2 (`/verify/[id]/page.tsx:4, 193-236, 290-329`):** The page displayed
+   "Cryptographically verified · Signed certificate" based ONLY on the ID
+   format matching the signed pattern — the actual HMAC was never verified on
+   the page (it queries Supabase directly, never calls the verify API). A
+   tampered DB row or a forged 11-char suffix would have been shown as
+   cryptographically valid. Fixed by adding server-side
+   `verifyCertificateSignature` using `process.env.CERT_SECRET` and expanding
+   the badge to 3 states (verified / **Signature mismatch · Possible tampering
+   detected** / unsigned) plus a rose warning block.
+
+   **No secret leakage:** `CERT_SECRET` / `SUPABASE_SERVICE_ROLE_KEY` never
+   reach the client. The verify page is a Server Component using the anon key;
+   only a boolean signature-valid flag is sent to the client.
+
+**Non-critical issues summarized for later (NOT fixed):**
+- 11-char base36 signature suffix represents ~2^56.9 distinct values (HMAC
+  provides 64 bits) — BigInt→base36 does `v mod 36^11`, truncating ~7 high-order
+  bits. Still ~10^17 (infeasible to brute-force), but technically "truncation
+  that weakens the signature."
+- `getClientIp` uses the LAST element of `x-forwarded-for` (fine on Vercel;
+  minor spoofing concern if self-hosted behind a proxy chain).
+- `/api/certificates/verify` route is not called by any client code (the page
+  queries Supabase directly). After CRIT-2, both paths verify — duplicate but
+  correct logic. Consolidation is a future cleanup.
+- `isValidCertificateFormat` has no upper bound on the unsigned format
+  (`LP-[A-Z0-9]{10,}`); mitigated by the `id.length > 64` guard in the verify
+  route.
+- Tiny modulo bias in `randomBase36` (Uint32 mod 36 favors A-D by ~1 part in
+  2³²) — negligible.
+
+### 6. Version Update popup — redesign
+
+- **Latest version:** removed the prose summary paragraph — only the categorized
+  point-by-point list shows (matching historical versions).
+- **Historical versions:** now show categorized point-by-point details (compact
+  New/Improved/Fixed/Removed sections) instead of a prose summary. Each category
+  is collapsible (collapsed by default to keep the list scannable).
+- **Popup title:** "What's New" is now the main heading (centered, large), with
+  the latest version's own title + badge + date cleanly centered beneath it.
+- **Toast auto-dismiss:** the "Updated to vX.X" toast now auto-dismisses after
+  8 seconds (previously stayed visible indefinitely until the user interacted).
+- Added a `compact` prop to `VersionCategories` / `CategorySection` for the
+  historical-variant tighter padding + smaller text.
+
+### 7. Sidebar — revert speed, keep timing-sequence
+
+**Revert:** v5.930 added `ease-out` easing to the sidebar collapse/expand
+wrapper divs (an unlogged speed-feel change on top of v5.929's baseline
+`duration-300`). Removed `ease-out` from both wrapper divs in `AppShell.tsx` —
+the collapse/expand SPEED is now back to the v5.929 baseline (duration-300,
+default easing). No reported problem ever existed with the speed itself.
+
+**Kept:** the v5.930 `transitionDelay` timing-sequence fix (hover-zone collapse
+at 0ms, sidebar-panel expand at 150ms) which eliminates the brief visual overlap
+where the panel appeared before the content had finished adjusting.
+
+### 8. Additional bugs found and fixed during this pass
+
+- **Infinite re-render from `notifications ?? []`** (proactively fixed): The
+  new `notifications?: AppNotification[]` optional field, combined with
+  `useStore((s) => s.state.notifications ?? [])` selectors, would have caused
+  an infinite re-render loop (new `[]` reference each render → "Maximum update
+  depth exceeded") for ANY user without the field. Fixed by adding
+  `notifications: []` to `DEFAULT_STATE` and the `loadState` merge in
+  `storage.ts`. Caught during self-verification before it shipped.
+
+### Version bump
+
+`package.json` 5.930.0 → 5.931.0.
 
 ---
 

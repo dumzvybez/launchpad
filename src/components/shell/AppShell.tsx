@@ -254,16 +254,19 @@ export function AppShell() {
     >
       <AuroraBackground />
 
-      {/* Desktop sidebar — v5.930 (#6): fixed animation timing.
-          The collapsed→expanded transition now sequences: the hover zone
-          collapses first (width → 0), THEN the sidebar panel expands in.
-          This eliminates the visual overlap where the panel appeared before
-          the content had finished adjusting. */}
+      {/* Desktop sidebar — v5.931: reverted the v5.930 speed-feel change
+          (removed the `ease-out` easing that v5.930 added on top of v5.929's
+          baseline `duration-300`). The collapse/expand SPEED is now back to the
+          v5.929 baseline (duration-300, default easing) — no reported problem
+          ever existed with the speed itself. KEPT: the v5.930 timing-sequence
+          fix (`transitionDelay`) which sequences the hover-zone collapse and
+          the sidebar-panel expand so the panel no longer appears before the
+          content has finished adjusting — eliminating the brief overlap. */}
       {!focusMode && (
         <>
           {sidebarCollapsed ? (
             <div
-              className="hidden lg:flex shrink-0 sticky top-0 self-start h-screen items-center justify-center group transition-all duration-300 ease-out"
+              className="hidden lg:flex shrink-0 sticky top-0 self-start h-screen items-center justify-center group transition-all duration-300"
               style={{ width: "48px", transitionDelay: sidebarCollapsed ? "0ms" : "150ms" }}
             >
               <button
@@ -277,7 +280,7 @@ export function AppShell() {
             </div>
           ) : (
             <div
-              className="hidden lg:block shrink-0 p-3 sticky top-0 self-start h-screen transition-all duration-300 ease-out w-[244px]"
+              className="hidden lg:block shrink-0 p-3 sticky top-0 self-start h-screen transition-all duration-300 w-[244px]"
               style={{ transitionDelay: sidebarCollapsed ? "150ms" : "0ms" }}
             >
               <Sidebar collapsedState={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />

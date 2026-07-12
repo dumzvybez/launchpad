@@ -39,11 +39,16 @@ import {
   Target,
   Wrench,
   Layers,
+  HelpCircle,
+  BookOpen,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import type { ViewId } from "@/lib/types";
+import { getLessons } from "@/lib/lessons-data";
+import { PROJECTS } from "@/lib/projects-data";
+import { ALL_LANGUAGE_INFO } from "@/lib/lessons-meta";
 
 const VIEW_ICONS: Record<ViewId, typeof LayoutDashboard> = {
   dashboard: LayoutDashboard,
@@ -84,6 +89,20 @@ const VIEWS: { id: ViewId; label: string }[] = [
   { id: "settings", label: "Settings" },
 ];
 
+// v5.931: Compact help-topic index for the Command Palette. These are the
+// most-searched help questions (full Q&A live in HelpCentre.tsx). Selecting
+// one opens the Help Centre modal — the user reads the full answer there.
+const HELP_TOPICS: { q: string; a: string }[] = [
+  { q: "How do I get an AI API key?", a: "BYOK — Gemini, Groq, OpenRouter, OpenAI, Anthropic, or custom endpoint." },
+  { q: "How do certificates work?", a: "Per-language (all lessons + 75% quiz avg) and Career Master (100% readiness)." },
+  { q: "What is the Career Readiness Score?", a: "30% Roadmap + 30% Quizzes + 20% Projects + 20% Interviews." },
+  { q: "How does spaced repetition work?", a: "SM-2 algorithm tracks missed quiz questions and flashcards." },
+  { q: "Is my data private?", a: "Yes — 100% on-device. Only AI chat leaves your browser (to your provider)." },
+  { q: "How do I reset my progress?", a: "Settings → Data & Backup → Reset all progress." },
+  { q: "How many lessons are there?", a: "630 lessons across 30 languages (21 per track)." },
+  { q: "How do I install the PWA?", a: "Install prompt appears after 18s, or use your browser's Install option." },
+];
+
 export function CommandPalette() {
   const open = useStore((s) => s.commandOpen);
   const setOpen = useStore((s) => s.setCommandOpen);
@@ -94,6 +113,7 @@ export function CommandPalette() {
   const state = useStore((s) => s.state);
   const exportBackup = useStore((s) => s.exportBackup);
   const resetAll = useStore((s) => s.resetAll);
+  const setLearnTabState = useStore((s) => s.setLearnTabState);
   const { theme, resolvedTheme, setTheme } = useTheme();
 
   const [search, setSearch] = React.useState("");
@@ -117,12 +137,7 @@ export function CommandPalette() {
   };
 
   // v5.928 FIX (#2): Command Palette roadmap search result click now NAVIGATES
-  // to the task in the Roadmap view instead of marking it complete. Previously
-  // `handleTaskToggle` was wired to the onSelect handler — it called
-  // `toggleTask(taskId)` which MARKED THE TASK COMPLETE. This was the root
-  // cause reported multiple times: the handler name sounded like a toggle but
-  // the user expectation was navigation. Now we navigate: set view to roadmap,
-  // select the phase, module, and task, then close the palette.
+  // to the task in the Roadmap view instead of marking it complete.
   const handleTaskNavigate = (taskId: string, phaseId: string, moduleId: string) => {
     selectPhase(phaseId);
     selectModule(moduleId);
@@ -131,57 +146,112 @@ export function CommandPalette() {
     handleClose();
   };
 
-  // Filter tasks by search query (only show first ~15)
+  // v5.931: Navigate to a specific lesson in the Learn view.
+  const handleLessonNavigate = (lessonId: string, track: string) => {
+    setLearnTabState({ tab: "lesson", selectedLessonId: lessonId, selectedTrack: track });
+    setView("learn");
+    handleClose();
+  };
+
+  // v5.931: Navigate to a specific project via the deep-link mechanism.
+  const handleProjectNavigate = (projectId: string) => {
+    useStore.setState({ deepLinkProjectId: projectId });
+    setView("projects");
+    handleClose();
+  };
+
+  const q = search.trim().toLowerCase();
+  const hasQuery = q.length > 0;
+
+  // v5.931: Relevance ranker — 0 = exact, 1 = starts-with, 2 = word-boundary,
+  // 3 = contains. Lower score ranks first within a group.
+  const rank = (text: string): number => {
+    const t = text.toLowerCase();
+    if (t === q) return 0;
+    if (t.startsWith(q)) return 1;
+    if (new RegExp(`\\b${escapeRegex(q)}`).test(t)) return 2;
+    return 3;
+  };
+  const sortByRank = <T,>(items: T[], getText: (x: T) => string): T[] =>
+    items.slice().sort((a, b) => rank(getText(a)) - rank(getText(b)));
+
+  // Navigation — v5.931: now also filtered by query (previously hidden when searching).
+  const filteredViews = React.useMemo(() => {
+    if (!hasQuery) return VIEWS;
+    return sortByRank(VIEWS.filter((v) => v.label.toLowerCase().includes(q)), (v) => v.label).slice(0, 6);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
+
+  // Tasks (roadmap) — existing, capped at 8.
   const filteredTasks = React.useMemo(() => {
-    if (!search.trim() || !state.roadmap) return [];
-    const q = search.toLowerCase();
+    if (!hasQuery || !state.roadmap) return [];
     const allTasks = state.roadmap.phases.flatMap((p) =>
       p.modules.flatMap((m) =>
-        m.tasks.map((t) => ({
-          ...t,
-          phaseId: p.id,
-          phaseTitle: p.title,
-          moduleId: m.id,
-          moduleTitle: m.title,
-        })),
+        m.tasks.map((t) => ({ ...t, phaseId: p.id, phaseTitle: p.title, moduleId: m.id, moduleTitle: m.title })),
       ),
     );
-    return allTasks
-      .filter(
-        (t) =>
-          t.title.toLowerCase().includes(q) ||
-          t.phaseTitle.toLowerCase().includes(q) ||
-          t.moduleTitle.toLowerCase().includes(q),
-      )
-      .slice(0, 12);
+    const matched = allTasks.filter(
+      (t) =>
+        t.title.toLowerCase().includes(q) ||
+        t.phaseTitle.toLowerCase().includes(q) ||
+        t.moduleTitle.toLowerCase().includes(q),
+    );
+    return sortByRank(matched, (t) => t.title).slice(0, 8);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, state.roadmap]);
 
-  const filteredProjects = React.useMemo(() => {
-    if (!search.trim() || !state.roadmap) return [];
-    const q = search.toLowerCase();
-    const allProjects = state.roadmap.phases.flatMap((p) =>
-      p.modules.flatMap((m) =>
-        m.tasks
-          .filter((t) => t.tags?.includes("project") || t.tags?.includes("capstone"))
-          .map((t) => ({
-            id: t.id,
-            title: t.title,
-            // v5.79 fix: use `languages` to match the Project type from projects-data.ts
-            languages: state.roadmap!.languageIds,
-          })),
-      ),
+  // v5.931: Lessons — search all 630 lessons (title + description + track name).
+  // Uses getLessons() which returns the cached array (or [] if not yet loaded).
+  const filteredLessons = React.useMemo(() => {
+    if (!hasQuery) return [];
+    const all = getLessons();
+    if (all.length === 0) return [];
+    const trackName = (trackId: string) => ALL_LANGUAGE_INFO[trackId]?.name ?? trackId;
+    const matched = all.filter(
+      (l) =>
+        l.title.toLowerCase().includes(q) ||
+        l.description.toLowerCase().includes(q) ||
+        trackName(l.track).toLowerCase().includes(q),
     );
-    return allProjects
-      .filter(
-        (p) =>
-          p.title.toLowerCase().includes(q) ||
-          // v5.79 fix: use p.languages (the projects-data.ts Project type field) instead of p.technologies
-          p.languages.some((tech) => tech.toLowerCase().includes(q)),
-      )
-      .slice(0, 5);
+    return sortByRank(matched, (l) => l.title).slice(0, 8);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, state.roadmap]);
+  }, [search]);
+
+  // v5.931: Projects — search the real 207-project database (title + description + languages + careers).
+  const filteredProjects = React.useMemo(() => {
+    if (!hasQuery) return [];
+    const matched = PROJECTS.filter(
+      (p) =>
+        p.title.toLowerCase().includes(q) ||
+        p.description.toLowerCase().includes(q) ||
+        p.languages.some((l) => l.toLowerCase().includes(q)) ||
+        p.skills.some((s) => s.toLowerCase().includes(q)),
+    );
+    return sortByRank(matched, (p) => p.title).slice(0, 5);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
+
+  // v5.931: Notes — search the user's own notes (title + content).
+  const filteredNotes = React.useMemo(() => {
+    if (!hasQuery || state.notes.length === 0) return [];
+    const matched = state.notes.filter(
+      (n) =>
+        (n.title || "Untitled").toLowerCase().includes(q) ||
+        (n.content || "").toLowerCase().includes(q),
+    );
+    return sortByRank(matched, (n) => n.title || "Untitled").slice(0, 4);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, state.notes]);
+
+  // v5.931: Help topics — search the compact help index.
+  const filteredHelp = React.useMemo(() => {
+    if (!hasQuery) return [];
+    const matched = HELP_TOPICS.filter(
+      (h) => h.q.toLowerCase().includes(q) || h.a.toLowerCase().includes(q),
+    );
+    return sortByRank(matched, (h) => h.q).slice(0, 4);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   const handleExport = () => {
     exportBackup();
@@ -217,27 +287,31 @@ export function CommandPalette() {
     handleClose();
   };
 
+  // v5.931: Open the Help Centre. The HelpCentre modal lives in the Footer
+  // component (local state). We dispatch a CustomEvent that the Footer listens
+  // for, so the Command Palette can trigger it without a store-level flag.
+  const handleHelpOpen = () => {
+    window.dispatchEvent(new CustomEvent("launchpad:open-help"));
+    handleClose();
+  };
+
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput
-        placeholder="Search tasks, jump to views, run actions…"
+        placeholder="Search lessons, projects, tasks, notes, help…"
         value={search}
         onValueChange={setSearch}
       />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
 
-        {/* Navigation */}
-        {!search.trim() && (
-          <CommandGroup heading="Navigate">
-            {VIEWS.map((v) => {
+        {/* Navigation — v5.931: now shown both when empty AND when filtered by query */}
+        {filteredViews.length > 0 && (
+          <CommandGroup heading={hasQuery ? `Navigate (${filteredViews.length})` : "Navigate"}>
+            {filteredViews.map((v) => {
               const Icon = VIEW_ICONS[v.id];
               return (
-                <CommandItem
-                  key={v.id}
-                  onSelect={() => goToView(v.id)}
-                  className="group"
-                >
+                <CommandItem key={v.id} onSelect={() => goToView(v.id)} className="group">
                   <Icon className="mr-2 h-4 w-4 text-muted-foreground group-hover:text-foreground" />
                   <span>{v.label}</span>
                 </CommandItem>
@@ -246,17 +320,13 @@ export function CommandPalette() {
           </CommandGroup>
         )}
 
-        {/* Tasks */}
+        {/* Tasks (roadmap) */}
         {filteredTasks.length > 0 && (
           <CommandGroup heading={`Tasks (${filteredTasks.length})`}>
             {filteredTasks.map((t) => {
               const isDone = !!state.tasks[t.id]?.completedAt;
               return (
-                <CommandItem
-                  key={t.id}
-                  onSelect={() => handleTaskNavigate(t.id, t.phaseId, t.moduleId)}
-                  className="group"
-                >
+                <CommandItem key={t.id} onSelect={() => handleTaskNavigate(t.id, t.phaseId, t.moduleId)} className="group">
                   {isDone ? (
                     <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-400" />
                   ) : (
@@ -275,22 +345,41 @@ export function CommandPalette() {
           </CommandGroup>
         )}
 
-        {/* Projects */}
+        {/* v5.931: Lessons — all 630 lessons across 30 tracks */}
+        {filteredLessons.length > 0 && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading={`Lessons (${filteredLessons.length})`}>
+              {filteredLessons.map((l) => {
+                const trackName = ALL_LANGUAGE_INFO[l.track]?.name ?? l.track;
+                return (
+                  <CommandItem key={l.id} onSelect={() => handleLessonNavigate(l.id, l.track)} className="group">
+                    <BookOpen className="mr-2 h-4 w-4 text-violet-500 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="truncate text-sm">{l.title}</div>
+                      <div className="text-[10px] text-muted-foreground font-mono">
+                        {trackName} · Stage {l.order}{l.isCapstone ? " · Capstone" : ""}
+                      </div>
+                    </div>
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          </>
+        )}
+
+        {/* v5.931: Projects — real 207-project database */}
         {filteredProjects.length > 0 && (
           <>
             <CommandSeparator />
-            <CommandGroup heading="Projects">
+            <CommandGroup heading={`Projects (${filteredProjects.length})`}>
               {filteredProjects.map((p) => (
-                <CommandItem
-                  key={p.id}
-                  onSelect={() => goToView("projects")}
-                >
-                  <FolderGit2 className="mr-2 h-4 w-4 text-muted-foreground" />
+                <CommandItem key={p.id} onSelect={() => handleProjectNavigate(p.id)}>
+                  <FolderGit2 className="mr-2 h-4 w-4 text-amber-500 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="truncate text-sm">{p.title}</div>
                     <div className="text-[10px] text-muted-foreground">
-                      {/* v5.79 fix: use p.languages instead of p.technologies */}
-                      {p.languages.length} language{p.languages.length !== 1 ? "s" : ""}
+                      {p.languages.join(", ")} · {p.difficulty} · {p.tier}
                     </div>
                   </div>
                   <ExternalLink className="h-3 w-3 text-muted-foreground" />
@@ -300,16 +389,50 @@ export function CommandPalette() {
           </>
         )}
 
-        {/* Actions */}
-        {!search.trim() && (
+        {/* v5.931: Notes — user's own notes */}
+        {filteredNotes.length > 0 && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading={`Notes (${filteredNotes.length})`}>
+              {filteredNotes.map((n) => (
+                <CommandItem key={n.id} onSelect={() => goToView("notes")}>
+                  <StickyNote className="mr-2 h-4 w-4 text-teal-500 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="truncate text-sm">{n.title || "Untitled"}</div>
+                    <div className="text-[10px] text-muted-foreground truncate">
+                      {(n.content || "").slice(0, 60)}
+                    </div>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </>
+        )}
+
+        {/* v5.931: Help topics */}
+        {filteredHelp.length > 0 && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading={`Help (${filteredHelp.length})`}>
+              {filteredHelp.map((h, i) => (
+                <CommandItem key={i} onSelect={handleHelpOpen}>
+                  <HelpCircle className="mr-2 h-4 w-4 text-sky-500 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="truncate text-sm">{h.q}</div>
+                    <div className="text-[10px] text-muted-foreground truncate">{h.a}</div>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </>
+        )}
+
+        {/* Actions — only when search is empty */}
+        {!hasQuery && (
           <>
             <CommandSeparator />
             <CommandGroup heading="Actions">
               <CommandItem onSelect={() => {
-                // v5.77 fix: use resolvedTheme (not theme) so toggling from
-                // "system" works correctly. Previously, if the user had
-                // selected "system", `theme === "system"` and the toggle
-                // forced "dark", discarding the system preference.
                 setTheme(resolvedTheme === "dark" ? "light" : "dark");
                 handleClose();
               }}>
@@ -319,7 +442,6 @@ export function CommandPalette() {
                   <Moon className="mr-2 h-4 w-4" />
                 )}
                 Toggle theme
-                {/* v5.77 fix: removed misleading ⌘D shortcut hint (was never implemented and conflicted with browser bookmark shortcut) */}
               </CommandItem>
               <CommandItem onSelect={handleExport}>
                 <Download className="mr-2 h-4 w-4" />
@@ -341,6 +463,11 @@ export function CommandPalette() {
   );
 }
 
+/** Escape a string for safe use inside a RegExp. */
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 // Keyboard shortcut hook
 export function useCommandPaletteShortcut() {
   const setCommandOpen = useStore((s) => s.setCommandOpen);
@@ -355,10 +482,6 @@ export function useCommandPaletteShortcut() {
         e.preventDefault();
         setCommandOpen(true);
       }
-      // v5.77 fix: removed Cmd+1-9 and Cmd+0 shortcuts — they hijacked the
-      // universal browser tab-switching shortcuts (Cmd+1 = first tab, etc.).
-      // Users who habitually use Cmd+1 to switch tabs were instead navigated
-      // to a different in-app view. Use the command palette (Cmd+K) instead.
       else if (cmd && e.shiftKey && e.key.toLowerCase() === "f") {
         e.preventDefault();
         setFocusMode(!focusMode);

@@ -124,6 +124,8 @@ export const DEFAULT_STATE: AppState = {
   flashcards: [],
   bookmarkedLessons: [],
   certIssueAttempts: {},
+  // v5.931: Notification Centre — persistent notification history (no read/unread).
+  notifications: [],
 };
 
 /** Safely load state from localStorage, with schema migration */
@@ -203,6 +205,8 @@ export function loadState(): AppState {
       flashcards: migratedParsed.flashcards ?? [],
       bookmarkedLessons: migratedParsed.bookmarkedLessons ?? [],
       certIssueAttempts: migratedParsed.certIssueAttempts ?? {},
+      // v5.931: Notification Centre history (no read/unread state).
+      notifications: migratedParsed.notifications ?? [],
     };
 
     // v5.84: If we migrated from an old key, save the migrated state under

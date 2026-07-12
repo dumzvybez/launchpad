@@ -21,6 +21,7 @@ export function CalendarNotifier() {
   const snoozeNotification = useStore((s) => s.snoozeNotification);
   const dismissNotification = useStore((s) => s.dismissNotification);
   const deleteCalendarEvent = useStore((s) => s.deleteCalendarEvent);
+  const pushNotification = useStore((s) => s.pushNotification);
   // Track which (eventId + day) pairs we've already notified for, so
   // recurring events fire again on the next day instead of being
   // permanently suppressed after the first fire.
@@ -120,6 +121,19 @@ export function CalendarNotifier() {
       const notifiedKey = `${event.id}:${today}`;
       notifiedRef.current.add(notifiedKey);
       addNotification(event.id);
+
+      // v5.931: also record the reminder in the persistent Notification Centre
+      // history (so it's visible even if the toast was missed or snoozed).
+      // Dedup key includes the day so recurring events record once per day.
+      pushNotification({
+        id: `reminder:${event.id}:${today}`,
+        category: "reminder",
+        title: `Reminder: ${event.title}`,
+        body: `${event.time}${event.duration ? ` · ${event.duration}m` : ""}${event.notes ? ` — ${event.notes.slice(0, 80)}` : ""}`,
+        icon: "📅",
+        actionView: "tools",
+        actionLabel: "Open calendar",
+      });
 
       // Fire in-app toast notification with action buttons (Section 8)
       // Primary toast: Mark Done + Snooze 5m

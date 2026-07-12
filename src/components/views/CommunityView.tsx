@@ -103,54 +103,68 @@ export function CommunityView() {
   const [activeSection, setActiveSection] = useState<SectionId>("announcements");
   const [reloadKey, setReloadKey] = useState(0);
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
+  // v5.931 (#6): Loading overlay state, shown via a SIBLING of the giscus
+  // container (so it survives the container's innerHTML="" wipe). The
+  // overlay is hidden when Giscus posts a message containing the
+  // `discussion` field, or after a 4s fallback timeout.
+  const [isLoading, setIsLoading] = useState(true);
   const giscusContainerRef = useRef<HTMLDivElement>(null);
+  const loadingFallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { resolvedTheme } = useTheme();
 
   const section = SECTIONS.find((s) => s.id === activeSection)!;
 
   // Inject/re-inject Giscus script when section changes, theme changes, or reload is requested.
-  // v5.930 (#3): Instead of clearing innerHTML (which causes a flash), we use
-  // a fade-out → inject → fade-in sequence. The container opacity transitions
-  // smoothly so the user doesn't see a blank-then-reappear flash.
+  // v5.931 (#6): The container div is now STABLE (no React `key` prop) — the
+  // previous `key={reloadKey}` forced React to unmount+remount the div on every
+  // reload, which destroyed the live iframe BEFORE injectGiscus could fade it
+  // out. That was the root cause of the "content vanishes then reappears"
+  // flash. Now injectGiscus clears innerHTML and appends a fresh <script> on
+  // the SAME div, while a sibling loading overlay (driven by `isLoading`)
+  // covers the brief gap between clearing and the new iframe rendering.
   const injectGiscus = useCallback(() => {
     if (!giscusContainerRef.current) return;
-    // Fade out
-    giscusContainerRef.current.style.opacity = "0";
-    giscusContainerRef.current.style.transition = "opacity 0.2s ease-out";
 
-    setTimeout(() => {
-      if (!giscusContainerRef.current) return;
-      // Clear and re-inject after fade-out
-      giscusContainerRef.current.innerHTML = "";
+    // Clear the previous script/iframe in place on the stable container.
+    giscusContainerRef.current.innerHTML = "";
 
-      const script = document.createElement("script");
-      script.src = "https://giscus.app/client.js";
-      script.async = true;
-      script.crossOrigin = "anonymous";
-      script.setAttribute("data-repo", GISCUS_REPO);
-      script.setAttribute("data-repo-id", GISCUS_REPO_ID);
-      script.setAttribute("data-category", section.categoryName);
-      script.setAttribute("data-category-id", section.categoryId);
-      script.setAttribute("data-mapping", "specific");
-      script.setAttribute("data-term", section.term);
-      script.setAttribute("data-strict", "0");
-      script.setAttribute("data-reactions-enabled", "1");
-      script.setAttribute("data-emit-metadata", "0");
-      script.setAttribute("data-input-position", "bottom");
-      script.setAttribute("data-theme", resolvedTheme === "light" ? "light" : "dark");
-      script.setAttribute("data-lang", "en");
-      script.setAttribute("data-loading", "eager");
+    const script = document.createElement("script");
+    script.src = "https://giscus.app/client.js";
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    script.setAttribute("data-repo", GISCUS_REPO);
+    script.setAttribute("data-repo-id", GISCUS_REPO_ID);
+    script.setAttribute("data-category", section.categoryName);
+    script.setAttribute("data-category-id", section.categoryId);
+    script.setAttribute("data-mapping", "specific");
+    script.setAttribute("data-term", section.term);
+    script.setAttribute("data-strict", "0");
+    script.setAttribute("data-reactions-enabled", "1");
+    // v5.931 (#6): emit-metadata=1 so the iframe posts a METADATA message
+    // (with the `discussion` field, possibly null) once it has finished
+    // loading. The parent's message listener uses this to (a) hide the
+    // loading overlay and (b) update `lastRefreshedAt` when the current
+    // user posts a comment — that's what gives "live updates without a
+    // full reload". With emit-metadata=0 (the v5.930 default), no
+    // METADATA messages are sent and the listener never fires, so the
+    // overlay would always wait for the 4s fallback timer. Metadata is
+    // just the discussion title/URL/reaction-count — no sensitive data.
+    script.setAttribute("data-emit-metadata", "1");
+    script.setAttribute("data-input-position", "bottom");
+    script.setAttribute("data-theme", resolvedTheme === "light" ? "light" : "dark");
+    script.setAttribute("data-lang", "en");
+    script.setAttribute("data-loading", "eager");
 
-      giscusContainerRef.current.appendChild(script);
-      setLastRefreshedAt(new Date());
+    giscusContainerRef.current.appendChild(script);
+    setLastRefreshedAt(new Date());
+    setIsLoading(true);
 
-      // Fade back in
-      requestAnimationFrame(() => {
-        if (giscusContainerRef.current) {
-          giscusContainerRef.current.style.opacity = "1";
-        }
-      });
-    }, 200); // 200ms fade-out before clear+inject
+    // Fallback: hide the loading overlay after 4 seconds even if the Giscus
+    // iframe never emits a `discussion` message (e.g., network error, the
+    // widget fell back to a sign-in prompt, or the message format changed).
+    // The message listener below normally hides it much faster.
+    if (loadingFallbackTimer.current) clearTimeout(loadingFallbackTimer.current);
+    loadingFallbackTimer.current = setTimeout(() => setIsLoading(false), 4000);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [section, resolvedTheme]);
 
@@ -159,11 +173,22 @@ export function CommunityView() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [injectGiscus, reloadKey]);
 
-  // Auto-refresh: re-inject Giscus every 60 seconds while the tab is visible
+  // Cleanup the fallback timer on unmount.
+  useEffect(() => {
+    return () => {
+      if (loadingFallbackTimer.current) clearTimeout(loadingFallbackTimer.current);
+    };
+  }, []);
+
+  // Auto-refresh: re-inject Giscus periodically while the tab is visible
   // AND the user is NOT actively interacting (hovering, typing, or scrolling
-  // inside the Giscus area). This fixes the comment flicker issue caused by
-  // the previous 10-second full re-injection cycle. The interval is paused
-  // when the user is hovering over the comment area or has focus inside it.
+  // inside the Giscus area). v5.931 (#6): interval extended from 60s → 120s
+  // — the postMessage listener below already updates `lastRefreshedAt` in
+  // real time when the CURRENT user posts a comment, so the periodic
+  // re-inject is only needed to pull in OTHER users' new comments. Less
+  // frequent re-injection means less work for the browser and less visible
+  // churn. The flash bug from v5.930 (caused by `key={reloadKey}` on the
+  // container div) is fixed separately by removing the key.
   useEffect(() => {
     let timer: ReturnType<typeof setInterval> | null = null;
     let userInteracting = false;
@@ -182,7 +207,7 @@ export function CommunityView() {
         if (document.visibilityState === "visible" && !userInteracting) {
           setReloadKey((k) => k + 1);
         }
-      }, 60_000); // 60 seconds — fixes flicker (was 10s)
+      }, 120_000); // 120 seconds (was 60s, originally 10s)
     };
     const stop = () => {
       if (timer) { clearInterval(timer); timer = null; }
@@ -215,13 +240,24 @@ export function CommunityView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Listen for Giscus iframe messages so we can update the "last refreshed"
-  // timestamp when new comments are posted without a full reload.
+  // Listen for Giscus iframe messages. Giscus posts a message with the
+  // `discussion` field (object if found, null if not yet created) once the
+  // iframe has finished its initial load. We use this to:
+  //   (1) hide the loading overlay (whether the discussion exists or not),
+  //   (2) update `lastRefreshedAt` only when there's a real discussion
+  //       (so empty sections don't pretend to have refreshed).
+  // This is also how we get "live updates" for the current user's own new
+  // comments without a full re-inject — Giscus re-posts the discussion
+  // metadata every time a comment is added.
   useEffect(() => {
     const handler = (e: MessageEvent) => {
       if (e.origin !== "https://giscus.app") return;
-      if (e.data?.giscus?.discussion) {
-        setLastRefreshedAt(new Date());
+      const g = e.data?.giscus;
+      if (g && typeof g === "object" && "discussion" in g) {
+        setIsLoading(false);
+        if (g.discussion) {
+          setLastRefreshedAt(new Date());
+        }
       }
     };
     window.addEventListener("message", handler);
@@ -264,7 +300,7 @@ export function CommunityView() {
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
           <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
         </span>
-        Auto-refreshes every 60s (paused while you interact)
+        Auto-refreshes every 2 min (paused while you interact)
         {lastRefreshedAt && (
           <span className="text-muted-foreground/70">
             · last updated {lastRefreshedAt.toLocaleTimeString()}
@@ -301,18 +337,28 @@ export function CommunityView() {
         <span>{section.description}</span>
       </div>
 
-      {/* Giscus embed — v5.930 (#3): fixed-height scrollable area + no flash on refresh.
-          The container has a max-height with overflow-y-auto so comments scroll
-          within a fixed area instead of growing unboundedly. */}
+      {/* Giscus embed — v5.931 (#6): fixed-height scrollable area + no flash on refresh.
+          OUTER div is a stable (no `key`) scroll container with `max-h-[70vh] overflow-y-auto`,
+          so the Giscus iframe (which sizes itself to its content) is constrained
+          and scrolls within a fixed viewport instead of growing the page unboundedly.
+          INNER div (giscusContainerRef) is where the <script> injects the iframe;
+          it has no React `key`, so reloads clear+reinject in place rather than
+          unmounting the live iframe. The loading overlay is a SIBLING of the
+          inner div, so it survives the inner div's `innerHTML=""` wipe and can
+          cover the brief gap between clearing and the new iframe rendering. */}
       <GlassCard className="p-4 sm:p-6">
-        <div ref={giscusContainerRef} className="min-h-[500px] max-h-[70vh] overflow-y-auto" key={reloadKey}>
-          {/* Giscus script injects here */}
-          <div className="flex items-center justify-center py-12 text-xs text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-              Loading {section.label} from GitHub Discussions…
-            </div>
+        <div className="relative min-h-[500px] max-h-[70vh] overflow-y-auto rounded-xl">
+          <div ref={giscusContainerRef} className="min-h-[500px]">
+            {/* Giscus <script> injects the <iframe> here. */}
           </div>
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-[2px] pointer-events-none transition-opacity duration-200">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="h-3 w-3 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                Loading {section.label} from GitHub Discussions…
+              </div>
+            </div>
+          )}
         </div>
       </GlassCard>
 

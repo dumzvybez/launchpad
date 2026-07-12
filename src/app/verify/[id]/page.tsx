@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { createBrowserClient } from "@/lib/supabase";
-import { isValidCertificateFormat, getCertificateType, isSignedCertificate } from "@/lib/certificate-utils";
+import { isValidCertificateFormat, getCertificateType, isSignedCertificate, verifyCertificateSignature } from "@/lib/certificate-utils";
 
 export const metadata: Metadata = {
   title: "Certificate Verification",
@@ -191,7 +191,49 @@ export default async function VerifyCertificatePage({
   };
 
   // v5.865 (B.CERT.1): determine signature status for display
+  // v5.931 (cert-audit CRIT-2): ACTUALLY verify the signature server-side.
+  //   Previously the page only checked `isSignedCertificate(id)` (a FORMAT
+  //   check) and unconditionally displayed "Cryptographically verified" for
+  //   any signed-format ID — even if the holder_name or language_completed
+  //   had been tampered with in the database, or if the suffix was a forged
+  //   random 11-char string. Now we run the real HMAC verification using
+  //   CERT_SECRET (server-side only; this is a Server Component so the env
+  //   var never reaches the client) and surface three distinct states:
+  //     - signed + signature valid   → "Cryptographically verified"
+  //     - signed + signature INVALID → "Signature mismatch — possible tampering"
+  //     - unsigned                   → "Completion-attested certificate"
   const signed = isSignedCertificate(id);
+  let signatureValid = false;
+  if (signed) {
+    const certSecret = process.env.CERT_SECRET;
+    if (certSecret && certSecret.length >= 32 && certData.issueDate) {
+      const trackOrLabel = certData.certificateType === "career"
+        ? (certData.languageCompleted ?? "career")
+        : (certData.languageCompleted ?? "language");
+      let normalizedIssueDate: string;
+      try {
+        // Normalize the date the same way the verify API endpoint does —
+        // Postgres TIMESTAMPTZ returns the instant with a `+00:00` offset,
+        // but the HMAC at create time was computed over `new Date().toISOString()`
+        // (Z suffix). Round-trip through Date to get the canonical form.
+        normalizedIssueDate = new Date(certData.issueDate).toISOString();
+      } catch {
+        normalizedIssueDate = certData.issueDate;
+      }
+      try {
+        signatureValid = await verifyCertificateSignature(
+          id,
+          certData.holderName ?? "",
+          trackOrLabel,
+          normalizedIssueDate,
+          certSecret,
+        );
+      } catch (err) {
+        console.error("[verify] signature verification error:", err);
+        signatureValid = false;
+      }
+    }
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-6">
@@ -246,15 +288,43 @@ export default async function VerifyCertificatePage({
           </div>
 
           {/* Valid badge — shows signature status */}
-          {signed ? (
+          {signed && signatureValid ? (
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-sm font-medium mb-4">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
               Cryptographically verified · Signed certificate
+            </div>
+          ) : signed && !signatureValid ? (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 text-sm font-medium mb-4">
+              <span className="h-2 w-2 rounded-full bg-rose-500" />
+              Signature mismatch · Possible tampering detected
             </div>
           ) : (
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 text-sm font-medium mb-4">
               <span className="h-2 w-2 rounded-full bg-sky-500" />
               Verified · Completion-attested certificate
+            </div>
+          )}
+
+          {/* v5.931 (cert-audit CRIT-2): explicit tampering warning block.
+              Shown only when the ID is in signed format but the HMAC does
+              NOT validate against the stored metadata. This is the user-
+              facing surface of the actual signature check we now perform. */}
+          {signed && !signatureValid && (
+            <div className="mb-4 p-4 rounded-xl bg-rose-500/5 border border-rose-500/30">
+              <div className="flex items-start gap-3">
+                <div className="text-xl shrink-0">⚠️</div>
+                <div>
+                  <div className="text-xs font-semibold text-rose-700 dark:text-rose-300 mb-1">
+                    Signature Verification Failed
+                  </div>
+                  <p className="text-xs text-rose-600/90 dark:text-rose-400/90 leading-relaxed">
+                    This certificate ID is in the signed format, but its cryptographic signature
+                    does not match the stored holder name, track, or issue date. This means the
+                    certificate data may have been altered after issuance. Treat this certificate
+                    with caution and contact the holder to verify authenticity.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 

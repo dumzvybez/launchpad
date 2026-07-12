@@ -11,7 +11,7 @@
 // `lastSeenReleaseVersion` preference differs from APP_VERSION.
 // ============================================================
 
-export const APP_VERSION = "5.930.0";
+export const APP_VERSION = "5.931.0";
 
 export type ReleaseHighlightType = "new" | "improved" | "removed" | "fixed";
 
@@ -43,6 +43,22 @@ export type ReleaseInfo = {
 //   To ship a new release: bump APP_VERSION, add a ReleaseInfo here (user-
 //   facing), AND add a technical entry to CHANGELOG.md. Both are required.
 export const RELEASES: ReleaseInfo[] = [
+  {
+    version: "5.931.0",
+    date: "2026-07-13",
+    title: "Duplicate modules fixed (Skill Tree), Notification Centre, deeper search, certificate security",
+    summary:
+      "The roadmap duplicate-modules bug is genuinely fixed — the remaining duplicate was in the Skill Tree view (the Roadmap view was fixed in v5.930 but Skill Tree was missed). A full Notification Centre with snooze, persistent history, and iOS 26-inspired card stacking. Command Palette now searches all 630 lessons, 207 projects, your notes, and help topics. Community tab loads reliably. Certificate signature verification hardened.",
+    highlights: [
+      { type: "fixed", text: "Duplicate modules (third attempt, root cause confirmed): the Skill Tree view was rendering both lesson groups AND generic engine modules for language phases — the same bug the Roadmap view fixed in v5.930. Now Skill Tree only shows real lesson content when lesson groups exist." },
+      { type: "new", text: "Notification Centre: a bell icon in the top bar opens a panel with all your notifications grouped by category (Achievements, Certificates, Reminders, System). Snooze mode suppresses popups but keeps history. Clear All wipes everything. iOS 26 Liquid Glass card-stacking design." },
+      { type: "improved", text: "Command Palette now searches all 630 lessons, all 207 projects, your notes, and help topics — not just roadmap tasks. Results are ranked by relevance (exact match first, then starts-with, then contains)." },
+      { type: "fixed", text: "Community tab: Giscus now loads at full width (a silent CSP block was scrunching it to 300px). No more flash on refresh — reloads fade smoothly instead of vanishing and reappearing." },
+      { type: "fixed", text: "Certificate security: the public verification page now actually checks the HMAC signature (previously it only checked the ID format — a tampered database row would have shown as 'cryptographically verified'). Signature verification also handles a date-format mismatch that would have failed every signed certificate." },
+      { type: "improved", text: "Version popup: 'What's New' is now the main heading, with the version title centered beneath. Historical versions show categorized point-by-point details (compact) instead of a prose summary. The update toast auto-dismisses after 8 seconds." },
+      { type: "improved", text: "Sidebar: reverted an unrequested animation-speed change from v5.930 back to the v5.929 baseline, keeping only the timing-sequence fix that prevents the expand/collapse overlap." },
+    ],
+  },
   {
     version: "5.930.0",
     date: "2026-07-12",

@@ -16,6 +16,7 @@ import { useStore } from "@/lib/store";
 import { GlassButton } from "@/components/glass/GlassPrimitives";
 import { ThemeToggle } from "@/components/glass/ThemeToggle";
 import { getNavItems } from "./Sidebar";
+import { NotificationCentre } from "./NotificationCentre";
 import { cn } from "@/lib/utils";
 
 export function TopBar() {
@@ -136,6 +137,9 @@ export function TopBar() {
             >
               {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
             </GlassButton>
+
+            {/* v5.931: Notification Centre — bell with count badge + snooze/clear-all panel */}
+            <NotificationCentre />
 
             <ThemeToggle />
           </div>
