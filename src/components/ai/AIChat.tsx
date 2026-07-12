@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import {
   Send,
   Plus,
@@ -338,7 +339,9 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
     const careerLabel = CAREER_MAP[careerId]?.label ?? "Software Engineering";
     const languages = roadmap?.languageIds ?? [];
     if (languages.length === 0) {
-      alert("Please complete onboarding first so we know which languages to interview you on.");
+      toast.warning("Please complete onboarding first", {
+        description: "We need to know which languages to interview you on. Finish the onboarding flow to set up your roadmap.",
+      });
       return;
     }
     const skillLevel = profile.skillLevel ?? "intermediate";

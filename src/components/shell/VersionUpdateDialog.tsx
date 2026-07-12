@@ -187,7 +187,7 @@ export function VersionUpdateDialog({ forceOpen = false, onForceClose }: { force
               cleanly centered beneath it. The prose summary paragraph is
               removed entirely — only the categorized point-by-point list
               shows (matching the historical-versions treatment below). */}
-          <DialogHeader className="gap-0 text-center items-center min-w-0 w-full overflow-hidden">
+          <DialogHeader className="gap-0 text-center items-center min-w-0 w-full shrink-0">
             <div className="flex justify-center mb-2">
               <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-teal-400 via-fuchsia-400 to-amber-300 flex items-center justify-center shadow-sm">
                 <Sparkles className="h-5 w-5 text-white" />

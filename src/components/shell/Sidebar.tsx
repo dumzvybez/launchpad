@@ -115,8 +115,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "glass-elevated flex flex-col rounded-3xl p-3 transition-all duration-500 ease-in-out h-full overflow-hidden",
-        collapsed ? "w-[68px]" : "w-[244px]",
+        "glass-elevated flex flex-col rounded-3xl p-3 transition-all duration-500 ease-in-out h-full overflow-hidden w-full border border-border/40",
       )}
     >
       {/* Brand */}

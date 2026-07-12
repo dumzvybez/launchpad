@@ -17,6 +17,7 @@ import {
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import type { AppNotification, NotificationCategory } from "@/lib/types";
+import { ConfirmDialog } from "@/components/shell/ConfirmDialog";
 
 // ============================================================
 // NotificationCentre — v5.931
@@ -109,12 +110,18 @@ export function NotificationCentre() {
     });
   };
 
+  // v5.933: replaced native window.confirm with themed ConfirmDialog.
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+
   const handleClearAll = () => {
     if (count === 0) return;
-    if (window.confirm(`Clear all ${count} notification${count === 1 ? "" : "s"}? This cannot be undone.`)) {
-      clearAllNotifications();
-      setExpandedCategories(new Set());
-    }
+    setShowClearConfirm(true);
+  };
+
+  const confirmClearAll = () => {
+    clearAllNotifications();
+    setExpandedCategories(new Set());
+    setShowClearConfirm(false);
   };
 
   const handleNotificationClick = (n: AppNotification) => {
@@ -255,6 +262,18 @@ export function NotificationCentre() {
           </div>
         </div>
       )}
+
+      {/* v5.933: themed confirmation modal for Clear All (replaces native window.confirm) */}
+      <ConfirmDialog
+        open={showClearConfirm}
+        onOpenChange={setShowClearConfirm}
+        title="Clear all notifications?"
+        description={`This will permanently remove all ${count} notification${count === 1 ? "" : "s"} from your history. This action cannot be undone.`}
+        confirmLabel="Clear All"
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={confirmClearAll}
+      />
     </div>
   );
 }

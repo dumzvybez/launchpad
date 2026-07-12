@@ -254,21 +254,17 @@ export function AppShell() {
     >
       <AuroraBackground />
 
-      {/* Desktop sidebar — v5.932: rebalanced collapse/expand timing.
-          CHANGES from v5.931:
-          1. Single wrapper div (was two conditional divs that snapped without
-             transitioning, because freshly-mounted elements don't transition).
-             Now the width transitions smoothly between 48px and 244px.
-          2. Sidebar transition: duration-500 ease-in-out (was duration-300) —
-             slightly slower/smoother collapse per user request.
-          3. Main content wrapper: duration-200 ease-out (faster than the
-             500ms sidebar) so the content finishes adjusting AHEAD of the
-             sidebar's expansion, eliminating the overlap window.
-          4. Removed the transitionDelay hack (no longer needed — the content's
-             faster transition naturally eliminates the overlap). */}
+      {/* Desktop sidebar — v5.933: fixed right-edge visual glitch.
+          The v5.932 `overflow-hidden` on the wrapper was clipping the Sidebar
+          <aside>'s `rounded-3xl` corners, producing a hard rectangular cutoff.
+          Fix: removed `overflow-hidden` from the wrapper (the Sidebar aside
+          has its own `overflow-hidden` + `rounded-3xl` which handles internal
+          clipping correctly). The wrapper just sets the width and transitions.
+          Timing fix from v5.932 is preserved: single wrapper div, duration-500
+          ease-in-out sidebar, duration-200 content. */}
       {!focusMode && (
         <div
-          className="hidden lg:block shrink-0 sticky top-0 self-start h-screen transition-all ease-in-out overflow-hidden"
+          className="hidden lg:block shrink-0 sticky top-0 self-start h-screen transition-all ease-in-out"
           style={{
             width: sidebarCollapsed ? "48px" : "244px",
             transitionDuration: "500ms",

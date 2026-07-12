@@ -11,7 +11,7 @@
 // `lastSeenReleaseVersion` preference differs from APP_VERSION.
 // ============================================================
 
-export const APP_VERSION = "5.932.0";
+export const APP_VERSION = "5.933.0";
 
 export type ReleaseHighlightType = "new" | "improved" | "removed" | "fixed";
 
@@ -44,17 +44,34 @@ export type ReleaseInfo = {
 //   facing), AND add a technical entry to CHANGELOG.md. Both are required.
 export const RELEASES: ReleaseInfo[] = [
   {
+    version: "5.933.0",
+    date: "2026-07-15",
+    title: "Version popup header restored, sidebar edge fixed, native dialogs replaced, readability improved",
+    summary:
+      "Four fixes: the 'What's New' heading and version number that vanished from the version popup are back (without reintroducing horizontal scroll). The sidebar's hard rectangular right edge is now a soft rounded glass boundary. All native browser confirm()/alert() dialogs replaced with themed app modals. AI Bonus Track and Learn tab content reformatted for scannability.",
+    highlights: [
+      { type: "fixed", text: "Version popup: 'What's New' heading and version badge were invisible (DialogHeader collapsed to 1px by overflow-hidden + flex interaction). Restored with shrink-0; horizontal scroll still eliminated." },
+      { type: "improved", text: "Version popup: point descriptions shortened to scannable 1-2 sentences across latest and historical versions." },
+      { type: "fixed", text: "Sidebar right-edge: hard rectangular cutoff replaced with proper rounded glass boundary (removed overflow-hidden from wrapper, added visible border)." },
+      { type: "fixed", text: "All native browser confirm()/alert() dialogs replaced with themed app modals (Clear All, Reset progress, certificate errors, locked phases, onboarding prompt)." },
+      { type: "improved", text: "AI Bonus Track tasks: 'Try this:' action steps now render as highlighted callout boxes instead of being buried in dense paragraphs." },
+      { type: "improved", text: "Learn tab lessons: larger text (15px), more line spacing (leading-7), paragraph splitting on double-newlines, more spacing between blocks." },
+    ],
+  },
+  {
     version: "5.932.0",
     date: "2026-07-14",
     title: "Research-backed AI Bonus Track + sidebar timing + version popup scroll + new-user pacing",
     summary:
       "The AI Bonus Track phase for every career is now built from a real consolidated research report (merged from ChatGPT, Gemini, Mistral) — each tool gets a guided what/why/try-this lesson, not a flat checklist. Plus four polish fixes: smoother sidebar collapse, no horizontal scroll in the version popup, staggered first-time-user notifications, and a re-confirmed Community tab fix.",
     highlights: [
-      { type: "new", text: "AI Bonus Track fully replaced with research-backed guided content. Every career path (Software Engineering, Web Dev, Cloud/DevOps, Data Science, AI/ML, Cybersecurity, Mobile, Game, Hardware) now gets a dedicated AI Bonus Track built from the Consolidated AI Tools and Industry Practices Career Guide 2026. Each tool/practice is a guided lesson: what it is, why it matters for your career, and a concrete 'try this' first step with 5 actionable steps — not a flat task checklist." },
-      { type: "improved", text: "Sidebar collapse/expand timing rebalanced: collapse is slightly smoother (500ms ease-in-out), and the page content now adjusts faster (200ms) than the sidebar so it finishes ahead — eliminating the brief overlap where the expanding sidebar overlapped the still-adjusting content." },
-      { type: "fixed", text: "Version Update popup no longer has horizontal scroll. The grid layout was expanding tracks to content width; switching to flex column with overflow-x-hidden and break-words ensures everything wraps to fit — only vertical scrolling is ever needed." },
-      { type: "improved", text: "New-user notification pacing: first-time users no longer get hit with a tab-visit hint, a Command Palette tip, and a version-update notification all at once. View hints show immediately (consistent 3.5s auto-hide with smooth fade-out), the Command Palette tip is delayed to ~30s, and the version notification is delayed to ~2min — returning users after a real update are unaffected." },
-      { type: "fixed", text: "Community tab re-confirmed working: the Giscus embed renders at full width (938px, not the 300px fallback) and stays full-width through a 60-second auto-refresh cycle with no flash or remount. Comments remain visible and scrollable throughout." },
+      { type: "new", text: "AI Bonus Track rebuilt from a real 2026 research report. Every career gets guided lessons: what each AI tool is, why it matters, and a concrete 'try this' step." },
+      { type: "improved", text: "Sidebar collapse is smoother (500ms); page content adjusts faster (200ms) so there's no overlap during expand." },
+      { type: "fixed", text: "Version popup: 'What's New' heading restored (was invisible), horizontal scroll eliminated, point descriptions shortened for quick scanning." },
+      { type: "improved", text: "First-time users get staggered notifications: view hints immediately, Command Palette tip at 30s, version update at 2min — no more notification stack." },
+      { type: "fixed", text: "Sidebar right-edge visual glitch fixed (hard rectangular cutoff replaced with proper rounded glass boundary)." },
+      { type: "fixed", text: "Native browser confirm/alert dialogs replaced with themed app modals throughout." },
+      { type: "improved", text: "AI Bonus Track and Learn tab content reformatted for readability: shorter paragraphs, bold key terms, better visual hierarchy." },
     ],
   },
   {
@@ -64,13 +81,13 @@ export const RELEASES: ReleaseInfo[] = [
     summary:
       "The roadmap duplicate-modules bug is genuinely fixed — the remaining duplicate was in the Skill Tree view (the Roadmap view was fixed in v5.930 but Skill Tree was missed). A full Notification Centre with snooze, persistent history, and iOS 26-inspired card stacking. Command Palette now searches all 630 lessons, 207 projects, your notes, and help topics. Community tab loads reliably. Certificate signature verification hardened.",
     highlights: [
-      { type: "fixed", text: "Duplicate modules (third attempt, root cause confirmed): the Skill Tree view was rendering both lesson groups AND generic engine modules for language phases — the same bug the Roadmap view fixed in v5.930. Now Skill Tree only shows real lesson content when lesson groups exist." },
-      { type: "new", text: "Notification Centre: a bell icon in the top bar opens a panel with all your notifications grouped by category (Achievements, Certificates, Reminders, System). Snooze mode suppresses popups but keeps history. Clear All wipes everything. iOS 26 Liquid Glass card-stacking design." },
-      { type: "improved", text: "Command Palette now searches all 630 lessons, all 207 projects, your notes, and help topics — not just roadmap tasks. Results are ranked by relevance (exact match first, then starts-with, then contains)." },
-      { type: "fixed", text: "Community tab: Giscus now loads at full width (a silent CSP block was scrunching it to 300px). No more flash on refresh — reloads fade smoothly instead of vanishing and reappearing." },
-      { type: "fixed", text: "Certificate security: the public verification page now actually checks the HMAC signature (previously it only checked the ID format — a tampered database row would have shown as 'cryptographically verified'). Signature verification also handles a date-format mismatch that would have failed every signed certificate." },
-      { type: "improved", text: "Version popup: 'What's New' is now the main heading, with the version title centered beneath. Historical versions show categorized point-by-point details (compact) instead of a prose summary. The update toast auto-dismisses after 8 seconds." },
-      { type: "improved", text: "Sidebar: reverted an unrequested animation-speed change from v5.930 back to the v5.929 baseline, keeping only the timing-sequence fix that prevents the expand/collapse overlap." },
+      { type: "fixed", text: "Skill Tree duplicate modules: was rendering both lesson groups and generic engine modules. Now shows only real lesson content." },
+      { type: "new", text: "Notification Centre: bell icon with grouped categories, snooze mode, Clear All, and iOS 26-inspired card stacking." },
+      { type: "improved", text: "Command Palette searches all 630 lessons, 207 projects, notes, and help topics — ranked by relevance." },
+      { type: "fixed", text: "Community tab: Giscus loads at full width (was scrunched to 300px by a CSP block). No more flash on refresh." },
+      { type: "fixed", text: "Certificate verification page now actually checks the HMAC signature (was only checking ID format). Fixed a date-format mismatch that would have failed every signed cert." },
+      { type: "improved", text: "Version popup: 'What's New' heading, categorized points, toast auto-dismiss after 8s." },
+      { type: "improved", text: "Sidebar: reverted an unrequested speed change, kept the timing-sequence overlap fix." },
     ],
   },
   {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
+import { toast } from "sonner";
 import {
   GraduationCap,
   Clock,
@@ -584,7 +585,7 @@ export function LearnView() {
             setView("playground");
           }} />
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {selectedLesson.blocks.map((block, i) => (
               // Section 20 — key includes lessonId so the editor remounts
               // fresh when the user navigates to a different lesson/phase.
@@ -828,15 +829,13 @@ export function LearnView() {
                             // Otherwise, it's likely a server issue or incomplete progress.
                             const trackLessonsCheck = getLessonsForTrack(track);
                             if (trackLessonsCheck.length === 0) {
-                              alert(
-                                "Certificates are not available for this technology yet — it doesn't have a full lesson track.\n\n" +
-                                "Try completing a track from the 30 core languages (Python, JavaScript, etc.) that have full 21-lesson content."
-                              );
+                              toast.warning("Certificates not available for this technology", {
+                                description: "This track doesn't have full lesson content yet. Try one of the 30 core languages (Python, JavaScript, etc.) that have full 21-lesson content.",
+                              });
                             } else {
-                              alert(
-                                "Certificate could not be issued. This may be a temporary server issue — please try again in a moment.\n\n" +
-                                "Your progress is saved. The certificate will be issued automatically on your next visit or when you complete another quiz."
-                              );
+                              toast.error("Certificate could not be issued", {
+                                description: "This may be a temporary server issue. Your progress is saved; the certificate will be issued automatically on your next visit or when you complete another quiz.",
+                              });
                             }
                             return;
                           }
@@ -1312,7 +1311,18 @@ function LessonBlockView({
     return <h2 className="text-lg font-bold mt-4 first:mt-0">{block.content}</h2>;
   }
   if (block.kind === "text") {
-    return <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-line">{block.content}</p>;
+    // v5.933: improved readability — text-[15px] (slightly larger), leading-7
+    // (more generous line spacing), and whitespace-pre-line preserves paragraph
+    // breaks. Splits content on double-newlines into separate <p> tags for
+    // better visual paragraph separation.
+    const paragraphs = block.content.split(/\n\n+/);
+    return (
+      <div className="space-y-2">
+        {paragraphs.map((para, i) => (
+          <p key={i} className="text-[15px] leading-7 text-foreground/90 whitespace-pre-line">{para}</p>
+        ))}
+      </div>
+    );
   }
   if (block.kind === "whyItMatters") {
     return (
@@ -1320,7 +1330,7 @@ function LessonBlockView({
         <Target className="h-4 w-4 text-teal-500 shrink-0 mt-0.5" />
         <div>
           <div className="text-[10px] font-semibold uppercase text-teal-600 dark:text-teal-400 mb-0.5">Why this matters</div>
-          <p className="text-sm leading-relaxed">{block.content}</p>
+          <p className="text-[15px] leading-7">{block.content}</p>
         </div>
       </div>
     );

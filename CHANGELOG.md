@@ -1,13 +1,118 @@
 # Launchpad CHANGELOG
 
 This file merges all previous changelogs and adds the new
-**v5.932 (Research-Backed AI Bonus Track + Sidebar Timing Rebalance + Version Popup Scroll Fix + New-User Notification Pacing + Community Tab Re-Confirmation)**
+**v5.933 (Version Popup Header Restore + Sidebar Edge Fix + Native Dialog Replacement + Content Readability)**
 entries. Entries are in reverse chronological order.
 
 > **Dual-format release notes (v5.926+):** This CHANGELOG.md is the TECHNICAL
 > developer-facing record. The user-facing plain-language summary shown in the
 > app's version-update popup lives in `src/lib/version-info.ts`. Both must be
 > updated on every release.
+
+---
+
+## v5.933 — Version Popup Header Restore + Sidebar Edge Fix + Native Dialog Replacement + Content Readability
+
+### 1. Version Update popup — missing header restored (without reintroducing horizontal scroll)
+
+**Root cause (regression from v5.932):** The v5.932 horizontal-scroll fix
+added `!flex !flex-col` to `DialogContent` (to override the grid display that
+was expanding tracks to content width) AND `overflow-hidden` to
+`DialogHeader`. The combination caused the DialogHeader to collapse to 1px
+height in the flex column — `overflow-hidden` on a flex item with no
+explicit `shrink-0` allows it to shrink to near-zero, making the "What's New"
+heading, version badge, and date invisible (clipped to 1px).
+
+**Fix:** Removed `overflow-hidden` from DialogHeader; added `shrink-0` to
+prevent flex collapse. The `!flex !flex-col` on DialogContent is KEPT (needed
+for the horizontal-scroll fix). Both fixes now hold simultaneously:
+- Header height: 159.5px (was 1px)
+- "What's New" title: visible (28px height)
+- Horizontal scroll: NONE (scrollWidth=510=clientWidth)
+
+**VLM-verified:** "What's New heading visible, version number v5.933.0 visible,
+point descriptions short and scannable."
+
+### 2. Version popup — point descriptions shortened
+
+Shortened every highlight in v5.932 and v5.931 from dense paragraphs (200+
+chars) to scannable 1-2 sentence summaries (~80-120 chars). Applied to both
+the latest version and historical versions.
+
+### 3. Sidebar right-edge visual glitch — fixed
+
+**Root cause (from v5.932 restructuring):** The v5.932 single-wrapper-div
+restructuring added `overflow-hidden` to the wrapper div. The Sidebar
+`<aside>` (with `rounded-3xl`) was `w-[244px]` but its parent container (after
+`p-3` padding) was only 220px — the aside overflowed, and `overflow-hidden`
+on the wrapper clipped the right rounded corner, producing a hard rectangular
+cutoff.
+
+**Fix (both timing fix AND visual fix hold simultaneously):**
+- Removed `overflow-hidden` from the wrapper div (the aside has its own
+  `overflow-hidden` + `rounded-3xl` for internal clipping)
+- Changed Sidebar `<aside>` from `w-[244px]`/`w-[68px]` to `w-full` (respects
+  the container width, so rounded corners are visible within the p-3 padding)
+- Added `border border-border/40` to the aside for a visible edge that makes
+  the rounded boundary prominent against dark backgrounds
+- Timing fix preserved: single wrapper div, duration-500 ease-in-out sidebar,
+  duration-200 content — collapse/expand verified smooth (48px ↔ 244px)
+
+**VLM-verified:** "Top-right and bottom-right corners are rounded/curved, with
+a visible border outline around the sidebar panel."
+
+### 4. Native browser confirm()/alert() — replaced with themed modals
+
+**New file:** `src/components/shell/ConfirmDialog.tsx` — exports `ConfirmDialog`
+(for destructive confirmations) and `InfoDialog` (for informational alerts).
+Both use the app's glass-styled `AlertDialog` component.
+
+**Replaced instances (full audit):**
+| File | Old | New |
+|---|---|---|
+| NotificationCentre.tsx | `window.confirm("Clear all...")` | `ConfirmDialog` (themed, destructive style) |
+| CommandPalette.tsx | `window.confirm("Reset ALL progress...")` | `ConfirmDialog` (themed, destructive style) |
+| CareerView.tsx | `alert("Career Master Certificate...")` | `toast.error()` with description |
+| LearnView.tsx (×2) | `alert("Certificates not available...")` / `alert("Certificate could not be issued...")` | `toast.warning()` / `toast.error()` |
+| RoadmapView.tsx | `alert("🔒 This phase is locked...")` | `toast.warning()` with 6s duration |
+| AIChat.tsx | `alert("Please complete onboarding...")` | `toast.warning()` with description |
+| certificate-pdf.ts (×2) | `alert("Certificate not issued...")` | `toast.error()` with description |
+
+**Verified:** `grep -rn "window\.confirm\|alert(" src/` returns 0 live code
+instances (only comments and XSS lesson content remain).
+
+### 5. Content readability — AI Bonus Track and Learn tab
+
+**AI Bonus Track (RoadmapView task detail):**
+- Split the `brief` field on "Try this:" — the explanation renders as a normal
+  paragraph, the "Try this:" action step renders as a highlighted callout box
+  with an accent border + Target icon + "TRY THIS" label. This makes the
+  concrete next step visually scannable rather than buried in a dense paragraph.
+- Added `leading-relaxed` to the "Why this matters" text (was `text-sm` only).
+- Added `text-foreground/90` for slightly brighter text.
+
+**Learn tab (LearnView lesson blocks):**
+- `text` blocks: bumped from `text-sm` (14px) to `text-[15px]` for readability;
+  added `leading-7` (1.75rem line height) for more generous line spacing.
+- `text` blocks: split content on double-newlines (`\n\n`) into separate `<p>`
+  tags for better visual paragraph separation (was a single `<p>` with
+  `whitespace-pre-line`).
+- `whyItMatters` blocks: same `text-[15px] leading-7` upgrade.
+- Blocks container: `space-y-3` → `space-y-4` for more breathing room between
+  blocks.
+
+**Techniques applied:** larger text, more line spacing, paragraph splitting,
+highlighted action callouts, more spacing between sections, visible borders.
+
+### 6. Additional bugs found and fixed during this pass
+
+- **Sidebar `<aside>` width overflow (pre-existing, exacerbated by v5.932):**
+  The aside was `w-[244px]` inside a `p-3` padded container that was only 220px
+  wide. Fixed by changing to `w-full` so the aside respects its container.
+
+### Version bump
+
+`package.json` 5.932.0 → 5.933.0.
 
 ---
 

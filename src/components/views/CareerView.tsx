@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createPortal } from "react-dom";
+import { toast } from "sonner";
 import {
   Rocket,
   Github,
@@ -251,10 +252,9 @@ export function CareerView() {
                       // v5.866 BUG 1B FIX: await the result and check for failure.
                       const resultCertId = await issueCareerCertificate(career.label, finalName);
                       if (!resultCertId) {
-                        alert(
-                          "Career Master Certificate could not be issued. This may be a temporary server issue — please try again in a moment.\n\n" +
-                          "Your progress is saved. The certificate will be issued automatically on your next visit."
-                        );
+                        toast.error("Career Master Certificate could not be issued", {
+                          description: "This may be a temporary server issue — please try again in a moment. Your progress is saved; the certificate will be issued automatically on your next visit.",
+                        });
                         return;
                       }
                       // Success — generate the PDF with the real certId

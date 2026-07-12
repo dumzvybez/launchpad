@@ -26,6 +26,7 @@ import { useStore } from "@/lib/store";
 import { ALL_LANGUAGE_INFO } from "@/lib/lessons-meta";
 import type { Lesson } from "@/lib/types";
 import { openPrintableHtml } from "@/lib/print-utils";
+import { toast } from "sonner";
 
 function escapeHtml(s: string): string {
   return s
@@ -312,10 +313,9 @@ export function openLanguageCertificatePdf(
   const html = buildLanguageCertificateHtml(name, trackName, trackId, trackLessons);
   if (!html) {
     console.error("[openLanguageCertificatePdf] no stored certId for track:", trackId);
-    alert(
-      "Certificate has not been issued yet. Click 'Issue certificate' first.\n\n" +
-        "If you already clicked it and got an error, please try again.",
-    );
+    toast.error("Certificate not issued yet", {
+      description: "Click 'Issue certificate' first. If you already clicked it and got an error, please try again.",
+    });
     return false;
   }
   const stored = useStore.getState().state.certificates[trackId]!;
@@ -340,10 +340,9 @@ export function openCareerCertificatePdf(
   const html = buildCareerCertificateHtml(name, careerLabel, languageIds, totalHours);
   if (!html) {
     console.error("[openCareerCertificatePdf] no stored career certId");
-    alert(
-      "Career Master Certificate has not been issued yet. Click 'Issue certificate' first.\n\n" +
-        "If you already clicked it and got an error, please try again.",
-    );
+    toast.error("Career Master Certificate not issued yet", {
+      description: "Click 'Issue certificate' first. If you already clicked it and got an error, please try again.",
+    });
     return false;
   }
   const stored = useStore.getState().state.careerCertificate!;

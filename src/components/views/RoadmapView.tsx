@@ -617,11 +617,10 @@ function TaskDetailView({
 
   const handleToggleTask = () => {
     if (phaseLocked) {
-      alert(
-        `🔒 This phase is locked.\n\n` +
-        `Phase ${phase.number} unlocks when you complete Phase ${phase.number - 1}.\n\n` +
-        `You can still preview the tasks in this phase, but you'll need to complete the previous phase first to mark them as done.`
-      );
+      toast.warning(`Phase ${phase.number} is locked`, {
+        description: `Complete Phase ${phase.number - 1} to unlock. You can preview tasks now, but you'll need to finish the previous phase first to mark them done.`,
+        duration: 6000,
+      });
       return;
     }
     toggleTask(task.id);
@@ -714,16 +713,40 @@ function TaskDetailView({
           )}
         </div>
 
-        {/* Why this matters */}
+        {/* Why this matters — v5.933: improved readability with leading-relaxed */}
         <div className="rounded-lg bg-foreground/5 p-3 mb-3">
-          <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Why this matters</div>
-          <p className="text-sm">{task.why}</p>
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1.5">Why this matters</div>
+          <p className="text-sm leading-relaxed text-foreground/90">{task.why}</p>
         </div>
 
-        {/* Brief */}
+        {/* Brief — v5.933: split on "Try this:" to separate explanation from action.
+            The explanation renders as a normal paragraph; the "Try this:" action
+            step renders as a highlighted callout with an accent border, making
+            the concrete next step visually scannable rather than buried in text. */}
         <div className="rounded-lg bg-card/60 border border-border/60 p-3 mb-3">
-          <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">What to do</div>
-          <p className="text-sm">{task.brief}</p>
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1.5">What to do</div>
+          {(() => {
+            const tryThisIdx = task.brief.indexOf("Try this:");
+            if (tryThisIdx === -1) {
+              return <p className="text-sm leading-relaxed text-foreground/90">{task.brief}</p>;
+            }
+            const explanation = task.brief.slice(0, tryThisIdx).trim();
+            const action = task.brief.slice(tryThisIdx + "Try this:".length).trim();
+            return (
+              <div className="space-y-2.5">
+                {explanation && <p className="text-sm leading-relaxed text-foreground/90">{explanation}</p>}
+                {action && (
+                  <div className="flex items-start gap-2 rounded-lg border border-primary/30 bg-primary/5 p-2.5">
+                    <Target className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wide text-primary">Try this</span>
+                      <p className="text-sm leading-relaxed text-foreground/90 mt-0.5">{action}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Steps */}

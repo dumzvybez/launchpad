@@ -46,6 +46,7 @@ import { useStore } from "@/lib/store";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import type { ViewId } from "@/lib/types";
+import { ConfirmDialog } from "@/components/shell/ConfirmDialog";
 import { getLessons } from "@/lib/lessons-data";
 import { PROJECTS } from "@/lib/projects-data";
 import { ALL_LANGUAGE_INFO } from "@/lib/lessons-meta";
@@ -259,12 +260,18 @@ export function CommandPalette() {
     handleClose();
   };
 
+  // v5.933: replaced native window.confirm with themed ConfirmDialog.
+  const [showResetConfirm, setShowResetConfirm] = React.useState(false);
+
   const handleReset = () => {
-    if (window.confirm("Reset ALL progress? This cannot be undone.")) {
-      resetAll();
-      toast.success("Workspace reset");
-      handleClose();
-    }
+    setShowResetConfirm(true);
+  };
+
+  const confirmReset = () => {
+    resetAll();
+    toast.success("Workspace reset");
+    handleClose();
+    setShowResetConfirm(false);
   };
 
   const handleImport = () => {
@@ -459,6 +466,18 @@ export function CommandPalette() {
           </>
         )}
       </CommandList>
+
+      {/* v5.933: themed confirmation modal for Reset (replaces native window.confirm) */}
+      <ConfirmDialog
+        open={showResetConfirm}
+        onOpenChange={setShowResetConfirm}
+        title="Reset all progress?"
+        description="This will permanently delete ALL your progress — tasks, lessons, notes, badges, certificates, and streaks. This action cannot be undone."
+        confirmLabel="Reset everything"
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={confirmReset}
+      />
     </CommandDialog>
   );
 }
