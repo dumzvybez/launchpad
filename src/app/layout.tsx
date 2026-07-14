@@ -8,6 +8,7 @@ import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { AchievementWatcher } from "@/components/pwa/AchievementWatcher";
 import { CalendarNotifier } from "@/components/pwa/CalendarNotifier";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -184,6 +185,7 @@ export default function RootLayout({
           <InstallPrompt />
           <AchievementWatcher />
           <CalendarNotifier />
+          <SpeedInsights />
         </ThemeProvider>
       </body>
     </html>
