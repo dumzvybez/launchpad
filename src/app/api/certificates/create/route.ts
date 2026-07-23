@@ -4,6 +4,12 @@ import {
   generateSignedCertificateId,
   generateSignedCareerCertificateId,
 } from "@/lib/certificate-utils";
+import { getExpectedLessonCount, TRACK_LESSON_SLUGS } from "@/lib/lessons-meta";
+import { CERTIFICATE_QUIZ_THRESHOLD } from "@/lib/constants";
+import {
+  LESSON_SLUGS,
+  SLUG_TO_ID,
+} from "@/lib/lessons-meta-generated";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -77,55 +83,94 @@ function validateProgressProof(
       completedIdsPreview: completedIds.slice(0, 3),
     });
 
-    // Check 1: exactly 21 lesson IDs matching ${trackId}-01 through ${trackId}-21
-    const expectedIds: string[] = [];
-    for (let i = 1; i <= 21; i++) {
-      expectedIds.push(`${trackId}-${String(i).padStart(2, "0")}`);
-    }
+    // v6.0: The server now validates against the REAL lesson set using stable
+    // slugs (from TRACK_LESSON_SLUGS, build-generated). This replaces the v5.x
+    // approach of reconstructing expected positional IDs from a count.
+    //
+    // Backward compatibility: the client may submit EITHER:
+    //   - stable slugs (v6.0+ clients): "python-variables-and-data-types", etc.
+    //   - legacy positional ids (v5.x clients): "python-01", ..., "python-21"
+    //   - legacy capstone ids: "python-capstone"
+    //
+    // We normalize each submitted id to its slug via LESSON_SLUGS, then check
+    // the slug set covers the full expected slug set from TRACK_LESSON_SLUGS.
+    const expectedSlugs = TRACK_LESSON_SLUGS[trackId];
+    const expectedCount = getExpectedLessonCount(trackId);
 
-    const completedSet = new Set(completedIds);
-    const missingIds = expectedIds.filter((id) => !completedSet.has(id));
-
-    if (missingIds.length > 0) {
-      console.error("[certificates/create] 403 REASON: incomplete track", {
-        trackId,
-        missingCount: missingIds.length,
-        missingPreview: missingIds.slice(0, 5),
-        receivedCount: completedIds.length,
-        receivedPreview: completedIds.slice(0, 5),
-      });
+    // v6.0: Loud failure for unknown tracks (getExpectedLessonCount now returns
+    // 0 instead of the legacy 21 fallback). This prevents the v5.x bug where
+    // a track not in the generated map would silently expect 21 lessons.
+    if (expectedCount === 0 || !expectedSlugs || expectedSlugs.length === 0) {
+      console.error("[certificates/create] 403 REASON: unknown track", { trackId });
       return {
         valid: false,
-        error: `Incomplete track: ${missingIds.length} lessons not completed. Expected 21, got ${completedIds.length}.`,
+        error: `Unknown track: "${trackId}" has no generated lesson metadata. Run \`bun run gen:meta\` to regenerate.`,
       };
     }
 
-    // Check 2: at least 21 quiz scores with valid values
+    // Normalize each submitted completed id to its canonical slug.
+    // - If it's already a slug (in SLUG_TO_ID), keep it.
+    // - If it's a positional id (in LESSON_SLUGS), map to slug.
+    // - If it's a capstone id ("track-capstone"), map via LESSON_SLUGS.
+    // - Otherwise (unknown), pass through (will fail the expected-set check).
+    const normalizeToSlug = (id: string): string => {
+      if (SLUG_TO_ID[id]) return id;        // already a slug
+      const slug = LESSON_SLUGS[id];        // positional or capstone id → slug
+      return slug ?? id;                     // unknown — passthrough (will be rejected)
+    };
+
+    const completedSlugs = new Set(completedIds.map(normalizeToSlug));
+    // Only count slugs that actually belong to this track (defensive: a
+    // malicious client submitting other tracks' slugs shouldn't count).
+    const expectedSlugSet = new Set(expectedSlugs);
+    const trackCompletedSlugs = [...completedSlugs].filter((s) => expectedSlugSet.has(s));
+
+    const missingSlugs = expectedSlugs.filter((s) => !completedSlugs.has(s));
+
+    if (missingSlugs.length > 0) {
+      console.error("[certificates/create] 403 REASON: incomplete track", {
+        trackId,
+        expectedCount,
+        missingCount: missingSlugs.length,
+        missingPreview: missingSlugs.slice(0, 5),
+        receivedCount: trackCompletedSlugs.length,
+        receivedPreview: trackCompletedSlugs.slice(0, 5),
+      });
+      return {
+        valid: false,
+        error: `Incomplete track: ${missingSlugs.length} of ${expectedCount} lessons not completed. Expected ${expectedCount}, got ${trackCompletedSlugs.length}.`,
+      };
+    }
+
+    // Check 2: at least expectedCount quiz scores with valid values.
+    // v6.0: quizScores keys may be slugs OR positional ids (backward compat);
+    // we count valid numeric scores regardless of key form.
     const scoreValues = Object.values(quizScores).filter((s) => typeof s === "number" && s >= 0 && s <= 100);
-    if (scoreValues.length < 21) {
+    if (scoreValues.length < expectedCount) {
       console.error("[certificates/create] 403 REASON: insufficient quiz scores", {
         trackId,
         receivedScores: scoreValues.length,
-        expectedScores: 21,
+        expectedScores: expectedCount,
         allKeys: Object.keys(quizScores).slice(0, 5),
       });
       return {
         valid: false,
-        error: `Insufficient quiz data: expected 21 quiz scores, got ${scoreValues.length}.`,
+        error: `Insufficient quiz data: expected ${expectedCount} quiz scores, got ${scoreValues.length}.`,
       };
     }
 
-    // Check 3: quiz average ≥ 75%
+    // Check 3: quiz average ≥ CERTIFICATE_QUIZ_THRESHOLD (75%).
+    // v6.0: uses the shared constant (was a hardcoded 75 literal).
     const avg = scoreValues.reduce((sum, s) => sum + s, 0) / scoreValues.length;
-    if (avg < 75) {
+    if (avg < CERTIFICATE_QUIZ_THRESHOLD) {
       console.error("[certificates/create] 403 REASON: quiz average too low", {
         trackId,
         average: avg,
-        required: 75,
+        required: CERTIFICATE_QUIZ_THRESHOLD,
       });
       return {
         valid: false,
-        error: `Quiz average too low: ${avg.toFixed(1)}% (required: ≥75%).`,
+        error: `Quiz average too low: ${avg.toFixed(1)}% (required: ≥${CERTIFICATE_QUIZ_THRESHOLD}%).`,
       };
     }
 

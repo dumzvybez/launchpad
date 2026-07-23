@@ -1,19 +1,17 @@
-# ============================================================
-# Launchpad — Caddy reverse proxy config (v5.77)
-# ============================================================
-#
-# v5.77 SECURITY FIX: removed the `?XTransformPort=` handler that allowed
-# any external client to proxy to arbitrary localhost ports (SSRF).
-# That handler was an open proxy to every internal service (Postgres,
-# Redis, cloud metadata, etc.) and was a critical vulnerability.
-#
-# This file is intended for LOCAL DEVELOPMENT ONLY.
-# For production, deploy to Vercel (which handles TLS, routing, etc.)
-# or write a proper Caddyfile with a real domain + auto-TLS.
-# ============================================================
-
 :81 {
-	# Default: proxy everything to the Next.js dev server on :3000
+	@transform_port_query {
+		query XTransformPort=*
+	}
+
+	handle @transform_port_query {
+		reverse_proxy localhost:{query.XTransformPort} {
+			header_up Host {host}
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
 	handle {
 		reverse_proxy localhost:3000 {
 			header_up Host {host}

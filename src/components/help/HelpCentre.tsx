@@ -96,7 +96,7 @@ const QA = [
   },
   {
     q: "How many languages does Launchpad cover?",
-    a: "30 technologies across languages, frameworks, markup, and databases: Python, JavaScript, TypeScript, HTML, CSS, SQL, Java, C, C++, C#, Go, Rust, Swift, Kotlin, PHP, Ruby, R, Dart, Bash, React, Next.js, Django, FastAPI, Flask, Svelte, Vue, Angular, Node.js, PostgreSQL, and MongoDB. Each technology has 20 stages + 1 capstone = 21 lessons, for a total of 630 lessons and 6,000 quiz questions (10 per stage).",
+    a: "30 technologies across languages, frameworks, markup, and databases: Python, JavaScript, TypeScript, HTML, CSS, SQL, Java, C, C++, C#, Go, Rust, Swift, Kotlin, PHP, Ruby, R, Dart, Bash, React, Next.js, Django, FastAPI, Flask, Svelte, Vue, Angular, Node.js, PostgreSQL, and MongoDB. Each technology has a variable number of topic-based lessons (currently 21 per track, expanding to 100-150+), each with a 10-question quiz.",
   },
   {
     q: "What is spaced repetition in quizzes?",
@@ -124,7 +124,7 @@ const QA = [
   },
   {
     q: "What happens when I complete a lesson in the Learn tab?",
-    a: "Two things: (1) Your lesson progress is saved (not started → in progress → complete) and your best quiz score is recorded. (2) If your roadmap has a task linked to that lesson (shown with a 'Lesson: xx-NN' badge in the task detail), the task is automatically marked complete — you earn the XP and your streak updates. Complete all lessons in a track (e.g. all 21 Python lessons including the capstone) to generate a PDF certificate.",
+    a: "Two things: (1) Your lesson progress is saved (not started → in progress → complete) and your best quiz score is recorded. (2) If your roadmap has a task linked to that lesson (shown with a 'Lesson: xx-NN' badge in the task detail), the task is automatically marked complete — you earn the XP and your streak updates. Complete all lessons in a track (e.g. all Python lessons) and maintain a 75%+ quiz average to generate a PDF certificate.",
   },
   {
     q: "How are projects chosen for me?",

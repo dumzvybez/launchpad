@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useStore } from "@/lib/store";
+import { resolveRef } from "@/lib/identity";
 import { cn } from "@/lib/utils";
 import { AuroraBackground } from "@/components/glass/AuroraBackground";
 // v5.865 fix (4.13): getNavItems import removed — unused in AppShell.
@@ -151,9 +152,10 @@ export function AppShell() {
         const lessonNum = parseInt(subPath[1], 10);
         const lessonId = !isNaN(lessonNum) ? `${trackId}-${String(lessonNum).padStart(2, "0")}` : null;
         if (lessonId) {
+          // v6.0: resolve the positional lessonId (from URL) to a stable slug.
           useStore.getState().setLearnTabState({
             tab: "lesson",
-            selectedLessonId: lessonId,
+            selectedLessonId: resolveRef(lessonId),
             selectedTrack: trackId,
           });
         } else if (trackId) {

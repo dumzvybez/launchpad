@@ -356,7 +356,7 @@ function PrivacyIntroStep() {
         <p className="text-sm leading-relaxed">
           Launchpad is a free, open-source platform that builds you a personalized coding
           roadmap based on your career, languages, and availability. It tracks your progress,
-          teaches you with built-in lessons (630 lessons across 30 languages), includes an
+          teaches you with built-in lessons (30+ languages with topic-based lessons), includes an
           inline code editor (run JS/Python/SQL/HTML/CSS/Bash right in the lesson), an AI
           tutor with mock interview mode, AI code review, a resume auto-builder, and a
           community layer via GitHub Discussions.

@@ -1,19 +1,19 @@
 "use client";
 
 /**
- * AIVerifyDialog — shared AI verification flow for Projects + Capstones (v5.925).
+ * AIVerifyDialog — AI verification flow for Projects (v5.925, v5.937).
  *
- * ONE reusable mechanism, TWO contexts:
- *   - Projects tab: a "Verify Project" button opens this dialog. The user
- *     submits code (paste-text with multi-file support, or text-file upload).
- *     The AI assesses whether the code fulfills the project's stated
- *     deliverables and returns a structured verified/not-verified signal.
- *     Verified → the project is marked shipped + counts toward Career
- *     Readiness. Not-verified → the user sees feedback + can resubmit.
- *   - Capstone lessons (lesson 21 of each track): the dead "Take Quiz"
- *     button is replaced with "AI Verify". Same dialog, same flow, adapted
- *     to the capstone's requirements. Verified → setLessonProgress(complete)
- *     which satisfies the "all 21 lessons complete" certificate requirement.
+ * v5.937: capstone-in-Learn-tab removed entirely. This dialog is now
+ * PROJECT-ONLY — the sole mechanism for project/capstone-style verification
+ * lives in the Projects tab. The capstone mode (mode: "capstone") has been
+ * removed from AIVerifyTarget.
+ *
+ * Projects tab: a "Verify Project" button opens this dialog. The user
+ * submits code (paste-text with multi-file support, or text-file upload).
+ * The AI assesses whether the code fulfills the project's stated
+ * deliverables and returns a structured verified/not-verified signal.
+ * Verified → the project is marked shipped + counts toward Career
+ * Readiness. Not-verified → the user sees feedback + can resubmit.
  *
  * File-upload feasibility (verified, not assumed): the /api/chat route is
  * TEXT-ONLY (no multipart/formData, no image/base64 fields). So file upload
@@ -53,22 +53,15 @@ import { cn } from "@/lib/utils";
 import { GlassButton } from "@/components/glass/GlassPrimitives";
 import { MarkdownRenderer } from "@/components/ai/MarkdownRenderer";
 import type { Project } from "@/lib/projects-data";
-import type { Lesson } from "@/lib/types";
 
 // ============================================================
 // Types
 // ============================================================
 
-export type AIVerifyTarget =
-  | {
-      mode: "project";
-      project: Project;
-    }
-  | {
-      mode: "capstone";
-      lesson: Lesson;
-      trackName: string;
-    };
+export type AIVerifyTarget = {
+  mode: "project";
+  project: Project;
+};
 
 export type AIVerifyResult = {
   passed: boolean;
@@ -181,13 +174,7 @@ CORE DELIVERABLES (the project is PASS only if ALL are met):
 ${p.deliverables.map((d, i) => `${i + 1}. ${d}`).join("\n")}
 ${p.stretchGoals && p.stretchGoals.length > 0 ? `\nSTRETCH GOALS (optional — do not fail for missing these):\n${p.stretchGoals.map((g) => `- ${g}`).join("\n")}` : ""}`;
   }
-  // capstone mode
-  const l = target.lesson;
-  return `${base}
-
-CAPSTONE PROJECT: ${l.title}
-TRACK: ${target.trackName}
-${l.description ? `DESCRIPTION: ${l.description}\n` : ""}This is the capstone project for the ${target.trackName} track. The learner must demonstrate mastery of the track's concepts. Assess whether the submitted code represents a genuine, working implementation (not stub/placeholder code).`;
+  return base; // unreachable, but satisfies the type checker
 }
 
 // ============================================================
@@ -361,9 +348,7 @@ export function AIVerifyDialog({ open, onOpenChange, target, onVerified }: AIVer
           <div>
             <h3 id="ai-verify-title" className="text-sm font-semibold">{title}</h3>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              {target.mode === "project"
-                ? `Submit your code — the AI checks it against the project's deliverables. Verified = counts toward Career Readiness.`
-                : `Submit your capstone code — the AI verifies it represents genuine mastery. Verified = lesson complete + counts toward your certificate.`}
+              Submit your code — the AI checks it against the project's deliverables. Verified = counts toward Career Readiness.
             </p>
           </div>
           <button onClick={close} className="text-xs text-muted-foreground hover:text-foreground p-1 rounded" aria-label="Close">

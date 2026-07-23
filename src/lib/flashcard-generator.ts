@@ -22,19 +22,22 @@
 
 import type { Flashcard, Lesson } from "./types";
 import { getTrackLessons } from "./lessons-data";
+import { lessonSlug } from "./identity";
 
 /**
  * Generate flashcards for a single lesson.
  */
 export function generateFlashcardsForLesson(lesson: Lesson): Flashcard[] {
   const cards: Flashcard[] = [];
+  // v6.0: flashcard id + lessonId now use the stable slug (survives reorder).
+  const slug = lessonSlug(lesson);
 
   for (const block of lesson.blocks) {
     if (block.kind === "keyConcepts") {
       block.items.forEach((item, i) => {
         cards.push({
-          id: `${lesson.id}:keyConcepts:${i}`,
-          lessonId: lesson.id,
+          id: `${slug}:keyConcepts:${i}`,
+          lessonId: slug,
           trackId: lesson.track,
           // v5.76: front is a prompt that does NOT reveal the answer.
           // The concept text is only on the back.
@@ -51,8 +54,8 @@ export function generateFlashcardsForLesson(lesson: Lesson): Flashcard[] {
     } else if (block.kind === "interviewQuestions") {
       block.items.forEach((item, i) => {
         cards.push({
-          id: `${lesson.id}:interviewQuestions:${i}`,
-          lessonId: lesson.id,
+          id: `${slug}:interviewQuestions:${i}`,
+          lessonId: slug,
           trackId: lesson.track,
           front: item,
           // v5.76: back provides a structured answer guide, not a placeholder.
@@ -72,8 +75,8 @@ export function generateFlashcardsForLesson(lesson: Lesson): Flashcard[] {
   // Quiz questions — front: question text (no answer leaked), back: correct answer + explanation
   lesson.quiz.forEach((q, i) => {
     cards.push({
-      id: `${lesson.id}:quiz:${i}`,
-      lessonId: lesson.id,
+      id: `${slug}:quiz:${i}`,
+      lessonId: slug,
       trackId: lesson.track,
       front: q.question,
       back: `Answer: ${q.options[q.correctIndex] ?? "?"}${q.explanation ? `\n\nExplanation: ${q.explanation}` : ""}`,

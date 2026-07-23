@@ -20,6 +20,8 @@ import { useStore, selectPhaseProgress } from "@/lib/store";
 import { GlassCard, ProgressBar, GlassButton } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
 import { getLessonById, getTrackLessons } from "@/lib/lessons-data";
+// v6.0: stable identity helpers
+import { resolveRef, getLessonByRef } from "@/lib/identity";
 import type { GeneratedPhase, LessonGroup } from "@/lib/types";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -287,9 +289,12 @@ function LessonGroupsView({
   };
 
   const goToLesson = (lessonId: string, trackId: string) => {
+    // v6.0: store the stable slug in selectedLessonId (resolveRef normalizes
+    // positional id → slug). LearnView reads it back via getLessonByRef.
+    const slug = resolveRef(lessonId);
     setLearnTabState({
       tab: "lesson",
-      selectedLessonId: lessonId,
+      selectedLessonId: slug,
       selectedTrack: trackId,
     });
     setView("learn");
@@ -306,7 +311,7 @@ function LessonGroupsView({
           const isExpanded = expandedModules.has(group.title);
           // Count completed lessons in this group
           const completedInGroup = group.lessonIds.filter(
-            (id) => lessonProgress[id]?.status === "complete"
+            (id) => lessonProgress[resolveRef(id)]?.status === "complete"
           ).length;
           const totalInGroup = group.lessonIds.length;
           const groupPct = totalInGroup > 0 ? Math.round((completedInGroup / totalInGroup) * 100) : 0;
@@ -336,8 +341,8 @@ function LessonGroupsView({
               {isExpanded && (
                 <div className="border-t border-border/30 p-2 space-y-1">
                   {group.lessonIds.map((lessonId, li) => {
-                    const lesson = getLessonById(lessonId);
-                    const isComplete = lessonProgress[lessonId]?.status === "complete";
+                    const lesson = getLessonByRef(lessonId);
+                    const isComplete = lessonProgress[resolveRef(lessonId)]?.status === "complete";
                     const lessonNum = group.lessonNumbers[li];
 
                     return (
@@ -603,7 +608,7 @@ function TaskDetailView({
   const lessonProgress = useStore((s) => s.state.lessonProgress);
   const manualTaskComplete = useStore((s) => !!s.state.tasks[task.id]?.completedAt);
   const lessonComplete = hasLessonLink
-    ? (lessonProgress[task.lessonId!]?.status === "complete")
+    ? (lessonProgress[resolveRef(task.lessonId!)]?.status === "complete")
     : false;
   const isComplete = hasLessonLink ? lessonComplete : manualTaskComplete;
 
@@ -658,10 +663,11 @@ function TaskDetailView({
                   // Section 18 — deep-link into the specific lesson, not just
                   // the Learn tab. Previously this only called setView("learn")
                   // and the user landed on the generic tracks list.
-                  const lesson = getLessonById(task.lessonId!);
+                  // v6.0: resolve task.lessonId (positional) → slug for stable storage.
+                  const lesson = getLessonByRef(task.lessonId!);
                   setLearnTabState({
                     tab: "lesson",
-                    selectedLessonId: task.lessonId!,
+                    selectedLessonId: resolveRef(task.lessonId!),
                     selectedTrack: lesson?.track ?? null,
                   });
                   setView("learn");

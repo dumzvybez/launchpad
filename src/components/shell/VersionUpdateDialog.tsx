@@ -14,7 +14,6 @@ import {
 import { GlassButton } from "@/components/glass/GlassPrimitives";
 import {
   APP_VERSION,
-  RELEASES,
   LATEST_RELEASE,
   HIGHLIGHT_LABELS,
   type ReleaseHighlightType,
@@ -216,23 +215,11 @@ export function VersionUpdateDialog({ forceOpen = false, onForceClose }: { force
               by default for the latest version. */}
           <VersionCategories release={LATEST_RELEASE} defaultExpanded={true} />
 
-          {/* Historical versions — v5.931: now show categorized point-by-point
-              details (matching the latest version's style) instead of a prose
-              summary. Each category is collapsible and collapsed by default to
-              keep the list scannable; entries are kept compact/short. */}
-          {RELEASES.length > 1 && (
-            <div className="mt-4 pt-3 border-t border-border/40">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono mb-2 flex items-center gap-1">
-                <History className="h-3 w-3" /> Previous versions
-              </div>
-              <div className="space-y-1.5">
-                {RELEASES.slice(1).map((release) => (
-                  <HistoricalVersion key={release.version} release={release} />
-                ))}
-              </div>
-            </div>
-          )}
-
+          {/* v6.003: Simplified popup — users only need to see what just changed
+              in THIS release. The full historical changelog lives at the
+              CHANGELOG.md link in the footer for anyone who wants it. Showing
+              16 old release entries here was noise that buried the actual
+              "what's new" content. */}
           {/* Footer */}
           <DialogFooter className="mt-2 sm:items-center sm:justify-between gap-3">
             <a
@@ -333,32 +320,9 @@ function CategorySection({ type, items, defaultExpanded, compact = false }: { ty
   );
 }
 
-/** HistoricalVersion — v5.931: now shows categorized point-by-point details
- *  (matching the latest version's style, in compact form) instead of a prose
- *  summary paragraph. The version row expands to reveal the same collapsible
- *  New / Improved / Fixed / Removed category sections. */
-function HistoricalVersion({ release }: { release: ReleaseInfo }) {
-  const [expanded, setExpanded] = useState(false);
-  return (
-    <div className="rounded-xl bg-card/30 border border-border/40 overflow-hidden">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-2 p-2 rounded-xl hover:bg-foreground/5 transition-colors text-left"
-      >
-        {expanded ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
-        <span className="text-[11px] font-mono text-primary font-semibold">v{release.version}</span>
-        <span className="text-[11px] text-muted-foreground">·</span>
-        <span className="text-[11px] text-foreground/80 truncate flex-1">{release.title}</span>
-        <span className="text-[10px] text-muted-foreground font-mono shrink-0">{formatDate(release.date)}</span>
-      </button>
-      {expanded && (
-        <div className="px-2 pb-2">
-          <VersionCategories release={release} defaultExpanded={false} compact />
-        </div>
-      )}
-    </div>
-  );
-}
+// v6.003: HistoricalVersion component removed — the popup no longer shows the
+// previous-versions list (only the latest release is shown). The full
+// changelog remains available via the CHANGELOG.md link in the footer.
 
 /** Format an ISO date (YYYY-MM-DD) into a friendly, locale-aware label. */
 function formatDate(iso: string): string {

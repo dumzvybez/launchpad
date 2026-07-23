@@ -381,9 +381,23 @@ export type LessonProgress = {
 // SM-2 Spaced Repetition (Section 1)
 // ============================================================
 
-/** Per-question SM-2 spaced repetition record */
+/** Per-question SM-2 spaced repetition record.
+ *
+ *  v6.0: The record's KEY in AppState.questionRecords is now the globally-
+ *  unique quiz slug (e.g. "python.variables-data-types.q1"), NOT the old
+ *  `${lessonId}:${questionId}` composite. The `questionId` field below still
+ *  holds the local id ("q1") for backward compat; the global key is derived
+ *  via quizRef(lesson, q.id) in src/lib/identity.ts.
+ *
+ *  v6.0: `trackId` and `lessonSlug` are optional fields populated by the
+ *  migration so the Weak Areas selector and quota-prune logic can resolve
+ *  records without parsing the key. */
 export type QuestionRecord = {
   questionId: string;
+  /** v6.0: The lesson slug this question belongs to (e.g. "python-variables-data-types"). */
+  lessonSlug?: string;
+  /** v6.0: The track id this question belongs to (e.g. "python"). */
+  trackId?: string;
   correctCount: number;
   incorrectCount: number;
   lastAttemptDate: string;       // ISO timestamp
@@ -398,7 +412,10 @@ export type QuestionRecord = {
 // ============================================================
 
 export type Flashcard = {
-  id: string;                  // `${lessonId}:${blockKind}:${index}`
+  /** v6.0: Now `${lessonSlug}:${blockKind}:${index}` (slug, not positional id).
+   *  Survives lesson reordering. */
+  id: string;
+  /** v6.0: Now the lesson SLUG (e.g. "python-variables-data-types"), not the positional id. */
   lessonId: string;
   trackId: string;             // language id
   front: string;               // question / prompt
@@ -464,6 +481,21 @@ export type RateLimitEntry = {
 
 export type AppState = {
   schemaVersion: number;
+  /**
+   * v6.0: Granular migration tracking. Independent of schemaVersion (which
+   * tracks the overall state shape), this records which named migrations
+   * have been applied. Each migration is idempotent and checks its own flag
+   * before running, so re-running on already-migrated state is a no-op.
+   */
+  migrations?: {
+    /** v6.1 slug migration: lessonProgress/questionRecords/bookmarks/flashcards
+     *  keys rewritten from positional ids to stable slugs. Spec flag name. */
+    slugMigration?: boolean;
+    /** v6.0 legacy flag name for the same migration. Kept for cross-version
+     *  compat: v6.1 checks both names so users who migrated under v6.0 are
+     *  not re-migrated, and v6.0 still recognizes v6.1-migrated state. */
+    v6SlugMigration?: boolean;
+  };
   profile: UserProfile;
   tasks: Record<string, TaskState>;
   notes: Note[];
@@ -671,33 +703,288 @@ export type LessonBlock =
   | { kind: "callout"; content: string; variant: "info" | "success" | "warning" };
 
 export type QuizQuestion = {
+  /** Local question id within the lesson, e.g. "q1".."q10". */
   id: string;
+  /**
+   * v6.0: Optional globally-unique slug, e.g. "python.variables-data-types.q1".
+   * When absent, the global key is DERIVED at runtime via quizRef(lesson, q.id)
+   * in src/lib/identity.ts. This field is forward-looking: content authors may
+   * set it explicitly for questions that need a hand-curated stable identity.
+   */
+  slug?: string;
   question: string;
   options: string[];
   correctIndex: number;
+  /** v6.0: Made effectively required for AI features — the "I don't understand"
+   * button sends explanation to the AI Tutor. Kept optional for backward compat. */
   explanation?: string;
+  /**
+   * v6.0: Content version hash. When a question's text/options/correctIndex
+   * change, this hash should change, which lets SM-2 records invalidate
+   * cleanly instead of silently attaching to a different question.
+   * Forward-looking — not yet populated on existing content.
+   */
+  versionHash?: string;
+  /** v6.0: Forward-looking — supports future multi-select / fill-blank / code-eval. */
+  kind?: "single-select" | "multi-select" | "fill-blank" | "code-eval" | "ordering";
+  /** v6.0: Skills this question assesses (references Skill.id). Forward-looking. */
+  skillsAssessed?: string[];
 };
 
 export type Lesson = {
+  /**
+   * Positional lesson id, e.g. "python-05". Encodes the lesson's `order` and
+   * may CHANGE when lessons are reordered. Retained for backward compatibility
+   * with existing content and as the in-memory lookup key (LESSON_MAP).
+   *
+   * v6.0: New code should prefer `slug` (the permanent identity) for any
+   * persisted reference. Use lessonRef(lesson) / resolveRef(id) from
+   * src/lib/identity.ts to obtain the canonical key.
+   */
   id: string;
-  /** Track id (one of 30 technologies: python, javascript, typescript, html, css, sql, java, c, cpp, csharp, go, rust, swift, kotlin, php, ruby, r, dart, bash, react, nextjs, django, fastapi, flask, svelte, vue, angular, nodejs, postgresql, mongodb) */
+  /**
+   * v6.0: Stable, permanent slug, e.g. "python-variables-and-data-types".
+   * Does NOT encode order — survives lesson reorganization. This is the
+   * canonical identity for all PERSISTED user state (lessonProgress,
+   * questionRecords, bookmarks, flashcards, certificates).
+   *
+   * For existing lessons, the slug is generated at build time by
+   * scripts/gen-lesson-meta.ts and exposed via LESSON_SLUGS in
+   * src/lib/lessons-meta-generated.ts. The lessonRef(lesson) helper returns
+   * lesson.slug ?? LESSON_SLUGS[lesson.id] ?? lesson.id, so this field is
+   * optional — content authors may set it explicitly to override the
+   * generated slug.
+   */
+  slug?: string;
+  /** Track id (one of 38 technologies: python, javascript, typescript, ...) */
   track: string;
   title: string;
   description: string;
   difficulty: "beginner" | "intermediate" | "advanced";
+  /** v6.0: Forward-looking finer-grained difficulty (1-5). Optional. */
+  difficultyNumeric?: 1 | 2 | 3 | 4 | 5;
   estMinutes: number;
-  /** Order within track */
+  /** Order within track (display order only — NOT identity as of v6.0). */
   order: number;
   blocks: LessonBlock[];
   quiz: QuizQuestion[];
   /** Optional external deep-dive resources */
   deepDiveResources?: ResourceLink[];
-  /** Whether this lesson is the capstone project for the track */
-  isCapstone?: boolean;
+  /** v5.937: Topic-based group name (e.g., "Python Basics", "Python Classes", "File Handling").
+   * Lessons in the same group must be contiguous in `order`. Used by buildLessonGroups
+   * to produce data-driven, variable-count groupings instead of a hardcoded 4-module split. */
+  group?: string;
   /** YouTube tutorial video URL for this stage */
   youtubeUrl?: string;
   /** Short paragraph explaining why this stage matters in real-world practice */
   whyItMatters?: string;
+  // ---- v6.0: Learning system foundation (Phase 8) — all optional, forward-looking ----
+  /** Structured learning objectives (Bloom-aligned). Empty on existing content. */
+  learningObjectives?: string[];
+  /** Structured prerequisite lesson refs (replaces free-text kind:"prerequisites" block). */
+  prerequisiteLessons?: LessonPrerequisiteRef[];
+  /** Skills taught in this lesson (references Skill.id). */
+  skillsTaught?: LessonSkillRef[];
+  // ---- v6.0: AI foundation (Phase 9) — optional, forward-looking ----
+  /** Per-lesson AI context bundle. Absent on existing content (AI behaves as before). */
+  aiContext?: LessonAIContext;
+  /** v6.0: Content version hash for cache invalidation / change detection. */
+  versionHash?: string;
+  // ---- v6.004: Final curriculum architecture — additive, optional ----
+  // All fields below are OPTIONAL. Existing 21-lesson tracks work unchanged
+  // (every field defaults to absent). New content authors populate them to
+  // opt into the module-based curriculum model. See:
+  //   src/lib/curriculum/  (module catalog, track configs, capstones, assessments)
+  //   CURRICULUM-ARCHITECTURE.md  (full design doc)
+  /** The canonical module this lesson belongs to (references CurriculumModule.slug, e.g. "c_functions"). */
+  moduleId?: string;
+  /** If this lesson IS a capstone, which tier (references CapstoneTierId). Absent for non-capstone lessons. */
+  capstoneTier?: "beginner" | "intermediate" | "advanced" | "portfolio" | "career" | "certification";
+  /** The assessment level this lesson uses (references AssessmentLevelId). Defaults to "lesson-quiz" if absent. */
+  assessmentLevel?: "lesson-quiz" | "module-quiz" | "checkpoint-exam" | "practice-exam" | "capstone-evaluation" | "certificate-exam";
+  /** Whether this lesson is optional (skippable) within its module. Defaults to false. */
+  optional?: boolean;
+  /** Search keywords for the Command Palette (beyond title + description). */
+  searchKeywords?: string[];
+  /** Project slugs (references CurriculumProject.slug) this lesson prepares the learner for. */
+  projectTags?: string[];
+  /** Certificate relevance tags (which certificate(s) this lesson counts toward). */
+  certificateTags?: string[];
+  /** Career ids this lesson is particularly relevant to. */
+  careerTags?: string[];
+  /** Computed reading time in minutes (for the lesson header). If absent, derived from estMinutes. */
+  readingTimeMinutes?: number;
+  /** XP reward override. If absent, the store computes XP from lesson/quiz completion per selectEarnedXP. */
+  xpReward?: number;
+  /** Content version (semver), for change tracking. */
+  curriculumVersion?: string;
+  /** Author of this lesson's content (for attribution + future review workflow). */
+  author?: string;
+  /** ISO date the lesson content was last reviewed by a human. */
+  reviewedDate?: string;
+  /** Lesson refs (slugs) the learner should complete AFTER this one (forward prerequisites). */
+  recommendedAfter?: string[];
+  /** Lesson refs (slugs) the learner should complete BEFORE this one (beyond the module's required modules). */
+  recommendedBefore?: string[];
+  /** Difficulty score 1-5 (finer than the coarse `difficulty` band). */
+  difficultyScore?: 1 | 2 | 3 | 4 | 5;
+  // ---- v6.005: Lesson experience architecture — additive, optional ----
+  // Fields supporting the guided-lesson UI (course sidebar, sectioned flow,
+  // skill badges, next-lesson recommendation, interactive practice shells).
+  // All optional; existing content unchanged. See components/learning/.
+  /** One-line summary for the course sidebar / next-lesson card (≤120 chars). */
+  lessonSummary?: string;
+  /** Ordered lesson refs (slugs) recommended after this one (curriculum-graph next). */
+  recommendedNextLessons?: string[];
+  /** Structured practice challenges (architecture shell; rendered by PracticeChallenge). */
+  practiceChallenges?: LessonPracticeChallenge[];
+  /** Structured interactive code examples (architecture shell; rendered by CodeExample). */
+  interactiveExamples?: LessonInteractiveExample[];
+};
+
+/**
+ * v6.005: A structured practice challenge inside a lesson. Architecture only —
+ * the PracticeChallenge component renders the shell; a future phase wires the
+ * inline code runner (reusing the Playground infrastructure).
+ */
+export type LessonPracticeChallenge = {
+  /** Stable id within the lesson, e.g. "pc1". */
+  id: string;
+  title: string;
+  prompt: string;
+  /** Starter code shown in the editor. */
+  starterCode?: string;
+  /** Language for syntax highlighting / runner, e.g. "python". */
+  language?: string;
+  /** Test cases (input → expected output). Empty for free-form challenges. */
+  testCases?: { input?: string; expected?: string; hidden?: boolean }[];
+  /** Hint shown when the learner is stuck. */
+  hint?: string;
+  /** Solution (revealed after attempt or on demand). */
+  solution?: string;
+  /** Skills this challenge exercises. */
+  skillsAssessed?: string[];
+};
+
+/**
+ * v6.005: A structured interactive code example. Architecture only — the
+ * CodeExample component renders the shell; a future phase wires the inline
+ * runner. Distinct from the `kind:"code"` LessonBlock (which is static).
+ */
+export type LessonInteractiveExample = {
+  id: string;
+  title?: string;
+  caption?: string;
+  code: string;
+  language: string;
+  /** Whether the learner can edit the code (false = read-only highlighted). */
+  editable?: boolean;
+  /** Expected output (shown alongside, or used by a future runner). */
+  expectedOutput?: string;
+  /** AI-generated explanation of the example (forward-looking). */
+  explanation?: string;
+};
+
+// ============================================================
+// v6.0: Learning system foundation types (Phase 8)
+// These are FORWARD-LOOKING — the roadmap engine is NOT replaced yet.
+// They exist so content authors can begin annotating lessons with
+// structured skills, objectives, and prerequisites, and so the AI
+// foundation (Phase 9) has typed fields to consume.
+// ============================================================
+
+/** First-class Track type. Today tracks are bare string ids; this type
+ *  formalizes track-level metadata for future scalability (30+ tracks,
+ *  100-150+ lessons each). Not yet populated for existing tracks. */
+export type Track = {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  category?: "language" | "framework" | "database" | "tool";
+  summary?: string;
+  estimatedTotalHours?: number;
+  /** Track ids that must be completed before starting this one. */
+  prerequisiteTrackIds?: string[];
+  /** Content version (semver), for reproducibility. */
+  version?: string;
+  lastUpdated?: string;
+  tags?: string[];
+};
+
+/** A teachable, assessable skill (e.g. "python.variables.scope"). */
+export type Skill = {
+  id: string;
+  trackId: string;
+  name: string;
+  description: string;
+  /** Bloom's taxonomy level 1-6 (remember, understand, apply, analyze, evaluate, create). */
+  bloomLevel?: 1 | 2 | 3 | 4 | 5 | 6;
+};
+
+/** A directed graph of skills with requires/reinforces/unlocks edges.
+ *  This is the foundation for future skill-based progression (replacing
+ *  the current linear lesson-1 → lesson-2 → lesson-3 model). NOT yet
+ *  consumed by the roadmap engine. */
+export type SkillGraph = {
+  nodes: Skill[];
+  edges: { from: string; to: string; relation: "requires" | "reinforces" | "unlocks" }[];
+};
+
+/** A structured reference to a prerequisite lesson (replaces the free-text
+ *  kind:"prerequisites" LessonBlock for AI + graph consumption). */
+export type LessonPrerequisiteRef = {
+  /** Resolvable lesson slug or id. */
+  lessonRef: string;
+  reason: string;
+};
+
+/** A skill taught by a lesson, with the depth at which it's covered. */
+export type LessonSkillRef = {
+  skillId: string;
+  level: "intro" | "working" | "solid";
+};
+
+// ============================================================
+// v6.0: AI foundation types (Phase 9)
+// All OPTIONAL on Lesson — existing content has no aiContext and the
+// BYOK /api/chat architecture is unchanged. These fields let future
+// content carry structured context the AI Tutor can consume.
+// ============================================================
+
+export type LessonHintScaffold = {
+  /** 1 = nudge, 2 = analogy, 3 = worked example. */
+  level: 1 | 2 | 3;
+  hint: string;
+};
+
+export type LessonCodeExample = {
+  id: string;
+  language: string;
+  code: string;
+  /** What concept this example demonstrates. */
+  demonstrates: string;
+  explanation: string;
+  runnable: boolean;
+};
+
+export type LessonAIContext = {
+  /** 200-500 char summary for system-prompt injection + future RAG embedding. */
+  summary: string;
+  /** 3-5 key takeaways for the AI to emphasize. */
+  keyTakeaways?: string[];
+  /** Optional prefix prepended to the AI Tutor system prompt when this lesson is active. */
+  suggestedPromptPrefix?: string;
+  /** Structured common misconceptions + corrections (replaces informal pitfalls). */
+  commonMisconceptions?: { misconception: string; correction: string }[];
+  /** Graduated hints for the "I don't understand" button. */
+  hintScaffolding?: LessonHintScaffold[];
+  /** Structured code examples for code-aware AI answers. */
+  codeExamples?: LessonCodeExample[];
+  /** Related lessons for "see also" suggestions (lesson refs). */
+  relatedLessons?: { lessonRef: string; relation: "extends" | "contrasts" | "applies" }[];
+  /** Pre-computed embedding (build-time artifact, public, anonymous). Lazy-loaded separately. */
+  embedding?: number[];
 };
 
 // ============================================================

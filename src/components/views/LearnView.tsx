@@ -42,9 +42,14 @@ import { getVideoLink, getPlaylist } from "@/data/youtube-links";
 import { InlineCodeEditor } from "@/components/lesson/InlineCodeEditor";
 import { openLanguageCertificatePdf } from "@/lib/certificate-pdf";
 import { CertificateDetailDialog, useEarnedCertificates } from "@/components/views/CertificateHub";
-import { AIVerifyDialog, type AIVerifyTarget } from "@/components/ai/AIVerifyDialog";
 import { isDueForReview } from "@/lib/sm2";
 import type { Lesson, QuizQuestion } from "@/lib/types";
+// v6.0: stable identity helpers
+import { resolveRef, quizRef, getLessonByRef } from "@/lib/identity";
+import { QUIZ_PASS_MARK } from "@/lib/constants";
+// v6.2: lazy per-track content loading + metadata-based counts
+import { loadTrackContent } from "@/lib/content-loader";
+import { getTotalLessonCount } from "@/lib/lessons-meta";
 
 type Tab = "tracks" | "lesson" | "quiz" | "result";
 
@@ -64,8 +69,6 @@ export function LearnView() {
   const [showExploreMore, setShowExploreMore] = useState(false);
   // v5.924: certificate detail popup (opened by the "Certified" badge on a track card).
   const [certPopup, setCertPopup] = useState<ReturnType<typeof useEarnedCertificates>[number] | null>(null);
-  // v5.925: AI-Verify dialog target for capstone lessons (lesson 21 of each track).
-  const [capstoneVerifyTarget, setCapstoneVerifyTarget] = useState<AIVerifyTarget | null>(null);
   const earnedCerts = useEarnedCertificates();
   // v5.92 (Part 6): "Already completed" popup state — shown when the user
   // progresses sequentially to a lesson they'd already completed earlier.
@@ -89,9 +92,52 @@ export function LearnView() {
   const bookmarkedLessons = state.bookmarkedLessons ?? [];
 
   const selectedLesson = useMemo(
-    () => getLessonById(selectedLessonId),
+    // v6.0: selectedLessonId is now a stable slug (post-migration). getLessonByRef
+    // resolves slug → positional id → Lesson. Falls back to getLessonById for legacy.
+    () => getLessonByRef(selectedLessonId),
     [selectedLessonId],
   );
+
+  // v6.2: Load track content on-demand when a track is selected. This replaces
+  // the v6.0–v6.1 eager 11MB bundle load with a ~200-470KB per-track fetch.
+  // The track LIST view (no track selected) uses metadata only — no fetch.
+  //
+  // v6.2.1 FIX (lazy-loading race): When the user clicks "Explore"/"Start" on
+  // a NON-preloaded track, the click handler runs getLessonsForTrack(trackId)
+  // synchronously — which returns [] because the track JSON hasn't been
+  // fetched yet. So selectedLessonId is set to null and tab is set to "lesson",
+  // producing a blank <main> (no render branch matches). This effect now
+  // auto-selects the first lesson once the track content arrives, so the lesson
+  // view appears instead of a blank screen. If the track has no content (e.g.
+  // a metadata-only track with no compiled JSON), it resets to the tracks view.
+  useEffect(() => {
+    if (!selectedTrack) return;
+    loadTrackContent(selectedTrack).then((lessons) => {
+      if (lessons.length === 0) {
+        // Track has no content (e.g. "git" — present in metadata but no JSON).
+        // Reset to the tracks view so the user isn't stuck on a blank screen.
+        setLearnTabState({ selectedTrack: null, selectedLessonId: null, tab: "tracks" });
+        return;
+      }
+      // Content arrived. If the user is on the lesson tab but no lesson was
+      // selected (because the click handler couldn't pick one pre-load),
+      // auto-select the first incomplete lesson (or the first lesson).
+      const currentLessonId = useStore.getState().state.learnTabState.selectedLessonId;
+      const currentTab = useStore.getState().state.learnTabState.tab;
+      if (currentTab === "lesson" && !currentLessonId) {
+        const progress = useStore.getState().state.lessonProgress;
+        const nextIncomplete = lessons.find(
+          (l) => progress[resolveRef(l.id)]?.status !== "complete",
+        );
+        setLearnTabState({ selectedLessonId: nextIncomplete?.id ?? lessons[0]?.id ?? null });
+      } else {
+        // Content for an already-selected lesson arrived — just flush a re-render
+        // so trackLessons selectors return data.
+        useStore.setState((s) => ({ ...s }));
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTrack]);
 
   // v5.875 (CRIT-3): Guard against stale persisted lessonId. If the stored
   // selectedLessonId no longer maps to a real lesson (e.g., after content
@@ -109,21 +155,12 @@ export function LearnView() {
   // treat it as "no lesson selected" so the tracks view renders instead of blank.
   const effectiveSelectedLessonId = selectedLessonId && selectedLesson ? selectedLessonId : null;
 
-  // v5.875 (CRIT-3): If the lesson is stale, show a brief loading spinner
-  // while the useEffect above resets to the tracks view. This prevents a
-  // blank page flash.
-  if (selectedLessonId && !selectedLesson) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="h-6 w-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-      </div>
-    );
-  }
-
   // v5.92 (Part 5): Push URL when lesson/track selection changes for deep-linking.
   // /learn/python/6 → track=python, lesson 6
   // /learn/python → track=python, lesson list
   // /learn → tracks grid
+  // NOTE: This useEffect MUST run before any early-return guard below, per the
+  // React rules-of-hooks (all hooks must run in the same order every render).
   useEffect(() => {
     if (typeof window === "undefined") return;
     const currentPath = window.location.pathname;
@@ -133,11 +170,6 @@ export function LearnView() {
       const lessonNum = match ? parseInt(match[1], 10) : null;
       if (lessonNum !== null) {
         const expectedPath = `/learn/${selectedTrack}/${lessonNum}`;
-        if (currentPath !== expectedPath) {
-          window.history.pushState(null, "", expectedPath);
-        }
-      } else if (selectedLesson.isCapstone) {
-        const expectedPath = `/learn/${selectedTrack}/capstone`;
         if (currentPath !== expectedPath) {
           window.history.pushState(null, "", expectedPath);
         }
@@ -160,6 +192,17 @@ export function LearnView() {
 
   // All tracks with their lesson counts
   const allTracks = useMemo(() => getAllTracks(), []);
+
+  // v5.875 (CRIT-3): If the lesson is stale, show a brief loading spinner
+  // while the useEffect above resets to the tracks view. This prevents a
+  // blank page flash. (Moved BELOW all hooks to satisfy rules-of-hooks.)
+  if (selectedLessonId && !selectedLesson) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="h-6 w-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   // User's plan languages (from roadmap) — shown as "primary" chips
   const planLanguageIds = roadmap?.languageIds ?? [];
@@ -184,7 +227,7 @@ export function LearnView() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Learn</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {totalCompleted} of {getLessons().length} lessons complete across {allTracks.length} languages · Build real coding skills with structured lessons, code examples, and quizzes.
+            {totalCompleted} of {getTotalLessonCount()} lessons complete across {allTracks.length} languages · Build real coding skills with structured lessons, code examples, and quizzes.
           </p>
         </div>
 
@@ -229,7 +272,7 @@ export function LearnView() {
         {/* Section 3.3 — Lesson filter chips */}
         <div className="flex flex-wrap gap-1.5">
           {([
-            { id: "all", label: "All", count: getLessons().length },
+            { id: "all", label: "All", count: getTotalLessonCount() },
             { id: "bookmarked", label: "⭐ Bookmarked", count: bookmarkedLessons.length },
             { id: "in-progress", label: "🔄 In Progress", count: Object.values(lessonProgress).filter((p) => p.status === "in-progress").length },
             { id: "completed", label: "✅ Completed", count: Object.values(lessonProgress).filter((p) => p.status === "complete").length },
@@ -252,9 +295,9 @@ export function LearnView() {
         {/* Section 3 — Filtered lessons view (when a filter is active) */}
         {lessonFilter !== "all" && (() => {
           const filteredLessons = getLessons().filter((l) => {
-            if (lessonFilter === "bookmarked") return bookmarkedLessons.includes(l.id);
-            if (lessonFilter === "in-progress") return lessonProgress[l.id]?.status === "in-progress";
-            if (lessonFilter === "completed") return lessonProgress[l.id]?.status === "complete";
+            if (lessonFilter === "bookmarked") return bookmarkedLessons.includes(resolveRef(l.id));
+            if (lessonFilter === "in-progress") return lessonProgress[resolveRef(l.id)]?.status === "in-progress";
+            if (lessonFilter === "completed") return lessonProgress[resolveRef(l.id)]?.status === "complete";
             return true;
           });
           return (
@@ -277,7 +320,7 @@ export function LearnView() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {filteredLessons.map((l) => {
                     const langInfo = ALL_LANGUAGE_INFO[l.track];
-                    const progress = lessonProgress[l.id];
+                    const progress = lessonProgress[resolveRef(l.id)];
                     return (
                       <GlassCard
                         key={l.id}
@@ -300,7 +343,7 @@ export function LearnView() {
                           {progress?.status === "complete" && (
                             <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
                           )}
-                          {bookmarkedLessons.includes(l.id) && (
+                          {bookmarkedLessons.includes(resolveRef(l.id)) && (
                             <Bookmark className="h-3.5 w-3.5 fill-primary text-primary shrink-0" />
                           )}
                         </div>
@@ -322,12 +365,12 @@ export function LearnView() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {planTracks.map((t) => {
                 const trackLessons = getLessonsForTrack(t.id);
-                const completed = trackLessons.filter((l) => lessonProgress[l.id]?.status === "complete").length;
+                const completed = trackLessons.filter((l) => lessonProgress[resolveRef(l.id)]?.status === "complete").length;
                 const pct = trackLessons.length ? Math.round((completed / trackLessons.length) * 100) : 0;
                 return (
                   <GlassCard key={t.id} className="p-4 hover:scale-[1.01] transition-transform cursor-pointer" onClick={() => {
                     setSelectedTrack(t.id);
-                    const nextIncomplete = trackLessons.find((l) => lessonProgress[l.id]?.status !== "complete");
+                    const nextIncomplete = trackLessons.find((l) => lessonProgress[resolveRef(l.id)]?.status !== "complete");
                     setSelectedLessonId(nextIncomplete?.id ?? trackLessons[0]?.id ?? null);
                     setTab("lesson");
                     window.scrollTo(0, 0);
@@ -394,12 +437,12 @@ export function LearnView() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {exploreTracks.map((t) => {
                 const trackLessons = getLessonsForTrack(t.id);
-                const completed = trackLessons.filter((l) => lessonProgress[l.id]?.status === "complete").length;
+                const completed = trackLessons.filter((l) => lessonProgress[resolveRef(l.id)]?.status === "complete").length;
                 const pct = trackLessons.length ? Math.round((completed / trackLessons.length) * 100) : 0;
                 return (
                   <GlassCard key={t.id} className="p-4 hover:scale-[1.01] transition-transform cursor-pointer opacity-90 hover:opacity-100" onClick={() => {
                     setSelectedTrack(t.id);
-                    const nextIncomplete = trackLessons.find((l) => lessonProgress[l.id]?.status !== "complete");
+                    const nextIncomplete = trackLessons.find((l) => lessonProgress[resolveRef(l.id)]?.status !== "complete");
                     setSelectedLessonId(nextIncomplete?.id ?? trackLessons[0]?.id ?? null);
                     setTab("lesson");
                     window.scrollTo(0, 0);
@@ -433,30 +476,28 @@ export function LearnView() {
       </div>
       {/* v5.924: certificate detail popup (opened by the "Certified" badge) */}
       <CertificateDetailDialog cert={certPopup} onClose={() => setCertPopup(null)} />
-      {/* v5.925: AI-Verify dialog for capstone lessons. onVerified marks the
-          capstone lesson complete (score 100) — satisfies certificate eligibility. */}
-      {capstoneVerifyTarget && capstoneVerifyTarget.mode === "capstone" && (
-        <AIVerifyDialog
-          open={true}
-          onOpenChange={(o) => { if (!o) setCapstoneVerifyTarget(null); }}
-          target={capstoneVerifyTarget}
-          onVerified={(result) => {
-            if (result.passed) {
-              const lesson = (capstoneVerifyTarget as Extract<AIVerifyTarget, { mode: "capstone" }>).lesson;
-              setLessonProgress(lesson.id, "complete", 100);
-              setTab("result");
-              window.scrollTo(0, 0);
-            }
-          }}
-        />
-      )}
       </>
+    );
+  }
+
+  // v6.2.1: Loading guard for the lazy-load race. When the user clicks
+  // "Explore"/"Start" on a non-preloaded track, tab is set to "lesson" but
+  // selectedLesson is null until the track JSON arrives and the auto-select
+  // effect (above) picks the first lesson. Show a spinner during that gap
+  // instead of a blank <main>. Also covers the brief window when a preloaded
+  // track's lesson is being resolved by getLessonByRef.
+  if (tab === "lesson" && selectedTrack && !selectedLesson) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-3">
+        <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        <p className="text-sm text-muted-foreground">Loading {ALL_LANGUAGE_INFO[selectedTrack]?.name ?? selectedTrack} lessons…</p>
+      </div>
     );
   }
 
   // Lesson view
   if (tab === "lesson" && selectedLesson) {
-    const progress = lessonProgress[selectedLesson.id];
+    const progress = lessonProgress[resolveRef(selectedLesson.id)];
     const track = selectedLesson.track;
     const trackLessons = getLessonsForTrack(track);
     const idx = trackLessons.findIndex((l) => l.id === selectedLesson.id);
@@ -489,13 +530,13 @@ export function LearnView() {
                 <button
                   onClick={() => toggleLessonBookmark(selectedLesson.id)}
                   className="p-1 rounded hover:bg-foreground/10 transition-colors no-print"
-                  aria-label={bookmarkedLessons.includes(selectedLesson.id) ? "Remove bookmark" : "Bookmark lesson"}
-                  title={bookmarkedLessons.includes(selectedLesson.id) ? "Bookmarked — click to remove" : "Bookmark this lesson"}
+                  aria-label={bookmarkedLessons.includes(resolveRef(selectedLesson.id)) ? "Remove bookmark" : "Bookmark lesson"}
+                  title={bookmarkedLessons.includes(resolveRef(selectedLesson.id)) ? "Bookmarked — click to remove" : "Bookmark this lesson"}
                 >
                   <Bookmark
                     className={cn(
                       "h-4 w-4",
-                      bookmarkedLessons.includes(selectedLesson.id)
+                      bookmarkedLessons.includes(resolveRef(selectedLesson.id))
                         ? "fill-primary text-primary"
                         : "text-muted-foreground",
                     )}
@@ -542,63 +583,17 @@ export function LearnView() {
           <YouTubeEmbed lessonId={selectedLesson.id} trackId={track} />
         </div>
 
-        {/* v5.926 (D1): Capstone phase — redesigned hero card with clear
-            structure: what it is, status, and the AI Verify action. */}
-        {selectedLesson.isCapstone && (
-          <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/8 via-orange-500/5 to-amber-500/8 p-5 space-y-3">
-            <div className="flex items-start gap-3">
-              <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-md shadow-amber-500/20">
-                <Trophy className="h-5 w-5 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[10px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-semibold font-mono">Capstone Project</div>
-                <h2 className="text-base font-bold leading-tight">{selectedLesson.title}</h2>
-                <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
-                  This is the final project for the {ALL_LANGUAGE_INFO[track]?.name ?? track} track. Build it end-to-end
-                  using the spec below, then click <strong>AI Verify Capstone</strong> to submit your code for review.
-                  A verified capstone completes this lesson and counts toward your certificate.
-                </p>
-              </div>
-            </div>
-            {/* Status indicator */}
-            {progress?.status === "complete" ? (
-              <div className="flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-3 py-2 text-xs text-emerald-600 dark:text-emerald-400">
-                <Check className="h-4 w-4 shrink-0" />
-                <span><strong>Verified!</strong> This capstone is complete and counts toward your certificate.</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 rounded-lg bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
-                <Trophy className="h-4 w-4 shrink-0" />
-                <span>Not yet verified — build the project, then submit via the AI Verify button at the bottom.</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Lesson content — capstone uses structured layout (Section 3.4) */}
-        {selectedLesson.isCapstone ? (
-          <CapstoneLayout blocks={selectedLesson.blocks} onTryInPlayground={(code, language) => {
-            // v5.77 fix: pass the actual code-block language through to the playground.
-            // Previously this hardcoded "javascript", sending Python/TS/SQL/HTML code
-            // to the JS runner where it failed with confusing syntax errors.
-            setPlaygroundCode(code, language || "javascript");
-            setView("playground");
-          }} />
-        ) : (
-          <div className="space-y-4">
-            {selectedLesson.blocks.map((block, i) => (
-              // Section 20 — key includes lessonId so the editor remounts
-              // fresh when the user navigates to a different lesson/phase.
-              // Previously key={i} caused React to reuse the same instance,
-              // retaining the previous lesson's code/output.
-              <LessonBlockView key={`${selectedLesson.id}:${i}`} block={block} onTryInPlayground={(code, language) => {
-                // v5.77 fix: pass the actual code-block language through.
-                setPlaygroundCode(code, language || "javascript");
-                setView("playground");
-              }} />
-            ))}
-          </div>
-        )}
+        {/* v5.937: Lesson content — all lessons use the same LessonBlockView
+            rendering (capstone-in-Learn-tab removed; every lesson is a normal
+            topic lesson now). */}
+        <div className="space-y-4">
+          {selectedLesson.blocks.map((block, i) => (
+            <LessonBlockView key={`${selectedLesson.id}:${i}`} block={block} onTryInPlayground={(code, language) => {
+              setPlaygroundCode(code, language || "javascript");
+              setView("playground");
+            }} />
+          ))}
+        </div>
 
         {/* Deep dive resources */}
         {selectedLesson.deepDiveResources && selectedLesson.deepDiveResources.length > 0 && (
@@ -636,7 +631,7 @@ export function LearnView() {
                 // (e.g. from a roadmap deep-link jump-ahead), show the
                 // "already completed — retry or skip?" popup instead of
                 // navigating directly.
-                const nextProgress = lessonProgress[next.id];
+                const nextProgress = lessonProgress[resolveRef(next.id)];
                 if (nextProgress?.status === "complete") {
                   const trackLessons = getLessonsForTrack(selectedLesson.track);
                   setCompletedPopup({ lessonId: next.id, trackLessons });
@@ -650,51 +645,21 @@ export function LearnView() {
               </GlassButton>
             )}
           </div>
-          {/* v5.925 (BUG 4): capstones (lesson 21) have no quiz — the old "Take
-              the quiz" button was a dead end that blocked certificate issuance.
-              Replace it with an "AI Verify" button that opens the shared
-              AIVerifyDialog. A verified capstone marks the lesson complete,
-              satisfying the "all 21 lessons complete" certificate requirement. */}
-          {selectedLesson.isCapstone && selectedLesson.quiz.length === 0 ? (
-            <GlassButton
-              variant="primary"
-              onClick={() => {
-                const trackName = ALL_LANGUAGE_INFO[selectedLesson.track]?.name ?? selectedLesson.track;
-                setCapstoneVerifyTarget({ mode: "capstone", lesson: selectedLesson, trackName });
-              }}
-            >
-              <Trophy className="h-4 w-4" /> AI Verify Capstone
-            </GlassButton>
-          ) : (
-            <GlassButton
-              variant="primary"
-              onClick={() => {
-                setLessonProgress(selectedLesson.id, "in-progress");
-                setTab("quiz");
-                window.scrollTo(0, 0);
-              }}
-            >
-              <Trophy className="h-4 w-4" /> Take the quiz
-            </GlassButton>
-          )}
+          {/* v5.937: All lessons now use the standard "Take the quiz" button.
+              Capstone-in-Learn-tab removed — project verification lives in the
+              Projects tab exclusively. */}
+          <GlassButton
+            variant="primary"
+            onClick={() => {
+              setLessonProgress(selectedLesson.id, "in-progress");
+              setTab("quiz");
+              window.scrollTo(0, 0);
+            }}
+          >
+            <Trophy className="h-4 w-4" /> Take the quiz
+          </GlassButton>
         </div>
       </div>
-      {/* v5.925: AI-Verify dialog for capstone lessons (lesson-tab view). */}
-      {capstoneVerifyTarget && capstoneVerifyTarget.mode === "capstone" && (
-        <AIVerifyDialog
-          open={true}
-          onOpenChange={(o) => { if (!o) setCapstoneVerifyTarget(null); }}
-          target={capstoneVerifyTarget}
-          onVerified={(result) => {
-            if (result.passed) {
-              const lesson = (capstoneVerifyTarget as Extract<AIVerifyTarget, { mode: "capstone" }>).lesson;
-              setLessonProgress(lesson.id, "complete", 100);
-              setTab("result");
-              window.scrollTo(0, 0);
-            }
-          }}
-        />
-      )}
       </>
     );
   }
@@ -716,7 +681,7 @@ export function LearnView() {
 
   // Quiz result view
   if (tab === "result" && selectedLesson) {
-    const progress = lessonProgress[selectedLesson.id];
+    const progress = lessonProgress[resolveRef(selectedLesson.id)];
     const score = progress?.bestQuizScore ?? 0;
     const passed = score >= 70;
     const track = selectedLesson.track;
@@ -728,7 +693,7 @@ export function LearnView() {
 
     // Check if entire track is complete
     // v5.77 fix: guard against empty trackLessons (every() returns true on []).
-    const trackComplete = trackLessons.length > 0 && trackLessons.every((l) => lessonProgress[l.id]?.status === "complete");
+    const trackComplete = trackLessons.length > 0 && trackLessons.every((l) => lessonProgress[resolveRef(l.id)]?.status === "complete");
 
     // Certificate eligibility per Section 1.1 (75% average quiz score required)
     // v5.77 fix: use the subscribed `state` instead of useStore.getState() so
@@ -859,7 +824,7 @@ export function LearnView() {
             <div className="rounded-xl border border-border/60 bg-card/30 p-3 mb-4">
               <p className="text-xs text-muted-foreground">
                 Complete all {trackLessons.length} lessons in this track to unlock the certificate.
-                Progress: {trackLessons.filter((l) => lessonProgress[l.id]?.status === "complete").length}/{trackLessons.length}
+                Progress: {trackLessons.filter((l) => lessonProgress[resolveRef(l.id)]?.status === "complete").length}/{trackLessons.length}
               </p>
             </div>
           )}
@@ -900,7 +865,7 @@ export function LearnView() {
     const skipLesson = () => {
       const idx = completedPopup.trackLessons.findIndex((l) => l.id === completedPopup.lessonId);
       const nextIncomplete = completedPopup.trackLessons.slice(idx + 1).find(
-        (l) => lessonProgress[l.id]?.status !== "complete"
+        (l) => lessonProgress[resolveRef(l.id)]?.status !== "complete"
       );
       if (nextIncomplete) {
         setSelectedLessonId(nextIncomplete.id);
@@ -1129,173 +1094,6 @@ function YouTubeEmbed({ lessonId, trackId }: { lessonId: string; trackId: string
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-/**
- * CapstoneLayout — renders capstone blocks as structured sections per Section 3.4.
- * Groups generic blocks (heading/text/code/tip) into labeled sections with
- * premium styling: problem statement, requirements table, file structure,
- * build timeline, testing/deployment checklists, rubric, stretch goals.
- */
-function CapstoneLayout({
-  blocks,
-  onTryInPlayground,
-}: {
-  blocks: Lesson["blocks"];
-  onTryInPlayground: (code: string, language?: string) => void;
-}) {
-  // Walk blocks and group into sections. Each "heading" starts a new section.
-  const sections: { title: string; blocks: Lesson["blocks"] }[] = [];
-  let current: { title: string; blocks: Lesson["blocks"] } | null = null;
-  for (const b of blocks) {
-    if (b.kind === "heading") {
-      if (current) sections.push(current);
-      current = { title: b.content, blocks: [] };
-    } else {
-      if (!current) current = { title: "Overview", blocks: [] };
-      current.blocks.push(b);
-    }
-  }
-  if (current) sections.push(current);
-
-  return (
-    <div className="space-y-4">
-      {sections.map((section, si) => {
-        const isProblem = /problem|statement/i.test(section.title);
-        const isRequirements = /requirement|p0|p1|p2/i.test(section.title);
-        const isFileStructure = /file structure|structure/i.test(section.title);
-        const isBuild = /build|walkthrough|step/i.test(section.title);
-        const isTesting = /test/i.test(section.title);
-        const isDeployment = /deploy/i.test(section.title);
-        const isRubric = /rubric|evaluation/i.test(section.title);
-        const isStretch = /stretch/i.test(section.title);
-
-        return (
-          <GlassCard key={si} className="p-5">
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <span className="h-6 w-6 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-bold">{si + 1}</span>
-              {section.title}
-            </h3>
-            <div className="space-y-2">
-              {section.blocks.map((block, bi) => {
-                // For requirements section, render as P0/P1/P2 styled blocks
-                if (isRequirements && block.kind === "text") {
-                  // Try to detect P0/P1/P2 lines
-                  const lines = block.content.split("\n");
-                  const tiers: { label: string; color: string; items: string[] }[] = [
-                    { label: "P0 · Must have", color: "border-rose-500/40 bg-rose-500/5", items: [] },
-                    { label: "P1 · Should have", color: "border-amber-500/40 bg-amber-500/5", items: [] },
-                    { label: "P2 · Nice to have", color: "border-sky-500/40 bg-sky-500/5", items: [] },
-                  ];
-                  let currentTier = 0;
-                  for (const ln of lines) {
-                    if (/p0|must have/i.test(ln)) currentTier = 0;
-                    else if (/p1|should have/i.test(ln)) currentTier = 1;
-                    else if (/p2|nice to have/i.test(ln)) currentTier = 2;
-                    else if (ln.trim().startsWith("-") || ln.trim().startsWith("•")) {
-                      tiers[currentTier].items.push(ln.trim().replace(/^[-•]\s*/, ""));
-                    }
-                  }
-                  if (tiers.some((t) => t.items.length > 0)) {
-                    return (
-                      <div key={bi} className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        {tiers.map((t, ti) => (
-                          <div key={ti} className={cn("rounded-lg border p-2", t.color)}>
-                            <div className="text-[10px] font-semibold uppercase mb-1">{t.label}</div>
-                            <ul className="space-y-1">
-                              {t.items.map((it, ii) => (
-                                <li key={ii} className="text-[11px] flex gap-1.5">
-                                  <Check className="h-3 w-3 shrink-0 mt-0.5" />
-                                  <span>{it}</span>
-                                </li>
-                              ))}
-                              {t.items.length === 0 && <li className="text-[10px] text-muted-foreground italic">None specified</li>}
-                            </ul>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  }
-                }
-                // For build section, render as vertical timeline
-                if (isBuild && block.kind === "text") {
-                  const lines = block.content.split("\n").map((l) => l.trim()).filter((l) => l && /^\d+\.|^-|^\d+\)/.test(l));
-                  if (lines.length > 2) {
-                    return (
-                      <ol key={bi} className="relative border-l-2 border-primary/30 ml-2 space-y-2">
-                        {lines.map((ln, li) => (
-                          <li key={li} className="ml-3 text-xs relative">
-                            <span className="absolute -left-[18px] top-1 h-2.5 w-2.5 rounded-full bg-primary" />
-                            <span>{ln.replace(/^\d+\.|^-|^\d+\)\s*/, "")}</span>
-                          </li>
-                        ))}
-                      </ol>
-                    );
-                  }
-                }
-                // For testing/deployment, render as checklist
-                if ((isTesting || isDeployment) && block.kind === "tip") {
-                  const items = block.content.split("\n").filter((l) => l.trim() && !l.trim().startsWith("Testing") && !l.trim().startsWith("Deployment"));
-                  return (
-                    <ul key={bi} className="space-y-1">
-                      {items.map((it, ii) => (
-                        <li key={ii} className="text-xs flex gap-2">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
-                          <span>{it.replace(/^[-•]\s*/, "")}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  );
-                }
-                // For rubric, render as table
-                if (isRubric && block.kind === "text") {
-                  const items = block.content.split("\n").filter((l) => l.trim()).map((l) => l.replace(/^[-•]\s*/, ""));
-                  if (items.length > 0) {
-                    return (
-                      <div key={bi} className="rounded-lg border border-border/60 overflow-hidden">
-                        <table className="w-full text-xs">
-                          <thead className="bg-foreground/5">
-                            <tr>
-                              <th className="text-left p-2 font-medium">Criterion</th>
-                              <th className="text-left p-2 font-medium w-24">Weight</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {items.map((it, ii) => (
-                              <tr key={ii} className="border-t border-border/40">
-                                <td className="p-2">{it}</td>
-                                <td className="p-2 text-muted-foreground font-mono">{Math.round(100 / items.length)}%</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    );
-                  }
-                }
-                // For stretch goals, render as checklist with stars
-                if (isStretch && block.kind === "tip") {
-                  const items = block.content.split("\n").filter((l) => l.trim()).map((l) => l.replace(/^[-•]\s*/, ""));
-                  return (
-                    <ul key={bi} className="space-y-1">
-                      {items.map((it, ii) => (
-                        <li key={ii} className="text-xs flex gap-2">
-                          <Star className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
-                          <span>{it}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  );
-                }
-                // Default: render via LessonBlockView
-                return <LessonBlockView key={bi} block={block} onTryInPlayground={onTryInPlayground} />;
-              })}
-            </div>
-          </GlassCard>
-        );
-      })}
     </div>
   );
 }
@@ -1555,7 +1353,8 @@ function QuizModePicker({
   // Compute review questions: those due for review OR marked "hard".
   const reviewQuestions = useMemo(() => {
     return lesson.quiz.filter((q) => {
-      const key = `${lesson.id}:${q.id}`;
+      // v6.0: questionRecords keyed by global quiz slug now.
+      const key = quizRef(lesson, q.id);
       const rec = questionRecords?.[key];
       if (!rec) return false;
       return rec.difficulty === "hard" || new Date(rec.nextReviewDate).getTime() <= Date.now();
@@ -1727,7 +1526,8 @@ function QuizView({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [answers, questions, submitted, submittedSnapshot]);
 
-  const passMark = Math.max(1, Math.ceil(questions.length * 0.7)); // 70%
+  // v6.0: uses shared QUIZ_PASS_MARK constant (was hardcoded 0.7).
+  const passMark = Math.max(1, Math.ceil(questions.length * QUIZ_PASS_MARK));
   const passed = correctCount >= passMark;
 
   const handleSubmit = () => {

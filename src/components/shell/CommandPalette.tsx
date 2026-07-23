@@ -50,6 +50,7 @@ import { ConfirmDialog } from "@/components/shell/ConfirmDialog";
 import { getLessons } from "@/lib/lessons-data";
 import { PROJECTS } from "@/lib/projects-data";
 import { ALL_LANGUAGE_INFO } from "@/lib/lessons-meta";
+import { resolveRef } from "@/lib/identity";
 
 const VIEW_ICONS: Record<ViewId, typeof LayoutDashboard> = {
   dashboard: LayoutDashboard,
@@ -148,8 +149,9 @@ export function CommandPalette() {
   };
 
   // v5.931: Navigate to a specific lesson in the Learn view.
+  // v6.0: store the stable slug (resolveRef normalizes positional id → slug).
   const handleLessonNavigate = (lessonId: string, track: string) => {
-    setLearnTabState({ tab: "lesson", selectedLessonId: lessonId, selectedTrack: track });
+    setLearnTabState({ tab: "lesson", selectedLessonId: resolveRef(lessonId), selectedTrack: track });
     setView("learn");
     handleClose();
   };
@@ -365,7 +367,7 @@ export function CommandPalette() {
                     <div className="flex-1 min-w-0">
                       <div className="truncate text-sm">{l.title}</div>
                       <div className="text-[10px] text-muted-foreground font-mono">
-                        {trackName} · Stage {l.order}{l.isCapstone ? " · Capstone" : ""}
+                        {trackName} · Stage {l.order}
                       </div>
                     </div>
                   </CommandItem>

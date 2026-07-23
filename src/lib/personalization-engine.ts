@@ -14,6 +14,7 @@ import { topologicalSort } from "./dependency-graph";
 // v5.932: Research-backed AI Bonus Track content (sole source: Consolidated
 // AI Tools and Industry Practices Career Guide 2026). See ai-bonus-track-data.ts.
 import { getAIBonusContent } from "./ai-bonus-track-data";
+import { getTrackLessons } from "./lessons-data";
 
 // ============================================================
 // PERSONALIZATION ENGINE
@@ -1804,43 +1805,43 @@ function genFoundationPhase(input: PersonalizationInput, phaseNumber: number): G
 }
 
 // ============================================================
-// v5.91 (Part 3): Build lesson groups for a language phase.
-// Groups 21 lessons (20 stages + capstone) into logical modules.
+// v5.937: buildLessonGroups — DATA-DRIVEN grouping.
+// Reads the `group` field from each lesson in the track and produces
+// however many groups the track's content actually defines. Falls back
+// to a single "All Lessons" group if lessons don't have a `group` field
+// (e.g., legacy content that hasn't been updated yet).
 //
-// Grouping scheme:
-//   Module 1: Foundations (lessons 1-5) — setup, syntax, types, control flow
-//   Module 2: Core Concepts (lessons 6-12) — data structures, functions, OOP, errors
-//   Module 3: Advanced Topics (lessons 13-20) — advanced patterns, testing, deployment
-//   Module 4: Capstone (lesson 21) — final project
+// Capstone module removed — capstone-in-Learn-tab is gone; every lesson
+// is a normal topic lesson now.
 // ============================================================
 
 function buildLessonGroups(trackId: string): import("./types").LessonGroup[] {
-  return [
-    {
-      title: "Module 1: Foundations",
-      description: "Setup, syntax, types, and control flow — the building blocks.",
-      lessonIds: Array.from({ length: 5 }, (_, i) => `${trackId}-${String(i + 1).padStart(2, "0")}`),
-      lessonNumbers: [1, 2, 3, 4, 5],
-    },
-    {
-      title: "Module 2: Core Concepts",
-      description: "Data structures, functions, OOP, and error handling.",
-      lessonIds: Array.from({ length: 7 }, (_, i) => `${trackId}-${String(i + 6).padStart(2, "0")}`),
-      lessonNumbers: [6, 7, 8, 9, 10, 11, 12],
-    },
-    {
-      title: "Module 3: Advanced Topics",
-      description: "Advanced patterns, testing, debugging, and deployment.",
-      lessonIds: Array.from({ length: 8 }, (_, i) => `${trackId}-${String(i + 13).padStart(2, "0")}`),
-      lessonNumbers: [13, 14, 15, 16, 17, 18, 19, 20],
-    },
-    {
-      title: "Module 4: Capstone Project",
-      description: "Apply everything in a comprehensive final project.",
-      lessonIds: [`${trackId}-capstone`],
-      lessonNumbers: [21],
-    },
-  ];
+  const lessons = getTrackLessons(trackId);
+  if (lessons.length === 0) {
+    // Fallback for tracks with no loaded lessons yet — return an empty array
+    // so the phase renders without lesson groups (the generic modules will show).
+    return [];
+  }
+
+  // Group lessons by their `group` field, preserving order.
+  const groupMap = new Map<string, { lessonIds: string[]; lessonNumbers: number[] }>();
+  for (const lesson of lessons) {
+    const groupName = lesson.group ?? "All Lessons";
+    if (!groupMap.has(groupName)) {
+      groupMap.set(groupName, { lessonIds: [], lessonNumbers: [] });
+    }
+    const entry = groupMap.get(groupName)!;
+    entry.lessonIds.push(lesson.id);
+    entry.lessonNumbers.push(lesson.order);
+  }
+
+  // Convert to LessonGroup[] with descriptions.
+  return Array.from(groupMap.entries()).map(([title, { lessonIds, lessonNumbers }]) => ({
+    title,
+    description: `${lessonIds.length} lesson${lessonIds.length === 1 ? "" : "s"}`,
+    lessonIds,
+    lessonNumbers,
+  }));
 }
 
 // ============================================================

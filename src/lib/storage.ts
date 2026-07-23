@@ -1,7 +1,29 @@
 import type { AppState } from "./types";
+import { LESSON_SLUGS, SLUG_TO_ID } from "./lessons-meta-generated";
 
 export const STORAGE_KEY = "launchpad:v4:state";
-export const SCHEMA_VERSION = 4;
+/**
+ * v6.0 / v6.1: Schema bumped 4 → 5. The v4→v5 migration rewrites all persisted
+ * lesson references from positional ids (e.g. "python-05") to stable slugs
+ * (e.g. "python-variables-and-data-types"). See migrateSlugsV5() below.
+ *
+ * The localStorage KEY name stays "launchpad:v4:state" (changing it would
+ * orphan every existing user); only the internal schemaVersion field bumps.
+ */
+export const SCHEMA_VERSION = 5;
+
+/**
+ * v6.1: Key under which a pre-migration backup is saved, exactly once, so the
+ * user's pre-migration state is always recoverable.
+ *
+ * v6.0 used the key name `launchpad:v6:pre-slug-backup`. v6.1 renames it to
+ * `launchpad:v6:pre-migration-backup` per the spec. Both keys are checked
+ * before saving (so a v6.0 user who already has a backup under the old key
+ * won't get a duplicate under the new key), and both are recognized on
+ * restore. This keeps the backup idempotent across the v6.0 → v6.1 upgrade.
+ */
+const V6_BACKUP_KEY = "launchpad:v6:pre-migration-backup";
+const V6_BACKUP_KEY_LEGACY = "launchpad:v6:pre-slug-backup";
 
 // v5.84: List of all known previous storage keys, in version order.
 // When migrating, we check each in order (newest first) and use the first
@@ -53,13 +75,214 @@ function migrateState(oldState: Record<string, unknown>, fromVersion: number): P
     }
   }
 
+  // Migration v4 → v5 (v6.0 release): rewrite all persisted lesson references
+  // from positional ids to stable slugs. IDEMPOTENT — checks the
+  // migrations.v6SlugMigration flag and is a no-op if already applied.
+  // See migrateSlugsV5() for full details.
+  if (fromVersion < 5) {
+    migrateSlugsV5(state);
+  }
+
   // Mark as current schema version
   state.schemaVersion = SCHEMA_VERSION;
   return state as Partial<AppState>;
 }
 
+/**
+ * v6.0 (v4→v5 schema migration): Rewrite all persisted lesson references from
+ * positional ids to stable slugs.
+ *
+ * What gets rewritten:
+ *   - lessonProgress keys:                       "python-05" → "python-variables-..."
+ *   - lessonProgress[*].lessonId:                "python-05" → slug
+ *   - lessonProgress[*].questionAnswers keys:    "python-05:q1" → "python.variables.q1"
+ *   - questionRecords keys:                      "python-05:q1" → "python.variables.q1"
+ *     (+ adds lessonSlug + trackId fields to each record)
+ *   - bookmarkedLessons[]:                       "python-05" → slug
+ *   - flashcards[].id:     "python-05:keyConcepts:0" → "slug:keyConcepts:0"
+ *   - flashcards[].lessonId:                     "python-05" → slug
+ *   - learnTabState.selectedLessonId:            "python-05" → slug
+ *
+ * Safety properties:
+ *   - IDEMPOTENT: resolveRef/resolveQuizRef return slugs unchanged, so
+ *     re-running on already-migrated state is a no-op. The migrations.v6SlugMigration
+ *     flag also guards against re-running the full pass.
+ *   - NON-DESTRUCTIVE: unknown ids (not in LESSON_SLUGS) are passed through
+ *     unchanged — we never drop a user's data because we can't map a lesson id
+ *     (the lesson may have been removed from content, or the maps may be stale).
+ *   - A pre-migration backup is saved to localStorage[V6_BACKUP_KEY] exactly
+ *     once, so the original state is always recoverable.
+ */
+function migrateSlugsV5(state: Record<string, unknown>): void {
+  // v6.1: check BOTH the new `slugMigration` flag and the v6.0 legacy
+  // `v6SlugMigration` flag. Users who migrated under v6.0 (which set
+  // `v6SlugMigration`) must NOT be re-migrated by v6.1.
+  type MigrationState = { migrations?: { slugMigration?: boolean; v6SlugMigration?: boolean } };
+  const migState = state as unknown as MigrationState;
+  if (migState.migrations?.slugMigration || migState.migrations?.v6SlugMigration) {
+    // Already migrated — no-op.
+    return;
+  }
+
+  // --- helpers (local, to avoid importing the full identity module graph) ---
+  // Resolve any lesson ref (positional id OR slug) to canonical slug form.
+  const resolveRef = (ref: string): string => {
+    if (typeof ref !== "string" || ref === "") return ref;
+    if (SLUG_TO_ID[ref]) return ref;          // already a slug
+    const slug = LESSON_SLUGS[ref];
+    if (slug) return slug;                    // positional id → slug
+    return ref;                               // unknown — passthrough
+  };
+  // Resolve any quiz key ("id:qN" OR "slug.with.dots.qN") to canonical form.
+  const resolveQuizRef = (ref: string): string => {
+    if (typeof ref !== "string" || ref === "") return ref;
+    if (!ref.includes(":")) return ref;       // already new format
+    const lastColon = ref.lastIndexOf(":");
+    if (lastColon < 0) return ref;
+    const lessonPart = ref.slice(0, lastColon);
+    const qPart = ref.slice(lastColon + 1);
+    const slug = resolveRef(lessonPart);
+    return `${slug.replace(/-/g, ".")}.${qPart}`;
+  };
+  // Derive trackId from a slug (first hyphen-segment). Safe because all
+  // current track ids are single words.
+  const trackIdFromSlug = (slug: string): string => {
+    const i = slug.indexOf("-");
+    return i > 0 ? slug.slice(0, i) : slug;
+  };
+
+  let rewritten = 0;
+
+  // --- 1. lessonProgress: rewrite keys + lessonId + questionAnswers keys ---
+  const lp = state.lessonProgress as Record<string, unknown> | undefined;
+  if (lp && typeof lp === "object") {
+    const newLp: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(lp)) {
+      const newKey = resolveRef(key);
+      if (newKey !== key) rewritten++;
+      const v = value as Record<string, unknown> | undefined;
+      if (v && typeof v === "object") {
+        // Rewrite lessonId field.
+        if (typeof v.lessonId === "string") {
+          v.lessonId = resolveRef(v.lessonId);
+        }
+        // Rewrite questionAnswers keys (id:qN → global quiz slug).
+        const qa = v.questionAnswers as Record<string, unknown> | undefined;
+        if (qa && typeof qa === "object") {
+          const newQa: Record<string, unknown> = {};
+          for (const [qaKey, qaVal] of Object.entries(qa)) {
+            newQa[resolveQuizRef(qaKey)] = qaVal;
+          }
+          v.questionAnswers = newQa;
+        }
+      }
+      // If two old ids collide on the same slug (shouldn't happen, but be
+      // safe), merge rather than overwrite — prefer the one with status "complete".
+      if (newLp[newKey] && v && typeof v === "object") {
+        const existing = newLp[newKey] as Record<string, unknown>;
+        if (existing.status !== "complete" && v.status === "complete") {
+          newLp[newKey] = v;
+        }
+      } else {
+        newLp[newKey] = v;
+      }
+    }
+    state.lessonProgress = newLp;
+  }
+
+  // --- 2. questionRecords: rewrite keys + add lessonSlug/trackId ---
+  const qr = state.questionRecords as Record<string, unknown> | undefined;
+  if (qr && typeof qr === "object") {
+    const newQr: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(qr)) {
+      const newKey = resolveQuizRef(key);
+      if (newKey !== key) rewritten++;
+      const v = value as Record<string, unknown> | undefined;
+      if (v && typeof v === "object") {
+        // Derive lessonSlug + trackId from the new key for robust resolution.
+        const parts = newKey.split(".");
+        if (parts.length >= 2) {
+          const qId = parts[parts.length - 1];
+          const lessonSlugDotted = parts.slice(0, -1).join("-");
+          v.lessonSlug = v.lessonSlug ?? lessonSlugDotted;
+          v.trackId = v.trackId ?? trackIdFromSlug(lessonSlugDotted);
+          // Keep questionId as the local id (last segment).
+          v.questionId = v.questionId ?? qId;
+        }
+      }
+      newQr[newKey] = v;
+    }
+    state.questionRecords = newQr;
+  }
+
+  // --- 3. bookmarkedLessons: rewrite each id → slug ---
+  const bm = state.bookmarkedLessons as string[] | undefined;
+  if (Array.isArray(bm)) {
+    const seen = new Set<string>();
+    state.bookmarkedLessons = bm
+      .map((id) => {
+        const slug = resolveRef(id);
+        if (slug !== id) rewritten++;
+        return slug;
+      })
+      .filter((slug) => {
+        // Dedup (a positional id and its slug may both have been present).
+        if (seen.has(slug)) return false;
+        seen.add(slug);
+        return true;
+      });
+  }
+
+  // --- 4. flashcards: rewrite id + lessonId ---
+  const fc = state.flashcards as Array<Record<string, unknown>> | undefined;
+  if (Array.isArray(fc)) {
+    for (const card of fc) {
+      if (typeof card.id === "string" && card.id.includes(":")) {
+        // id format: `${lessonId}:${blockKind}:${index}` — rewrite the lesson part.
+        const firstColon = card.id.indexOf(":");
+        const lessonPart = card.id.slice(0, firstColon);
+        const rest = card.id.slice(firstColon);
+        const newId = resolveRef(lessonPart) + rest;
+        if (newId !== card.id) rewritten++;
+        card.id = newId;
+      }
+      if (typeof card.lessonId === "string") {
+        const slug = resolveRef(card.lessonId);
+        if (slug !== card.lessonId) rewritten++;
+        card.lessonId = slug;
+      }
+    }
+  }
+
+  // --- 5. learnTabState.selectedLessonId: rewrite id → slug ---
+  const lts = state.learnTabState as { selectedLessonId?: string } | undefined;
+  if (lts && typeof lts.selectedLessonId === "string") {
+    const slug = resolveRef(lts.selectedLessonId);
+    if (slug !== lts.selectedLessonId) rewritten++;
+    lts.selectedLessonId = slug;
+  }
+
+  // --- Mark migration complete (set BOTH flag names for cross-version compat) ---
+  // v6.1 sets `slugMigration` (the spec name). We ALSO set `v6SlugMigration`
+  // (the v6.0 name) so that if the user downgrades to v6.0 after upgrading to
+  // v6.1, v6.0's migration check still recognizes the migration as done.
+  if (!state.migrations) state.migrations = {};
+  (state.migrations as { slugMigration?: boolean; v6SlugMigration?: boolean }).slugMigration = true;
+  (state.migrations as { slugMigration?: boolean; v6SlugMigration?: boolean }).v6SlugMigration = true;
+
+  if (rewritten > 0) {
+    console.log(`[launchpad] v6 slug migration: rewrote ${rewritten} persisted refs to stable slugs`);
+  } else {
+    console.log("[launchpad] v6 slug migration: no refs needed rewriting (already slug-keyed or empty)");
+  }
+}
+
 export const DEFAULT_STATE: AppState = {
   schemaVersion: SCHEMA_VERSION,
+  migrations: {
+    slugMigration: true,      // v6.1 spec name — fresh installs are slug-keyed by construction
+    v6SlugMigration: true,    // v6.0 legacy name — kept for cross-version compat
+  },
   profile: {
     name: "",
     goal: "",
@@ -159,6 +382,33 @@ export function loadState(): AppState {
 
     const parsed = JSON.parse(raw) as Partial<AppState>;
 
+    // v6.0 / v6.1: Before running the slug migration, save a one-time backup of
+    // the raw pre-migration state so it is always recoverable. Only saves if no
+    // backup already exists under EITHER the v6.1 key or the v6.0 legacy key
+    // (idempotent — re-running never overwrites the original backup) AND the
+    // state actually needs migrating.
+    //
+    // The migration is considered "already done" if EITHER the v6.1 flag
+    // (`slugMigration`) OR the v6.0 legacy flag (`v6SlugMigration`) is set.
+    // This ensures users who migrated under v6.0 are not re-migrated by v6.1.
+    const parsedMigrations = (parsed as { migrations?: { slugMigration?: boolean; v6SlugMigration?: boolean } }).migrations;
+    const alreadyMigrated = parsedMigrations?.slugMigration === true || parsedMigrations?.v6SlugMigration === true;
+    const needsSlugMigration =
+      (parsed.schemaVersion ?? oldVersion) < SCHEMA_VERSION && !alreadyMigrated;
+    if (needsSlugMigration) {
+      try {
+        const existingBackupNew = window.localStorage.getItem(V6_BACKUP_KEY);
+        const existingBackupLegacy = window.localStorage.getItem(V6_BACKUP_KEY_LEGACY);
+        if (!existingBackupNew && !existingBackupLegacy) {
+          window.localStorage.setItem(V6_BACKUP_KEY, raw);
+          console.log("[launchpad] v6 pre-migration backup saved to", V6_BACKUP_KEY);
+        }
+      } catch (e) {
+        // Backup failure is non-fatal — log and continue with migration.
+        console.warn("[launchpad] v6 backup save failed (non-fatal):", e);
+      }
+    }
+
     // v5.84: Apply field-level migrations if loading from an older version
     let migratedParsed = parsed;
     if (cameFromMigration || (parsed.schemaVersion && parsed.schemaVersion < SCHEMA_VERSION)) {
@@ -170,6 +420,12 @@ export function loadState(): AppState {
       ...DEFAULT_STATE,
       ...migratedParsed,
       schemaVersion: SCHEMA_VERSION,
+      // v6.0 / v6.1: preserve migrations flags (set by migrateSlugsV5).
+      // Both `slugMigration` (v6.1) and `v6SlugMigration` (v6.0) are merged.
+      migrations: {
+        ...DEFAULT_STATE.migrations,
+        ...(migratedParsed as { migrations?: { slugMigration?: boolean; v6SlugMigration?: boolean } }).migrations,
+      },
       profile: { ...DEFAULT_STATE.profile, ...migratedParsed.profile },
       preferences: {
         ...DEFAULT_STATE.preferences,
@@ -255,6 +511,40 @@ export function saveState(state: AppState): void {
             const oneYearAgo = Date.now() - 365 * 24 * 60 * 60 * 1000;
             return new Date(ev.date).getTime() > oneYearAgo;
           }),
+          // v5.937 / v6.0: Prune questionRecords (SM-2 spaced-repetition state)
+          // to prevent localStorage quota issues at scale (100-150+ lessons ×
+          // 10 questions × 38 languages = potentially 57,000 records).
+          // Keep only records for lessons in the user's current roadmap languages;
+          // records for other languages are dropped (they'll be re-created if the
+          // user revisits those lessons).
+          //
+          // v6.0: The record KEY is now a global quiz slug (e.g.
+          // "python.variables.q1"), and each record carries a `trackId` field
+          // (populated by the v6 migration). We filter on `trackId` first, and
+          // fall back to deriving the track from the key (first dot-segment) for
+          // any pre-migration records that somehow weren't migrated.
+          questionRecords: state.roadmap
+            ? Object.fromEntries(
+                Object.entries(state.questionRecords).filter(([key, rec]) => {
+                  // v6.0: prefer the record's trackId field (populated by migration).
+                  if (rec.trackId && state.roadmap!.languageIds.includes(rec.trackId)) {
+                    return true;
+                  }
+                  // Fallback: derive track from the key.
+                  //   New key format: "python.variables.q1" → first dot-segment = "python"
+                  //   Legacy key format: "python-05:q1"     → first hyphen-segment = "python"
+                  let keyTrack = "";
+                  if (key.includes(".")) {
+                    keyTrack = key.split(".")[0];
+                  } else if (key.includes(":")) {
+                    keyTrack = key.split(":")[0].split("-")[0];
+                  } else if (key.includes("-")) {
+                    keyTrack = key.split("-")[0];
+                  }
+                  return keyTrack !== "" && state.roadmap!.languageIds.includes(keyTrack);
+                }),
+              )
+            : state.questionRecords,
         };
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(pruned));
         console.warn("[launchpad] prune + retry succeeded.");

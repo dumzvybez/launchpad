@@ -7,6 +7,7 @@
 ### Free. Private. Personalized. Coding education the way it should be.
 
 [![Status](https://img.shields.io/badge/status-actively%20developing-orange?style=for-the-badge)](https://github.com/dumzvybez/Launchpad/discussions)
+[![Version](https://img.shields.io/badge/version-6.005.0-9cf?style=for-the-badge)](#-changelog)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](#-license)
 [![Live Demo](https://img.shields.io/badge/demo-live-success?style=for-the-badge)](https://launchpad--dev.vercel.app)
 [![Privacy](https://img.shields.io/badge/privacy-100%25%20on--device-9cf?style=for-the-badge)](#-100-on-device-privacy)
@@ -29,8 +30,8 @@ Tell it your career goal, and Launchpad generates a custom learning roadmap pull
 
 | | | | |
 |:---:|:---:|:---:|:---:|
-| **630** Lessons | **30** Languages | **207** Projects | **6,000** Quiz Questions |
-| **1,860+** Daily Challenges | **25+** Badges | **600** Curated Videos | **0** Accounts Required |
+| **~800** Lessons | **38** Languages | **51** Projects | **7,200+** Quiz Questions |
+| **1,980** Daily Challenges | **43** Badges | **600** Curated Videos | **0** Accounts Required |
 
 </div>
 
@@ -66,10 +67,10 @@ Your personalized learning path is generated instantly by Launchpad's built-in d
 </details>
 
 <details>
-<summary><strong>📚 Learn Tab — 630 Lessons Across 30 Technologies</strong></summary>
+<summary><strong>📚 Learn Tab — Lessons Across 38 Technologies</strong></summary>
 <br>
 
-From Python and JavaScript to Rust, Swift, React, and PostgreSQL — each of the 30 tracks has 20 in-depth stages plus a capstone. Every single stage includes:
+From Python and JavaScript to Rust, Swift, React, and PostgreSQL — each track has in-depth lessons. Every single lesson includes:
 
 - A "why it matters" framing + prerequisites
 - Multiple worked code examples
@@ -192,6 +193,22 @@ flowchart TD
 | Community | Giscus (GitHub Discussions) |
 | Syntax Highlighting | react-syntax-highlighter (Prism, vscDarkPlus) |
 
+> **v6.000 architecture:** Every lesson and quiz question has a permanent stable
+> identity ("slug") decoupled from its display order. Lesson metadata (counts,
+> slug maps) is build-generated from content, never hand-maintained. This is the
+> foundation for scaling to 30+ languages × 100-150+ lessons without ever
+> breaking user progress, certificates, or spaced-repetition state.
+
+> **v6.002 content pipeline:** All 797 lessons are authored as Markdown files in
+> `content/{track}/` and compiled to per-track JSON at build time. The runtime
+> loads only the track you open (~200-470 KB) instead of the entire 11 MB
+> curriculum — essential for scaling to thousands of lessons.
+>
+> **v6.003** fixed a blank-screen bug when opening a not-yet-loaded track,
+> installed several missing dependencies that crashed the app on load, set the
+> default theme to follow your system, and updated the web framework to the
+> latest patch release (security fixes included).
+
 ---
 
 ## 🚀 Getting Started
@@ -244,7 +261,10 @@ Then open **http://localhost:3000** 🎉
 
 ## 📖 Course Catalog
 
-30 technologies × 21 lessons (20 stages + capstone) = **630 lessons total.**
+38 technologies, each with ~21 lessons today (~800 lessons total). The v6.000
+architecture supports scaling to **100-150+ lessons per track** — every lesson
+now has a permanent stable identity ("slug") so tracks can be reorganized and
+expanded without ever breaking user progress.
 
 <div align="center">
 
@@ -257,7 +277,9 @@ Then open **http://localhost:3000** 🎉
 | R | Dart | Bash | React |
 | Next.js | Django | FastAPI | Flask |
 | Svelte | Vue | Angular | Node.js |
-| PostgreSQL | MongoDB | | |
+| PostgreSQL | MongoDB | Docker | Tailwind |
+| Express | GraphQL | Kubernetes | Terraform |
+| PyTorch | TensorFlow | | |
 
 </div>
 

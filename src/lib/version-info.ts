@@ -11,7 +11,7 @@
 // `lastSeenReleaseVersion` preference differs from APP_VERSION.
 // ============================================================
 
-export const APP_VERSION = "5.936.0";
+export const APP_VERSION = "6.005.0";
 
 export type ReleaseHighlightType = "new" | "improved" | "removed" | "fixed";
 
@@ -21,7 +21,7 @@ export type ReleaseHighlight = {
 };
 
 export type ReleaseInfo = {
-  /** Semantic version, e.g. "5.923.0" — must match APP_VERSION for the latest entry. */
+  /** Version string in the MAJOR.XXX.0 style (e.g. "6.003.0", "5.937.0") — must match APP_VERSION for the latest entry. */
   version: string;
   /** ISO date (YYYY-MM-DD) the release shipped. */
   date: string;
@@ -43,6 +43,102 @@ export type ReleaseInfo = {
 //   To ship a new release: bump APP_VERSION, add a ReleaseInfo here (user-
 //   facing), AND add a technical entry to CHANGELOG.md. Both are required.
 export const RELEASES: ReleaseInfo[] = [
+  {
+    version: "6.005.0",
+    date: "2026-07-23",
+    title: "Guided lesson experience — course sidebar, sectioned flow, skill badges",
+    summary:
+      "Lessons now feel like a guided journey, not a long article. A new course sidebar shows where you are in the track, lessons are organized into clear sections, and you always know what skill you're gaining and what to do next. No lesson content changed — this is the experience layer.",
+    highlights: [
+      { type: "new", text: "A course sidebar shows your track's modules and lessons with completion checkmarks and a 'you are here' highlight — so you always know where you are and what's next." },
+      { type: "new", text: "Lessons now have a richer header: track → module → lesson context, difficulty, time, XP, skills gained, and completion status — all at a glance." },
+      { type: "new", text: "A 'next lesson' card recommends what to study next, with module-complete celebrations when you finish a whole module." },
+      { type: "new", text: "An AI Tutor panel surfaces lesson-aware hints, key takeaways, and common misconceptions right inside the lesson." },
+      { type: "improved", text: "The lesson schema gained optional fields for practice challenges, interactive code examples, and next-lesson recommendations — ready for richer content without breaking existing lessons." },
+    ],
+  },
+  {
+    version: "6.004.0",
+    date: "2026-07-23",
+    title: "Scalable curriculum architecture — modules, capstones, assessments",
+    summary:
+      "The curriculum is now structured around reusable modules, a graduated capstone ladder, and a tiered assessment system — ready to scale from ~21 lessons per track to 100-150+. No lesson content changed; this is architecture only.",
+    highlights: [
+      { type: "new", text: "Lessons are now organized into reusable modules (Getting Started, Syntax, Functions, OOP, Testing, etc.) shared across all 38 language tracks — the foundation for growing each track to 100-150+ lessons." },
+      { type: "new", text: "A graduated capstone ladder: beginner, intermediate, advanced, portfolio, career, and certification capstones. A track can offer multiple capstones so you can demonstrate mastery at each level." },
+      { type: "new", text: "A tiered assessment system: lesson quizzes, module quizzes, checkpoint exams, practice exams, capstone evaluations, and a final certificate exam — low-stakes early, high-stakes for the certificate." },
+      { type: "improved", text: "Each language track now declares which modules apply and which are optional — SQL skips OOP, HTML skips concurrency, etc. The architecture flexes to fit every language." },
+      { type: "improved", text: "Lessons gained optional metadata fields (module, capstone tier, assessment level, search keywords, project tags, career tags) — ready for richer search, AI tutoring, and skill progression without breaking existing content." },
+    ],
+  },
+  {
+    version: "6.003.0",
+    date: "2026-07-23",
+    title: "Faster lesson loading + dark-theme fix + dependency cleanup",
+    summary:
+      "A verification pass over the per-track content pipeline caught and fixed a blank-screen bug when opening a not-yet-loaded track, plus a handful of missing dependencies that were crashing the app. The theme now follows your system setting by default.",
+    highlights: [
+      { type: "fixed", text: "Opening a language track you haven't loaded yet now shows its lessons correctly instead of a blank screen — the first lesson auto-loads once the track's content arrives." },
+      { type: "fixed", text: "Several required libraries (the Markdown renderer, the certificate image export, and the Supabase client) were listed in the project manifest but never actually installed, causing the app to crash on load. They are now installed." },
+      { type: "fixed", text: "Background preloading no longer tries to fetch content for non-lesson tools (like Git), which were producing silent 404 errors in the console." },
+      { type: "improved", text: "The app now follows your system's light/dark setting by default instead of always starting in light mode." },
+      { type: "improved", text: "Updated the underlying web framework to the latest patch release, which includes security fixes and Turbopack improvements." },
+    ],
+  },
+  {
+    version: "6.002.0",
+    date: "2026-07-22",
+    title: "Scalable content pipeline — lessons now load per-track",
+    summary:
+      "The entire lesson library has been migrated from a single 11 MB TypeScript bundle to per-track JSON files that load on demand. Opening Python now downloads only Python's content (~200-470 KB), not the entire curriculum.",
+    highlights: [
+      { type: "improved", text: "Lessons now load per-track instead of one massive bundle — opening Python downloads only Python's content, not all 38 tracks." },
+      { type: "new", text: "All 797 lessons migrated to Markdown source files with a build-time compiler that produces per-track JSON." },
+      { type: "improved", text: "The track list view now loads instantly from generated metadata — no content fetch needed until you open a specific track." },
+      { type: "improved", text: "Your roadmap languages are preloaded in the background for convenience, but other tracks load only when you open them." },
+    ],
+  },
+  {
+    version: "6.001.0",
+    date: "2026-07-22",
+    title: "Identity system finalized — ready for thousands of lessons",
+    summary:
+      "The stable lesson identity system introduced previously is now finalized with spec-aligned API names and cross-version compatibility. No user-facing behavior changes.",
+    highlights: [
+      { type: "improved", text: "The identity helper API is now finalized with explicit names, making the stable-identity system clearer to work with for future development." },
+      { type: "fixed", text: "Cross-version compatibility: if you upgraded through the previous release, your already-migrated progress is recognized automatically — no re-migration or duplicate backup." },
+    ],
+  },
+  {
+    version: "6.000.0",
+    date: "2026-07-22",
+    title: "Stable lesson identity — the foundation for scaling",
+    summary:
+      "Every lesson now has a permanent, stable identity (a 'slug') that survives reordering. Your progress, bookmarks, flashcards, and spaced-repetition history will never be lost when lessons are reorganized, expanded, or renumbered.",
+    highlights: [
+      { type: "new", text: "Every lesson now has a permanent stable identity (a 'slug') separate from its display order. Reordering, inserting, or expanding lessons will never break your progress, bookmarks, flashcards, or study history again." },
+      { type: "new", text: "Quiz questions now have globally-unique identities, so spaced-repetition review state stays correctly attached to each question even if quizzes are reordered." },
+      { type: "improved", text: "Certificate validation is now powered by auto-generated lesson metadata, eliminating the risk of the server expecting the wrong lesson count." },
+      { type: "fixed", text: "Your progress data is automatically migrated to the new stable-identity system on your next visit — a one-time, safe upgrade with a full backup saved first." },
+      { type: "improved", text: "Lesson and track counts are now derived from real content at build time instead of being hand-maintained, so they can never go stale as the curriculum grows." },
+    ],
+  },
+  {
+    version: "5.937.0",
+    date: "2026-07-19",
+    title: "Structural prep for variable-length lesson tracks",
+    summary:
+      "Foundational engineering work to prepare the app for 100-150+ granular topic-based lessons per language. Capstone removed from Learn tab (project verification now lives exclusively in Projects tab). Server-side certificate validation rewritten for variable counts. Data-driven lesson grouping. XP rebalanced. All hardcoded '21 lessons' references updated.",
+    highlights: [
+      { type: "removed", text: "Capstone-in-Learn-tab fully removed: isCapstone field, AI-Verify-in-lesson UI, /learn/track/capstone URL convention, capstone module in buildLessonGroups, CapstoneLayout component. Project verification now lives exclusively in the Projects tab." },
+      { type: "fixed", text: "Server-side certificate validation rewritten: no longer hardcodes 'exactly 21 lesson IDs' — uses server-side TRACK_LESSON_COUNTS metadata to look up the real expected count. Supports variable track lengths and both 2-digit/3-digit lesson ID formats." },
+      { type: "new", text: "Data-driven lesson grouping: buildLessonGroups now reads the `group` field from each lesson and produces however many topic-based groups the track defines (W3Schools-style), instead of a hardcoded 4-module split." },
+      { type: "fixed", text: "polyglot-master achievement: hardcoded '>= 21 lessons' check replaced with real per-track lesson count (getTrackLessons). Works with variable-length tracks." },
+      { type: "improved", text: "XP per lesson reduced from +50 to +10 so 150-lesson tracks don't trivialize the leveling curve. A 150-lesson track now awards ~1,500 XP (similar to the old 21-lesson track's 1,050 XP)." },
+      { type: "fixed", text: "localStorage quota: questionRecords (SM-2 spaced-repetition state) added to the quota-overflow pruning — keeps only records for the user's current roadmap languages." },
+      { type: "improved", text: "Help Centre and Onboarding text updated: removed hardcoded '21 lessons' / '630 lessons' / '6,000 quiz questions' references." },
+    ],
+  },
   {
     version: "5.936.0",
     date: "2026-07-18",

@@ -7,6 +7,7 @@ import { useStore, selectPhaseProgress } from "@/lib/store";
 import { GlassCard, ProgressBar } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
 import { getLessonById } from "@/lib/lessons-data";
+import { resolveRef } from "@/lib/identity";
 
 // v5.929 (#4): Skill Tree complete redesign.
 //
@@ -252,7 +253,7 @@ export function SkillTreeView() {
                 <div className="space-y-2 mb-4">
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Lesson Modules</h3>
                   {phase.lessonGroups.map((group, gi) => {
-                    const completedInGroup = group.lessonIds.filter((id) => state.lessonProgress[id]?.status === "complete").length;
+                    const completedInGroup = group.lessonIds.filter((id) => state.lessonProgress[resolveRef(id)]?.status === "complete").length;
                     const groupPct = group.lessonIds.length > 0 ? Math.round((completedInGroup / group.lessonIds.length) * 100) : 0;
                     return (
                       <div key={gi} className={cn("rounded-xl border p-3", colors.border, colors.bg)}>
@@ -266,7 +267,7 @@ export function SkillTreeView() {
                         <div className="flex flex-wrap gap-1">
                           {group.lessonIds.map((lessonId, li) => {
                             const lesson = getLessonById(lessonId);
-                            const isComplete = state.lessonProgress[lessonId]?.status === "complete";
+                            const isComplete = state.lessonProgress[resolveRef(lessonId)]?.status === "complete";
                             return (
                               <button
                                 key={lessonId}

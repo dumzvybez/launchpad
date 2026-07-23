@@ -1,5 +1,8 @@
 import type { Achievement, AppState } from "./types";
 import { selectOverallProgress, selectCareerReadinessScore } from "./store";
+import { getTrackLessons } from "./lessons-data";
+import { resolveRef } from "./identity";
+import { QUIZ_PASS_MARK } from "./constants";
 
 // 25+ achievement badges with rarity tiers — including 15 new badges
 // per Section 13.1 of Prompt-2-updated.txt
@@ -30,7 +33,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "🧠",
     rarity: "common",
     xp: 50,
-    check: (s: AppState) => Object.values(s.lessonProgress).some((p) => (p.bestQuizScore ?? 0) >= 70),
+    check: (s: AppState) => Object.values(s.lessonProgress).some((p) => (p.bestQuizScore ?? 0) >= QUIZ_PASS_MARK * 100),
   },
   {
     id: "early-bird",
@@ -197,7 +200,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     check: (s: AppState) => {
       const tracks = new Set(
         Object.keys(s.lessonProgress)
-          .filter((id) => s.lessonProgress[id].status !== "not-started")
+          .filter((id) => s.lessonProgress[resolveRef(id)].status !== "not-started")
           .map((id) => id.split("-")[0]),
       );
       return tracks.size >= 3;
@@ -399,15 +402,14 @@ export const ACHIEVEMENTS: Achievement[] = [
       const userLangs = s.roadmap.languageIds ?? [];
       let fullyCompletedTracks = 0;
       for (const langId of userLangs) {
-        // Check if all lessons in this track are complete.
-        // Lesson IDs follow the pattern `${trackId}-NN` (e.g. python-01).
-        const trackLessonIds = Object.keys(s.lessonProgress).filter((id) =>
-          id.startsWith(langId + "-"),
+        // v5.937: use the real per-track lesson count (getTrackLessons) instead
+        // of the hardcoded >= 21 check. Supports variable-length tracks.
+        const trackLessons = getTrackLessons(langId);
+        if (trackLessons.length === 0) continue; // track not loaded yet
+        const allComplete = trackLessons.every(
+          (l) => s.lessonProgress[resolveRef(l.id)]?.status === "complete",
         );
-        if (trackLessonIds.length >= 21) {
-          const allComplete = trackLessonIds.every((id) => s.lessonProgress[id]?.status === "complete");
-          if (allComplete) fullyCompletedTracks++;
-        }
+        if (allComplete) fullyCompletedTracks++;
       }
       return fullyCompletedTracks >= 2;
     },

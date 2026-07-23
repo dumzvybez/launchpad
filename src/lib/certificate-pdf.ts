@@ -64,8 +64,8 @@ export function buildLanguageCertificateHtml(
   const trackColor = trackInfo?.color ?? "#3B82F6";
   const lessonCount = trackLessons.length;
   const quizCount = trackLessons.reduce((sum, l) => sum + l.quiz.length, 0);
+  // v5.937: isCapstone removed — all lessons are normal topic lessons now.
   const skillsMastered = trackLessons
-    .filter((l) => !l.isCapstone)
     .slice(0, 6)
     .map((l) => l.title);
   const skillsList = skillsMastered

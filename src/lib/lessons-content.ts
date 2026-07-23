@@ -305,7 +305,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw",
     "whyItMatters": "Install Python, write your first program, and understand the REPL and basic execution model."
   },
@@ -607,7 +606,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw&t=720s",
     "whyItMatters": "Learn how Python variables work as name tags on objects, and meet the core built-in types (int, float, str, bool, None, complex)."
   },
@@ -909,7 +907,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw&t=1800s",
     "whyItMatters": "Master Python's str type — indexing, slicing, the method toolkit, f-strings, and the critical distinction between text (str) and binary data (bytes)."
   },
@@ -1212,7 +1209,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw&t=2900s",
     "whyItMatters": "Master Python's numeric types (int, float, complex, Decimal, Fraction), boolean logic, the full operator set, and the surprising edge cases (float precision, integer caching)."
   },
@@ -1514,7 +1510,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw&t=4100s",
     "whyItMatters": "Learn Python's control-flow toolkit: if/elif/else, for, while, break/continue/pass, the match statement (3. 10+), and the unique `else` clause on loops."
   },
@@ -1817,7 +1812,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw&t=5400s",
     "whyItMatters": "Define reusable functions, understand Python's LEGB scoping rules, and master *args/**kwargs — while avoiding the infamous mutable-default-argument trap."
   },
@@ -2119,7 +2113,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw&t=6800s",
     "whyItMatters": "Master Python's four core built-in collections — lists, dicts, sets, and tuples — including iteration, the insertion-ordered dict (3. 7+), and the deadly list-aliasing trap."
   },
@@ -2422,7 +2415,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw&t=8100s",
     "whyItMatters": "Master Python's comprehension syntax (list, dict, set) and the lazy-evaluation power of generators — both generator expressions and yield-based generator functions."
   },
@@ -2725,7 +2717,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw&t=9300s",
     "whyItMatters": "Model real-world entities with classes and objects — __init__, self, instance vs class attributes, methods, properties, and the deadly mutable-class-attribute trap."
   },
@@ -3027,7 +3018,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw&t=10600s",
     "whyItMatters": "Build class hierarchies with inheritance and super(), master polymorphism via duck typing, and unlock Python's magic methods (dunders) to make your objects behave like built-ins."
   },
@@ -3330,7 +3320,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw&t=11900s",
     "whyItMatters": "Read and write files reliably using the `with` statement, master pathlib for cross-platform path handling, and build your own context managers with __enter__/__exit__."
   },
@@ -3633,7 +3622,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw&t=13100s",
     "whyItMatters": "Handle errors gracefully with try/except/else/finally, design a custom exception hierarchy, and avoid the deadly bare `except` that swallows KeyboardInterrupt."
   },
@@ -3935,7 +3923,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw&t=14300s",
     "whyItMatters": "Organize code into modules and packages, master imports, take a tour of Python's batteries-included standard library, and avoid circular-import and name-shadowing traps."
   },
@@ -4239,7 +4226,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw&t=15500s",
     "whyItMatters": "Consume REST APIs with the requests library and the stdlib urllib, handle JSON, set timeouts, use sessions for connection pooling, and avoid the most common HTTP-in-Python pitfalls."
   },
@@ -4542,7 +4528,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw&t=16700s",
     "whyItMatters": "Write tests with pytest and unittest, master fixtures and parametrize, mock external dependencies, and practice test-driven development (red-green-refactor)."
   },
@@ -4846,7 +4831,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw&t=17900s",
     "whyItMatters": "Move beyond print() — use pdb for interactive debugging, the logging module for production-grade logs, and cProfile/tracemalloc to find slow spots and memory hogs."
   },
@@ -5149,7 +5133,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw&t=19100s",
     "whyItMatters": "Run code in parallel with threading, multiprocessing, and asyncio — and learn exactly when to use each (the GIL makes this a critical decision in Python)."
   },
@@ -5453,7 +5436,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw&t=20300s",
     "whyItMatters": "Make Python faster and leaner — functools. lru_cache for memoization, __slots__ for memory, deque vs list, and the golden rule: profile before you optimize."
   },
@@ -5756,7 +5738,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw&t=21500s",
     "whyItMatters": "Structure Python projects like a professional — virtual environments, pyproject. toml, src/ layout, entry points, and modern tools (uv, poetry)."
   },
@@ -6060,7 +6041,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=rfscVS0vtbw&t=22700s",
     "whyItMatters": "Ship your Python app — Dockerize it, set up GitHub Actions CI with lint/test/type-check, deploy to Render or Fly. io, and prepare for the capstone project."
   },
@@ -6128,7 +6108,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -6431,7 +6410,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg",
     "whyItMatters": "Install Node. js and a code editor, run your first script, and understand how JavaScript executes in browsers versus Node."
   },
@@ -6734,7 +6712,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=600s",
     "whyItMatters": "Master `let`, `const`, and `var`, the seven primitive types, type coercion, equality, and JavaScript's operator precedence rules."
   },
@@ -7037,7 +7014,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=1300s",
     "whyItMatters": "Manipulate strings and arrays fluently using the modern functional methods — map, filter, reduce, slice, splice, sort, and friends."
   },
@@ -7340,7 +7316,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=2100s",
     "whyItMatters": "Master branching, loops, function declarations, arrow functions, default parameters, rest/spread, closures, and the `this` keyword."
   },
@@ -7644,7 +7619,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=3000s",
     "whyItMatters": "Model data with objects, then read and mutate the page by selecting elements, creating nodes, and updating attributes and classes."
   },
@@ -7947,7 +7921,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=3900s",
     "whyItMatters": "Wire up user interactions with `addEventListener`, event delegation, custom events, and form handling — and learn when to `preventDefault` and `stopPropagation`."
   },
@@ -8250,7 +8223,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=4900s",
     "whyItMatters": "Reason about time in JavaScript — callbacks, the callback hell problem, and the Promise abstraction that replaced it."
   },
@@ -8553,7 +8525,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=5800s",
     "whyItMatters": "Use `async`/`await` to write sequential-looking async code, and understand the event loop, microtasks, and macrotasks."
   },
@@ -8856,7 +8827,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=6700s",
     "whyItMatters": "Adopt the post-2015 syntax that defines modern JavaScript — destructuring, template literals, classes, symbols, iterators, generators, optional chaining, and more."
   },
@@ -9159,7 +9129,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=7600s",
     "whyItMatters": "Organize code with ES modules, manage dependencies with npm, and understand the package ecosystem."
   },
@@ -9462,7 +9431,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=8500s",
     "whyItMatters": "Use the browser's built-in APIs — Web Storage, IndexedDB, IntersectionObserver, ResizeObserver, and the History API — to build fast, persistent, app-like experiences."
   },
@@ -9766,7 +9734,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=9400s",
     "whyItMatters": "Make HTTP requests with `fetch`, handle responses, abort requests with AbortController, and consume streaming data."
   },
@@ -10069,7 +10036,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=10300s",
     "whyItMatters": "Handle errors gracefully with try/catch, custom errors, and global handlers, then debug with the browser DevTools and Node inspector."
   },
@@ -10372,7 +10338,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=11200s",
     "whyItMatters": "Write automated tests with Jest or Vitest, follow the red-green-refactor TDD loop, and measure coverage."
   },
@@ -10675,7 +10640,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=12100s",
     "whyItMatters": "Apply functional programming — pure functions, immutability, currying, composition, and recursion — to write predictable, testable JavaScript."
   },
@@ -10978,7 +10942,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=13000s",
     "whyItMatters": "Understand JavaScript's true OOP model — prototypes, the prototype chain, classes, inheritance, and mixins — and how `class` is sugar over a prototype system."
   },
@@ -11281,7 +11244,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=13800s",
     "whyItMatters": "Measure and optimize JavaScript performance — bundle size, runtime, memory, and rendering — using modern tools and patterns."
   },
@@ -11584,7 +11546,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=14700s",
     "whyItMatters": "Defend JavaScript apps against XSS, CSRF, supply-chain attacks, and unsafe data handling — using CSP, sanitization, and secure patterns."
   },
@@ -11887,7 +11848,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=15600s",
     "whyItMatters": "Configure the modern JS toolchain — Vite, esbuild, SWC, Babel, ESLint, and Prettier — to build, format, and lint production code."
   },
@@ -12191,7 +12151,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=16400s",
     "whyItMatters": "Ship JavaScript to production — set up CI/CD, deploy static and server-rendered apps, monitor errors, and prepare for the capstone project."
   },
@@ -12253,7 +12212,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -12555,7 +12513,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YmxwicpROps",
     "whyItMatters": "Install the TypeScript compiler, compile your first. ts file, and understand the relationship between TypeScript and JavaScript at runtime."
   },
@@ -12857,7 +12814,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=WcRgpER7i_g",
     "whyItMatters": "Learn TypeScript's primitive types, type annotations, type inference, and the difference between `let` and `const` widening."
   },
@@ -13159,7 +13115,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=WcRgpER7i_g&t=120s",
     "whyItMatters": "Model object shapes with `interface` and `type`, understand when each is preferred, and learn declaration merging and extension."
   },
@@ -13462,7 +13417,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=p6dO9u0M7MQ",
     "whyItMatters": "Annotate function parameters and returns, model overloads, use rest and optional parameters, and understand contextual inference."
   },
@@ -13764,7 +13718,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=p6dO9u0M7MQ&t=900s",
     "whyItMatters": "Author ES6 classes in TypeScript with `public`, `private`, `protected`, `readonly`, parameter properties, abstract classes, and `implements`."
   },
@@ -14068,7 +14021,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=p6dO9u0M7MQ&t=1800s",
     "whyItMatters": "Write reusable, type-safe functions and classes with generics, learn type-parameter constraints, and understand inference vs explicit specification."
   },
@@ -14371,7 +14323,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=p6dO9u0M7MQ&t=2700s",
     "whyItMatters": "Combine types with unions and intersections, narrow them safely, and write conditional types that branch on type relationships."
   },
@@ -14672,7 +14623,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=p6dO9u0M7MQ&t=3600s",
     "whyItMatters": "Build reusable type transformations with mapped types, learn the built-in utility types, and understand `keyof` + `as` (key remapping)."
   },
@@ -14974,7 +14924,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=p6dO9u0M7MQ&t=4500s",
     "whyItMatters": "Organize code with ES modules, author declaration files (`. d."
   },
@@ -15276,7 +15225,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=p6dO9u0M7MQ&t=5200s",
     "whyItMatters": "Use `typeof`, `instanceof`, `in`, truthiness, and user-defined type predicates to narrow union types safely; spot narrowing failures."
   },
@@ -15578,7 +15526,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=p6dO9u0M7MQ&t=6000s",
     "whyItMatters": "Configure tsconfig. json for strictness, set up ESLint with `typescript-eslint`, and integrate Prettier for consistent formatting."
   },
@@ -15880,7 +15827,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=p6dO9u0M7MQ&t=6800s",
     "whyItMatters": "Use string-literal unions, numeric and string enums, `const enum`, and `as const` objects — and know when to avoid each."
   },
@@ -16184,7 +16130,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=p6dO9u0M7MQ&t=7600s",
     "whyItMatters": "Apply class, method, property, and parameter decorators; use `emitDecoratorMetadata` and `reflect-metadata` to enable DI patterns."
   },
@@ -16487,7 +16432,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=p6dO9u0M7MQ&t=8400s",
     "whyItMatters": "Type async functions, model Promise return types, handle errors with typed catches, and avoid the floating-promise trap."
   },
@@ -16789,7 +16733,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=p6dO9u0M7MQ&t=9200s",
     "whyItMatters": "Manipulate the DOM with typed `querySelector`, handle events with typed targets, and use the `lib. dom."
   },
@@ -17093,7 +17036,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=p6dO9u0M7MQ&t=10000s",
     "whyItMatters": "Author React components with typed props and state, model hooks with generics, and apply discriminated-union prop patterns."
   },
@@ -17396,7 +17338,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=p6dO9u0M7MQ&t=10800s",
     "whyItMatters": "Build a typed Node. js server with Express or Fastify, configure tsconfig for Node ESM, and use `@types/node` and `tsx` correctly."
   },
@@ -17700,7 +17641,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=p6dO9u0M7MQ&t=11600s",
     "whyItMatters": "Master recursive types, higher-order generic functions, variance, and the patterns used by libraries like tRPC, Zod, and Effect."
   },
@@ -18002,7 +17942,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=p6dO9u0M7MQ&t=12400s",
     "whyItMatters": "Diagnose slow TypeScript builds, reduce type-checking overhead, and configure tsconfig for fast CI and editor feedback."
   },
@@ -18306,7 +18245,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=p6dO9u0M7MQ&t=13200s",
     "whyItMatters": "Write unit tests with Vitest/Jest, set up GitHub Actions for type-check + test + build, and prepare your capstone project."
   },
@@ -18374,7 +18312,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -18676,7 +18613,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE",
     "whyItMatters": "Set up your first HTML document, learn the skeleton every page shares, and open it in a browser. This stage establishes the mental model of elements, tags, and attributes."
   },
@@ -18978,7 +18914,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=350s",
     "whyItMatters": "Master the core text elements that make up 90% of article content. You will learn heading hierarchy, semantic emphasis, and the difference between presentational and meaningful formatting."
   },
@@ -19282,7 +19217,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=700s",
     "whyItMatters": "Connect pages together and embed visuals. This stage covers absolute and relative URLs, link relations, the `<img>` element, the `<picture>` element, and why `target=\"_blank\"` needs `rel=\"noopener\"`."
   },
@@ -19585,7 +19519,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=1100s",
     "whyItMatters": "Organize content into lists, data tables, and structural containers. You will learn the difference between `<div>` and `<section>`, when a table is appropriate, and how to make tables accessible with `<caption>` and `scope`."
   },
@@ -19887,7 +19820,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=1500s",
     "whyItMatters": "Capture user input. This stage covers every common form control, the critical importance of `<label>`, and how a `<form>` actually submits data to a server."
   },
@@ -20190,7 +20122,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=1900s",
     "whyItMatters": "Use semantic elements to give your page a meaningful structure that screen readers, search engines, and developer tools can navigate. This stage formalizes the document outline and the role each landmark plays."
   },
@@ -20494,7 +20425,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=2300s",
     "whyItMatters": "Embed audio and video the modern way, with captions, fallback content, and respect for browser autoplay policies. This stage covers `<video>`, `<audio>`, `<source>`, `<track>`, and embed strategies."
   },
@@ -20797,7 +20727,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=2700s",
     "whyItMatters": "Make your pages usable by everyone, including keyboard, screen reader, and switch users. This stage covers WCAG principles, ARIA patterns, focus management, and the cardinal rule: use semantic HTML first."
   },
@@ -21100,7 +21029,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=3100s",
     "whyItMatters": "Author graphics and interactions directly in HTML. This stage covers inline SVG, the `<canvas>` element, and the native drag-and-drop API — and when to use which."
   },
@@ -21402,7 +21330,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=3500s",
     "whyItMatters": "Make your page shareable and discoverable. This stage covers everything inside `<head>`: title, meta description, canonical, robots, Open Graph, Twitter Cards, and favicons."
   },
@@ -21706,7 +21633,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=3900s",
     "whyItMatters": "Build reusable HTML components with custom elements, shadow DOM, and slots. This stage introduces the four Web Components standards and shows how to encapsulate styling and behavior natively."
   },
@@ -22009,7 +21935,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=4300s",
     "whyItMatters": "Master the constraint validation API and modern input types. This stage goes beyond basic forms into client-side validation patterns, custom error messages, and the formdata event."
   },
@@ -22312,7 +22237,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=4700s",
     "whyItMatters": "Embed third-party content safely. This stage covers the `<iframe>` element, the `sandbox` attribute, the `allow` attribute, `postMessage` for cross-frame communication, and the headers that control who can frame your pages."
   },
@@ -22614,7 +22538,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=5100s",
     "whyItMatters": "Help search engines and social platforms understand your content. This stage covers schema."
   },
@@ -22917,7 +22840,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=5500s",
     "whyItMatters": "Build pages that work in any language and direction. This stage covers character encoding, the `lang` attribute, RTL layout, `hreflang`, ruby annotations, and bidirectional text handling."
   },
@@ -23220,7 +23142,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=5900s",
     "whyItMatters": "Email HTML is a different world. This stage covers why you still use tables in 2024, inline CSS, preheader text, dark mode, and which modern HTML features will get your email silently dropped by Outlook."
   },
@@ -23524,7 +23445,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=6300s",
     "whyItMatters": "Make your site installable and offline-capable. This stage covers the web app manifest, service worker registration from HTML, installability criteria, and display modes — all from the HTML author's perspective."
   },
@@ -23829,7 +23749,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=6700s",
     "whyItMatters": "Squeeze the most out of every byte and every network round-trip. This stage covers resource hints (`preload`, `prefetch`, `preconnect`, `dns-prefetch`), native lazy loading, async/defer scripts, and the `fetchpriority` attribute."
   },
@@ -24134,7 +24053,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=7100s",
     "whyItMatters": "Lock down your page against XSS, supply-chain attacks, and clickjacking. This stage covers Content Security Policy, Subresource Integrity, security headers, and how to embed third-party content safely."
   },
@@ -24438,7 +24356,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=7500s",
     "whyItMatters": "Polish your HTML with automated tooling and prepare for the capstone. This stage covers the W3C validator, HTML linters, axe and Lighthouse audits, CI integration, and how to plan the capstone documentation site."
   },
@@ -24500,7 +24417,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -24801,7 +24717,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=1L2YiWdaUDM",
     "whyItMatters": "Set up your first stylesheet, learn the three ways to apply CSS, and understand the cascade. This stage establishes the mental model of rules, selectors, declarations, and how styles reach elements."
   },
@@ -25097,7 +25012,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=1L2YiWdaUDM&t=250s",
     "whyItMatters": "Master the selector vocabulary (type, class, ID, attribute, combinators, pseudo) and the specificity algorithm that decides which rule wins. This stage is the foundation of every maintainable stylesheet."
   },
@@ -25399,7 +25313,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=1L2YiWdaUDM&t=500s",
     "whyItMatters": "Every element is a box made of content, padding, border, and margin. Learn how `box-sizing` changes the math, why margins collapse, and how to size elements with `rem`, `em`, `%`, `vw`, and `dvh`."
   },
@@ -25702,7 +25615,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=1L2YiWdaUDM&t=750s",
     "whyItMatters": "Specify color with hex, rgb(), hsl(), oklch(), and the new color-mix(). Layer backgrounds, gradients, and `background-clip`, and learn the difference between sRGB, Display P3, and perceptually uniform color spaces."
   },
@@ -26007,7 +25919,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=1L2YiWdaUDM&t=1000s",
     "whyItMatters": "Style type for readability and hierarchy: font-family stacks, system fonts, variable fonts, `font-size` strategies, `line-height`, letter-spacing, text alignment, wrapping, truncation, and OpenType features."
   },
@@ -26314,7 +26225,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=1L2YiWdaUDM&t=1250s",
     "whyItMatters": "Learn the three historical layout systems and why Flexbox is the right tool for 1D layout today. Cover `position`, floats (and why they're not for layout anymore), and the Flexbox model end to end."
   },
@@ -26619,7 +26529,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=1L2YiWdaUDM&t=1500s",
     "whyItMatters": "CSS Grid is the purpose-built tool for two-dimensional layouts. Learn explicit and implicit grids, `grid-template-columns/rows`, the `fr` unit, `minmax`, `auto-fit`/`auto-fill`, line-based placement, grid areas, and `subgrid`."
   },
@@ -26922,7 +26831,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=1L2YiWdaUDM&t=1750s",
     "whyItMatters": "Make your layouts adapt to any screen. Learn `@media`, `min-width`/`max-width` mobile-first strategy, `prefers-color-scheme`, container queries, modern viewport units, and the `picture` element for responsive images."
   },
@@ -27225,7 +27133,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=1L2YiWdaUDM&t=2000s",
     "whyItMatters": "Bring interfaces to life with smooth transitions, transforms, and keyframe animations. Learn `transition`, `transform`, `@keyframes`, `animation`, the GPU-friendly properties, and `prefers-reduced-motion` for accessibility."
   },
@@ -27527,7 +27434,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=40K1pvxEwlE",
     "whyItMatters": "As stylesheets grow, you need an architecture. Compare BEM naming, utility-first (Tailwind), CSS-in-JS, and native `@layer` — and learn when each is appropriate and how they combine."
   },
@@ -27829,7 +27735,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=40K1pvxEwlE&t=200s",
     "whyItMatters": "Modern CSS unlocks patterns that previously required JavaScript: container queries that respond to component width, `:has()` (the \"parent selector\"), subgrid for nested alignment, and `aspect-ratio` for intrinsic sizing. Learn what shipped, how to use it, and how to provide fallbacks."
   },
@@ -28131,7 +28036,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=40K1pvxEwlE&t=400s",
     "whyItMatters": "CSS custom properties (`--brand:. `) are the foundation of modern theming."
   },
@@ -28432,7 +28336,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=40K1pvxEwlE&t=600s",
     "whyItMatters": "Pseudo-classes select elements in specific states (`:hover`, `:focus-visible`, `:nth-child`, `:placeholder-shown`). Pseudo-elements select generated content (`::before`, `::after`, `::selection`, `::marker`)."
   },
@@ -28735,7 +28638,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=40K1pvxEwlE&t=800s",
     "whyItMatters": "Form controls are notoriously hard to style. Learn to reset native styles, build custom checkboxes/radios, style range sliders, file inputs, select menus, and the new `<selectmenu>`/`<input type=\"color\">`, while preserving accessibility and keyboard navigation."
   },
@@ -29037,7 +28939,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=40K1pvxEwlE&t=1000s",
     "whyItMatters": "Add visual polish with `filter` (blur, brightness, contrast, drop-shadow), `backdrop-filter` (frosted glass), and `mix-blend-mode`/`background-blend-mode` for non-destructive layering. Learn performance implications and accessibility concerns."
   },
@@ -29340,7 +29241,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=40K1pvxEwlE&t=1200s",
     "whyItMatters": "CSS can make or break perceived performance. Learn the browser rendering pipeline (style → layout → paint → composite), which properties trigger which phases, critical CSS inlining, `content-visibility`, `will-change`, and how to measure with DevTools."
   },
@@ -29643,7 +29543,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=40K1pvxEwlE&t=1400s",
     "whyItMatters": "Accessibility is not optional. Learn visible focus rings, WCAG color contrast, `prefers-reduced-motion`, `prefers-contrast`, `prefers-color-scheme`, forced-colors mode (Windows High Contrast), and the `:focus-visible` ring that respects user settings."
   },
@@ -29946,7 +29845,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=40K1pvxEwlE&t=1600s",
     "whyItMatters": "Print styles are a forgotten art. Learn `@media print`, page breaks (`break-before/inside/after`), `@page` for margins and size, the `:left/:right` page selectors, print-only headers/footers, and how to ensure content prints cleanly (no nav, expanded details, full URLs in links)."
   },
@@ -30248,7 +30146,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=40K1pvxEwlE&t=1800s",
     "whyItMatters": "CSS Houdini is a set of low-level APIs that let developers hook into the browser's rendering engine. Learn the Paint API (`CSS."
   },
@@ -30552,7 +30449,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=40K1pvxEwlE&t=2000s",
     "whyItMatters": "Production CSS relies on tooling: Sass/SCSS for variables and mixins, PostCSS for transforms and autoprefixing, Tailwind and CSS Modules for scoping, and build pipelines that lint, minify, and tree-shake. This stage also prepares you for the capstone."
   },
@@ -30614,7 +30510,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -30917,7 +30812,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY",
     "whyItMatters": "Install PostgreSQL, connect with psql, and understand the relational model — tables, rows, columns, schemas, and primary keys — by writing your first SELECT queries."
   },
@@ -31220,7 +31114,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY&t=600s",
     "whyItMatters": "Filter and sort rows with WHERE, comparison and pattern operators, DISTINCT, ORDER BY, and LIMIT/OFFSET — the everyday vocabulary of every analyst and backend engineer."
   },
@@ -31523,7 +31416,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY&t=1300s",
     "whyItMatters": "Combine rows from two or more tables using INNER, LEFT, RIGHT, FULL OUTER, CROSS, and self-joins — and learn why missing JOIN conditions cause silent Cartesian-product explosions."
   },
@@ -31830,7 +31722,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY&t=2000s",
     "whyItMatters": "Aggregate rows into groups with GROUP BY, filter groups with HAVING, and master COUNT/SUM/AVG/MIN/MAX plus the subtle difference between COUNT(*), COUNT(col), and COUNT(DISTINCT col)."
   },
@@ -32134,7 +32025,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY&t=2700s",
     "whyItMatters": "Decompose complex queries with scalar, correlated, and EXISTS subqueries, then refactor them into readable Common Table Expressions (CTEs) using WITH — and learn when to prefer one over the other."
   },
@@ -32438,7 +32328,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY&t=3400s",
     "whyItMatters": "Compute analytics across rows without collapsing them — ROW_NUMBER, RANK, LAG, LEAD, running totals, and per-group top-N with the OVER(), PARTITION BY, and frame clauses."
   },
@@ -32741,7 +32630,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY&t=4100s",
     "whyItMatters": "Modify data with INSERT, UPDATE, DELETE, and UPSERT (ON CONFLICT), and learn the safe patterns — RETURNING, transactions, and the WHERE-clause discipline that prevents catastrophic bulk updates."
   },
@@ -33044,7 +32932,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY&t=4800s",
     "whyItMatters": "Design normalized schemas with primary keys, foreign keys, UNIQUE, CHECK, and NOT NULL constraints — and learn the modern trade-offs between IDENTITY, UUID, enum, and lookup tables."
   },
@@ -33347,7 +33234,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY&t=5500s",
     "whyItMatters": "Speed up queries with B-tree, GIN, GiST, BRIN, and partial/expression indexes — and use EXPLAIN to understand why a query is slow and whether the index is being used."
   },
@@ -33650,7 +33536,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY&t=6200s",
     "whyItMatters": "Use BEGIN/COMMIT/ROLLBACK, SAVEPOINT, and SELECT FOR UPDATE to keep data consistent — and understand ACID, the four isolation levels, deadlock causes, and how to avoid them."
   },
@@ -33953,7 +33838,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY&t=6900s",
     "whyItMatters": "Encapsulate queries as views, cache heavy aggregates as materialized views, and write server-side functions and procedures in PL/pgSQL — and learn the security and performance trade-offs."
   },
@@ -34259,7 +34143,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY&t=7600s",
     "whyItMatters": "Run logic on row changes with BEFORE/AFTER/INSTEAD OF triggers, write rich PL/pgSQL functions, and define composite types, enums, and domains — and learn when triggers become a maintenance nightmare."
   },
@@ -34562,7 +34445,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY&t=8300s",
     "whyItMatters": "Use Postgres' superpowers — JSONB for flexible schema, arrays for multi-value columns, and built-in full-text search with tsvector and GIN indexes — and learn the right tool for each job."
   },
@@ -34866,7 +34748,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY&t=9000s",
     "whyItMatters": "Walk hierarchical and graph-shaped data — org charts, comment threads, dependency trees, and graph traversal — using `WITH RECURSIVE`, and learn the cycle-detection and termination patterns that prevent infinite loops."
   },
@@ -35171,7 +35052,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY&t=9700s",
     "whyItMatters": "Reshape wide to long and back with crosstab and UNION ALL, compute multi-dimensional aggregates with ROLLUP, CUBE, and GROUPING SETS, and use the FILTER clause for clean conditional aggregation."
   },
@@ -35474,7 +35354,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY&t=10400s",
     "whyItMatters": "Diagnose slow queries with EXPLAIN (ANALYZE, BUFFERS), understand seq scans, index scans, and join strategies, and keep the planner healthy with VACUUM, ANALYZE, and statistics tuning."
   },
@@ -35778,7 +35657,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY&t=11100s",
     "whyItMatters": "Keep data safe and available with streaming and logical replication, point-in-time recovery via WAL archiving, and high-availability failover with Patroni — and learn the failure modes that catch teams off guard."
   },
@@ -36084,7 +35962,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY&t=11800s",
     "whyItMatters": "Lock down access with roles and grants, enforce per-row visibility with Row-Level Security (RLS), encrypt sensitive columns with pgcrypto, and audit activity with pgaudit."
   },
@@ -36387,7 +36264,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY&t=12500s",
     "whyItMatters": "Use SQL safely from application code with ORMs (SQLAlchemy, Prisma, TypeORM), manage schema changes with migrations (Alembic, golang-migrate), and avoid the N+1, SQL injection, and connection-pool pitfalls that plague real backends."
   },
@@ -36691,7 +36567,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXV3zeQKqGY&t=13200s",
     "whyItMatters": "Design star and snowflake schemas for analytics, learn slowly-changing dimensions, and survey columnar extensions (Citus, Redshift, ClickHouse) and the dbt workflow — setting you up for the capstone project."
   },
@@ -36759,7 +36634,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -37061,7 +36935,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0",
     "whyItMatters": "Install the JDK, compile and run your first program, and understand the edit-compile-run loop and JVM bytecode model."
   },
@@ -37363,7 +37236,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0&t=1200s",
     "whyItMatters": "Declare primitive and reference variables, learn Java's two-type system, master arithmetic and logical operators, and meet autoboxing and the Integer cache."
   },
@@ -37665,7 +37537,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0&t=2400s",
     "whyItMatters": "Master if/else, switch (including the new arrow-form switch and pattern matching), for, while, do-while, break, continue, and labeled loops."
   },
@@ -37968,7 +37839,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0&t=3600s",
     "whyItMatters": "Write reusable methods, understand pass-by-value, return types, varargs, and work with Java arrays — including multidimensional arrays, `Arrays` utility, and array covariance."
   },
@@ -38270,7 +38140,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0&t=4800s",
     "whyItMatters": "Model real-world entities with classes, fields, constructors, and methods; master `this`, access modifiers, static members, and Java's record type for plain data carriers."
   },
@@ -38573,7 +38442,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0&t=6000s",
     "whyItMatters": "Extend classes, override and overload methods, model behavior with interfaces and default methods, and use sealed classes and permits to control the inheritance hierarchy."
   },
@@ -38875,7 +38743,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0&t=7200s",
     "whyItMatters": "Throw, catch, and declare exceptions; understand checked vs unchecked, custom exceptions, multi-catch, finally semantics, and the try-with-resources idiom for safe cleanup."
   },
@@ -39177,7 +39044,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0&t=8400s",
     "whyItMatters": "Understand why String is immutable, when to use StringBuilder vs StringBuffer, how String interning works, and how wrapper classes bridge primitives and generics."
   },
@@ -39479,7 +39345,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0&t=9600s",
     "whyItMatters": "Use the right collection for the job — ArrayList vs LinkedList, HashSet vs TreeSet, HashMap vs LinkedHashMap vs TreeMap, and the concurrent collections in java. util."
   },
@@ -39781,7 +39646,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0&t=10800s",
     "whyItMatters": "Master parameterized types, wildcards (`? extends`, `? super`), type erasure, generic methods, bounded type parameters, and the PECS rule."
   },
@@ -40083,7 +39947,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0&t=12000s",
     "whyItMatters": "Write functional-style code with lambda expressions, method references, the Stream API, Optional, and functional interfaces — and learn the parallel-stream pitfalls."
   },
@@ -40386,7 +40249,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0&t=13200s",
     "whyItMatters": "Read and write files with java. nio."
   },
@@ -40688,7 +40550,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0&t=14400s",
     "whyItMatters": "Create and manage threads, use ExecutorService and CompletableFuture, coordinate with latches/semaphores/CountDownLatch, and understand the Java Memory Model and volatile."
   },
@@ -40991,7 +40852,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0&t=15600s",
     "whyItMatters": "Use the modern java. time API (LocalDate, LocalTime, LocalDateTime, ZonedDateTime, Instant, Duration, Period) for all date and time work, and format/parse with DateTimeFormatter."
   },
@@ -41294,7 +41154,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0&t=16800s",
     "whyItMatters": "Connect to a database, execute queries with PreparedStatement, handle transactions, use connection pools (HikariCP), and understand SQL injection and ResultSet types."
   },
@@ -41596,7 +41455,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0&t=18000s",
     "whyItMatters": "Build TCP clients and servers with ServerSocket, use the modern Java 11+ HttpClient for HTTP/1. 1 and HTTP/2, and understand URI, URL, and content handling."
   },
@@ -41899,7 +41757,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0&t=19200s",
     "whyItMatters": "Understand the JVM memory areas (heap, metaspace, stack, code cache), garbage collector families (Serial, Parallel, G1, ZGC), classloading, and the JIT compilers."
   },
@@ -42202,7 +42059,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0&t=20400s",
     "whyItMatters": "Build, package, and dependency-manage Java projects with Maven and Gradle, understand transitive resolution, scopes, multi-module projects, and the modern Gradle Kotlin DSL."
   },
@@ -42504,7 +42360,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0&t=21600s",
     "whyItMatters": "Write unit tests with JUnit 5, mock collaborators with Mockito, measure coverage with JaCoCo, and apply TDD red-green-refactor to drive design."
   },
@@ -42809,7 +42664,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A74TOX803D0&t=22800s",
     "whyItMatters": "Stand up a Spring Boot REST service with controllers, services, repositories, configuration, and validation, then prepare to combine every prior stage in the capstone."
   },
@@ -42871,7 +42725,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -43175,7 +43028,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0",
     "whyItMatters": "Install a C compiler, write your first program, and understand the compile-link-run pipeline that turns source into an executable."
   },
@@ -43478,7 +43330,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=600s",
     "whyItMatters": "Declare variables of every primitive type, understand fixed-width integers from <stdint. h>, and master C's operator set and precedence rules."
   },
@@ -43781,7 +43632,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=1300s",
     "whyItMatters": "Master if/else, switch, for, while, do-while, break, continue, and the goto debate — and learn why switch fallthrough is a famous C footgun."
   },
@@ -44086,7 +43936,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=2000s",
     "whyItMatters": "Declare and define functions, understand pass-by-value semantics, master recursion and tail calls, and learn how the call stack actually works."
   },
@@ -44391,7 +44240,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=2700s",
     "whyItMatters": "Declare arrays, understand the array-pointer duality, manipulate C strings (null-terminated char arrays), and learn why gets() and strcpy() are forbidden in modern code."
   },
@@ -44696,7 +44544,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=3400s",
     "whyItMatters": "Grasp what a pointer really is — an address into memory — and learn the address-of operator, dereference, NULL, and the difference between pointers and arrays."
   },
@@ -44999,7 +44846,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=4100s",
     "whyItMatters": "Use pointer arithmetic to traverse arrays, understand why `arr[i]` is defined as `*(arr + i)`, and learn the relationship between pointers, arrays, and multi-dimensional layouts."
   },
@@ -45304,7 +45150,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=4800s",
     "whyItMatters": "Manage the heap yourself — allocate with malloc/calloc, resize with realloc, free with free — and learn the rules that prevent leaks, double-free, and use-after-free."
   },
@@ -45607,7 +45452,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=5500s",
     "whyItMatters": "Group related data into structs, share storage between types with unions, and rename types with typedef — the foundation of every C API."
   },
@@ -45912,7 +45756,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=6200s",
     "whyItMatters": "Take pointers to functions, store them in tables, and use them for callbacks — the foundation of qsort, event loops, and plugin architectures in C."
   },
@@ -46217,7 +46060,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=6900s",
     "whyItMatters": "Open files with fopen, read and write with fread/fwrite, fseek and ftell for random access, and learn why every file handle must be closed on every code path."
   },
@@ -46522,7 +46364,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=7600s",
     "whyItMatters": "Master the C preprocessor — object-like and function-like macros, #include, conditional compilation, and the dangerous pitfalls of macros that look like functions."
   },
@@ -46827,7 +46668,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=8300s",
     "whyItMatters": "Split a project into multiple. c and."
   },
@@ -47134,7 +46974,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=9000s",
     "whyItMatters": "Survey the most-used headers of the C standard library — string. h for memory and strings, stdlib."
   },
@@ -47439,7 +47278,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=9700s",
     "whyItMatters": "Use errno, perror, and strerror to report errors meaningfully, learn the difference between library errors and signal-based errors, and structure programs with explicit error-propagation patterns."
   },
@@ -47744,7 +47582,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=10400s",
     "whyItMatters": "Tackle the pointer patterns that scare beginners — pointer-to-pointer, void* genericity, and the restrict qualifier for optimization."
   },
@@ -48050,7 +47887,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=11100s",
     "whyItMatters": "Build the three foundational data structures in C — singly/doubly linked lists, stacks, and queues — using struct pointers and function pointers for clean APIs."
   },
@@ -48359,7 +48195,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=11800s",
     "whyItMatters": "Write multi-threaded C with pthreads — create and join threads, protect shared state with mutexes, and signal waiting threads with condition variables."
   },
@@ -48665,7 +48500,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=12500s",
     "whyItMatters": "Master the C toolchain — compile with the right flags, automate builds with make, debug with gdb, hunt memory errors with valgrind and AddressSanitizer, and ship with confidence."
   },
@@ -48969,7 +48803,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=13200s",
     "whyItMatters": "Survey what's new in C11 and C23 — threads, atomics, _Generic, _Static_assert, anonymous structs, constexpr, typeof — and prepare your toolkit and project plan for the capstone."
   },
@@ -49037,7 +48870,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -49341,7 +49173,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=18c3MTX0PK0",
     "whyItMatters": "Install a C++ compiler, write your first program, and understand the compile-link pipeline, the C++ standard library, and the iostream abstraction that replaces printf."
   },
@@ -49645,7 +49476,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=18c3MTX0PK0&t=50s",
     "whyItMatters": "Learn the C++ fundamental types, the rules of arithmetic (including signed overflow UB), narrowing conversions, and the operator set with precedence."
   },
@@ -49949,7 +49779,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=18c3MTX0PK0&t=100s",
     "whyItMatters": "Master if/else, switch with fallthrough, the four loop forms (for, while, do-while, range-based for), break/continue, and the modern if-with-initializer."
   },
@@ -50255,7 +50084,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=18c3MTX0PK0&t=150s",
     "whyItMatters": "Learn function definition, parameter passing by value and by reference, const references for efficient read-only arguments, default arguments, overload resolution, and inline."
   },
@@ -50560,7 +50388,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=18c3MTX0PK0&t=200s",
     "whyItMatters": "Learn raw pointers, address-of and dereference, dynamic allocation with new and delete, arrays with new[]/delete[], the strict aliasing rule, and the pathologies that motivate smart pointers in Stage 12."
   },
@@ -50865,7 +50692,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=18c3MTX0PK0&t=250s",
     "whyItMatters": "Define classes with access specifiers, constructors, destructors, copy/move operations, and learn the Rule of 0/3/5 that governs when you must write each special member function."
   },
@@ -51169,7 +50995,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=18c3MTX0PK0&t=300s",
     "whyItMatters": "Master single and multiple inheritance, virtual functions, override and final, pure virtual functions and abstract classes, virtual destructors, and the object-slicing pitfall."
   },
@@ -51475,7 +51300,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=18c3MTX0PK0&t=350s",
     "whyItMatters": "Learn function and class templates, template argument deduction, specialization, variadic templates, SFINAE, two-phase lookup, and the concepts-like discipline that templates demand."
   },
@@ -51778,7 +51602,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=18c3MTX0PK0&t=400s",
     "whyItMatters": "Tour the STL containers — vector, deque, list, array, map, set, unordered_map, unordered_set — and the iterator invalidation rules that govern safe use."
   },
@@ -52081,7 +51904,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=18c3MTX0PK0&t=450s",
     "whyItMatters": "Master the STL algorithm library (find, sort, transform, accumulate) and the iterator categories that govern which algorithms work on which containers."
   },
@@ -52385,7 +52207,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=18c3MTX0PK0&t=500s",
     "whyItMatters": "Learn rvalue references, std::move and std::forward, move constructors and assignment, RVO/NRVO, and how perfect forwarding enables generic factory functions."
   },
@@ -52694,7 +52515,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=18c3MTX0PK0&t=550s",
     "whyItMatters": "Replace raw new/delete with std::unique_ptr, std::shared_ptr, and std::weak_ptr — the RAII types that make C++ memory management safe by default."
   },
@@ -52998,7 +52818,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=18c3MTX0PK0&t=600s",
     "whyItMatters": "Master try/throw/catch, exception safety guarantees (basic, strong, no-throw), RAII as the foundation of resource safety, noexcept, and the std::exception hierarchy."
   },
@@ -53303,7 +53122,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=18c3MTX0PK0&t=650s",
     "whyItMatters": "Learn std::thread, mutexes, std::lock_guard / std::unique_lock, std::async, std::future and std::promise, and the data-race and deadlock hazards of concurrent C++."
   },
@@ -53607,7 +53425,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=18c3MTX0PK0&t=700s",
     "whyItMatters": "Master std::istream / std::ostream, std::ifstream / std::ofstream, std::stringstream, manipulators, binary I/O, and the failure modes of stream state."
   },
@@ -53912,7 +53729,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=18c3MTX0PK0&t=750s",
     "whyItMatters": "Master the C++11/14/17 features that reshape day-to-day C++: lambdas with capture lists, auto type deduction, decltype, range-based for, structured bindings, and if-init."
   },
@@ -54215,7 +54031,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=18c3MTX0PK0&t=800s",
     "whyItMatters": "Tour the headline features of modern C++: constexpr if, fold expressions (recap), concepts, ranges, coroutines, modules, std::optional / std::variant / std::expected, and std::span."
   },
@@ -54522,7 +54337,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=18c3MTX0PK0&t=850s",
     "whyItMatters": "Master the C++ memory model, std::atomic, memory orderings, false sharing, cache-line alignment, and the hard problems of lock-free data structures."
   },
@@ -54826,7 +54640,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=18c3MTX0PK0&t=900s",
     "whyItMatters": "Master CMake (the de-facto C++ build system), Bazel for monorepos, and the package managers vcpkg and Conan that have transformed C++ dependency management."
   },
@@ -55132,7 +54945,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_zQqN5OYCCM",
     "whyItMatters": "Lock in correctness with GoogleTest, Catch2, sanitizers, clang-tidy, cppcheck, and CI; then prepare for the capstone project by reviewing every prior stage."
   },
@@ -55194,7 +55006,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -55497,7 +55308,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8",
     "whyItMatters": "Install the. NET 8 SDK, use the dotnet CLI to scaffold your first app, run a top-level-statements Hello World, and understand the edit-build-run loop and the CLR execution model."
   },
@@ -55799,7 +55609,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8&t=1000s",
     "whyItMatters": "Declare variables across built-in types, master value vs reference semantics, learn arithmetic/logical/bitwise operators, and meet string interning and the `==` vs `. Equals` trap."
   },
@@ -56102,7 +55911,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8&t=2000s",
     "whyItMatters": "Master if/else, switch statements and expressions, pattern matching, and all loop constructs (for, foreach, while, do-while), with break/continue and the iterator-vs-iterable distinction."
   },
@@ -56406,7 +56214,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8&t=3000s",
     "whyItMatters": "Author methods with all parameter kinds (value, ref, out, in, params), use named and optional arguments, master overload resolution, and learn local functions and expression-bodied members."
   },
@@ -56709,7 +56516,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8&t=4000s",
     "whyItMatters": "Author classes, structs, and records; understand reference vs value semantics, primary constructors (C# 12), init-only properties, and when each kind of type is the right choice."
   },
@@ -57012,7 +56818,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8&t=5000s",
     "whyItMatters": "Model hierarchies with abstract classes and interfaces, master virtual/override/sealed, default interface methods, and use pattern matching to replace brittle type-switches."
   },
@@ -57314,7 +57119,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8&t=6000s",
     "whyItMatters": "Author generic methods and types, apply constraints (where T : new(), class, struct, interface, base), understand covariance/contravariance, and learn the type-inference and overload edge cases that bite in production."
   },
@@ -57616,7 +57420,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8&t=7000s",
     "whyItMatters": "Master the core generic collections, choose the right one (List vs Dictionary vs HashSet vs SortedSet), understand capacity and hashing, and use the concurrent collections for thread-safe scenarios."
   },
@@ -57918,7 +57721,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8&t=8000s",
     "whyItMatters": "Author delegates and the built-in Action/Func types, raise and handle events, capture variables in lambdas (and the classic loop-capture bug), and understand multicast dispatch."
   },
@@ -58221,7 +58023,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8&t=9000s",
     "whyItMatters": "Master both LINQ syntaxes (query expressions and method syntax), understand deferred execution and multiple enumeration, and use SelectMany, GroupBy, Join, and Aggregate fluently."
   },
@@ -58523,7 +58324,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8&t=10000s",
     "whyItMatters": "Author async methods with await, understand the Task model and the thread pool, use CancellationToken and ConfigureAwait, and avoid the classic `. Result` deadlock and `async void` disasters."
   },
@@ -58825,7 +58625,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8&t=11000s",
     "whyItMatters": "Use try/catch/finally correctly, author custom exception hierarchies, apply exception filters (when), and aggregate exceptions from parallel and async work."
   },
@@ -59127,7 +58926,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8&t=12000s",
     "whyItMatters": "Read and write files with File, FileStream, StreamReader/Writer, serialize with System. Text."
   },
@@ -59432,7 +59230,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8&t=13000s",
     "whyItMatters": "Inspect types and members with reflection, author and read custom attributes, build expression trees with `Expression<T>`, and understand the performance and AOT implications."
   },
@@ -59736,7 +59533,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8&t=14000s",
     "whyItMatters": "Understand the generational GC and finalizer lifecycle, implement IDisposable correctly (with the dispose pattern), and use Span<T>/Memory<T>/stackalloc for allocation-free hot paths."
   },
@@ -60040,7 +59836,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8&t=15000s",
     "whyItMatters": "Coordinate threads with `lock`/Monitor, SemaphoreSlim, ReaderWriterLockSlim, and `Channel<T>` for producer-consumer pipelines — and avoid the classic deadlocks, races, and stale-cache bugs."
   },
@@ -60345,7 +60140,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8&t=16000s",
     "whyItMatters": "Master the dotnet CLI (new/build/publish/test/pack), read and write SDK-style. csproj files, consume and publish NuGet packages, and multi-target frameworks."
   },
@@ -60649,7 +60443,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8&t=17000s",
     "whyItMatters": "Write unit tests with xUnit (and a peek at NUnit), mock dependencies with Moq, write fluent assertions, and structure tests across unit/integration with Testcontainers."
   },
@@ -60952,7 +60745,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8&t=18000s",
     "whyItMatters": "Build HTTP APIs with Minimal APIs, wire up the DI container (singleton/scoped/transient), compose middleware, and structure a real `Program. cs` for production."
   },
@@ -61250,7 +61042,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=GhQdlIFylQ8&t=19000s",
     "whyItMatters": "Author a Roslyn source generator, understand Native AOT and trimming constraints, and tie the whole track together with capstone prep — choosing the architecture, libraries, and deployment for the final project."
   },
@@ -61318,7 +61109,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -61620,7 +61410,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU",
     "whyItMatters": "Install the Go toolchain, write and run your first program with `go run`, understand the module/workspace model, and meet the fmt, os, and log standard library packages."
   },
@@ -61925,7 +61714,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU&t=800s",
     "whyItMatters": "Declare variables across Go's built-in types, master zero values and short declarations, understand constants and iota, and meet the type-conversion vs type-assertion distinction."
   },
@@ -62227,7 +62015,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU&t=1600s",
     "whyItMatters": "Master if/else, switch (with no-arg and type switches), for loops (the only loop in Go), break/continue/labels, and the pre-1. 22 vs 1."
   },
@@ -62529,7 +62316,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU&t=2400s",
     "whyItMatters": "Define functions with multiple return values, master Go's error-as-value philosophy, learn defer with named returns, and meet panic/recover — the escape hatch you should rarely use."
   },
@@ -62832,7 +62618,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU&t=3200s",
     "whyItMatters": "Master Go's signature data structure — the slice — including backing arrays, capacity, append growth, copy, subslice aliasing, and the immutable string's relationship to []byte."
   },
@@ -63135,7 +62920,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU&t=4000s",
     "whyItMatters": "Work with Go's two main aggregate types — the hash map and the struct — including map zero values, struct embedding (preview), field tags, and the iteration-order trap."
   },
@@ -63439,7 +63223,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU&t=4800s",
     "whyItMatters": "Understand Go's pointers — pass-by-value semantics, the `&` and `*` operators, nil pointers, and the subtle \"nil interface vs nil pointer\" trap that has bitten every Go developer at least once."
   },
@@ -63744,7 +63527,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU&t=5600s",
     "whyItMatters": "Define methods on types, understand pointer vs value receivers, write implicit interfaces, and master the empty interface `any` plus type assertions and type switches."
   },
@@ -64046,7 +63828,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU&t=6400s",
     "whyItMatters": "Master Go's composition-over-inheritance model — struct embedding (field and method promotion), interface embedding, and the subtle difference between embedding a struct vs embedding an interface."
   },
@@ -64351,7 +64132,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU&t=7200s",
     "whyItMatters": "Launch goroutines, understand the GMP scheduler, and use the sync package — Mutex, RWMutex, WaitGroup, Once, Pool, Cond, and Map — to coordinate shared state safely."
   },
@@ -64653,7 +64433,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU&t=8000s",
     "whyItMatters": "Master Go's other concurrency primitive — channels. Cover unbuffered vs buffered, send/receive blocking, the select statement, nil channels, and the close-panic rules."
   },
@@ -64955,7 +64734,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU&t=8800s",
     "whyItMatters": "Use the `context` package to propagate cancellation, deadlines, and request-scoped values across goroutine trees — and learn the rules that keep context usage safe and idiomatic."
   },
@@ -65258,7 +65036,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU&t=9600s",
     "whyItMatters": "Master modern Go error handling — wrapping with %w, inspecting with errors. Is and errors."
   },
@@ -65560,7 +65337,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU&t=10400s",
     "whyItMatters": "Write type-parameterized functions and types with Go 1. 18+ generics — understand type sets, constraints, the constraints/comparable package, and when generics beat interfaces (and when they don't)."
   },
@@ -65862,7 +65638,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU&t=11200s",
     "whyItMatters": "Structure Go code into packages and modules, master the go. mod file (require, replace, retract, exclude), understand semantic import versioning, and publish modules to a registry."
   },
@@ -66167,7 +65942,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU&t=12000s",
     "whyItMatters": "Write idiomatic Go tests with the testing package — table-driven tests, benchmarks, subtests with t. Run, the Go 1."
   },
@@ -66469,7 +66243,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU&t=12800s",
     "whyItMatters": "Master the three most-used standard library packages — net/http (servers and clients), io (Reader/Writer/Copy/All), and encoding/json (marshal/unmarshal, streams, encoders/decoders)."
   },
@@ -66771,7 +66544,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU&t=13600s",
     "whyItMatters": "Apply the classic Go concurrency patterns — pipelines, fan-out/fan-in, worker pools, publish/subscribe, and the errgroup package for error-aware concurrency."
   },
@@ -67074,7 +66846,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU&t=14400s",
     "whyItMatters": "Master the Go tooling ecosystem — go vet and its analyzers, golangci-lint for aggregated linting, pprof for CPU/memory profiling, and the Delve debugger for stepping through Go code."
   },
@@ -67378,7 +67149,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YS4e4q9oBaU&t=15200s",
     "whyItMatters": "Tie everything together — build production-grade CLIs with cobra and Web servers with net/http (or chi), wire middleware, use structured logging (slog), and prepare for the capstone."
   },
@@ -67446,7 +67216,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -67748,7 +67517,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OX9HJsJUDxA",
     "whyItMatters": "Install Rust via rustup, write and run your first program with Cargo, and understand the compile-and-run model."
   },
@@ -68050,7 +67818,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OX9HJsJUDxA&t=100s",
     "whyItMatters": "Declare variables, learn why Rust defaults to immutability, shadowing, constants, and the primitive and compound types."
   },
@@ -68352,7 +68119,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OX9HJsJUDxA&t=200s",
     "whyItMatters": "Use `if`/`else if`/`else`, `loop`, `while`, `for`, and the value-returning nature of expressions to write idiomatic control flow."
   },
@@ -68655,7 +68421,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OX9HJsJUDxA&t=300s",
     "whyItMatters": "Define functions, specify parameter and return types, write expressions vs statements, and document code with `//`, `///`, and `//!`."
   },
@@ -68958,7 +68723,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OX9HJsJUDxA&t=400s",
     "whyItMatters": "Learn the single rule that enables Rust's memory safety without GC — every value has one owner, ownership transfers on move, and values drop when their owner goes out of scope."
   },
@@ -69259,7 +69023,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OX9HJsJUDxA&t=500s",
     "whyItMatters": "Use `&T` and `&mut T` to use a value without taking ownership, and learn the borrow checker's rules: many shared or one mutable, never both."
   },
@@ -69561,7 +69324,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OX9HJsJUDxA&t=600s",
     "whyItMatters": "Master `&[T]` slices and the `String`/`&str` distinction — the most-confused pair in Rust — and learn when to use each."
   },
@@ -69864,7 +69626,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OX9HJsJUDxA&t=700s",
     "whyItMatters": "Define named-field structs, tuple structs, and unit structs; implement methods with `impl` blocks; use `#[derive]` for common traits."
   },
@@ -70167,7 +69928,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OX9HJsJUDxA&t=800s",
     "whyItMatters": "Define enums (including variants with data), use exhaustive `match`, handle absence with `Option<T>`, and learn `if let` and `while let`."
   },
@@ -70470,7 +70230,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OX9HJsJUDxA&t=900s",
     "whyItMatters": "Organize code into modules and crates, control visibility with `pub`, bring items into scope with `use`, and understand crate roots and paths."
   },
@@ -70775,7 +70534,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OX9HJsJUDxA&t=1000s",
     "whyItMatters": "Use Rust's core collections — `Vec<T>`, `HashMap<K,V>`, `BTreeMap<K,V>` — and understand when each is appropriate and how ownership moves into them."
   },
@@ -71079,7 +70837,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ygL_xcavzQ4",
     "whyItMatters": "Use `Result<T, E>` for recoverable errors, propagate with `?`, define custom error types, and choose between `panic` and `Result`."
   },
@@ -71383,7 +71140,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ygL_xcavzQ4&t=1500s",
     "whyItMatters": "Write generic functions and types, define and implement traits, use trait bounds, and learn default methods, associated types, and trait objects."
   },
@@ -71688,7 +71444,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ygL_xcavzQ4&t=3000s",
     "whyItMatters": "Understand lifetimes as compile-time scopes, write explicit annotations, leverage elision rules, and use `'static` correctly."
   },
@@ -71994,7 +71749,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ygL_xcavzQ4&t=4500s",
     "whyItMatters": "Capture variables with closures (Fn/FnMut/FnOnce), chain lazy iterator adapters, and write idiomatic functional-style Rust."
   },
@@ -72298,7 +72052,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ygL_xcavzQ4&t=6000s",
     "whyItMatters": "Use `Box<T>` for heap allocation, `Rc<T>` and `Arc<T>` for shared ownership, and `RefCell<T>`/`Mutex<T>` for interior mutability."
   },
@@ -72602,7 +72355,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ygL_xcavzQ4&t=7500s",
     "whyItMatters": "Spawn threads, share state with `Arc<Mutex<T>>`, communicate via channels, and understand the `Send` and `Sync` marker traits."
   },
@@ -72906,7 +72658,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ygL_xcavzQ4&t=9000s",
     "whyItMatters": "Write async functions, drive futures with Tokio, use `tokio::spawn`, and learn the pitfalls of `Send` bounds, blocking, and cancellation."
   },
@@ -73209,7 +72960,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ygL_xcavzQ4&t=10500s",
     "whyItMatters": "Write `macro_rules!` declarative macros for code generation, understand procedural macros (derive, attribute, function-like), and use `vec![]`/`println!` patterns."
   },
@@ -73516,7 +73266,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ygL_xcavzQ4&t=12000s",
     "whyItMatters": "Write unit and integration tests, use `cargo test` features, organize multi-crate projects with workspaces, and prepare for the capstone project."
   },
@@ -73584,7 +73333,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -73886,7 +73634,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ySa58y1SRy0",
     "whyItMatters": "Install Swift, run your first program with the Swift REPL and `swift run`, and understand the compile-and-execute model."
   },
@@ -74189,7 +73936,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ySa58y1SRy0&t=60s",
     "whyItMatters": "Declare variables and constants, understand Swift's type system, and master optionals — Swift's signature feature for representing the absence of a value."
   },
@@ -74492,7 +74238,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ySa58y1SRy0&t=120s",
     "whyItMatters": "Master Swift's conditional and loop constructs, including `if`/`else`, `switch`, `for`-`in`, `while`, `repeat`-`while`, and the labeled `break`/`continue` for nested loops."
   },
@@ -74797,7 +74542,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ySa58y1SRy0&t=180s",
     "whyItMatters": "Work with Swift strings as collections of `Character` (Unicode grapheme clusters), master `String. Index` (not `Int`), and use ranges for slicing and matching."
   },
@@ -75101,7 +74845,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ySa58y1SRy0&t=240s",
     "whyItMatters": "Use Swift's three core collection types — `Array`, `Set`, and `Dictionary` — understand their value semantics, and know when each is the right choice."
   },
@@ -75406,7 +75149,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ySa58y1SRy0&t=300s",
     "whyItMatters": "Define functions with parameters, labels, defaults, and variadics, then master closures — Swift's first-class anonymous functions with capture semantics."
   },
@@ -75710,7 +75452,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ySa58y1SRy0&t=360s",
     "whyItMatters": "Define enums with raw values and associated values, exhaustively match them with `switch`, and learn why enums are Swift's secret weapon for safe modeling."
   },
@@ -76015,7 +75756,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ySa58y1SRy0&t=420s",
     "whyItMatters": "Choose between structs (value types) and classes (reference types), understand the profound difference in copy semantics, and use identity vs equality correctly."
   },
@@ -76318,7 +76058,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ySa58y1SRy0&t=480s",
     "whyItMatters": "Use Swift's four kinds of property — stored, computed, lazy, and observed — and understand the subtleties of `didSet`, `willSet`, and `lazy` initialization."
   },
@@ -76622,7 +76361,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ySa58y1SRy0&t=540s",
     "whyItMatters": "Define methods, subscripts, and initializers on structs and classes, including designated vs convenience initializers, required initializers, and `init?`/`init!`."
   },
@@ -76927,7 +76665,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ySa58y1SRy0&t=600s",
     "whyItMatters": "Use class inheritance, override methods and properties, leverage polymorphism via dynamic dispatch, and learn the `final` keyword to opt out of dispatch overhead."
   },
@@ -77232,7 +76969,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ySa58y1SRy0&t=660s",
     "whyItMatters": "Define protocols, conform types to them, use protocol extensions for default behavior, and embrace protocol-oriented programming — Swift's signature design philosophy."
   },
@@ -77537,7 +77273,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ySa58y1SRy0&t=720s",
     "whyItMatters": "Write generic functions and types, constrain type parameters with protocol requirements, and use protocols with associated types (PATs) to model abstract data structures."
   },
@@ -77842,7 +77577,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ySa58y1SRy0&t=780s",
     "whyItMatters": "Throw, catch, and propagate errors with `throws`/`try`/`catch`, model fallible operations with `Result<Success, Failure>`, and choose between throws and Result deliberately."
   },
@@ -78148,7 +77882,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ySa58y1SRy0&t=840s",
     "whyItMatters": "Understand Automatic Reference Counting, identify and break retain cycles with `weak`/`unowned`, and capture `self` safely in escaping closures."
   },
@@ -78453,7 +78186,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ySa58y1SRy0&t=900s",
     "whyItMatters": "Use Swift's modern concurrency model — `async`/`await`, structured `Task`s, `actor` isolation, `Sendable`, and `AsyncSequence` — to write safe concurrent code without locks."
   },
@@ -78758,7 +78490,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ySa58y1SRy0&t=960s",
     "whyItMatters": "Use Apple's Combine framework for reactive pipelines and Swift's native `AsyncSequence` for async iteration, and know when to choose each."
   },
@@ -79063,7 +78794,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ySa58y1SRy0&t=1020s",
     "whyItMatters": "Build declarative UIs with SwiftUI — views, modifiers, navigation, lists, forms, and state management with `@State`, `@Binding`, `@StateObject`, and `@EnvironmentObject`."
   },
@@ -79369,7 +79099,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ySa58y1SRy0&t=1080s",
     "whyItMatters": "Write unit, integration, and UI tests with XCTest and the modern Swift Testing framework, organize tests with XCTestPlan, and measure coverage."
   },
@@ -79676,7 +79405,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=oRc4lLmvHyE",
     "whyItMatters": "Master Swift's toolchain — Swift Package Manager, Xcode project structure, build configurations, code signing, CI, and assemble the capstone project plan."
   },
@@ -79738,7 +79466,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -80040,7 +79767,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM",
     "whyItMatters": "Install Kotlin, write your first program, and understand the edit-compile-run loop on the JVM, the REPL, and the three compilation targets (JVM, JS, Native)."
   },
@@ -80342,7 +80068,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM&t=540s",
     "whyItMatters": "Declare variables with val and var, lean on type inference, and master Kotlin's flagship feature: compile-time null safety with the ?, ?. , ?:, and !! operators."
   },
@@ -80644,7 +80369,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM&t=1080s",
     "whyItMatters": "Master Kotlin's expression-oriented control flow: if-as-expression, the powerful when block, ranges, and labeled break/continue."
   },
@@ -80947,7 +80671,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM&t=1620s",
     "whyItMatters": "Declare functions of every shape — top-level, local, infix, and tail-recursive — and master default arguments, named arguments, and the vararg spread operator."
   },
@@ -81249,7 +80972,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM&t=2160s",
     "whyItMatters": "Manipulate strings with templates and raw literals, distinguish arrays from lists, and use Kotlin's rich collections API with sequences for lazy evaluation."
   },
@@ -81551,7 +81273,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM&t=2700s",
     "whyItMatters": "Define classes with primary and secondary constructors, init blocks, custom getters and setters, and master the subtle init order that catches every Kotlin newcomer."
   },
@@ -81853,7 +81574,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM&t=3240s",
     "whyItMatters": "Extend classes, implement interfaces, override members, and understand Kotlin's \"final by default\" philosophy and the subtle init-order interactions in inheritance chains."
   },
@@ -82155,7 +81875,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM&t=3780s",
     "whyItMatters": "Model data succinctly with data classes, model finite hierarchies safely with sealed classes, and represent fixed constants with enums — the trio that makes Kotlin's pattern matching shine."
   },
@@ -82457,7 +82176,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM&t=4320s",
     "whyItMatters": "Use the `object` keyword for singletons and anonymous objects, the `companion object` for factory methods and constants, and understand how each compiles down on the JVM."
   },
@@ -82760,7 +82478,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM&t=4860s",
     "whyItMatters": "Master Kotlin's declaration-site variance with `in` and `out`, use-site variance, type projections, and the reified generics that Java can only dream of."
   },
@@ -83062,7 +82779,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM&t=5400s",
     "whyItMatters": "Add methods to classes you don't own — including third-party and JDK classes — with extension functions and properties, and learn why they resolve statically."
   },
@@ -83364,7 +83080,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM&t=5940s",
     "whyItMatters": "Treat functions as values with function types, lambdas, and trailing-lambda syntax — the foundation for Kotlin's expressive collection APIs and DSLs."
   },
@@ -83666,7 +83381,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM&t=6480s",
     "whyItMatters": "Use `inline` to eliminate lambda allocation overhead, `reified` to recover erased generic types at runtime, and lambdas-with-receivers to build type-safe DSLs."
   },
@@ -83969,7 +83683,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM&t=7020s",
     "whyItMatters": "Master the five scope functions, understand when each shines, and avoid the readability traps that come with overusing them."
   },
@@ -84274,7 +83987,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM&t=7560s",
     "whyItMatters": "Master Kotlin's coroutines: suspend functions, structured concurrency, `launch` for fire-and-forget, `async`/`await` for results, and the dangers of `runBlocking`."
   },
@@ -84577,7 +84289,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM&t=8100s",
     "whyItMatters": "Stream asynchronous sequences with `Flow` (cold) and `SharedFlow`/`StateFlow` (hot), apply operators, and learn when each fits."
   },
@@ -84879,7 +84590,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM&t=8640s",
     "whyItMatters": "Read and write files, serialize objects to JSON with `kotlinx. serialization`, and learn the annotations and polymorphism options that production Kotlin apps rely on."
   },
@@ -85182,7 +84892,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM&t=9180s",
     "whyItMatters": "Build a Kotlin-native HTTP server with Ktor: routing, plugins, JSON content negotiation, status pages, and the HttpClient for outbound calls."
   },
@@ -85484,7 +85193,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM&t=9720s",
     "whyItMatters": "Test Kotlin code with JUnit 5 (via kotlin. test), mock with MockK, write expressive specs in Kotest, and verify Flows with Turbine."
   },
@@ -85788,7 +85496,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dzUc9vrsldM&t=10260s",
     "whyItMatters": "Tie the whole track together with Android fundamentals — Activity/Fragment lifecycle, Jetpack Compose basics, ViewModel + StateFlow — and prepare to ship the capstone."
   },
@@ -85850,7 +85557,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -86153,7 +85859,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c",
     "whyItMatters": "Install PHP 8. 2+, run your first script, and learn the request/response lifecycle that shapes every PHP application."
   },
@@ -86457,7 +86162,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c&t=800s",
     "whyItMatters": "Learn how PHP variables work, the four scalar types plus arrays and objects, and the comparison operators — including the infamous `==` vs `===` distinction."
   },
@@ -86760,7 +86464,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c&t=1600s",
     "whyItMatters": "Master `if`/`elseif`/`else`, `switch`, the modern `match` expression, and the loop constructs that replace them in idiomatic PHP."
   },
@@ -87065,7 +86768,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c&t=2400s",
     "whyItMatters": "Define reusable functions with type declarations, default and named arguments, variadics, and split your code across files with `include`, `require`, and PSR-4-ready autoloaders."
   },
@@ -87370,7 +87072,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c&t=3200s",
     "whyItMatters": "PHP arrays are the workhorse data structure — they're ordered maps that act as lists, dictionaries, sets, and trees. Learn the syntax, the 80+ built-in functions, and the most common destructuring and reference pitfalls."
   },
@@ -87675,7 +87376,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c&t=4000s",
     "whyItMatters": "PHP strings are byte arrays, not Unicode sequences — master single vs double quotes, heredoc/nowdoc, multibyte-safe functions, and PCRE regular expressions with `preg_*`."
   },
@@ -87982,7 +87682,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c&t=4800s",
     "whyItMatters": "Handle HTML form submissions with PHP superglobals, validate input safely with `filter_input`, and learn why `$_POST` is not the only (or best) way to read a request body."
   },
@@ -88287,7 +87986,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c&t=5600s",
     "whyItMatters": "Persist user state across requests with `$_SESSION` and `$_COOKIE`, build a login flow with `password_hash`/`password_verify`, and learn to defend against session fixation and session hijacking."
   },
@@ -88594,7 +88292,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c&t=6400s",
     "whyItMatters": "Read and write files with `file_get_contents`, `fopen`/`fread`/`fwrite`, handle file uploads safely with `$_FILES` and `move_uploaded_file`, and discover stream wrappers and filters."
   },
@@ -88900,7 +88597,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c&t=7200s",
     "whyItMatters": "Model real-world entities with classes, properties, visibility, constructors (both legacy and PHP 8 promoted syntax), and the modern `readonly` properties and constructor property promotion introduced in PHP 8. 1."
   },
@@ -89203,7 +88899,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c&t=8000s",
     "whyItMatters": "Compose behavior with `extends`, `abstract` classes, `interface` contracts, and `trait` reuse — and learn when each is appropriate, plus the subtleties of `final`, `abstract`, and the Liskov substitution principle."
   },
@@ -89509,7 +89204,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c&t=8800s",
     "whyItMatters": "Organize large codebases with namespaces, eliminate manual `require` chains with PSR-4 autoloading, and understand the Composer-generated class map that powers modern PHP."
   },
@@ -89814,7 +89508,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c&t=9600s",
     "whyItMatters": "Use Composer to declare dependencies, manage versions, autoload your code, and ship installable libraries — the de-facto standard for every modern PHP project."
   },
@@ -90121,7 +89814,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c&t=10400s",
     "whyItMatters": "Connect to MySQL and PostgreSQL with PDO, run parameterized queries safely, choose fetch modes wisely, and wrap multi-statement operations in transactions."
   },
@@ -90429,7 +90121,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c&t=11200s",
     "whyItMatters": "Defend PHP applications against the four most common web vulnerabilities: SQL injection (prepared statements), XSS (context-aware escaping), CSRF (token rotation), and password storage (Argon2id)."
   },
@@ -90735,7 +90426,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c&t=12000s",
     "whyItMatters": "Configure PHP's error reporting, throw and catch typed exceptions (including `finally` and custom exception hierarchies), and ship structured logs with Monolog per PSR-3."
   },
@@ -91041,7 +90731,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c&t=12800s",
     "whyItMatters": "Build RESTful JSON APIs with the Slim 4 microframework — routing, PSR-7 request/response objects, PSR-15 middleware, JSON error handling, and request validation."
   },
@@ -91350,7 +91039,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c&t=13600s",
     "whyItMatters": "Build a feature-complete web app with Laravel 11: routes and controllers, the Eloquent ORM for database access, Blade templates for views, and migrations for schema management."
   },
@@ -91658,7 +91346,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c&t=14400s",
     "whyItMatters": "Write fast, isolated unit tests with PHPUnit and Pest, replace dependencies with Mockery test doubles, and use data providers for table-driven tests."
   },
@@ -91967,7 +91654,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=OK_JCtrrv-c&t=15200s",
     "whyItMatters": "Containerize PHP with multi-stage Dockerfiles, configure php-fpm + nginx for production, tune OPcache, set up CI/CD with GitHub Actions, and prepare for the capstone project."
   },
@@ -92035,7 +91721,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -92337,7 +92022,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg",
     "whyItMatters": "Install Ruby 3. x, write your first program, run it from the command line, and explore irb (the interactive Ruby shell)."
   },
@@ -92638,7 +92322,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg&t=600s",
     "whyItMatters": "Learn Ruby's dynamic typing, local variables, primitive types, and the subtleties of ==, equal?, and eql?."
   },
@@ -92941,7 +92624,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg&t=1300s",
     "whyItMatters": "Master if/unless/case, while/until/for, modifier forms, and the next/break/redo control keywords."
   },
@@ -93244,7 +92926,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg&t=2000s",
     "whyItMatters": "Work with Ruby strings, symbols, ranges, heredocs, encodings, and the symbol-vs-string distinction."
   },
@@ -93548,7 +93229,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg&t=2700s",
     "whyItMatters": "Learn Ruby's core collections and the iterator trio each/map/select, plus the famous mutable-default-Hash pitfall."
   },
@@ -93851,7 +93531,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg&t=3400s",
     "whyItMatters": "Define methods with default and keyword arguments, capture blocks with yield and &, and avoid the famous mutable-default-arg trap."
   },
@@ -94154,7 +93833,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg&t=4100s",
     "whyItMatters": "Distinguish lambdas from Procs (arity, return semantics), master the &-to-proc trick, and use curry for partial application."
   },
@@ -94457,7 +94135,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg&t=4800s",
     "whyItMatters": "Define classes, instance methods, attribute accessors, and access control; understand self vs @ and overriding ==."
   },
@@ -94760,7 +94437,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg&t=5500s",
     "whyItMatters": "Use <, super, modules, include/extend/prepend, and the method resolution chain; understand method_missing safely."
   },
@@ -95063,7 +94739,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg&t=6200s",
     "whyItMatters": "Include Enumerable to get map/select/reduce for free; include Comparable to get </>/sort for free via <=>."
   },
@@ -95366,7 +95041,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg&t=6900s",
     "whyItMatters": "Master begin/rescue/ensure/raise, build custom error hierarchies, retry transient failures, and avoid rescuing Exception."
   },
@@ -95669,7 +95343,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg&t=7600s",
     "whyItMatters": "Read and write files with the File class, serialize to JSON, YAML, and Marshal, and avoid deserialization security traps."
   },
@@ -95972,7 +95645,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg&t=8300s",
     "whyItMatters": "Use send, public_send, define_method, method_missing, class_eval, and open classes for dynamic dispatch and DSLs."
   },
@@ -96275,7 +95947,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg&t=9000s",
     "whyItMatters": "Manage Ruby dependencies with gem, Gemfile, Bundler, and gemspec; understand version specifiers and Gemfile. lock."
   },
@@ -96578,7 +96249,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg&t=9700s",
     "whyItMatters": "Write unit tests with Minitest and RSpec, use mocks and doubles, set up factories, and measure coverage."
   },
@@ -96881,7 +96551,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg&t=10400s",
     "whyItMatters": "Use Thread + Mutex for IO concurrency, Fiber for cooperative coroutines, and Ractor for true parallelism in Ruby 3. 0+."
   },
@@ -97184,7 +96853,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg&t=11100s",
     "whyItMatters": "Master Ruby's Regexp class, named captures, gsub with blocks, scan, and string-processing helpers like split and partition."
   },
@@ -97487,7 +97155,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg&t=11800s",
     "whyItMatters": "Build web apps with the Rack spec (a callable returning [status, headers, body]) and Sinatra's lightweight DSL."
   },
@@ -97790,7 +97457,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg&t=12500s",
     "whyItMatters": "Build a Rails app: models with ActiveRecord, controllers with strong params, routes with resources, and ERB views."
   },
@@ -98095,7 +97761,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=fmyvWz5TUWg&t=13200s",
     "whyItMatters": "Configure Puma, manage secrets via ENV and credentials, precompile assets, and dockerize a Rails app for production."
   },
@@ -98163,7 +97828,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -98464,7 +98128,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug",
     "whyItMatters": "Install R 4. x and RStudio (Posit), run your first commands in the console, and learn the workspace, packages, and help system that everything else in the track depends on."
   },
@@ -98768,7 +98431,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug&t=350s",
     "whyItMatters": "Master R's atomic vector types, the assignment operator family, coercion rules, and missing-value vocabulary — the foundation everything else (data frames, modeling, purrr) is built on."
   },
@@ -99074,7 +98736,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug&t=700s",
     "whyItMatters": "Work with R's rectangular (matrix, array) and heterogeneous (list) containers, the workhorses behind linear algebra, dimension reduction, and JSON-like nested data."
   },
@@ -99376,7 +99037,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug&t=1050s",
     "whyItMatters": "Master R's two rectangular data structures — the classic data. frame and the modern tibble — and the subsetting, summarization, and type quirks that distinguish them."
   },
@@ -99678,7 +99338,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug&t=1400s",
     "whyItMatters": "Work with R's three most error-prone scalar-ish types — factors (categorical data), strings, and dates/times — covering the legacy traps and the modern tidyverse replacements."
   },
@@ -99983,7 +99642,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug&t=1750s",
     "whyItMatters": "Use R's conditional and looping constructs — if/else, ifelse(), case_when(), for/while/repeat — and learn when to vectorize instead, which is the most idiomatic R style."
   },
@@ -100285,7 +99943,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug&t=2100s",
     "whyItMatters": "Write robust R functions with proper argument matching, defaults, and dots; then replace loops with the functional toolset — lapply, sapply, vapply, and purrr::map family."
   },
@@ -100587,7 +100244,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug&t=2450s",
     "whyItMatters": "Visualize data with base R's plotting functions and with ggplot2's layered grammar of graphics — the foundation of nearly every published R chart."
   },
@@ -100892,7 +100548,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug&t=2800s",
     "whyItMatters": "Master the five dplyr verbs (filter, select, mutate, summarise, arrange) plus group_by, the pipe, and the modern across() — the toolkit that powers almost every tidyverse data pipeline."
   },
@@ -101196,7 +100851,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug&t=3150s",
     "whyItMatters": "Reshape data between long and wide formats, split and combine columns, and nest groups into list-columns — the tidyverse answer to 'messy data'."
   },
@@ -101499,7 +101153,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug&t=3500s",
     "whyItMatters": "Read CSVs, Excel workbooks, SAS/SPSS/Stata files, and other tabular formats with the modern tidyverse readers — faster, stricter, and more type-aware than base R."
   },
@@ -101801,7 +101454,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug&t=3850s",
     "whyItMatters": "Combine multiple tables with mutating joins, filtering joins, set operations, and row/column binding — the relational algebra that underlies almost every real-world data pipeline."
   },
@@ -102104,7 +101756,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug&t=4200s",
     "whyItMatters": "Manipulate text with the stringr package and its consistent, vectorized API — plus regex anchors, quantifiers, lookarounds, and the differences from base R's paste/grep family."
   },
@@ -102406,7 +102057,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug&t=4550s",
     "whyItMatters": "Tame categorical variables with the forcats package — reorder levels by frequency, lump rare levels, recode values, and control the order plots and models present."
   },
@@ -102708,7 +102358,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug&t=4900s",
     "whyItMatters": "Author reproducible reports, dashboards, papers, and slide decks with R Markdown and Quarto — mixing prose, code, plots, and tables in one source document that renders to HTML, PDF, Word, and more."
   },
@@ -103013,7 +102662,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug&t=5250s",
     "whyItMatters": "Use purrr's full functional toolkit — safely, possibly, walk, pluck, keep, discard — to iterate over complex nested structures and build per-group model pipelines with list-columns."
   },
@@ -103316,7 +102964,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug&t=5600s",
     "whyItMatters": "Apply R's classic statistics toolkit — t-tests, chi-square, ANOVA, correlation, linear regression — with attention to assumptions, p-values, and the formula interface."
   },
@@ -103618,7 +103265,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug&t=5950s",
     "whyItMatters": "Move from classic lm() to generalized linear models (glm), broom for tidying, and the tidymodels framework for reproducible train/test splits, recipes, and tuning."
   },
@@ -103921,7 +103567,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug&t=6300s",
     "whyItMatters": "Manipulate dates and times with lubridate, model time series with stats::ts and the tidyverts ecosystem (tsibble, fable, fabletools), and forecast with ARIMA and ETS."
   },
@@ -104225,7 +103870,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=_V8eKsto3Ug&t=6650s",
     "whyItMatters": "Build interactive web apps with Shiny, package your R code for distribution with devtools/usethis, and prep for the capstone project — tying every prior stage together."
   },
@@ -104293,7 +103937,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -104596,7 +104239,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w",
     "whyItMatters": "Install the Dart SDK, write and run your first program, and learn how `dart` and `dart run` work for CLI scripts and projects."
   },
@@ -104899,7 +104541,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w&t=600s",
     "whyItMatters": "Master Dart's type system, var/final/const, and sound null safety — including `?`, `!`, `??`, `late`, and the difference between compile-time and runtime checks."
   },
@@ -105202,7 +104843,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w&t=1200s",
     "whyItMatters": "Learn if/else, switch (with Dart 3 patterns), for, while, do-while, for-in, break/continue, and the assertion statement for defensive checks."
   },
@@ -105505,7 +105145,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w&t=1800s",
     "whyItMatters": "Master Dart's function syntax, named and positional parameters, default values, arrow functions, first-class functions, lexical closures, and the typedef/type alias system."
   },
@@ -105809,7 +105448,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w&t=2400s",
     "whyItMatters": "Work with Dart strings, escape sequences, raw strings, multiline strings, interpolation, `StringBuffer` for efficient concatenation, and `RegExp` for pattern matching and replacement."
   },
@@ -106114,7 +105752,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w&t=3000s",
     "whyItMatters": "Use Dart's core collections (`List`, `Set`, `Map`), their literal syntax, generics, mutability vs const, spread operators, and the rich `Iterable` API for transforming data."
   },
@@ -106418,7 +106055,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w&t=3600s",
     "whyItMatters": "Define classes with fields, multiple constructor types (default, named, redirecting, factory), `const` constructors, initializer lists, and the `==`/`hashCode` contract for value equality."
   },
@@ -106720,7 +106356,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w&t=4200s",
     "whyItMatters": "Learn Dart's OOP features — `extends`, `super`, abstract classes, implicit interfaces, `implements`, `with` (mixin application preview), and the `@override` annotation."
   },
@@ -107023,7 +106658,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w&t=4800s",
     "whyItMatters": "Use Dart's three code-reuse mechanisms — mixins for horizontal reuse, extension methods for adding to existing types, and sealed classes for exhaustive closed hierarchies (Dart 3)."
   },
@@ -107328,7 +106962,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w&t=5400s",
     "whyItMatters": "Master Dart generics — generic classes, methods, type bounds (`extends`), `void`/`dynamic`/`Object?` semantics, generic typedefs, and the difference between reified and erased generics."
   },
@@ -107631,7 +107264,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w&t=6000s",
     "whyItMatters": "Master Dart's async model — `Future`, `async`/`await`, `Future. wait`, `Completer`, the event loop, microtasks vs macrotasks, and avoiding async gaps."
   },
@@ -107933,7 +107565,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w&t=6600s",
     "whyItMatters": "Learn Dart's `Stream<T>` for sequences of async events — single-subscription vs broadcast streams, `async*` generators, `StreamController`, and the rich `Stream` operators (map, where, expand, debounce, etc. )."
   },
@@ -108236,7 +107867,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w&t=7200s",
     "whyItMatters": "Master Dart's error model — `throw`, `try`/`on`/`catch`/`finally`, the difference between `Exception` and `Error`, custom exception types, and async error propagation."
   },
@@ -108540,7 +108170,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w&t=7800s",
     "whyItMatters": "Read and write files with the `dart:io` library, parse and produce JSON manually and with `json_serializable` code generation, and bridge between typed Dart objects and JSON maps."
   },
@@ -108843,7 +108472,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w&t=8400s",
     "whyItMatters": "Use Dart `Isolate`s for true parallelism — `Isolate. run`, `compute`, message passing, `SendPort`/`ReceivePort`, and when NOT to reach for isolates."
   },
@@ -109148,7 +108776,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w&t=9000s",
     "whyItMatters": "Write unit, widget, and integration tests in Dart using the `test` package and `flutter_test`; mock dependencies with `mocktail`; measure coverage; integrate with CI."
   },
@@ -109451,7 +109078,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w&t=9600s",
     "whyItMatters": "Compile Dart to JavaScript (dart2js) and WebAssembly (dart2wasm), interop with JS via `package:js` and `dart:js_interop`, and understand the tradeoffs."
   },
@@ -109755,7 +109381,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w&t=10200s",
     "whyItMatters": "Build HTTP servers in Dart using the low-level `shelf` package and the convention-over-configuration `dart_frog` framework; route requests, parse JSON, return responses, and integrate middleware."
   },
@@ -110059,7 +109684,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w&t=10800s",
     "whyItMatters": "Build Flutter UIs with `StatelessWidget`, `StatefulWidget`, `setState`, common layouts (Row, Column, Stack, ListView), and the widget tree lifecycle. This is a focused tour; the full Flutter track covers more."
   },
@@ -110366,7 +109990,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=5xlVP04905w&t=11400s",
     "whyItMatters": "Build standalone executables with `dart compile exe`, publish packages to pub. dev, manage versions and changelogs, and prepare for the capstone project."
   },
@@ -110428,7 +110051,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -110732,7 +110354,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4",
     "whyItMatters": "Install Bash, write your first script, understand the shell vs terminal distinction, and run scripts three different ways."
   },
@@ -111036,7 +110657,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4&t=200s",
     "whyItMatters": "Master Bash variable assignment, quoting rules, and the parameter-expansion toolkit that lets you slice, default, and transform strings without forking external commands."
   },
@@ -111339,7 +110959,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4&t=400s",
     "whyItMatters": "Capture command output into variables with $(), perform integer arithmetic with $(()), and understand the limits of Bash math (no floats — use bc or awk)."
   },
@@ -111637,7 +111256,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4&t=600s",
     "whyItMatters": "Drive script decisions with if/elif/else, multi-branch case statements, and the test operators — and understand why [[ ]] is almost always better than [ ]."
   },
@@ -111940,7 +111558,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4&t=800s",
     "whyItMatters": "Repeat work with for-in lists, C-style for counters, while/until conditions, and interactive select menus — and learn to read lines safely with `while IFS= read`."
   },
@@ -112244,7 +111861,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4&t=1000s",
     "whyItMatters": "Define reusable functions, pass and shift arguments, scope variables with local, and return values via stdout — because Bash functions can only return exit codes, not data."
   },
@@ -112549,7 +112165,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4&t=1200s",
     "whyItMatters": "Group related values in indexed arrays and key-value maps (associative arrays, Bash 4+), iterate them safely, and use mapfile for bulk line reads."
   },
@@ -112852,7 +112467,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4&t=1400s",
     "whyItMatters": "Master Bash's I/O model — file descriptors, redirection, heredocs, herestrings, process substitution, and the `exec` trick for opening persistent file descriptors."
   },
@@ -113155,7 +112769,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4&t=1600s",
     "whyItMatters": "Slice and dice text streams with the Unix power tools — grep for filtering, sed for stream editing, and awk for columnar data — and learn when each is the right tool."
   },
@@ -113458,7 +113071,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4&t=1800s",
     "whyItMatters": "Walk directory trees with find, feed results to commands safely with xargs -0, and run jobs in parallel with GNU parallel or xargs -P."
   },
@@ -113760,7 +113372,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4&t=2000s",
     "whyItMatters": "Treat Bash as a typed language where every command returns an exit code — chain them safely with && and ||, fail fast with set -e, and trap errors for cleanup."
   },
@@ -114063,7 +113674,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4&t=2200s",
     "whyItMatters": "Catch and handle signals (SIGINT, SIGTERM, SIGHUP) with trap, implement cleanup functions, and write scripts that play nicely with init systems and Ctrl-C."
   },
@@ -114367,7 +113977,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4&t=2400s",
     "whyItMatters": "Run jobs in the background, manage them with jobs/bg/fg, survive logout with nohup and disown, and orchestrate parallel work with coproc and wait."
   },
@@ -114670,7 +114279,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4&t=2600s",
     "whyItMatters": "Isolate work in subshells, share state with source, and replace the current process with exec — three primitives that control Bash's process model."
   },
@@ -114974,7 +114582,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4&t=2800s",
     "whyItMatters": "Master POSIX Extended Regular Expressions (ERE) with grep -E and sed -E, drive Bash's own =~ operator with BASH_REMATCH, and know when to reach for awk or perl instead."
   },
@@ -115271,7 +114878,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4&t=3000s",
     "whyItMatters": "Adopt Bash \"strict mode\" (`set -euo pipefail`) for safer scripts, handle unset variables with ${var:-default}, and use IFS deliberately to control word splitting."
   },
@@ -115567,7 +115173,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4&t=3200s",
     "whyItMatters": "Parse command-line arguments with getopts for short flags, hand-roll long options (--help) with a while loop, and structure subcommands (git-style) cleanly."
   },
@@ -115870,7 +115475,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4&t=3400s",
     "whyItMatters": "Schedule recurring jobs with cron and systemd timers, handle cron's restrictive environment, and prevent concurrent runs with flock."
   },
@@ -116167,7 +115771,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4&t=3600s",
     "whyItMatters": "Lint your scripts with ShellCheck, format them with shfmt, and adopt conventions from the Google and Bash Hackers style guides that make Bash maintainable."
   },
@@ -116474,7 +116077,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tK9Oc6AEnR4&t=3800s",
     "whyItMatters": "Bring everything together — design a maintainable multi-file Bash CLI with a lib/ structure, subcommands, help, logging, config, signal handling, and version checks — and prep for the capstone project."
   },
@@ -116542,7 +116144,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -116844,7 +116445,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8",
     "whyItMatters": "Set up a modern React 18 project with Vite and TypeScript, render your first component, and understand how React's reconciliation model works."
   },
@@ -117146,7 +116746,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8&t=60s",
     "whyItMatters": "Master JSX syntax, expression interpolation, conditional rendering inside JSX, and how JSX compiles to `React. createElement` calls that build the virtual DOM."
   },
@@ -117448,7 +117047,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8&t=120s",
     "whyItMatters": "Build reusable components, define prop contracts with TypeScript, compose components via children, and master the unidirectional data flow that defines React."
   },
@@ -117750,7 +117348,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8&t=180s",
     "whyItMatters": "Add interactivity with `useState`, handle DOM and synthetic events, and understand React's state batching and update model."
   },
@@ -118052,7 +117649,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8&t=240s",
     "whyItMatters": "Render lists correctly with stable keys, switch UI with conditional rendering patterns, and avoid the index-as-key bug when lists reorder."
   },
@@ -118354,7 +117950,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8&t=300s",
     "whyItMatters": "Build robust forms with controlled inputs, handle multiple field types, validate on the fly, and avoid the controlled-vs-uncontrolled trap."
   },
@@ -118656,7 +118251,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8&t=360s",
     "whyItMatters": "Coordinate state between siblings by lifting it to a common parent, compose components via render props and slots, and learn when to extract vs when to share state."
   },
@@ -118959,7 +118553,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8&t=420s",
     "whyItMatters": "Master the four most-used hooks beyond `useState`: `useEffect` for side effects, `useRef` for mutable values and DOM handles, and `useMemo`/`useCallback` for selective memoization."
   },
@@ -119261,7 +118854,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8&t=480s",
     "whyItMatters": "Extract reusable logic into custom hooks, follow the rules of hooks, and design composable, testable primitives that feel like built-ins."
   },
@@ -119563,7 +119155,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8&t=540s",
     "whyItMatters": "Share state across deep trees with Context, manage complex state transitions with `useReducer`, and combine the two for a lightweight global store."
   },
@@ -119865,7 +119456,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8&t=600s",
     "whyItMatters": "Add multi-page navigation to a React SPA with React Router 6+, including nested routes, dynamic params, loaders, and navigation guards."
   },
@@ -120168,7 +119758,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8&t=660s",
     "whyItMatters": "Fetch data in React the right way: from raw `useEffect`+`fetch` to SWR and TanStack Query, including caching, invalidation, optimistic updates, and pagination."
   },
@@ -120470,7 +120059,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8&t=720s",
     "whyItMatters": "Profile React apps with the DevTools Profiler, eliminate wasted renders with `React. memo` and memoization, and virtualize long lists for smooth 60fps scrolling."
   },
@@ -120772,7 +120360,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8&t=780s",
     "whyItMatters": "Catch render-time errors gracefully with error boundaries, orchestrate async UI with Suspense, and combine the two for resilient loading states."
   },
@@ -121074,7 +120661,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8&t=840s",
     "whyItMatters": "Build complex, performant forms with React Hook Form's uncontrolled model, validate with Zod schemas, and ship type-safe forms end-to-end."
   },
@@ -121376,7 +120962,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8&t=900s",
     "whyItMatters": "Choose the right state-management library for the job: Zustand for a tiny ergonomic store, Redux Toolkit for complex flows with devtools, and Jotai for atomic state."
   },
@@ -121679,7 +121264,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8&t=960s",
     "whyItMatters": "Choose and apply a modern styling strategy: scoped CSS Modules, utility-first Tailwind, and CSS-in-JS with styled-components — and learn the tradeoffs."
   },
@@ -121983,7 +121567,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8&t=1020s",
     "whyItMatters": "Write fast unit/component tests with Vitest + React Testing Library, and end-to-end tests with Playwright — including async, mocks, and accessibility-first queries."
   },
@@ -122287,7 +121870,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8&t=1080s",
     "whyItMatters": "Adopt React Server Components (RSC) and Next. js App Router: render on the server by default, stream with Suspense, and add interactivity selectively with `'use client'`."
   },
@@ -122592,7 +122174,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=j942wKiXFu8&t=1140s",
     "whyItMatters": "Ship a React app to production: bundle analysis, code splitting, environment variables, observability, accessibility, and a CI/CD pipeline that auto-deploys on every merge to main."
   },
@@ -122654,7 +122235,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -122957,7 +122537,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A63UxsQsEbU",
     "whyItMatters": "Scaffold a Next. js 14+ App Router project with TypeScript, run the dev server, and understand the project layout, build output, and how Next."
   },
@@ -123260,7 +122839,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A63UxsQsEbU&t=30s",
     "whyItMatters": "Master the App Router's file-based conventions — pages, layouts, dynamic routes, route groups, and private folders — and how URLs map to files."
   },
@@ -123563,7 +123141,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A63UxsQsEbU&t=60s",
     "whyItMatters": "Understand the differences between pages, layouts, and templates, when each one renders, and how to compose them for persistent vs re-mounting UI."
   },
@@ -123866,7 +123443,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A63UxsQsEbU&t=90s",
     "whyItMatters": "Add loading. tsx, error."
   },
@@ -124170,7 +123746,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A63UxsQsEbU&t=120s",
     "whyItMatters": "Master the 'use client' boundary, the RSC protocol, what can cross between server and client, and how to avoid leaking server-only code to the browser."
   },
@@ -124473,7 +124048,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A63UxsQsEbU&t=150s",
     "whyItMatters": "Fetch data in server components with the extended `fetch`, control caching with `revalidate` and `cache: 'no-store'`, and understand ISR, SSG, and SSR rendering modes in the App Router."
   },
@@ -124776,7 +124350,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A63UxsQsEbU&t=180s",
     "whyItMatters": "Use dynamic segments, generate them statically at build time with `generateStaticParams`, and control per-route rendering with `generateMetadata` and dynamic params."
   },
@@ -125080,7 +124653,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A63UxsQsEbU&t=210s",
     "whyItMatters": "Build HTTP endpoints with `app/api/. /route."
   },
@@ -125383,7 +124955,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A63UxsQsEbU&t=240s",
     "whyItMatters": "Use `middleware. ts` to run code before every request — authentication redirects, A/B testing, locale routing, and feature gating — on the Edge runtime."
   },
@@ -125687,7 +125258,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=A63UxsQsEbU&t=270s",
     "whyItMatters": "Configure per-route `<head>` content with the Metadata API — titles, descriptions, Open Graph, Twitter cards, canonical URLs, robots, sitemaps, and `robots. txt`."
   },
@@ -125991,7 +125561,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=TJQbDPGzm0Y",
     "whyItMatters": "Use `next/image`, `next/font`, and `next/link` to optimize images, eliminate font layout shifts, and enable client-side navigation with prefetching."
   },
@@ -126294,7 +125863,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=TJQbDPGzm0Y&t=60s",
     "whyItMatters": "Style your App Router app with global CSS, CSS Modules, Tailwind CSS, and CSS-in-JS — including the rules for using styled-components and emotion in server components."
   },
@@ -126597,7 +126165,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=TJQbDPGzm0Y&t=120s",
     "whyItMatters": "Build forms with Server Actions, validate input with Zod, handle pending states with `useFormStatus`, and revalidate cached data after mutations."
   },
@@ -126901,7 +126468,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=TJQbDPGzm0Y&t=180s",
     "whyItMatters": "Add authentication to a Next. js app with NextAuth."
   },
@@ -127204,7 +126770,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=TJQbDPGzm0Y&t=240s",
     "whyItMatters": "Connect a Next. js app to a database with Prisma or Drizzle — schema design, the client singleton pattern, server-only usage, and migrations in CI."
   },
@@ -127507,7 +127072,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=TJQbDPGzm0Y&t=300s",
     "whyItMatters": "Add multi-language support to the App Router with `[locale]` dynamic segments, middleware-based locale detection, and message formatting with `next-intl` or the App Router i18n conventions."
   },
@@ -127810,7 +127374,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=TJQbDPGzm0Y&t=360s",
     "whyItMatters": "Write unit tests with Vitest, integration tests with React Testing Library, and end-to-end tests with Playwright — and run them in CI against your Next. js app."
   },
@@ -128114,7 +127677,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=TJQbDPGzm0Y&t=420s",
     "whyItMatters": "Measure and optimize Core Web Vitals (LCP, CLS, INP), analyze your bundle with `@next/bundle-analyzer`, and apply code-splitting, prefetching, and tree-shaking techniques."
   },
@@ -128418,7 +127980,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dufPA_v48YM",
     "whyItMatters": "Deploy your Next. js app to Vercel, build a self-contained Docker image with `output: 'standalone'`, and run it on any container platform."
   },
@@ -128722,7 +128283,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=dufPA_v48YM&t=120s",
     "whyItMatters": "Master advanced App Router patterns — parallel and intercepting routes, streaming with Suspense, optimistic UI, error recovery, and prepare for the capstone project."
   },
@@ -128790,7 +128350,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -129091,7 +128650,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=UmljXZIypDc",
     "whyItMatters": "Install Django, start a project and an app, and understand the project layout, settings, and the runserver dev loop."
   },
@@ -129393,7 +128951,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=a48xeeo5Vnk",
     "whyItMatters": "Map URLs to views, read request data, and return HttpResponse, JsonResponse, and redirect responses. Understand the full request/response lifecycle through middleware."
   },
@@ -129695,7 +129252,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=a48xeeo5Vnk&t=60s",
     "whyItMatters": "Render HTML with the Django Template Language (DTL), use template inheritance, filters, tags, and the static tag, and learn when to reach for Jinja2 instead."
   },
@@ -129997,7 +129553,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=UmljXZIypDc&t=60s",
     "whyItMatters": "Define database models, run migrations, and use the ORM to create, read, update, and delete rows. Understand field types, relationships, Meta options, and the model lifecycle."
   },
@@ -130299,7 +129854,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=UmljXZIypDc&t=120s",
     "whyItMatters": "Master QuerySet evaluation, lazy loading, chaining, and advanced ORM operations — annotations, aggregations, F expressions, Q objects, and bulk operations."
   },
@@ -130602,7 +130156,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=UmljXZIypDc&t=180s",
     "whyItMatters": "Build HTML forms with Form and ModelForm, validate input with clean() methods and validators, and handle file uploads safely. Understand CSRF, field widgets, and the form rendering lifecycle."
   },
@@ -130904,7 +130457,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=UmljXZIypDc&t=240s",
     "whyItMatters": "Master Django's class-based views (CBVs) — View, TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView — and the mixin architecture. Learn to override get_queryset, get_context_data, form_valid, and dispatch."
   },
@@ -131207,7 +130759,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=UmljXZIypDc&t=300s",
     "whyItMatters": "Use Django's built-in auth (User model, login, logout, permissions, groups), build a custom user model, and implement password reset, email verification, and object-level permissions."
   },
@@ -131511,7 +131062,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=UmljXZIypDc&t=360s",
     "whyItMatters": "Use Django's session framework, set signed cookies, and write custom middleware for cross-cutting concerns like request logging, A/B testing, and tenant resolution."
   },
@@ -131814,7 +131364,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=UmljXZIypDc&t=420s",
     "whyItMatters": "Serve static files (CSS/JS/images) in dev and production, handle user-uploaded media, and integrate WhiteNoise and S3 for production. Understand STATIC_URL vs MEDIA_URL and the collectstatic flow."
   },
@@ -132116,7 +131665,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=UmljXZIypDc&t=480s",
     "whyItMatters": "Customize Django's admin: list displays, filters, search, inlines, actions, and custom admin templates. Build a usable back-office UI for non-technical staff."
   },
@@ -132419,7 +131967,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=UmljXZIypDc&t=540s",
     "whyItMatters": "Build REST APIs with Django REST Framework (DRF) — serializers, viewsets, routers, authentication, permissions, and pagination. Learn to ship a public API with proper status codes and versioning."
   },
@@ -132722,7 +132269,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=UmljXZIypDc&t=600s",
     "whyItMatters": "Write tests with pytest-django and factory_boy, including fixtures, parametrization, model factories, API tests, and coverage. Learn Django's test client, LiveServerTestCase, and how to mock external services."
   },
@@ -133025,7 +132571,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=UmljXZIypDc&t=660s",
     "whyItMatters": "Offload slow work to background tasks with Celery + Redis/RabbitMQ. Learn task chaining, scheduled tasks (Celery Beat), retries, idempotency, and monitoring with Flower."
   },
@@ -133328,7 +132873,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=UmljXZIypDc&t=720s",
     "whyItMatters": "Speed up Django with caching — per-view cache, low-level cache API, template fragment caching, and queryset caching. Use Redis as both cache and broker, and avoid the classic cache-invalidation pitfalls."
   },
@@ -133630,7 +133174,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=UmljXZIypDc&t=780s",
     "whyItMatters": "Lock down Django against the OWASP Top 10: CSRF, XSS, SQL injection, clickjacking, insecure deserialization, and security headers. Learn the built-in protections and where they fall short."
   },
@@ -133933,7 +133476,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=UmljXZIypDc&t=840s",
     "whyItMatters": "Profile and fix Django performance problems: N+1 queries, missing indexes, oversized querysets, slow templates, and unbounded loops. Use Django Debug Toolbar, silk, and EXPLAIN."
   },
@@ -134238,7 +133780,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=UmljXZIypDc&t=900s",
     "whyItMatters": "Deploy Django with Gunicorn behind Nginx, containerize with Docker, run multi-service with docker-compose, and ship to Render/Fly/AWS. Cover the production checklist, env vars, health checks, and zero-downtime deploys."
   },
@@ -134541,7 +134082,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=UmljXZIypDc&t=960s",
     "whyItMatters": "Build real-time features with Django Channels — WebSockets, ASGI consumers, channel layers (Redis), background workers, and the async/sync boundary. Ship a chat app or live dashboard."
   },
@@ -134844,7 +134384,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=UmljXZIypDc&t=1020s",
     "whyItMatters": "Master Django's power tools — signals (and when NOT to use them), custom managers and querysets, custom model fields, database transactions and select_for_update, and prepare for the capstone project."
   },
@@ -134912,7 +134451,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -135214,7 +134752,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams",
     "whyItMatters": "Install FastAPI and Uvicorn, write your first path operation, run the dev server, and explore the auto-generated /docs and /redoc pages."
   },
@@ -135515,7 +135052,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams&t=300s",
     "whyItMatters": "Define GET/POST/PUT/PATCH/DELETE path operations, declare path parameters with type hints, constrain them with Path(), and route requests deterministically."
   },
@@ -135817,7 +135353,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams&t=600s",
     "whyItMatters": "Accept query strings (including lists, optional values, and aliases) and JSON request bodies via Pydantic models, and learn how FastAPI routes each parameter to its source."
   },
@@ -136119,7 +135654,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams&t=900s",
     "whyItMatters": "Build robust Pydantic v2 models for request and response bodies, apply Field constraints, write field- and model-level validators, and use `model_config` for ORM mode and extra-field handling."
   },
@@ -136421,7 +135955,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams&t=1200s",
     "whyItMatters": "Annotate path operations with tags, summaries, descriptions, deprecation, response_model, status codes, and OpenAPI examples that make your /docs pages production-grade."
   },
@@ -136723,7 +136256,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams&t=1500s",
     "whyItMatters": "Use `Depends()` to inject shared logic (auth, DB sessions, pagination, rate limits), write generator dependencies with `yield`, and exploit FastAPI's per-request caching."
   },
@@ -137025,7 +136557,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams&t=1800s",
     "whyItMatters": "Implement OAuth2 password flow with JWT access tokens, refresh tokens, API-key auth, and security scopes — using FastAPI's `fastapi. security` toolkit and PyJWT."
   },
@@ -137327,7 +136858,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams&t=2100s",
     "whyItMatters": "Integrate SQLAlchemy 2. 0 with FastAPI using sync and async sessions, model relationships, and Alembic migrations — and avoid the classic async-ORM-session pitfalls."
   },
@@ -137629,7 +137159,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams&t=2400s",
     "whyItMatters": "Master async route handlers, recognize the blocking-call trap, offload blocking work via `run_in_threadpool` and `asyncio. to_thread`, and reason about concurrency vs parallelism in a single worker."
   },
@@ -137931,7 +137460,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams&t=2700s",
     "whyItMatters": "Use FastAPI's `BackgroundTasks` for fire-and-forget post-response work (emails, log writes, cache invalidation), and learn when to graduate to a real task queue (Celery, RQ, Arq)."
   },
@@ -138233,7 +137761,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams&t=3000s",
     "whyItMatters": "Add CORS, request-id, timing, and custom middleware using both `@app. middleware(\"http\")` and ASGI middleware classes, and understand ordering, performance, and the per-request scope."
   },
@@ -138535,7 +138062,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams&t=3300s",
     "whyItMatters": "Write unit and integration tests with FastAPI's `TestClient` (sync) and `httpx. AsyncClient` (async), use dependency overrides to swap DBs and auth, and run everything under `pytest --cov`."
   },
@@ -138837,7 +138363,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams&t=3600s",
     "whyItMatters": "Add WebSocket endpoints with `@app. websocket(\"/ws\")`, manage connections in a connection manager, authenticate via query-string tokens, and handle graceful disconnects."
   },
@@ -139139,7 +138664,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams&t=3900s",
     "whyItMatters": "Accept file uploads with `UploadFile` (and `File(. )`), stream large responses with `StreamingResponse`, return files with `FileResponse`, and avoid the memory blowup pitfalls."
   },
@@ -139441,7 +138965,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams&t=4200s",
     "whyItMatters": "Add Redis caching to FastAPI using `redis` (async), build a caching dependency, set TTLs, invalidate on write, and dodge the cache-stampede and stale-data traps."
   },
@@ -139743,7 +139266,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams&t=4500s",
     "whyItMatters": "Customize the OpenAPI schema — custom schemas, examples, security schemes, deprecation, vendor extensions, and a hand-rolled `/openapi. json` override for full control."
   },
@@ -140045,7 +139567,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams&t=4800s",
     "whyItMatters": "Structure a FastAPI project with APIRouters per feature, a service layer for business logic, a repository layer for data access, and shared dependencies — the layered architecture production teams converge on."
   },
@@ -140347,7 +139868,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams&t=5100s",
     "whyItMatters": "Raise `HTTPException` for HTTP errors, register custom exception handlers, transform Pydantic `RequestValidationError` into branded JSON, and log unhandled exceptions without leaking stack traces."
   },
@@ -140651,7 +140171,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams&t=5400s",
     "whyItMatters": "Size your DB connection pool, choose the right async driver, profile slow routes with `pyinstrument` and `py-spy`, log p95 latencies, and avoid the most common FastAPI performance bugs."
   },
@@ -140955,7 +140474,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=tLKKmouUams&t=5700s",
     "whyItMatters": "Ship a FastAPI service to production — Uvicorn tuning, Gunicorn with `UvicornWorker`, Docker multi-stage builds, env-driven config, health checks, graceful shutdown, and capstone kickoff."
   },
@@ -141017,7 +140535,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -141319,7 +140836,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=MwZwr5Tvyxo",
     "whyItMatters": "Install Flask 3. x, write the canonical Hello World, and understand the dev server, the Flask class, and why app."
   },
@@ -141622,7 +141138,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=QnDWIZuWYW0",
     "whyItMatters": "Map URLs to view functions, use built-in URL converters (int, float, path, uuid, any), build URLs with url_for, and handle multiple HTTP methods on a single route."
   },
@@ -141924,7 +141439,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=QnDWIZuWYW0&t=60s",
     "whyItMatters": "Render HTML with Jinja2 templates, use template inheritance and blocks, master autoescaping, write filters and macros, and include sub-templates."
   },
@@ -142226,7 +141740,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=MwZwr5Tvyxo&t=60s",
     "whyItMatters": "Serve static assets (CSS, JS, images), accept file uploads via request. files, secure filenames with werkzeug."
   },
@@ -142528,7 +142041,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=MwZwr5Tvyxo&t=120s",
     "whyItMatters": "Use the request proxy (args, form, data, json, headers, cookies, files), build responses with make_response and jsonify, set status codes and headers, and abort early with abort()."
   },
@@ -142831,7 +142343,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=MwZwr5Tvyxo&t=180s",
     "whyItMatters": "Read and set cookies, use Flask's signed-cookie session, configure session lifetime and security flags, and emit one-time flash messages between requests."
   },
@@ -143133,7 +142644,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=MwZwr5Tvyxo&t=240s",
     "whyItMatters": "Break a monolithic app. py into per-feature Blueprints, register them with url_prefixes, and lay out a real Flask project for team-scale development."
   },
@@ -143435,7 +142945,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=MwZwr5Tvyxo&t=300s",
     "whyItMatters": "Wrap app creation in a create_app() function so you can have multiple configs (dev/test/prod), deferred extension initialization, and clean test isolation."
   },
@@ -143739,7 +143248,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=MwZwr5Tvyxo&t=360s",
     "whyItMatters": "Manage configuration across environments with Config classes, environment variables, from_prefixed_env, instance folders for secrets, and the FLASK_ENV deprecation in Flask 2. 3+."
   },
@@ -144041,7 +143549,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=MwZwr5Tvyxo&t=420s",
     "whyItMatters": "Model your data with SQLAlchemy 2. x / Flask-SQLAlchemy 3."
   },
@@ -144343,7 +143850,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=MwZwr5Tvyxo&t=480s",
     "whyItMatters": "Set up Flask-Migrate (Alembic) to version-control your schema, autogenerate migrations from model changes, edit them by hand when needed, and apply upgrades/downgrades across environments."
   },
@@ -144646,7 +144152,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=MwZwr5Tvyxo&t=540s",
     "whyItMatters": "Build server-side forms with Flask-WTF and WTForms, validate input with built-in and custom validators, render fields with Jinja, and protect every POST with CSRF tokens."
   },
@@ -144949,7 +144454,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=MwZwr5Tvyxo&t=600s",
     "whyItMatters": "Add login/logout flows with Flask-Login, hash passwords with werkzeug. security, wire a user_loader, gate routes with @login_required, and access the current_user proxy safely."
   },
@@ -145252,7 +144756,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=MwZwr5Tvyxo&t=660s",
     "whyItMatters": "Design REST APIs with Flask, validate request/response payloads with marshmallow schemas via Flask-Smorest, generate OpenAPI 3 docs automatically, and paginate + filter list endpoints."
   },
@@ -145554,7 +145057,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=MwZwr5Tvyxo&t=720s",
     "whyItMatters": "Convert 404/500 responses into branded JSON or HTML, log exceptions with structured context, integrate Sentry, and configure rotating file logs for production."
   },
@@ -145856,7 +145358,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=MwZwr5Tvyxo&t=780s",
     "whyItMatters": "Send transactional email asynchronously with Celery + Redis, offload long-running work from the request, and avoid blocking WSGI workers on slow I/O."
   },
@@ -146158,7 +145659,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=MwZwr5Tvyxo&t=840s",
     "whyItMatters": "Test Flask apps with pytest + pytest-flask, use the fixture-based client pattern, isolate the DB per test with transactions, and measure coverage with pytest-cov."
   },
@@ -146461,7 +145961,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=MwZwr5Tvyxo&t=900s",
     "whyItMatters": "Harden your Flask app: enforce CSRF on every state-changing POST, prevent XSS via Jinja autoescape + CSP, block clickjacking with X-Frame-Options, and add HSTS + security headers via flask-talisman."
   },
@@ -146767,7 +146266,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=MwZwr5Tvyxo&t=960s",
     "whyItMatters": "Deploy Flask to production with Gunicorn (workers, threads, max-requests), put Nginx in front for TLS and static, ship multi-stage Docker images, and configure env vars safely."
   },
@@ -147070,7 +146568,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=Z1RJmh_OqeA",
     "whyItMatters": "Tie the track together: app vs request context, the g object, thread-safe singletons, connection pooling, health checks and metrics, and a checklist to launch the capstone."
   },
@@ -147138,7 +146635,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -147440,7 +146936,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zojEMeQGGHs",
     "whyItMatters": "Set up a SvelteKit 2 project, render your first component, and understand Svelte's compile-time philosophy."
   },
@@ -147742,7 +147237,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zojEMeQGGHs&t=30s",
     "whyItMatters": "Master Svelte 5's rune-based reactivity ($state, $derived, $effect) and understand how it differs from Svelte 4's assignment-based reactivity."
   },
@@ -148046,7 +147540,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zojEMeQGGHs&t=60s",
     "whyItMatters": "Build reusable Svelte components, pass data with $props, type props with TypeScript, and use $bindable for two-way binding."
   },
@@ -148349,7 +147842,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zojEMeQGGHs&t=90s",
     "whyItMatters": "Master Svelte 5 snippets — passing UI as props, parameterized snippets, default snippets and fallbacks, and migrating from Svelte 4 slots."
   },
@@ -148652,7 +148144,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zojEMeQGGHs&t=120s",
     "whyItMatters": "Handle DOM and component events in Svelte 5, use keyboard modifiers and component callbacks, and migrate from Svelte 4's `on:` directive to `onclick` and friends."
   },
@@ -148956,7 +148447,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zojEMeQGGHs&t=150s",
     "whyItMatters": "Wire forms and inputs to reactive state with Svelte's bind: directives, covering text, numeric, checkbox, group, textarea, select, and bind:this."
   },
@@ -149259,7 +148749,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zojEMeQGGHs&t=180s",
     "whyItMatters": "Render UI conditionally with {#if}/{:else if}/{:else} and iterate with {#each}, including keyed lists, indices, and the {#key} block for forced re-creation."
   },
@@ -149563,7 +149052,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zojEMeQGGHs&t=210s",
     "whyItMatters": "Use Svelte's lifecycle functions (onMount, onDestroy, beforeUpdate, afterUpdate, tick) to run code at the right time, and understand how $effect replaces some of them in runes mode."
   },
@@ -149866,7 +149354,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zojEMeQGGHs&t=240s",
     "whyItMatters": "Use Svelte stores for cross-component state, understand the store contract (subscribe + set/update), and choose between stores, $state, and context for your state needs."
   },
@@ -150169,7 +149656,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zojEMeQGGHs&t=270s",
     "whyItMatters": "Add motion to your Svelte apps with built-in transitions (fade, fly, slide), spring/tweened stores for value animation, and animate: for FLIP-based layout animations."
   },
@@ -150472,7 +149958,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=9OlLxkaeVvw",
     "whyItMatters": "Encapsulate DOM-side behavior in reusable Svelte actions (use: directives) — perfect for tooltips, click-outside, intersection-based lazy loading, and third-party library integration."
   },
@@ -150775,7 +150260,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=WK4SN853CqI",
     "whyItMatters": "Share state across a component subtree without prop drilling using Svelte's Context API (getContext/setContext) and the module-level component context."
   },
@@ -151078,7 +150562,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=WK4SN853CqI&t=60s",
     "whyItMatters": "Build file-based routes in SvelteKit 2, nest layouts, use path parameters and route groups, and understand the +page / +layout conventions."
   },
@@ -151381,7 +150864,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=WK4SN853CqI&t=120s",
     "whyItMatters": "Fetch and prepare data on the server (and client) with SvelteKit load functions, type-safe page data, and invalidation patterns for re-fetching after mutations."
   },
@@ -151685,7 +151167,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=9OlLxkaeVvw&t=60s",
     "whyItMatters": "Handle form submissions server-side with SvelteKit form actions, validate input, return typed validation errors, and use the enhance function for progressive enhancement."
   },
@@ -151988,7 +151469,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=9OlLxkaeVvw&t=120s",
     "whyItMatters": "Intercept every request with SvelteKit hooks (handle, handleError, handleFetch), implement session management with cookies, and gate routes behind authentication."
   },
@@ -152291,7 +151771,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=9OlLxkaeVvw&t=180s",
     "whyItMatters": "Write unit, component, and E2E tests for Svelte/SvelteKit apps using Vitest, @testing-library/svelte, and Playwright — including runes-aware testing and SvelteKit context mocking."
   },
@@ -152594,7 +152073,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=9OlLxkaeVvw&t=240s",
     "whyItMatters": "Squeeze the most out of Svelte's compile-time optimizations and add runtime performance techniques: code splitting, lazy loading, prefetching, and reducing hydration cost."
   },
@@ -152896,7 +152374,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=9OlLxkaeVvw&t=300s",
     "whyItMatters": "Deploy SvelteKit apps to Vercel, Netlify, and Node using the right adapter, configure environment variables, and verify post-deploy with smoke tests."
   },
@@ -153199,7 +152676,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=9OlLxkaeVvw&t=360s",
     "whyItMatters": "Pull together advanced Svelte/SvelteKit patterns — snippets in depth, error boundaries, async state, and architectural choices — and prep for the capstone project."
   },
@@ -153261,7 +152737,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -153564,7 +153039,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YrxBCBibVo0",
     "whyItMatters": "Install Node. js, scaffold a Vue 3 project with create-vue, render your first single-file component, and understand how Vue mounts to the DOM."
   },
@@ -153866,7 +153340,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YrxBCBibVo0&t=30s",
     "whyItMatters": "Master Vue's reactivity system using ref, reactive, and shallowRef, and understand how ES Proxy-based reactivity tracks dependencies automatically."
   },
@@ -154168,7 +153641,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YrxBCBibVo0&t=60s",
     "whyItMatters": "Learn Vue's template syntax: text interpolation with {{ }}, raw HTML with v-html, attribute binding with v-bind, and the v-on/v-if/v-for/v-model directives overview."
   },
@@ -154470,7 +153942,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YrxBCBibVo0&t=90s",
     "whyItMatters": "Master computed properties for derived state, watchers for side effects, and the watchEffect API for automatic dependency tracking."
   },
@@ -154773,7 +154244,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YrxBCBibVo0&t=120s",
     "whyItMatters": "Bind CSS classes and inline styles reactively, including object syntax, array syntax, and the special $style scoped class helper."
   },
@@ -155075,7 +154545,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YrxBCBibVo0&t=150s",
     "whyItMatters": "Render elements conditionally with v-if/v-else-if/v-else, toggle visibility with v-show, and understand when to use each."
   },
@@ -155378,7 +154847,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=YrxBCBibVo0&t=180s",
     "whyItMatters": "Render lists with v-for over arrays, ranges, and objects, understand the critical role of the key attribute, and apply list filtering with computed properties."
   },
@@ -155680,7 +155148,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=CYPZBK8zUik",
     "whyItMatters": "Attach event handlers with v-on (and the @ shorthand), use built-in modifiers for common patterns, and learn key aliases and system modifier keys."
   },
@@ -155982,7 +155449,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=CYPZBK8zUik&t=60s",
     "whyItMatters": "Bind form inputs two-way with v-model on text, textarea, checkbox, radio, select, and learn the lazy/number/trim modifiers and custom component v-model."
   },
@@ -156286,7 +155752,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=CYPZBK8zUik&t=120s",
     "whyItMatters": "Build reusable components with props, type them with TypeScript, validate them, and understand one-way data flow and the definesetup macros."
   },
@@ -156588,7 +156053,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KM1U6DqZf8M",
     "whyItMatters": "Compose components with default, named, and scoped slots; learn the v-slot shorthand and dynamic slot names for flexible layout APIs."
   },
@@ -156891,7 +156355,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KM1U6DqZf8M&t=60s",
     "whyItMatters": "Share state across a deeply nested component tree using provide/inject, type it with InjectionKey, and make it reactive."
   },
@@ -157195,7 +156658,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KM1U6DqZf8M&t=120s",
     "whyItMatters": "Hook into every stage of a component's life — setup, mount, update, unmount — and learn when to use onMounted, onUpdated, onUnmounted, and the new onScopeDispose."
   },
@@ -157498,7 +156960,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KM1U6DqZf8M&t=180s",
     "whyItMatters": "Extract reusable reactive logic into composables, master ref forwarding and toRefs, and learn the build-in composables from the Vue core."
   },
@@ -157801,7 +157262,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KM1U6DqZf8M&t=240s",
     "whyItMatters": "Build a multi-page SPA with Vue Router 4, define routes with dynamic segments and nested children, and protect routes with navigation guards."
   },
@@ -158104,7 +157564,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KM1U6DqZf8M&t=300s",
     "whyItMatters": "Replace Vuex with Pinia for type-safe state management: define stores with setup or options syntax, mutate state via actions, and persist across reloads."
   },
@@ -158408,7 +157867,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KM1U6DqZf8M&t=360s",
     "whyItMatters": "Animate enter/leave of elements and components with `<Transition>`, animate lists with `<TransitionGroup>`, and integrate JavaScript hooks and third-party animation libraries."
   },
@@ -158713,7 +158171,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KM1U6DqZf8M&t=420s",
     "whyItMatters": "Write unit tests with Vitest, component tests with Vue Test Utils, and end-to-end tests with Playwright; set coverage targets and run them in CI."
   },
@@ -159016,7 +158473,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KM1U6DqZf8M&t=480s",
     "whyItMatters": "Build a Nuxt 3 app with server-side rendering, file-based routing, automatic imports, data fetching with `useFetch`/`useAsyncData`, and SEO meta tags."
   },
@@ -159320,7 +158776,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=KM1U6DqZf8M&t=540s",
     "whyItMatters": "Build, optimize, and deploy a Vue 3 app to Vercel/Netlify/static hosts; configure environment variables, bundle analysis, lighthouse, and CI."
   },
@@ -159382,7 +158837,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -159687,7 +159141,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=DwTNR3EBSJQ",
     "whyItMatters": "Install Node. js and the Angular CLI, scaffold a standalone-components app, run the dev server, and inspect the project structure and your first component."
   },
@@ -159990,7 +159443,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=DwTNR3EBSJQ&t=30s",
     "whyItMatters": "Build standalone components with inline and external templates, learn the component lifecycle, and use signal-based inputs/outputs to communicate between parent and child."
   },
@@ -160292,7 +159744,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=DwTNR3EBSJQ&t=60s",
     "whyItMatters": "Master the four binding kinds — interpolation, property, event, and two-way — and understand Angular's binding syntax, security model, and the new control flow's interaction with bindings."
   },
@@ -160594,7 +160045,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=DwTNR3EBSJQ&t=90s",
     "whyItMatters": "Use Angular's built-in directives (`@if`/`@for`/`@switch` new control flow, `ngClass`, `ngStyle`) and author your own attribute and structural directives."
   },
@@ -160896,7 +160346,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=DwTNR3EBSJQ&t=120s",
     "whyItMatters": "Use Angular's built-in pipes (date, currency, number, json, async) and author your own pure and impure pipes, with attention to the modern `@Pipe` standalone form."
   },
@@ -161200,7 +160649,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=DwTNR3EBSJQ&t=150s",
     "whyItMatters": "Author injectable services with `providedIn`, understand Angular's hierarchical injector tree, and use the modern `inject()` function for concise DI."
   },
@@ -161504,7 +160952,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=DwTNR3EBSJQ&t=180s",
     "whyItMatters": "Configure the router with `provideRouter`, define routes (lazy and eager), navigate via `routerLink` and the `Router` service, and read route params with `ActivatedRoute`."
   },
@@ -161807,7 +161254,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=DwTNR3EBSJQ&t=210s",
     "whyItMatters": "Configure `HttpClient` with `provideHttpClient`, make typed GET/POST/PUT/DELETE calls, handle errors, and unwrap responses in templates with the `async` pipe."
   },
@@ -162109,7 +161555,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=DwTNR3EBSJQ&t=240s",
     "whyItMatters": "Master RxJS operators (creation, transformation, filtering, combination, error handling), read and write marble diagrams, and apply `switchMap`/`mergeMap`/`exhaustMap` correctly."
   },
@@ -162412,7 +161857,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=DwTNR3EBSJQ&t=270s",
     "whyItMatters": "Build template-driven forms with `ngModel` and reactive forms with `FormControl`/`FormGroup`/`FormBuilder`, validate input, and integrate with signals."
   },
@@ -162716,7 +162160,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXjVelFtpuQ",
     "whyItMatters": "Manage application state with NgRx — Actions, Reducers, Selectors, Effects, and Entity — and learn when to use NgRx vs signals for local vs global state."
   },
@@ -163019,7 +162462,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXjVelFtpuQ&t=60s",
     "whyItMatters": "Use functional route guards (`canActivateFn`), resolvers (`ResolveFn`), and HTTP interceptors (`HttpInterceptorFn`) — the modern, tree-shakable alternatives to class-based equivalents."
   },
@@ -163322,7 +162764,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXjVelFtpuQ&t=120s",
     "whyItMatters": "Understand Angular's change detection tree, configure `ChangeDetectionStrategy. OnPush`, use the `async` pipe and signals to minimize CD cycles, and debug CD storms."
   },
@@ -163624,7 +163065,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXjVelFtpuQ&t=180s",
     "whyItMatters": "Use `ng-content` for content projection, multi-slot and conditional projection, and the modern signal-based `viewChild()` / `contentChild()` queries to access child components and DOM nodes."
   },
@@ -163926,7 +163366,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXjVelFtpuQ&t=240s",
     "whyItMatters": "Render components dynamically with `ViewContainerRef. createComponent`, use `ng-template` and `TemplateRef` for reusable markup, and explore the modern `NgComponentOutlet` directive."
   },
@@ -164230,7 +163669,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXjVelFtpuQ&t=300s",
     "whyItMatters": "Write unit tests with Jasmine + TestBed (or Jest), component tests with the Angular Testing Library, and E2E tests with Cypress — covering signals, services, HTTP, and routing."
   },
@@ -164533,7 +163971,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXjVelFtpuQ&t=360s",
     "whyItMatters": "Use `@angular/localize` to mark translatable text, extract messages into XLIFF/JSON, build per-locale bundles, and switch locales at build time."
   },
@@ -164836,7 +164273,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXjVelFtpuQ&t=420s",
     "whyItMatters": "Add a service worker with `@angular/service-worker`, configure caching strategies in `ngsw-config. json`, implement an app shell, and handle offline-first UX."
   },
@@ -165141,7 +164577,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXjVelFtpuQ&t=480s",
     "whyItMatters": "Optimize Angular apps with lazy-loaded routes, preloading strategies, `trackBy` (or `track`), OnPush, bundle budgets, and tools to measure and shrink bundle size."
   },
@@ -165445,7 +164880,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=HXjVelFtpuQ&t=540s",
     "whyItMatters": "Recap modern Angular (standalone components, signals, new control flow), configure production builds, deploy to static hosts and Firebase, and prep the capstone project."
   },
@@ -165507,7 +164941,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -165809,7 +165242,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zb3Qk8SG5Ms",
     "whyItMatters": "Install the Node. js runtime, write and run your first script, explore the REPL, and understand the V8 + libuv architecture that makes Node."
   },
@@ -166110,7 +165542,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zb3Qk8SG5Ms&t=30s",
     "whyItMatters": "Master the six phases of the Node event loop, the microtask queues (nextTick and Promise), and why a single blocking call freezes the entire process."
   },
@@ -166412,7 +165843,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zb3Qk8SG5Ms&t=60s",
     "whyItMatters": "Understand CommonJS (`require`/`module. exports`) and ESM (`import`/`export`), how to enable ESM in Node, how to get `__dirname` in ESM, and how to interop between the two."
   },
@@ -166714,7 +166144,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zb3Qk8SG5Ms&t=90s",
     "whyItMatters": "Read and write files with the modern `fs. promises` API, navigate paths portably with `node:path`, and avoid the blocking `*Sync` family in request handlers."
   },
@@ -167017,7 +166446,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zb3Qk8SG5Ms&t=120s",
     "whyItMatters": "Build HTTP servers and clients with the built-in `node:http` module — handle requests, responses, status codes, headers, JSON bodies, and basic routing without any framework."
   },
@@ -167320,7 +166748,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zb3Qk8SG5Ms&t=150s",
     "whyItMatters": "Master Node's four stream types, use `pipeline` to safely compose them, understand backpressure, and process large files without blowing memory."
   },
@@ -167622,7 +167049,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zb3Qk8SG5Ms&t=180s",
     "whyItMatters": "Work with raw bytes using Node's Buffer class, convert between encodings (utf8, base64, hex), and avoid the security pitfall of `Buffer. allocUnsafe`."
   },
@@ -167924,7 +167350,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zb3Qk8SG5Ms&t=210s",
     "whyItMatters": "Use `EventEmitter` to decouple producers and consumers, handle the special `'error'` event, avoid listener leaks, and consume events with async iterators."
   },
@@ -168227,7 +167652,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zb3Qk8SG5Ms&t=240s",
     "whyItMatters": "Handle errors the Node way — try/catch with async, error-first callbacks, custom error classes, `Error. cause`, and why `uncaughtException` should crash (not swallow)."
   },
@@ -168531,7 +167955,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=zb3Qk8SG5Ms&t=270s",
     "whyItMatters": "Read command-line arguments and environment variables, exit cleanly, and handle SIGINT/SIGTERM for graceful shutdown in containers and process managers."
   },
@@ -168833,7 +168256,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=w-7RQ46RgxU",
     "whyItMatters": "Master the package. json schema, semver ranges, npm scripts, `npm ci` for reproducible installs, the `exports` field, and publishing to the npm registry."
   },
@@ -169136,7 +168558,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=w-7RQ46RgxU&t=60s",
     "whyItMatters": "Master async functions, `await`, Promise combinators (`all`/`allSettled`/`race`/`any`), microtask timing, AbortController cancellation, and the `await` in `forEach` pitfall."
   },
@@ -169439,7 +168860,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=w-7RQ46RgxU&t=120s",
     "whyItMatters": "Offload CPU-bound work (crypto, image processing, parsing) to worker threads, share memory with `SharedArrayBuffer` + `Atomics`, and pool workers for high throughput."
   },
@@ -169744,7 +169164,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=w-7RQ46RgxU&t=180s",
     "whyItMatters": "Scale a single Node process to multiple cores with the cluster module, spawn external binaries safely with `child_process`, and avoid shell injection via `exec`."
   },
@@ -170049,7 +169468,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=w-7RQ46RgxU&t=240s",
     "whyItMatters": "Build raw TCP servers with `net`, send datagrams with `dgram`, secure connections with `tls`, and understand the framing/protocol concerns that http hides."
   },
@@ -170352,7 +169770,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=w-7RQ46RgxU&t=300s",
     "whyItMatters": "Build HTTP APIs with Express (the de facto standard) and Fastify (2-3x faster with schema-based serialization), use middleware, validate input, and handle async errors."
   },
@@ -170655,7 +170072,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=w-7RQ46RgxU&t=360s",
     "whyItMatters": "Connect Node to PostgreSQL (pg), MySQL (mysql2), MongoDB (mongodb), and use Prisma as a type-safe ORM — with connection pooling, transactions, and SQL injection prevention."
   },
@@ -170959,7 +170375,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=w-7RQ46RgxU&t=420s",
     "whyItMatters": "Test Node apps with the built-in `node:test`, run unit tests with Vitest or Jest, integration-test HTTP APIs with supertest, and drive real browsers with Playwright."
   },
@@ -171262,7 +170677,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=w-7RQ46RgxU&t=480s",
     "whyItMatters": "Diagnose event-loop blocking with `clinic. js`, profile CPU usage, take heap snapshots to find memory leaks, and tune V8's garbage collector for production."
   },
@@ -171567,7 +170981,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=w-7RQ46RgxU&t=540s",
     "whyItMatters": "Deploy Node apps with PM2 (cluster mode, zero-downtime reload) and Docker (multi-stage builds, distroless images), wire up health checks, CI/CD, and graceful shutdown."
   },
@@ -171635,7 +171048,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -171938,7 +171350,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=qw--VYLpxG4",
     "whyItMatters": "Install PostgreSQL 16, connect with psql, understand the cluster/database/schema/table hierarchy, and write your first queries against a real Postgres instance."
   },
@@ -172241,7 +171652,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=qw--VYLpxG4&t=1200s",
     "whyItMatters": "Master the psql CLI and the createdb/createuser/dropdb shell tools, learn to read postgresql. conf and pg_hba."
   },
@@ -172546,7 +171956,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=qw--VYLpxG4&t=2400s",
     "whyItMatters": "Master Postgres's rich type system — exact-decimal numerics, variable- and fixed-length text, dates and times with and without timezones, booleans, and UUIDs — and learn which to choose for each column."
   },
@@ -172850,7 +172259,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=qw--VYLpxG4&t=3600s",
     "whyItMatters": "Design normalized schemas, choose appropriate primary and foreign keys, and enforce data integrity with CHECK, UNIQUE, NOT NULL, EXCLUDE, and deferrable constraints."
   },
@@ -173155,7 +172563,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=qw--VYLpxG4&t=4800s",
     "whyItMatters": "Choose the right index type for each query, understand partial and expression indexes, covering (INCLUDE) indexes, and the tradeoffs of each — plus when NOT to index."
   },
@@ -173459,7 +172866,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=qw--VYLpxG4&t=6000s",
     "whyItMatters": "Use Postgres's rich type system beyond the basics — JSONB for flexible documents, arrays for tags, hstore for key-value, enums for closed sets, and composite types for structured values."
   },
@@ -173764,7 +173170,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=qw--VYLpxG4&t=7200s",
     "whyItMatters": "Build regular views for query reuse and security, and materialized views for cached aggregations — including REFRESH CONCURRENTLY, unique index requirements, and refresh strategies."
   },
@@ -174069,7 +173474,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=qw--VYLpxG4&t=8400s",
     "whyItMatters": "Write SQL functions, PL/pgSQL procedural functions, and use other PL languages (plpgsql, plpython3u, plv8) — and learn when to use a function vs a view vs an application-side query."
   },
@@ -174375,7 +173779,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=qw--VYLpxG4&t=9600s",
     "whyItMatters": "Build trigger functions in PL/pgSQL, attach them with BEFORE/AFTER/INSTEAD OF and per-row/per-statement semantics, and use them for audit logs, computed columns, and soft-delete."
   },
@@ -174683,7 +174086,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=qw--VYLpxG4&t=10800s",
     "whyItMatters": "Master window functions (OVER, PARTITION BY, ORDER BY, frame clauses) and CTEs (WITH, RECURSIVE, MATERIALIZED) for analytical queries that would otherwise require multiple self-joins or procedural code."
   },
@@ -174988,7 +174390,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=qw--VYLpxG4&t=12000s",
     "whyItMatters": "Build fast, relevant full-text search using tsvector, tsquery, GIN indexes, ranking, and highlighting — Postgres's built-in alternative to Elasticsearch for many use cases."
   },
@@ -175292,7 +174693,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=qw--VYLpxG4&t=13200s",
     "whyItMatters": "Partition huge tables by range (time-series), list (regions/categories), or hash (even distribution), and understand the planner's partition pruning and routing."
   },
@@ -175596,7 +174996,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=qw--VYLpxG4&t=14400s",
     "whyItMatters": "Understand Postgres's MVCC model, the four isolation levels, serialization failures, and how to write retry logic for SERIALIZABLE transactions."
   },
@@ -175901,7 +175300,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=qw--VYLpxG4&t=15600s",
     "whyItMatters": "Read EXPLAIN (ANALYZE, BUFFERS) output, tune autovacuum, understand table and index bloat, and keep statistics accurate for the query planner."
   },
@@ -176206,7 +175604,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=Q56kljmIN14",
     "whyItMatters": "Implement least-privilege roles, row-level security (RLS) for multi-tenant isolation, column-level grants, and pgcrypto for column-level encryption of PII."
   },
@@ -176512,7 +175909,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=Q56kljmIN14&t=600s",
     "whyItMatters": "Set up streaming (physical) replication for hot standbys, logical replication for selective table sync and cross-version migrations, and understand failover and replication slot retention."
   },
@@ -176818,7 +176214,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=Q56kljmIN14&t=1200s",
     "whyItMatters": "Choose the right backup strategy (logical vs physical, full vs incremental), implement point-in-time recovery (PITR) via WAL archiving, and test restore drills."
   },
@@ -177122,7 +176517,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=Q56kljmIN14&t=1800s",
     "whyItMatters": "Extend Postgres with PostGIS (geospatial), TimescaleDB (time-series), pg_cron (scheduled jobs), pg_stat_statements (query stats), pg_trgm (fuzzy text), and more."
   },
@@ -177420,7 +176814,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=Q56kljmIN14&t=2400s",
     "whyItMatters": "Use PgBouncer for lightweight connection pooling in transaction mode, and understand Pgpool-II for load balancing, query routing, and parallel query."
   },
@@ -177724,7 +177117,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=Q56kljmIN14&t=3000s",
     "whyItMatters": "Connect applications to Postgres via drivers and ORMs (SQLAlchemy, asyncpg, Prisma, Diesel), use parameterized queries everywhere, and prepare for the capstone project."
   },
@@ -177792,7 +177184,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },
@@ -178093,7 +177484,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ExcRbA7fy_A",
     "whyItMatters": "Install MongoDB 7 and mongosh, run your first insert and find, and understand the database, collection, and document hierarchy plus the JSON-vs-BSON distinction."
   },
@@ -178394,7 +177784,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ExcRbA7fy_A&t=30s",
     "whyItMatters": "Model real-world data as nested documents and arrays, master dot notation, and learn which BSON types exist beyond plain JSON."
   },
@@ -178695,7 +178084,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ExcRbA7fy_A&t=60s",
     "whyItMatters": "Master the four CRUD primitives with `insertOne/Many`, `find`, `updateOne/Many`, `replaceOne`, `deleteOne/Many`, plus `upsert`, `findOneAndUpdate`, and write concern basics."
   },
@@ -178997,7 +178385,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ExcRbA7fy_A&t=90s",
     "whyItMatters": "Express precise queries using MongoDB's operator vocabulary: comparison, logical, array, element, and evaluation operators."
   },
@@ -179301,7 +178688,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ExcRbA7fy_A&t=120s",
     "whyItMatters": "Use projection to fetch only the fields you need, sort efficiently with indexes, and paginate large result sets with offset and keyset strategies."
   },
@@ -179602,7 +178988,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ExcRbA7fy_A&t=150s",
     "whyItMatters": "Create single-field, compound, text, and geospatial indexes, understand the ESR rule, and use `explain()` to confirm IXSCAN vs COLLSCAN."
   },
@@ -179903,7 +179288,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ExcRbA7fy_A&t=180s",
     "whyItMatters": "Compose multi-stage pipelines to filter, transform, and summarize documents — the most powerful querying tool in MongoDB."
   },
@@ -180204,7 +179588,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ExcRbA7fy_A&t=210s",
     "whyItMatters": "Join collections with `$lookup`, flatten arrays with `$unwind`, and run multiple sub-pipelines in one pass with `$facet`."
   },
@@ -180505,7 +179888,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ExcRbA7fy_A&t=240s",
     "whyItMatters": "Decide when to embed subdocuments vs reference other collections, and learn the one-to-few, one-to-many, and many-to-many patterns."
   },
@@ -180806,7 +180188,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=ExcRbA7fy_A&t=270s",
     "whyItMatters": "Apply named MongoDB patterns (Attribute, Polymorphic, Bucket, Computed, Extended Reference, Outlier, Approximation) to common modeling problems."
   },
@@ -181107,7 +180488,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=c2M-rlkkT5o",
     "whyItMatters": "Use replica-set-backed multi-document transactions with `session. startTransaction()`, handle transient errors with retry logic, and understand isolation and limits."
   },
@@ -181408,7 +180788,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=c2M-rlkkT5o&t=180s",
     "whyItMatters": "Run a 3-node replica set, understand primary/secondary roles, elections, and the oplog, and choose the right read preference and write concern for your workload."
   },
@@ -181709,7 +181088,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=c2M-rlkkT5o&t=360s",
     "whyItMatters": "Scale horizontally by sharding a collection, choose shard keys that distribute load evenly, and understand chunks, balancer, and the role of `mongos`."
   },
@@ -182011,7 +181389,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=c2M-rlkkT5o&t=540s",
     "whyItMatters": "Read `explain()` output, fix COLLSCANs, build covered queries, and tune WiredTiger cache vs working-set size."
   },
@@ -182312,7 +181689,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=c2M-rlkkT5o&t=720s",
     "whyItMatters": "Subscribe to collection changes in real time with `watch()`, manage resume tokens for resumability, and use Atlas Triggers for serverless change handlers."
   },
@@ -182616,7 +181992,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=c2M-rlkkT5o&t=900s",
     "whyItMatters": "Lock down MongoDB with SCRAM/x. 509 auth, RBAC roles, TLS, and Client-Side Field-Level Encryption (CSFLE) / Queryable Encryption for sensitive fields."
   },
@@ -182917,7 +182292,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=c2M-rlkkT5o&t=1080s",
     "whyItMatters": "Use MongoDB Atlas managed service, build full-text search with `$search` (Lucene-based), and add semantic search with `vectorSearch` for RAG applications."
   },
@@ -183217,7 +182591,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=c2M-rlkkT5o&t=1260s",
     "whyItMatters": "Enforce document shape at write time with `$jsonSchema` validators, choose `strict` vs `moderate` enforcement, and migrate schemas safely."
   },
@@ -183518,7 +182891,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=c2M-rlkkT5o&t=1440s",
     "whyItMatters": "Use native time series collections for efficient storage and queries of timestamped measurements, and capped collections with tailable cursors for log-style queues."
   },
@@ -183820,7 +183192,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": false,
     "youtubeUrl": "https://www.youtube.com/watch?v=c2M-rlkkT5o&t=1620s",
     "whyItMatters": "Connect a real application to MongoDB with the official Node driver, manage connection pooling and retry logic, and pull together everything you've learned in preparation for the capstone project."
   },
@@ -183878,7 +183249,6 @@ export const ALL_LESSONS: Lesson[] =
         "kind": "doc"
       }
     ],
-    "isCapstone": true,
     "youtubeUrl": "",
     "whyItMatters": "This capstone project integrates every concept from the track into a single production-grade deliverable."
   },

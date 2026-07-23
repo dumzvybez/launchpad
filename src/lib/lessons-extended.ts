@@ -173,7 +173,6 @@ export const EXTENDED_LESSONS: Lesson[] = [
     title: "Capstone: Containerize a Full-Stack App",
     description: "Put it all together: containerize a full-stack application with frontend, backend, and database using Docker Compose.",
     difficulty: "advanced", estMinutes: 180,
-    isCapstone: true,
     blocks: [
       { kind: "heading", content: "Capstone: Containerize a Full-Stack App" },
       { kind: "whyItMatters", content: "This capstone brings together everything you've learned about Docker: images, containers, networking, volumes, security, and Docker Compose." },
@@ -790,7 +789,6 @@ export const EXTENDED_LESSONS: Lesson[] = [
       {"id":"q9","question":"Which of the following is a relevant interview question about \"Capstone: Build a Landing Page\"?","options":["How to optimize for conversion?", "How many planets are in the solar system?", "What year was the company founded?", "Essential landing page sections?"],"correctIndex":3,"explanation":"The correct answer is: Essential landing page sections?"},
       {"id":"q10","question":"Why does \"Capstone: Build a Landing Page\" matter in real-world practice?","options":["It was important historically but is no longer relevant", "It is only used by academic researchers, not industry", "Build a complete responsive landing page.", "It is a purely theoretical concept with no practical use"],"correctIndex":2,"explanation":"The correct answer is: Build a complete responsive landing page."}
     ],
-  "isCapstone": true
 },
 {
   "id": "express-16",
@@ -1379,7 +1377,6 @@ export const EXTENDED_LESSONS: Lesson[] = [
       {"id":"q9","question":"Which of the following is a relevant interview question about \"Capstone: Build a REST API with Auth\"?","options":["How many planets are in the solar system?", "What year was the company founded?", "Standard HTTP status codes?", "REST design principles?"],"correctIndex":2,"explanation":"The correct answer is: Standard HTTP status codes?"},
       {"id":"q10","question":"Why does \"Capstone: Build a REST API with Auth\" matter in real-world practice?","options":["It is only used by academic researchers, not industry", "Build complete REST API with auth, validation, error handling, tests.", "It is a purely theoretical concept with no practical use", "It was important historically but is no longer relevant"],"correctIndex":1,"explanation":"The correct answer is: Build complete REST API with auth, validation, error handling, tests."}
     ],
-  "isCapstone": true
 },
 {
   "id": "graphql-16",
@@ -1968,7 +1965,6 @@ export const EXTENDED_LESSONS: Lesson[] = [
       {"id":"q9","question":"Which of the following is a relevant interview question about \"Capstone: Full GraphQL API\"?","options":["Key components of production API?", "How to structure a GraphQL project?", "How many planets are in the solar system?", "What year was the company founded?"],"correctIndex":0,"explanation":"The correct answer is: Key components of production API?"},
       {"id":"q10","question":"Why does \"Capstone: Full GraphQL API\" matter in real-world practice?","options":["It is a purely theoretical concept with no practical use", "It was important historically but is no longer relevant", "It is only used by academic researchers, not industry", "Build production-ready GraphQL API."],"correctIndex":3,"explanation":"The correct answer is: Build production-ready GraphQL API."}
     ],
-  "isCapstone": true
 },
 {
   "id": "kubernetes-16",
@@ -2557,7 +2553,6 @@ export const EXTENDED_LESSONS: Lesson[] = [
       {"id":"q9","question":"Which of the following is a relevant interview question about \"Capstone: Deploy Microservices App\"?","options":["Essential production components?", "How to structure microservices on K8s?", "How many planets are in the solar system?", "What year was the company founded?"],"correctIndex":0,"explanation":"The correct answer is: Essential production components?"},
       {"id":"q10","question":"Why does \"Capstone: Deploy Microservices App\" matter in real-world practice?","options":["It is a purely theoretical concept with no practical use", "It was important historically but is no longer relevant", "It is only used by academic researchers, not industry", "Deploy complete microservices app on K8s."],"correctIndex":3,"explanation":"The correct answer is: Deploy complete microservices app on K8s."}
     ],
-  "isCapstone": true
 },
 {
   "id": "pytorch-06",
@@ -4127,7 +4122,6 @@ export const EXTENDED_LESSONS: Lesson[] = [
       {"id":"q9","question":"Which of the following is a relevant interview question about \"Capstone: End-to-End ML Project\"?","options":["How to ensure reproducibility?", "How many planets are in the solar system?", "What year was the company founded?", "Key stages of ML project?"],"correctIndex":3,"explanation":"The correct answer is: Key stages of ML project?"},
       {"id":"q10","question":"Why does \"Capstone: End-to-End ML Project\" matter in real-world practice?","options":["It was important historically but is no longer relevant", "It is only used by academic researchers, not industry", "Complete ML project: data model training evaluation deployment.", "It is a purely theoretical concept with no practical use"],"correctIndex":2,"explanation":"The correct answer is: Complete ML project: data model training evaluation deployment."}
     ],
-  "isCapstone": true
 },
 {
   "id": "tensorflow-06",
@@ -7168,7 +7162,6 @@ export const EXTENDED_LESSONS: Lesson[] = [
       {"id":"q9","question":"Which of the following is a relevant interview question about \"Capstone: Infrastructure for a Web App\"?","options":["Multi-tier architecture?", "How many planets are in the solar system?", "What year was the company founded?", "Essential production components?"],"correctIndex":3,"explanation":"The correct answer is: Essential production components?"},
       {"id":"q10","question":"Why does \"Capstone: Infrastructure for a Web App\" matter in real-world practice?","options":["It was important historically but is no longer relevant", "It is only used by academic researchers, not industry", "Build complete infra: VPC, compute, database, CDN, monitoring.", "It is a purely theoretical concept with no practical use"],"correctIndex":2,"explanation":"The correct answer is: Build complete infra: VPC, compute, database, CDN, monitoring."}
     ],
-  "isCapstone": true
 }
 ];
 

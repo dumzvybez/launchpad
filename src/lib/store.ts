@@ -37,10 +37,21 @@ import { ACHIEVEMENTS } from "./achievements-data";
 import { generateCertificateId, generateCareerCertificateId } from "./certificate-utils";
 // ESM imports for data modules — replaces the previous `require()` calls
 // which can silently fail under Turbopack/Next.js 16 bundling.
-import { ALL_LANGUAGE_INFO, getLessons, getLessonById, getTrackLessons, loadAllLessons } from "./lessons-data";
+import { ALL_LANGUAGE_INFO, getLessons, getLessonById, getTrackLessons } from "./lessons-data";
+import { TRACKS_WITH_CONTENT } from "./lessons-meta";
 import { selectPoolForLanguages } from "./daily-challenges-data-v2";
 import { recordQuestion, recordFlashcard } from "./sm2";
 import { generateFlashcardsForTrack } from "./flashcard-generator";
+// v6.0: stable identity helpers + shared constants
+import {
+  lessonSlug,
+  resolveRef,
+  resolveQuizRef,
+  quizRef,
+  parseQuizRef,
+  getLessonByRef,
+} from "./identity";
+import { CERTIFICATE_QUIZ_THRESHOLD, QUIZ_PASS_MARK } from "./constants";
 
 // ============================================================
 // Derived selectors (work on the personalized roadmap if present)
@@ -76,15 +87,22 @@ export function selectEarnedXP(state: AppState): number {
   for (const b of state.badges) {
     if (b.unlockedAt) xp += b.xp;
   }
-  // Lesson XP — +50 XP per completed lesson per Section 13.2
+  // v5.937: Lesson XP reduced from +50 to +10 per completed lesson.
+  // Reasoning: with variable-length tracks (100-150+ lessons), the old +50
+  // would trivialize the leveling curve (150 lessons × 50 = 7,500 XP per
+  // track → Level 5 in one track). At +10, a 150-lesson track awards 1,500
+  // XP — roughly the same as the old 21-lesson track did (21 × 50 = 1,050),
+  // keeping the overall leveling pace similar regardless of track length.
   for (const p of Object.values(state.lessonProgress)) {
-    if (p.status === "complete") xp += 50;
+    if (p.status === "complete") xp += 10;
   }
-  // Quiz XP — +30 XP per passed quiz (≥70%), +60 XP per perfect quiz (100%) per Section 13.2
+  // Quiz XP — +30 XP per passed quiz (≥ QUIZ_PASS_MARK × 100), +60 XP per perfect quiz (100%) per Section 13.2
+  // v6.0: uses shared QUIZ_PASS_MARK constant (was hardcoded 70).
+  const quizPassScore = QUIZ_PASS_MARK * 100;
   for (const p of Object.values(state.lessonProgress)) {
     const score = p.bestQuizScore ?? 0;
     if (score >= 100) xp += 60;
-    else if (score >= 70) xp += 30;
+    else if (score >= quizPassScore) xp += 30;
   }
   // Project XP — +150 XP per shipped project per Section 13.2
   xp += state.projects.filter((p) => p.status === "shipped").length * 150;
@@ -163,17 +181,22 @@ export function selectWeakAreas(state: AppState, limit = 5): Array<{
     .slice(0, limit);
 
   return sorted.map(([key, r]) => {
-    const [lessonId, questionId] = key.split(":");
-    const lesson = getLessonById(lessonId);
+    // v6.0: key is now a global quiz slug (e.g. "python.variables.q1") OR a
+    // legacy "lessonId:qN" composite. parseQuizRef handles both and returns
+    // the lesson slug + local question id. We resolve the slug to a lesson
+    // via getLessonByRef (checks SLUG_TO_ID then LESSON_MAP).
+    const { lessonSlug: lSlug, questionId } = parseQuizRef(key);
+    const lesson = getLessonByRef(lSlug);
+    const trackId = r.trackId ?? lesson?.track ?? "";
     const question = lesson?.quiz.find((q) => q.id === questionId);
     return {
-      lessonId,
+      lessonId: lSlug,
       questionId,
       incorrectCount: r.incorrectCount,
       correctCount: r.correctCount,
       lastAttemptDate: r.lastAttemptDate,
-      trackId: lesson?.track ?? "",
-      lessonTitle: lesson?.title ?? lessonId,
+      trackId,
+      lessonTitle: lesson?.title ?? lSlug,
       questionText: question?.question ?? questionId,
     };
   });
@@ -193,7 +216,7 @@ export function selectWeakAreas(state: AppState, limit = 5): Array<{
 export function selectTrackQuizAverage(
   state: AppState,
   trackId: string,
-  trackLessons: { id: string; quiz: { id: string }[] }[],
+  trackLessons: { id: string; slug?: string; quiz: { id: string; slug?: string }[] }[],
 ): { average: number; attemptedQuestions: number; totalQuestions: number } {
   const totalQuestions = trackLessons.reduce((sum, l) => sum + l.quiz.length, 0);
   const totalPossibleMarks = totalQuestions * 10;
@@ -201,10 +224,16 @@ export function selectTrackQuizAverage(
   let attemptedQuestions = 0;
 
   for (const lesson of trackLessons) {
-    const progress = state.lessonProgress[lesson.id];
+    // v6.0: lessonProgress is now keyed by slug. resolveRef normalizes any
+    // form (positional id or slug) to the canonical slug, so this works for
+    // both pre- and post-migration state.
+    const progressKey = resolveRef(lesson.id);
+    const progress = state.lessonProgress[progressKey];
     if (!progress?.questionAnswers) continue;
     for (const q of lesson.quiz) {
-      const key = `${lesson.id}:${q.id}`;
+      // v6.0: questionAnswers keys are now global quiz slugs. quizRef derives
+      // the canonical key; resolveQuizRef normalizes any legacy key form.
+      const key = resolveQuizRef(quizRef(lesson, q.id));
       const ans = progress.questionAnswers[key];
       if (ans) {
         attemptedQuestions++;
@@ -221,20 +250,21 @@ export function selectTrackQuizAverage(
 
 /**
  * Check if a track certificate is eligible.
- * Eligible when: all lessons complete AND quiz average >= 75%.
+ * Eligible when: all lessons complete AND quiz average >= CERTIFICATE_QUIZ_THRESHOLD.
+ * v6.0: uses the shared CERTIFICATE_QUIZ_THRESHOLD constant (was hardcoded 75).
  */
 export function selectCertificateEligible(
   state: AppState,
   trackId: string,
-  trackLessons: { id: string; quiz: { id: string }[] }[],
+  trackLessons: { id: string; slug?: string; quiz: { id: string; slug?: string }[] }[],
 ): { eligible: boolean; allComplete: boolean; average: number; gap: number } {
   const allComplete = trackLessons.every(
-    (l) => state.lessonProgress[l.id]?.status === "complete",
+    (l) => state.lessonProgress[resolveRef(l.id)]?.status === "complete",
   );
   const { average } = selectTrackQuizAverage(state, trackId, trackLessons);
-  const gap = Math.max(0, 75 - average);
+  const gap = Math.max(0, CERTIFICATE_QUIZ_THRESHOLD - average);
   return {
-    eligible: allComplete && average >= 75,
+    eligible: allComplete && average >= CERTIFICATE_QUIZ_THRESHOLD,
     allComplete,
     average,
     gap,
@@ -292,7 +322,8 @@ export function selectCareerReadinessScore(state: AppState): {
       const lessons = getTrackLessons(lang);
       totalLessons += lessons.length;
       for (const l of lessons) {
-        const prog = state.lessonProgress[l.id];
+        // v6.0: lessonProgress keyed by slug.
+        const prog = state.lessonProgress[resolveRef(l.id)];
         if (prog?.bestQuizScore !== undefined && prog.bestQuizScore !== null) {
           quizSum += prog.bestQuizScore;
         }
@@ -392,7 +423,7 @@ export function selectCareerProgress(state: AppState): {
       const lessons = getTrackLessons(lang);
       totalLessons += lessons.length;
       for (const l of lessons) {
-        if (state.lessonProgress[l.id]?.status === "complete") completedLessons++;
+        if (state.lessonProgress[resolveRef(l.id)]?.status === "complete") completedLessons++;
       }
     }
   }
@@ -798,17 +829,29 @@ export const useStore = create<Store>((set, get) => {
           },
         }));
       }
-      // v5.79: lazily load the 6MB ALL_LESSONS array in the background.
-      // This is a separate webpack chunk that downloads after the app mounts,
-      // so it doesn't block the initial page render. Selectors that need
-      // lessons return [] until the load completes, then re-render with data.
-      if (typeof window !== "undefined") {
-        loadAllLessons().then(() => {
-          // Trigger a re-render by updating state (selectors will now return data).
-          updateState((s) => ({ ...s }));
-        }).catch((err) => {
-          console.warn("[launchpad] failed to load lessons content:", err);
-        });
+      // v6.2: No longer eagerly loads the 11MB content bundle. Tracks are
+      // loaded on-demand by content-loader.loadTrackContent() when the user
+      // opens a track. The track LIST view uses generated metadata (no fetch).
+      // Roadmap languages are preloaded in the background for convenience.
+      const currentState = get().state;
+      if (typeof window !== "undefined" && currentState.roadmap?.languageIds?.length) {
+        // v6.2.1: Filter to tracks that actually have compiled content JSON.
+        // The roadmap's languageIds can include non-lesson "tools" (e.g. "git")
+        // that appear in onboarding but have no /content/{id}.json. Preloading
+        // them caused spurious 404s in the console (caught + cached as [] by
+        // content-loader, so non-fatal, but noisy and wasteful).
+        const langIds = currentState.roadmap.languageIds.filter(
+          (id: string) => TRACKS_WITH_CONTENT.includes(id),
+        );
+        if (langIds.length > 0) {
+          import("./content-loader").then(({ preloadTracks }) => {
+            preloadTracks(langIds).then(() => {
+              updateState((s2) => ({ ...s2 }));
+            }).catch((err) => {
+              console.warn("[launchpad] failed to preload roadmap tracks:", err);
+            });
+          });
+        }
       }
     },
 
@@ -1140,12 +1183,16 @@ export const useStore = create<Store>((set, get) => {
 
     setLessonProgress: (lessonId, status, quizScore) => {
       updateState((s) => {
-        const existing = s.lessonProgress[lessonId] ?? {
-          lessonId,
+        // v6.0: lessonProgress is keyed by stable slug. resolveRef normalizes
+        // the incoming lessonId (positional OR slug) to the canonical slug.
+        const slug = resolveRef(lessonId);
+        const existing = s.lessonProgress[slug] ?? {
+          lessonId: slug,
           status: "not-started" as const,
         };
         const updated: LessonProgress = {
           ...existing,
+          lessonId: slug,
           status,
           startedAt: existing.startedAt ?? (status !== "not-started" ? new Date().toISOString() : undefined),
           completedAt: status === "complete" ? new Date().toISOString() : existing.completedAt,
@@ -1179,7 +1226,7 @@ export const useStore = create<Store>((set, get) => {
             if (!phase.lessonGroups || phase.lessonGroups.length === 0) continue;
             for (const mod of phase.modules) {
               for (const task of mod.tasks) {
-                if (task.lessonId === lessonId && !s.tasks[task.id]?.completedAt) {
+                if ((task.lessonId === lessonId || task.lessonId === slug) && !s.tasks[task.id]?.completedAt) {
                   newTasks = {
                     ...newTasks,
                     [task.id]: { completedAt: new Date().toISOString() },
@@ -1215,7 +1262,7 @@ export const useStore = create<Store>((set, get) => {
 
         return {
           ...s,
-          lessonProgress: { ...s.lessonProgress, [lessonId]: updated },
+          lessonProgress: { ...s.lessonProgress, [slug]: updated },
           tasks: newTasks,
           activity: newActivity,
           streak: newStreak,
@@ -1237,18 +1284,23 @@ export const useStore = create<Store>((set, get) => {
       }
     },
 
-    getLessonProgress: (lessonId) => get().state.lessonProgress[lessonId],
+    getLessonProgress: (lessonId) => get().state.lessonProgress[resolveRef(lessonId)],
 
     recordQuizAnswer: (lessonId, questionId, selectedIndex, correct) =>
       updateState((s) => {
-        const existing = s.lessonProgress[lessonId] ?? {
-          lessonId,
+        // v6.0: lessonProgress + questionAnswers + questionRecords all keyed by
+        // stable slug / global quiz slug now. resolveRef/quizRef normalize the
+        // incoming positional lessonId to the canonical forms.
+        const slug = resolveRef(lessonId);
+        const existing = s.lessonProgress[slug] ?? {
+          lessonId: slug,
           status: "in-progress" as const,
           startedAt: new Date().toISOString(),
         };
-        const key = `${lessonId}:${questionId}`;
+        const key = quizRef({ id: lessonId }, questionId);
         const updated: LessonProgress = {
           ...existing,
+          lessonId: slug,
           status: existing.status === "not-started" ? "in-progress" : existing.status,
           questionAnswers: {
             ...(existing.questionAnswers ?? {}),
@@ -1260,12 +1312,19 @@ export const useStore = create<Store>((set, get) => {
           },
         };
         // Also record SM-2 state for the question (Section 1).
-        const sm2Key = `${lessonId}:${questionId}`;
+        // v6.0: sm2Key is now the global quiz slug (same as `key` above).
+        const sm2Key = key;
         const prevRecord = s.questionRecords?.[sm2Key];
         const newRecord = recordQuestion(prevRecord, questionId, correct);
+        // v6.0: stamp lessonSlug + trackId onto the record for robust resolution.
+        if (newRecord && typeof newRecord === "object") {
+          (newRecord as { lessonSlug?: string }).lessonSlug = slug;
+          const trackId = slug.indexOf("-") > 0 ? slug.slice(0, slug.indexOf("-")) : slug;
+          (newRecord as { trackId?: string }).trackId = trackId;
+        }
         return {
           ...s,
-          lessonProgress: { ...s.lessonProgress, [lessonId]: updated },
+          lessonProgress: { ...s.lessonProgress, [slug]: updated },
           questionRecords: { ...(s.questionRecords ?? {}), [sm2Key]: newRecord },
         };
       }),
@@ -1273,9 +1332,16 @@ export const useStore = create<Store>((set, get) => {
     // SM-2 spaced repetition (Section 1)
     recordQuestionSM2: (lessonId, questionId, correct) =>
       updateState((s) => {
-        const sm2Key = `${lessonId}:${questionId}`;
+        // v6.0: sm2Key is now the global quiz slug.
+        const slug = resolveRef(lessonId);
+        const sm2Key = quizRef({ id: lessonId }, questionId);
         const prevRecord = s.questionRecords?.[sm2Key];
         const newRecord = recordQuestion(prevRecord, questionId, correct);
+        if (newRecord && typeof newRecord === "object") {
+          (newRecord as { lessonSlug?: string }).lessonSlug = slug;
+          const trackId = slug.indexOf("-") > 0 ? slug.slice(0, slug.indexOf("-")) : slug;
+          (newRecord as { trackId?: string }).trackId = trackId;
+        }
         return {
           ...s,
           questionRecords: { ...(s.questionRecords ?? {}), [sm2Key]: newRecord },
@@ -1310,14 +1376,17 @@ export const useStore = create<Store>((set, get) => {
     // Lesson bookmarks (Section 3)
     toggleLessonBookmark: (lessonId) =>
       updateState((s) => {
+        // v6.0: bookmarks are now stored as stable slugs. resolveRef normalizes
+        // the incoming lessonId (positional OR slug) to the canonical slug.
         // v5.77 fix: use `?? []` consistently to avoid crash if bookmarkedLessons is undefined.
+        const slug = resolveRef(lessonId);
         const current = s.bookmarkedLessons ?? [];
-        const isBookmarked = current.includes(lessonId);
+        const isBookmarked = current.includes(slug);
         return {
           ...s,
           bookmarkedLessons: isBookmarked
-            ? current.filter((id) => id !== lessonId)
-            : [...current, lessonId],
+            ? current.filter((id) => id !== slug)
+            : [...current, slug],
         };
       }),
 
@@ -1401,21 +1470,26 @@ export const useStore = create<Store>((set, get) => {
     // in-flight guard in issueCertificate can wrap it in try/finally.
     _issueCertificateInner: async (trackId, trackName, name, state) => {
       // v5.84: build the progress proof from the user's actual lesson progress.
+      // v6.0: completedLessonIds + quizScores keys are now STABLE SLUGS (not
+      // positional ids). The server's validateProgressProof normalizes both
+      // slug and legacy positional forms, so this works for v6 clients
+      // (sending slugs) and remains compatible with any v5 server too.
       const trackLessons = getTrackLessons(trackId);
       const completedLessonIds: string[] = [];
       const quizScores: Record<string, number> = {};
       for (const lesson of trackLessons) {
-        const prog = state.lessonProgress[lesson.id];
+        const slug = lessonSlug(lesson);
+        const prog = state.lessonProgress[slug];
         if (prog?.status === "complete") {
-          completedLessonIds.push(lesson.id);
+          completedLessonIds.push(slug);
         }
         if (prog?.bestQuizScore !== undefined && prog.bestQuizScore !== null) {
-          quizScores[lesson.id] = prog.bestQuizScore;
+          quizScores[slug] = prog.bestQuizScore;
         } else if (prog?.questionAnswers && lesson.quiz.length > 0) {
           let correct = 0;
           let answered = 0;
           for (const q of lesson.quiz) {
-            const key = `${lesson.id}:${q.id}`;
+            const key = quizRef(lesson, q.id);
             const ans = prog.questionAnswers[key];
             if (ans) {
               answered++;
@@ -1424,7 +1498,7 @@ export const useStore = create<Store>((set, get) => {
           }
           if (answered > 0) {
             const computedScore = Math.round((correct / lesson.quiz.length) * 100);
-            quizScores[lesson.id] = computedScore;
+            quizScores[slug] = computedScore;
           }
         }
       }
