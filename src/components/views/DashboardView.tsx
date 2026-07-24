@@ -15,12 +15,17 @@ import {
   Map as MapIcon,
   BarChart3,
   Info,
+  BookOpen,
+  ChevronRight,
 } from "lucide-react";
 import { useState } from "react";
 import { useStore, selectLevel, selectEarnedXP, selectOverallProgress, selectPhaseProgress, selectCareerProgress, selectCareerReadinessScore } from "@/lib/store";
 import { GlassCard, GlassButton, ProgressBar, ProgressRing } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
 import { LANGUAGE_MAP, CAREER_MAP } from "@/lib/career-data";
+import { getLessonByRef } from "@/lib/identity";
+import { ALL_LANGUAGE_INFO } from "@/lib/lessons-meta";
+import { getLessonsForTrack } from "@/lib/lessons-data";
 // v5.85 fix (2.6): reverted to old import — importing the 21,000-line v2 file
 // directly into DashboardView caused SSR timeout. Instead, we use the store's
 // dailyChallengePool (which already has task IDs from v2) and look them up
@@ -60,6 +65,37 @@ export function DashboardView() {
       for (const t of m.tasks) {
         if (!state.tasks[t.id]?.completedAt) return { task: t, module: m, phase: currentPhase };
       }
+    }
+    return null;
+  })();
+
+  // v6.007 UX: Find the learner's most recent in-progress or next-up lesson.
+  // Prioritizes: (1) lessons marked "in-progress", (2) the first not-complete
+  // lesson in the first roadmap language that has progress. This powers the
+  // "Continue lesson" card so lesson learners (not just roadmap-task learners)
+  // see a clear re-entry point on the dashboard.
+  const setLearnTabState = useStore((s) => s.setLearnTabState);
+  const continueLesson = (() => {
+    const userLangs = roadmap?.languageIds ?? [];
+    if (userLangs.length === 0) return null;
+
+    // 1. Any lesson explicitly marked "in-progress" (most recently started first).
+    const inProgress = Object.entries(state.lessonProgress)
+      .filter(([, p]) => p.status === "in-progress")
+      .sort((a, b) => (b[1].startedAt ?? "").localeCompare(a[1].startedAt ?? ""));
+    for (const [slug, prog] of inProgress) {
+      const lesson = getLessonByRef(slug);
+      if (lesson) return { lesson, progress: prog };
+    }
+
+    // 2. First not-complete lesson in the first language that has ANY progress.
+    for (const lang of userLangs) {
+      const trackLessons = getLessonsForTrack(lang);
+      if (trackLessons.length === 0) continue;
+      const hasAnyProgress = trackLessons.some((l) => state.lessonProgress[l.slug ?? l.id]);
+      if (!hasAnyProgress) continue;
+      const next = trackLessons.find((l) => state.lessonProgress[l.slug ?? l.id]?.status !== "complete");
+      if (next) return { lesson: next, progress: undefined };
     }
     return null;
   })();
@@ -191,6 +227,73 @@ export function DashboardView() {
               onClick={() => { selectPhase(nextTask.phase.id); setView("roadmap"); }}
             >
               Continue
+            </GlassButton>
+          </div>
+        </GlassCard>
+      )}
+
+      {/* v6.007 UX: Continue lesson — gives lesson-learners a one-click re-entry
+          point to their most recent in-progress (or next-up) lesson. Shown when
+          the user has lesson progress but may not have roadmap tasks. */}
+      {continueLesson && (
+        <GlassCard className="p-5 border-primary/20">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-primary" /> Continue your lesson
+            </h2>
+            <button
+              onClick={() => {
+                setLearnTabState({
+                  selectedTrack: continueLesson.lesson.track,
+                  selectedLessonId: continueLesson.lesson.id,
+                  tab: "lesson",
+                });
+                setView("learn");
+              }}
+              className="text-xs text-primary hover:underline"
+            >
+              All lessons →
+            </button>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center text-2xl shrink-0">
+              {ALL_LANGUAGE_INFO[continueLesson.lesson.track]?.icon ?? "📘"}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] font-mono text-muted-foreground uppercase">
+                {ALL_LANGUAGE_INFO[continueLesson.lesson.track]?.name ?? continueLesson.lesson.track}
+                {continueLesson.progress?.status === "in-progress" && " · In progress"}
+              </div>
+              <h3 className="font-semibold text-sm mt-0.5">{continueLesson.lesson.title}</h3>
+              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{continueLesson.lesson.description}</p>
+              <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground font-mono">
+                <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {continueLesson.lesson.estMinutes}m</span>
+                <span className={cn(
+                  "px-1.5 py-0.5 rounded capitalize",
+                  continueLesson.lesson.difficulty === "beginner" && "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+                  continueLesson.lesson.difficulty === "intermediate" && "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+                  continueLesson.lesson.difficulty === "advanced" && "bg-rose-500/15 text-rose-600 dark:text-rose-400",
+                )}>
+                  {continueLesson.lesson.difficulty}
+                </span>
+                {continueLesson.lesson.quiz.length > 0 && (
+                  <span>{continueLesson.lesson.quiz.length} quiz questions</span>
+                )}
+              </div>
+            </div>
+            <GlassButton
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                setLearnTabState({
+                  selectedTrack: continueLesson.lesson.track,
+                  selectedLessonId: continueLesson.lesson.id,
+                  tab: "lesson",
+                });
+                setView("learn");
+              }}
+            >
+              Resume <ChevronRight className="h-3.5 w-3.5" />
             </GlassButton>
           </div>
         </GlassCard>

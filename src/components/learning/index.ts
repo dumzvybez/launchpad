@@ -13,4 +13,5 @@ export { PracticeChallenge } from "./PracticeChallenge";
 export { QuizSection } from "./QuizSection";
 export { SkillBadge } from "./SkillBadge";
 export { NextLessonCard } from "./NextLessonCard";
+export { LessonSidebar } from "./LessonSidebar";
 export { AIHintPanel } from "./AIHintPanel";

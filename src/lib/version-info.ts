@@ -11,7 +11,7 @@
 // `lastSeenReleaseVersion` preference differs from APP_VERSION.
 // ============================================================
 
-export const APP_VERSION = "6.006.0";
+export const APP_VERSION = "6.007.0";
 
 export type ReleaseHighlightType = "new" | "improved" | "removed" | "fixed";
 
@@ -43,6 +43,20 @@ export type ReleaseInfo = {
 //   To ship a new release: bump APP_VERSION, add a ReleaseInfo here (user-
 //   facing), AND add a technical entry to CHANGELOG.md. Both are required.
 export const RELEASES: ReleaseInfo[] = [
+  {
+    version: "6.007.0",
+    date: "2026-07-23",
+    title: "Desktop & tablet UX improvements — lesson sidebar, clearer glass, continue lesson",
+    summary:
+      "A focused UX pass for desktop and tablet: a new sticky lesson sidebar shows where you are in a track, lesson content now uses a comfortable reading width, glass surfaces are clearer with stronger contrast, and the dashboard has a one-click 'Continue your lesson' card. No lesson content changed.",
+    highlights: [
+      { type: "new", text: "A sticky lesson sidebar now appears on desktop when reading a lesson — it shows every lesson in the track with completion checkmarks, your current position, difficulty, estimated time, and quiz scores, so you always know where you are and what's next." },
+      { type: "improved", text: "Lesson content now uses a comfortable reading width instead of stretching across the full page — easier on the eyes for long lessons." },
+      { type: "improved", text: "Glass surfaces are clearer: stronger tint and borders in both light and dark themes mean text reads cleanly without the aurora background bleeding through." },
+      { type: "new", text: "The dashboard now shows a 'Continue your lesson' card with a one-click Resume button — no more hunting for your place after a break." },
+      { type: "improved", text: "The main content area is wider on large desktop screens (1440px+), so dashboards and grids use the space better." },
+    ],
+  },
   {
     version: "6.006.0",
     date: "2026-07-23",

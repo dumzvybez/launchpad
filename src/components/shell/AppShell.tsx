@@ -314,7 +314,10 @@ export function AppShell() {
         {/* v5.865 fix (10.2): MobileBanner removed — was a no-op dead component. */}
 
         <main className={focusMode ? "flex-1 p-3 sm:p-6" : "flex-1 p-3 sm:p-6 pt-4 pb-24 lg:pb-6"}>
-          <div className="max-w-6xl mx-auto">
+          {/* v6.007 UX: Wider max-width on large desktop (max-w-7xl = 80rem = 1280px)
+              so 1440px+ screens use the space. The lesson view uses its own
+              two-column grid internally; other views benefit from the extra room. */}
+          <div className="max-w-7xl mx-auto">
             {(() => {
               switch (currentView) {
                 case "dashboard": return <DashboardView />;

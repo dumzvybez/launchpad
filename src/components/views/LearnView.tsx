@@ -42,7 +42,7 @@ import { getVideoLink, getPlaylist } from "@/data/youtube-links";
 import { InlineCodeEditor } from "@/components/lesson/InlineCodeEditor";
 import { openLanguageCertificatePdf } from "@/lib/certificate-pdf";
 import { CertificateDetailDialog, useEarnedCertificates } from "@/components/views/CertificateHub";
-import { NextLessonCard } from "@/components/learning";
+import { NextLessonCard, LessonSidebar } from "@/components/learning";
 import { isDueForReview } from "@/lib/sm2";
 import type { Lesson, QuizQuestion } from "@/lib/types";
 // v6.0: stable identity helpers
@@ -519,7 +519,36 @@ export function LearnView() {
 
     return (
       <>
-      <div className="space-y-4 lesson-content">
+      {/* v6.007 UX: Two-column layout on desktop — sticky lesson sidebar +
+          constrained reading column. On tablet/mobile the sidebar is hidden
+          (the breadcrumb + prev/next buttons serve navigation there). */}
+      <div className="lg:grid lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-6 xl:gap-8">
+        {/* Lesson sidebar — sticky on desktop, hidden on smaller screens */}
+        <aside className="hidden lg:block no-print">
+          <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pr-1 -mr-1 scrollbar-thin">
+            <div className="glass rounded-2xl p-3">
+              <LessonSidebar
+                lessons={trackLessons}
+                currentLessonId={selectedLesson.id}
+                lessonProgress={lessonProgress}
+                onSelectLesson={(lessonId) => {
+                  const targetProgress = lessonProgress[resolveRef(lessonId)];
+                  if (targetProgress?.status === "complete") {
+                    const tl = getLessonsForTrack(selectedLesson.track);
+                    setCompletedPopup({ lessonId, trackLessons: tl });
+                  } else {
+                    setSelectedLessonId(lessonId);
+                    setLessonProgress(selectedLesson.id, "in-progress");
+                    window.scrollTo(0, 0);
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </aside>
+
+        {/* Lesson content — constrained reading width for comfort */}
+      <div className="space-y-4 lesson-content max-w-3xl">
         {/* Breadcrumb + nav */}
         <div className="flex items-center justify-between gap-3 flex-wrap no-print">
           <button
@@ -693,6 +722,7 @@ export function LearnView() {
             }
           }}
         />
+      </div>
       </div>
       </>
     );
