@@ -42,6 +42,7 @@ import { getVideoLink, getPlaylist } from "@/data/youtube-links";
 import { InlineCodeEditor } from "@/components/lesson/InlineCodeEditor";
 import { openLanguageCertificatePdf } from "@/lib/certificate-pdf";
 import { CertificateDetailDialog, useEarnedCertificates } from "@/components/views/CertificateHub";
+import { NextLessonCard } from "@/components/learning";
 import { isDueForReview } from "@/lib/sm2";
 import type { Lesson, QuizQuestion } from "@/lib/types";
 // v6.0: stable identity helpers
@@ -52,6 +53,18 @@ import { loadTrackContent } from "@/lib/content-loader";
 import { getTotalLessonCount } from "@/lib/lessons-meta";
 
 type Tab = "tracks" | "lesson" | "quiz" | "result";
+
+// v6.006 fix: LessonBlockView's onTryInPlayground passes language as a generic
+// string (code blocks can be any language), but setPlaygroundCode expects a
+// specific union. This helper validates and narrows the type at runtime.
+const PLAYGROUND_LANGUAGES = ["javascript", "typescript", "python", "html", "css", "sql", "bash"] as const;
+type PlaygroundLanguage = (typeof PLAYGROUND_LANGUAGES)[number];
+function toPlaygroundLanguage(lang: string | undefined): PlaygroundLanguage {
+  if (lang && (PLAYGROUND_LANGUAGES as readonly string[]).includes(lang)) {
+    return lang as PlaygroundLanguage;
+  }
+  return "javascript";
+}
 
 export function LearnView() {
   // Read persistent learn-tab state from store — fixes the resume bug
@@ -589,7 +602,7 @@ export function LearnView() {
         <div className="space-y-4">
           {selectedLesson.blocks.map((block, i) => (
             <LessonBlockView key={`${selectedLesson.id}:${i}`} block={block} onTryInPlayground={(code, language) => {
-              setPlaygroundCode(code, language || "javascript");
+              setPlaygroundCode(code, toPlaygroundLanguage(language));
               setView("playground");
             }} />
           ))}
@@ -659,6 +672,27 @@ export function LearnView() {
             <Trophy className="h-4 w-4" /> Take the quiz
           </GlassButton>
         </div>
+
+        {/* v6.006: Next-lesson recommendation card (from v6.005 learning
+            experience architecture). Purely additive — shows the recommended
+            next lesson after the learner finishes reading. Uses the same
+            navigation logic as the inline prev/next buttons above (including
+            the "already completed" popup) to maintain behavioral parity. */}
+        <NextLessonCard
+          currentLesson={selectedLesson}
+          lessonProgress={lessonProgress}
+          onSelectLesson={(lessonId) => {
+            const targetProgress = lessonProgress[resolveRef(lessonId)];
+            if (targetProgress?.status === "complete") {
+              const trackLessons = getLessonsForTrack(selectedLesson.track);
+              setCompletedPopup({ lessonId, trackLessons });
+            } else {
+              setSelectedLessonId(lessonId);
+              setLessonProgress(selectedLesson.id, "in-progress");
+              window.scrollTo(0, 0);
+            }
+          }}
+        />
       </div>
       </>
     );

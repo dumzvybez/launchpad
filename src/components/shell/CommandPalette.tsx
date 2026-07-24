@@ -240,7 +240,7 @@ export function CommandPalette() {
     const matched = state.notes.filter(
       (n) =>
         (n.title || "Untitled").toLowerCase().includes(q) ||
-        (n.content || "").toLowerCase().includes(q),
+        (n.body || "").toLowerCase().includes(q),
     );
     return sortByRank(matched, (n) => n.title || "Untitled").slice(0, 4);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -409,7 +409,7 @@ export function CommandPalette() {
                   <div className="flex-1 min-w-0">
                     <div className="truncate text-sm">{n.title || "Untitled"}</div>
                     <div className="text-[10px] text-muted-foreground truncate">
-                      {(n.content || "").slice(0, 60)}
+                      {(n.body || "").slice(0, 60)}
                     </div>
                   </div>
                 </CommandItem>

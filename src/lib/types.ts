@@ -62,8 +62,11 @@ export type Milestone = {
 // source) and re-exported here for backward compatibility. Previously both
 // files defined their own `Project` type with different shapes, causing type
 // mismatches that required `ignoreBuildErrors: true`.
-export type { Project } from "./projects-data";
-export type { ProjectDifficulty } from "./projects-data";
+// v6.006 fix: import the type so it is available within this file (line 85:
+// Phase.projects uses Project[]). `export type` alone re-exports for consumers
+// but does not bind the name in the current module scope.
+import type { Project, ProjectDifficulty } from "./projects-data";
+export type { Project, ProjectDifficulty };
 
 export type Phase = {
   id: string;

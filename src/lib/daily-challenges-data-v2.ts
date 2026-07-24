@@ -1,6 +1,6 @@
 // ============================================================
 // Daily Challenge task database — auto-generated
-// 1860 tasks across 30 languages (60 per language)
+// 1980 tasks across 38 languages
 // ============================================================
 
 import type { DailyChallengeTask } from "./types";

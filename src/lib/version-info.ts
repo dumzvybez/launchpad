@@ -11,7 +11,7 @@
 // `lastSeenReleaseVersion` preference differs from APP_VERSION.
 // ============================================================
 
-export const APP_VERSION = "6.005.0";
+export const APP_VERSION = "6.006.0";
 
 export type ReleaseHighlightType = "new" | "improved" | "removed" | "fixed";
 
@@ -43,6 +43,20 @@ export type ReleaseInfo = {
 //   To ship a new release: bump APP_VERSION, add a ReleaseInfo here (user-
 //   facing), AND add a technical entry to CHANGELOG.md. Both are required.
 export const RELEASES: ReleaseInfo[] = [
+  {
+    version: "6.006.0",
+    date: "2026-07-23",
+    title: "Stabilization — dead code removed, types hardened, tests added",
+    summary:
+      "A maintenance release focused on codebase health: removed 11 MB of dead content bundles, removed the unused Prisma setup, fixed stale documentation, hardened TypeScript, and added a test suite. No lesson content changed.",
+    highlights: [
+      { type: "removed", text: "Deleted the 10.6 MB legacy content bundle and 445 KB extended bundle that were no longer used — the app now loads exclusively from per-track Markdown files." },
+      { type: "removed", text: "Removed the unused Prisma database setup (dependencies, scripts, and dead client file). Certificate storage via Supabase is unaffected." },
+      { type: "fixed", text: "TypeScript build errors are no longer silently ignored — real type errors are now caught and fixed at build time." },
+      { type: "new", text: "Added a test suite covering lesson content validation, quiz coverage, curriculum module structure, and certificate logic." },
+      { type: "fixed", text: "Fixed stale documentation: the content README, daily challenge counts, API health version, and Career Readiness Score formula now match the actual code." },
+    ],
+  },
   {
     version: "6.005.0",
     date: "2026-07-23",

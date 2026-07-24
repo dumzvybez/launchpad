@@ -39,9 +39,29 @@ const PREVIOUS_STORAGE_KEYS = [
  * v5.84: Migrate state from an older schema version to the current one.
  * Each migration step transforms the state from version N to version N+1.
  * This ensures user data is never silently lost on version bumps.
+ *
+ * v6.006 fix: `state` is typed as MigrationState (a permissive record with
+ * the specific fields the migrations touch typed explicitly) instead of
+ * inferring `Record<string, unknown>` from oldState. This avoids `unknown`
+ * access errors without resorting to `any`.
  */
+type MigrationState = {
+  schemaVersion?: number;
+  aiSettings?: { temperature?: number; [key: string]: unknown };
+  flashcards?: unknown[];
+  questionRecords?: Record<string, unknown>;
+  bookmarkedLessons?: unknown[];
+  dailyChallenge?: { currentStreak?: number; completedToday?: boolean; totalCompleted?: number; [key: string]: unknown };
+  certificates?: Record<string, unknown>;
+  projectSubmissions?: unknown[];
+  activeNotifications?: unknown[];
+  learnTabState?: { selectedTrack?: string | null; selectedLessonId?: string | null; tab?: string; [key: string]: unknown };
+  flashcardsTabState?: { filter?: string; currentIndex?: number; [key: string]: unknown };
+  [key: string]: unknown;
+};
+
 function migrateState(oldState: Record<string, unknown>, fromVersion: number): Partial<AppState> {
-  let state = { ...oldState };
+  let state: MigrationState = { ...oldState };
 
   // Migration v1 → v2: aiSettings.temperature was added
   if (fromVersion < 2) {

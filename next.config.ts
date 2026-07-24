@@ -2,17 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  // v5.865 fix (6.1): set ignoreBuildErrors to false.
-  // NOTE: There are pre-existing TypeScript errors in shadcn/ui components
-  // (accordion.tsx, breadcrumb.tsx, table.tsx) and a few view files that
-  // predate v5.865. These are in third-party-generated code and require
-  // upstream fixes. Setting to false would block the build. Keeping true
-  // until the shadcn/ui components are regenerated.
-  // The CRITICAL type errors (TDZ in API routes, Server Component
-  // onClick in verify page) have been fixed in the hand-written code.
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // v6.006: ignoreBuildErrors removed — real type errors are now fixed and
+  // must fail the build. The shadcn/ui component errors (accordion,
+  // breadcrumb, table) have been patched in place.
   // Enable React StrictMode in development to catch impure renders, missing
   // cleanups, and stale state.
   reactStrictMode: true,

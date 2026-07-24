@@ -1,92 +1,128 @@
-# Launchpad Content Source Directory (v6.0 Foundation)
+# Launchpad Content Source Directory
 
-This directory is the **future source-of-truth** for Launchpad's lesson content.
+This directory is the **source-of-truth** for Launchpad's lesson content.
 
-## Current status: FOUNDATION ONLY
+## Current status: FULLY POPULATED
 
-As of v6.0, this directory is **scaffolded but not yet populated**. Lesson
-content still lives in `src/lib/lessons-content.ts` + `src/lib/lessons-extended.ts`
-(the existing 10.6 MB TypeScript bundle). The migration to Markdown-in-`content/`
-is a **future phase** (see "Next steps" below).
+As of v6.002, all 797 lessons across 38 tracks are authored as Markdown files
+here in `content/{track}/*.md`. The legacy TypeScript bundles
+(`src/lib/lessons-content.ts` and `src/lib/lessons-extended.ts`) were removed
+in v6.006 — the Markdown source is now the only content source.
 
-This directory exists so that:
-1. The content-compiler pipeline (`scripts/compile-content.ts`) has a target.
-2. Content authors can begin migrating tracks one at a time without waiting
-   for a big-bang rewrite.
-3. The `src/lib/content-loader.ts` abstraction is ready to swap from in-memory
-   lessons to lazy-fetched JSON without changing call sites.
-
-## Target structure
+## Directory structure
 
 ```
 content/
-  _track-meta/
-    python.yaml          # track-level metadata (name, icon, prereqs, version)
-    javascript.yaml
-    ...
   python/
-    getting-started-with-python.md      # filename = lesson slug
-    variables-and-data-types.md
-    strings-string-methods.md
+    python-getting-started-python.md      # filename = lesson slug
+    python-variables-data-types.md
+    python-strings-string-methods.md
     ...
+    python-capstone-project.md
   javascript/
     ...
+  README.md                               # this file
 ```
+
+Each track has its own subdirectory containing 20–21 lesson Markdown files.
+A `README.md` file (like this one) may also appear at the track level.
+
+## Lesson Markdown format
 
 Each lesson Markdown file has YAML frontmatter:
 
 ```yaml
 ---
-slug: python-variables-and-data-types   # STABLE identity (Phase 1)
+slug: python-variables-data-types         # STABLE identity (v6.0+)
+id: python-02                              # legacy positional id (still used in-memory)
 track: python
-order: 2                                 # display order only (NOT identity)
+order: 2                                   # display order only (NOT identity)
 title: Variables and Data Types
+description: Learn how Python variables work...
 difficulty: beginner
-estMinutes: 70
-group: Python Basics
-learningObjectives:                      # Phase 8 (optional)
-  - Declare and initialize variables
-  - Understand Python's dynamic typing
-skillsTaught:                            # Phase 8 (optional)
-  - skillId: python.variables.declaration
-    level: intro
-aiContext:                               # Phase 9 (optional)
-  summary: "Variables are named storage. Python is dynamically typed..."
-  keyTakeaways:
-    - "Variables don't need type declarations"
-    - "type() tells you the current type"
+estMinutes: 90
+contentVersion: 1.0.0
+youtubeUrl: https://www.youtube.com/watch?v=...
+whyItMatters: Learn how Python variables work...
+deepDiveResources:
+  - label: W3Schools Python
+    url: https://www.w3schools.com/python/
+    kind: course
 ---
 
 # Variables and Data Types
 
-Lesson body in Markdown. Code blocks, callouts, exercises, etc.
+## Variables and Data Types
+
+### Why It Matters
+...
+
+### Prerequisites
+...
+
+### Topics
+...
+
+### Key Concepts
+...
+
+### Common Pitfalls
+...
+
+### Real-World Applications
+...
+
+### Interview Questions
+...
+
+### Mini Project
+...
+
+### Exercises
+...
+
+```quiz
+id: q1
+question: "What does `x = 5` do in Python?"
+options:
+  - "Binds the name x to an int object with value 5"
+  - "Creates a box named x and puts 5 in it"
+  - "Allocates memory of fixed size for x"
+  - "Declares x as a static int variable"
+correctIndex: 0
+explanation: "Python variables are name tags on objects..."
+```
 ```
 
-## Content compiler (future)
+## Content pipeline
 
-`scripts/compile-content.ts` (stub) will:
-1. Read each `content/{track}/*.md` file.
-2. Parse frontmatter + body.
-3. Extract `blocks[]` from Markdown structure (headings, code fences, etc.).
-4. Emit `public/content/{track}.json` (~470 KB per track, lazy-fetched).
-5. Update `src/lib/lessons-meta-generated.ts` (slug maps, counts).
+### Compile (Markdown → JSON)
 
-The client `content-loader.ts` will lazy-fetch `public/content/{track}.json`
-on first track open, replacing the current 10.6 MB eager bundle.
+`scripts/compile-content.ts` (run via `bun run compile:content`):
+1. Reads each `content/{track}/*.md` file.
+2. Parses frontmatter + body into `Lesson` objects with `LessonBlock[]` and `QuizQuestion[]`.
+3. Emits `public/content/{track}.json` (~200–470 KB per track, lazy-fetched at runtime).
 
-## Next steps (out of scope for v6.0)
+### Metadata generation (Markdown → TypeScript metadata)
 
-1. Migrate one pilot track (e.g. Python) from TS to Markdown here.
-2. Implement `compile-content.ts` end-to-end.
-3. Switch `content-loader.ts` from in-memory to fetch for the pilot track.
-4. Migrate remaining tracks incrementally.
-5. Remove `lessons-content.ts` once all tracks are migrated.
+`scripts/gen-lesson-meta.ts` (run via `bun run gen:meta`):
+1. Reads each `content/{track}/*.md` file's frontmatter.
+2. Extracts `{id, track, title, order, slug}` for every lesson.
+3. Emits `src/lib/lessons-meta-generated.ts` with slug maps, track counts, and track slug lists.
 
-## Why not do this in v6.0?
+Both scripts run automatically before `next build` via the `prebuild` script.
 
-The v6.0 release focuses on **identity stability** (slugs), **data migration
-safety**, and **generated metadata** — the prerequisites that make a future
-content move safe. Moving the 10.6 MB content bundle to Markdown in the same
-release would multiply risk without first establishing that lesson
-reorganization won't orphan user progress. The slug migration (Phase 1) must
-land and prove stable first.
+## Forward-looking fields (optional, not yet populated)
+
+The following frontmatter fields are defined in the `Lesson` type but not yet
+populated on existing lessons. Content authors may add them to opt into future
+features without breaking existing content:
+
+- `learningObjectives` — structured Bloom-aligned objectives (v6.0)
+- `skillsTaught` — skill references with depth level (v6.0)
+- `aiContext` — per-lesson AI context bundle (v6.0)
+- `moduleId` — canonical module reference (v6.004)
+- `capstoneTier` — capstone tier (v6.004)
+- `assessmentLevel` — assessment level (v6.004)
+- `practiceChallenges` — structured practice challenges (v6.005)
+- `interactiveExamples` — structured interactive code examples (v6.005)

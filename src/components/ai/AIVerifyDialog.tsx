@@ -326,10 +326,7 @@ export function AIVerifyDialog({ open, onOpenChange, target, onVerified }: AIVer
 
   if (!open || typeof document === "undefined") return null;
 
-  const title =
-    target.mode === "project"
-      ? `Verify Project: ${target.project.title}`
-      : `AI Verify Capstone: ${target.lesson.title}`;
+  const title = `Verify Project: ${target.project.title}`;
 
   return createPortal(
     <div
@@ -370,12 +367,10 @@ export function AIVerifyDialog({ open, onOpenChange, target, onVerified }: AIVer
         {/* Requirements preview */}
         <div className="rounded-lg bg-foreground/5 p-3 mb-3">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1.5">
-            {target.mode === "project" ? "Core deliverables (all must be met)" : "Capstone requirements"}
+            Core deliverables (all must be met)
           </div>
           <ul className="text-[11px] space-y-0.5">
-            {target.mode === "project"
-              ? target.project.deliverables.map((d, i) => <li key={i}>• {d}</li>)
-              : <li>• A genuine, working implementation demonstrating mastery of {target.trackName} concepts (not stub/placeholder code).</li>}
+            {target.project.deliverables.map((d, i) => <li key={i}>• {d}</li>)}
           </ul>
         </div>
 

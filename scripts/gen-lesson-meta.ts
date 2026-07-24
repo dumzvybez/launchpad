@@ -2,26 +2,20 @@
 /**
  * gen-lesson-meta.ts — Build-time generator for Launchpad lesson metadata.
  *
- * Scans the lesson content source files (lessons-content.ts + lessons-extended.ts)
- * as TEXT (no full TS parse needed — the files are too large for a lightweight
- * AST pass to be practical), extracts {id, track, title, order} for every
- * lesson, and emits src/lib/lessons-meta-generated.ts with:
+ * v6.006: Rewritten to read from Markdown source files (content/{track}/*.md)
+ * instead of the deprecated lessons-content.ts / lessons-extended.ts bundles.
+ * The Markdown frontmatter already carries slug, id, track, order, and title,
+ * so no slug regeneration is needed — the frontmatter slug is authoritative.
+ *
+ * Scans content/{track}/*.md, extracts {id, track, title, order, slug} from
+ * each file's YAML frontmatter, and emits src/lib/lessons-meta-generated.ts
+ * with:
  *
  *   - LESSON_SLUGS:        Record<lessonId, slug>     (positional id → stable slug)
  *   - SLUG_TO_ID:          Record<slug, lessonId>     (reverse lookup)
  *   - TRACK_LESSON_COUNTS_GENERATED: Record<trackId, number>
  *   - TRACK_LESSON_SLUGS:  Record<trackId, slug[]>    (ordered slugs per track)
  *   - TRACKS_WITH_CONTENT_GENERATED: string[]
- *
- * Slugs are derived deterministically from the lesson title:
- *   slug = `${trackId}-${slugify(title)}`   e.g. "Variables and Data Types" → "python-variables-and-data-types"
- *
- * Collisions (two lessons in the same track with the same slugified title) are
- * resolved by appending `-2`, `-3`, etc. to the later lesson's slug.
- *
- * Capstone lesson IDs (e.g. "docker-capstone") get a stable slug of
- * `${trackId}-capstone-project` so they remain addressable without encoding
- * their positional order (which is being phased out).
  *
  * RUN:  bun run scripts/gen-lesson-meta.ts
  *       (or: bun run gen:meta  — wired in package.json)
@@ -31,102 +25,77 @@
  * (which cannot import the 10MB content bundle) has a trusted metadata mirror.
  */
 
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import * as yaml from "yaml";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const SRC_CONTENT = join(ROOT, "src", "lib", "lessons-content.ts");
-const SRC_EXTENDED = join(ROOT, "src", "lib", "lessons-extended.ts");
+const CONTENT_DIR = join(ROOT, "content");
 const OUT_FILE = join(ROOT, "src", "lib", "lessons-meta-generated.ts");
 
-// ---- slugify ----
-const STOP_WORDS = new Set([
-  "a", "an", "the", "and", "or", "but", "of", "to", "in", "on", "at", "for",
-  "with", "by", "from", "into", "via", "as", "is", "are", "be", "your",
-]);
+// ---- types ----
+type RawLesson = { id: string; track: string; title: string; order: number; slug: string };
 
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "") // strip diacritics
-    .replace(/['"`’]/g, "")
-    .replace(/[^a-z0-9]+/g, "-") // non-alphanum → hyphen
-    .split("-")
-    .filter((w) => w.length > 0 && !STOP_WORDS.has(w))
-    .join("-")
-    .replace(/^-+|-+$/g, "");
+// ---- frontmatter parser ----
+type Frontmatter = { yaml: Record<string, unknown>; body: string };
+function parseFrontmatter(src: string): Frontmatter {
+  if (!src.startsWith("---")) return { yaml: {}, body: src };
+  const end = src.indexOf("\n---", 3);
+  if (end < 0) return { yaml: {}, body: src };
+  const yamlStr = src.slice(3, end);
+  const body = src.slice(end + 4).replace(/^\n/, "");
+  return { yaml: yaml.parse(yamlStr) as Record<string, unknown>, body };
 }
 
-// ---- lesson header extraction ----
-// Both content files declare lesson objects. lessons-content.ts uses quoted
-// keys (`"id": "python-01"`), lessons-extended.ts uses unquoted keys
-// (`id: "docker-16"`). This regex matches both forms for the id/track/title/
-// order fields that appear at the START of each lesson object (the top-level
-// fields, not the nested quiz `id: "q1"` fields which lack a `track`/`order`).
-type RawLesson = { id: string; track: string; title: string; order: number };
-
-function extractLessons(filePath: string): RawLesson[] {
-  if (!existsSync(filePath)) {
-    console.warn(`[gen-lesson-meta] WARNING: ${filePath} not found — skipping`);
-    return [];
-  }
-  const src = readFileSync(filePath, "utf8");
+// ---- lesson extraction from Markdown frontmatter ----
+function extractLessonsFromMarkdown(contentDir: string): RawLesson[] {
   const out: RawLesson[] = [];
-
-  // Match a lesson object's leading fields. We require `track:` to appear
-  // (quiz question objects don't have track), and we capture the four fields
-  // that define identity. The pattern tolerates quoted or unquoted keys and
-  // any field ordering within the object header (fields appear before `blocks:`).
-  //
-  // Strategy: find each occurrence of a top-level lesson by locating the
-  // `id: "track-NN"` pattern (the lesson's own id, which always embeds the
-  // track prefix), then scan forward up to ~600 chars for track/title/order.
-  const idRegex = /"?id"?\s*:\s*"([a-z][a-z0-9-]*?-[a-z0-9]+)"/g;
-  let m: RegExpExecArray | null;
-  while ((m = idRegex.exec(src)) !== null) {
-    const lessonId = m[1];
-    // Skip quiz-question ids (they look like "q1" — no hyphen). The regex
-    // above already requires a hyphen, so "q1" won't match. But capstone
-    // ids like "docker-capstone" WILL match (good).
-    const window = src.slice(m.index, m.index + 800);
-
-    const trackMatch = window.match(/"?track"?\s*:\s*"([a-z][a-z0-9_]*)"/);
-    const titleMatch = window.match(/"?title"?\s*:\s*"((?:[^"\\]|\\.)*)"/);
-    const orderMatch = window.match(/"?order"?\s*:\s*(\d+)/);
-
-    if (!trackMatch || !titleMatch || !orderMatch) {
-      // Likely a nested object (e.g. a quiz question) — skip.
-      continue;
-    }
-    const track = trackMatch[1];
-    // Only accept if the lesson id starts with the track prefix (guards
-    // against matching a `track:` field that belongs to a different nearby
-    // object in the minified-ish source).
-    if (!lessonId.startsWith(track + "-") && lessonId !== track) continue;
-
-    out.push({
-      id: lessonId,
-      track,
-      title: titleMatch[1].replace(/\\"/g, '"'),
-      order: parseInt(orderMatch[1], 10),
-    });
+  if (!existsSync(contentDir)) {
+    console.warn(`[gen-lesson-meta] WARNING: ${contentDir} not found`);
+    return out;
   }
+
+  const trackDirs = readdirSync(contentDir, { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => d.name)
+    .sort();
+
+  for (const trackDir of trackDirs) {
+    const trackPath = join(contentDir, trackDir);
+    const files = readdirSync(trackPath)
+      .filter((f) => f.endsWith(".md") && f !== "README.md")
+      .sort();
+
+    for (const file of files) {
+      const filePath = join(trackPath, file);
+      const src = readFileSync(filePath, "utf8");
+      const { yaml: fm } = parseFrontmatter(src);
+
+      const id = fm["id"] as string | undefined;
+      const track = fm["track"] as string | undefined;
+      const title = fm["title"] as string | undefined;
+      const order = fm["order"] as number | undefined;
+      const slug = fm["slug"] as string | undefined;
+
+      if (!id || !track || !title || order === undefined || !slug) {
+        console.warn(`[gen-lesson-meta] SKIP ${filePath}: missing required frontmatter field`);
+        continue;
+      }
+
+      out.push({ id, track, title, order: Number(order), slug });
+    }
+  }
+
   return out;
 }
 
 // ---- main ----
-const fromContent = extractLessons(SRC_CONTENT);
-const fromExtended = extractLessons(SRC_EXTENDED);
-const all = [...fromContent, ...fromExtended];
+const all = extractLessonsFromMarkdown(CONTENT_DIR);
+console.log(`[gen-lesson-meta] extracted ${all.length} lessons from content/*.md`);
 
-console.log(`[gen-lesson-meta] extracted ${fromContent.length} from lessons-content.ts`);
-console.log(`[gen-lesson-meta] extracted ${fromExtended.length} from lessons-extended.ts`);
-console.log(`[gen-lesson-meta] total: ${all.length} lessons`);
-
-// Deduplicate by id (a lesson should only appear once across both files).
+// Deduplicate by id (a lesson should only appear once).
 const seenIds = new Set<string>();
 const deduped: RawLesson[] = [];
 for (const l of all) {
@@ -138,12 +107,11 @@ for (const l of all) {
   deduped.push(l);
 }
 
-// Build slug map with collision handling.
+// Build maps using the authoritative slug from frontmatter.
 const LESSON_SLUGS: Record<string, string> = {};
 const SLUG_TO_ID: Record<string, string> = {};
-const slugUsageCount: Record<string, number> = {};
 
-// First pass: compute base slug for each lesson.
+// Group by track, preserving directory sort order, then sort by order.
 const trackOrder: string[] = [];
 const trackLessonsMap: Record<string, RawLesson[]> = {};
 for (const l of deduped) {
@@ -153,32 +121,16 @@ for (const l of deduped) {
   }
   trackLessonsMap[l.track].push(l);
 }
-// Sort each track's lessons by order so slug lists are ordered.
 for (const t of trackOrder) {
   trackLessonsMap[t].sort((a, b) => a.order - b.order);
 }
 
 for (const t of trackOrder) {
   for (const l of trackLessonsMap[t]) {
-    let slug: string;
-    if (l.id.endsWith("-capstone")) {
-      // Stable slug for legacy capstone lessons — does NOT encode order.
-      slug = `${t}-capstone-project`;
-    } else {
-      const base = `${t}-${slugify(l.title)}`;
-      slug = base;
-      // Collision handling within the track.
-      if (slugUsageCount[slug] !== undefined) {
-        slugUsageCount[slug]++;
-        slug = `${base}-${slugUsageCount[base] + 1}`;
-      } else {
-        slugUsageCount[base] = 0;
-      }
-    }
-    // Global uniqueness guard (across tracks — shouldn't happen but be safe).
+    const slug = l.slug;
+    // Global uniqueness guard.
     if (SLUG_TO_ID[slug] !== undefined && SLUG_TO_ID[slug] !== l.id) {
-      console.warn(`[gen-lesson-meta] WARN global slug collision "${slug}" between ${l.id} and ${SLUG_TO_ID[slug]} — appending track`);
-      slug = `${slug}-${t}`;
+      console.warn(`[gen-lesson-meta] WARN global slug collision "${slug}" between ${l.id} and ${SLUG_TO_ID[slug]}`);
     }
     LESSON_SLUGS[l.id] = slug;
     SLUG_TO_ID[slug] = l.id;
@@ -199,7 +151,7 @@ for (const t of trackOrder) {
 let missingSlug = 0;
 for (const l of deduped) {
   if (!LESSON_SLUGS[l.id]) {
-    console.error(`[gen-lesson-meta] ERROR no slug generated for ${l.id}`);
+    console.error(`[gen-lesson-meta] ERROR no slug for ${l.id}`);
     missingSlug++;
   }
 }
@@ -214,11 +166,11 @@ const banner = `// ============================================================
 //
 // Generated by: scripts/gen-lesson-meta.ts
 // Generated at: ${new Date().toISOString()}
-// Source: src/lib/lessons-content.ts + src/lib/lessons-extended.ts
+// Source: content/{track}/*.md (Markdown frontmatter)
 //
 // This file is the server-side trusted mirror of lesson metadata. The
 // certificate-issuance API (/api/certificates/create) imports from here
-// because it CANNOT import the 10MB lessons-content bundle (client-only).
+// because it CANNOT import the 10MB content bundle (client-only).
 //
 // Re-generate after any content change:  bun run gen:meta
 // A CI check should assert this file is up-to-date.
