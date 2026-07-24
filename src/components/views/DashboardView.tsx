@@ -135,14 +135,14 @@ export function DashboardView() {
     streak >= 30 ? 5 : streak >= 14 ? 12 : streak >= 7 ? 22 : streak >= 3 ? 40 : 75;
 
   return (
-    <div className="space-y-5">
-      {/* Header + Share button */}
+    <div className="space-y-4">
+      {/* Header + Share button — v6.008: tightened for first-viewport fit */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
+          <h1 className="text-xl font-bold tracking-tight">
             {profile.name ? `Welcome back, ${profile.name.split(" ")[0]}! 🔥 ${streak}-day streak` : "Welcome to Launchpad"}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground mt-0.5">
             {career ? `Training for: ${career.label}${profile.subPath ? ` (${profile.subPath})` : ""}` : "Set up your profile to get personalized content"}
           </p>
         </div>
@@ -714,7 +714,7 @@ function ShareProgressCardModal({ onClose }: { onClose: () => void }) {
           <div className="opacity-80 text-[10px] mb-1">Career: {careerLabel}</div>
           <div className="opacity-80 text-[10px] mb-1">Roadmap: {overall.pct}% complete · 🔥 {streak}d · {badgesCount} badges</div>
           <div className="opacity-60 text-[10px] mt-2">Learning. Building. Growing.</div>
-          <div className="opacity-40 text-[9px] font-mono mt-1">launchpad--dev.vercel.app</div>
+          <div className="opacity-40 text-[9px] font-mono mt-1">launchpadedu.vercel.app</div>
         </div>
 
         {/* v5.86 fix (C.1): REMOVED "Download as PNG" and "Copy to clipboard (PNG)" buttons.
@@ -898,7 +898,7 @@ function buildShareCardInnerHtml(opts: {
     </div>
     <div class="footer">
       <div class="tagline">Learning. Building. Growing.</div>
-      <div class="url">launchpad--dev.vercel.app</div>
+      <div class="url">launchpadedu.vercel.app</div>
     </div>
   </div>`;
 }
@@ -922,13 +922,14 @@ function StatCard({
   sub?: string;
   color?: string;
 }) {
+  // v6.008: Tightened padding (p-4 → p-3.5) and spacing for first-viewport fit.
   return (
-    <GlassCard className="p-4">
-      <div className="flex items-center gap-2 mb-2">
+    <GlassCard className="p-3.5">
+      <div className="flex items-center gap-2 mb-1.5">
         <div className={color}>{icon}</div>
         <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-mono">{label}</span>
       </div>
-      <div className="text-2xl font-bold font-mono">{value}</div>
+      <div className="text-xl font-bold font-mono tabular-nums">{value}</div>
       {sub && <div className="text-[10px] text-muted-foreground mt-0.5">{sub}</div>}
     </GlassCard>
   );

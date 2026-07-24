@@ -66,7 +66,7 @@ export function TopBar() {
   return (
     <header className="sticky top-3 z-30 px-3 sm:px-4">
       <div
-        className="rounded-2xl h-14 flex items-center gap-2 px-3 sm:px-4 border"
+        className="rounded-2xl h-14 flex items-center gap-1 sm:gap-2 px-2 sm:px-4 border"
         style={{
           background: "var(--glass-tint-strong)",
           backdropFilter: "blur(40px) saturate(200%)",
@@ -82,13 +82,13 @@ export function TopBar() {
         {/* Hamburger — mobile/tablet only */}
         <button
           onClick={() => setMobileNavOpen(true)}
-          className="lg:hidden p-2 rounded-lg hover:bg-foreground/5 transition-colors"
+          className="lg:hidden p-2 rounded-lg hover:bg-foreground/5 transition-colors shrink-0"
           aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
         </button>
 
-        {/* Page title */}
+        {/* Page title — v6.009: hide hint on mobile to save space */}
         <div className="flex flex-col min-w-0">
           <h1 className="text-sm font-semibold tracking-tight truncate">
             {currentNav?.label || "Dashboard"}
@@ -98,22 +98,21 @@ export function TopBar() {
           </p>
         </div>
 
-        {/* Search trigger — center */}
+        {/* Search trigger — center (desktop only) */}
         <button
           onClick={() => setCommandOpen(true)}
           className="hidden md:flex items-center gap-2 mx-auto h-9 w-full max-w-md rounded-xl bg-foreground/4 hover:bg-foreground/8 border border-border/60 px-3 text-sm text-muted-foreground transition-colors"
         >
           <Search className="h-3.5 w-3.5" />
           <span className="flex-1 text-left">Search tasks, notes, jump to view…</span>
-          <kbd className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-foreground/10 border border-border/40 flex items-center gap-0.5">
+          <kbd className="hidden lg:inline-flex font-mono text-[10px] px-1.5 py-0.5 rounded bg-foreground/10 border border-border/40 items-center gap-0.5">
             <Command className="h-2.5 w-2.5" />K
           </kbd>
         </button>
 
-        {/* v5.930 (#5): Navbar restructured into 2 grouped sections.
-            Group 1: fullscreen + theme (utility toggles)
-            Group 2: profile (account) — separated by a divider */}
-        <div className="flex items-center gap-1 ml-auto md:ml-0">
+        {/* v6.009: Mobile-optimized right side — only essential buttons.
+            Fullscreen and theme toggles hidden on mobile (accessible via Settings). */}
+        <div className="flex items-center gap-1 ml-auto md:ml-0 shrink-0">
           {/* Mobile search */}
           <GlassButton
             variant="ghost"
@@ -125,12 +124,13 @@ export function TopBar() {
             <Search className="h-4 w-4" />
           </GlassButton>
 
-          {/* Group 1: utility toggles */}
+          {/* Group 1: utility toggles — fullscreen hidden on mobile */}
           <div className="flex items-center gap-1">
-            {/* Fullscreen toggle */}
+            {/* Fullscreen toggle — desktop only */}
             <GlassButton
               variant="ghost"
               size="icon"
+              className="hidden sm:flex"
               onClick={toggleFullscreen}
               aria-label="Toggle fullscreen"
               title="Toggle fullscreen"
@@ -141,7 +141,10 @@ export function TopBar() {
             {/* v5.931: Notification Centre — bell with count badge + snooze/clear-all panel */}
             <NotificationCentre />
 
-            <ThemeToggle />
+            {/* Theme toggle — hidden on mobile (in Settings) */}
+            <div className="hidden sm:block">
+              <ThemeToggle />
+            </div>
           </div>
 
           {/* Group 2: profile — separated by a divider */}

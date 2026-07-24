@@ -5,7 +5,7 @@ import { MetadataRoute } from "next";
 //   2. Use a fixed build-time date instead of `new Date()` so search engines
 //      don't see "every URL changed just now" on every fetch.
 //   3. Remove `/verify` entry (it's a 404 — only `/verify/[id]` exists).
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://launchpad--dev.vercel.app";
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://launchpadedu.vercel.app";
 // Fixed date — update on each release. Avoids search engines distrusting lastmod.
 const LAST_MODIFIED = new Date("2026-07-04");
 

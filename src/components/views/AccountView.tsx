@@ -512,7 +512,7 @@ function buildAchievementsCardInnerHtml(opts: {
     <div class="badges">${badgesHtml}</div>
     <div class="footer">
       <div class="tagline">Learning. Building. Growing.</div>
-      <div class="url">launchpad--dev.vercel.app</div>
+      <div class="url">launchpadedu.vercel.app</div>
     </div>
   </div>`;
 }

@@ -26,7 +26,7 @@ const APP_DESCRIPTION =
   "Build a personalized coding roadmap based on your career, skill level, and availability. 630 built-in lessons across 30 languages, AI tutor, daily challenges, and certificates — 100% free and private.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://launchpad--dev.vercel.app"),
+  metadataBase: new URL("https://launchpadedu.vercel.app"),
   applicationName: APP_NAME,
   title: {
     default: `${APP_NAME} — Free Personalized Coding Education Platform`,
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     "code playground",
     "privacy-first",
   ],
-  authors: [{ name: "Dumindu Dulara Wanasinghe", url: "https://duminduwanasinghe-dev.vercel.app/" }],
+  authors: [{ name: "Dumindu Dulara Wanasinghe", url: "https://dumindu.vercel.app/" }],
   creator: "Dumindu Dulara Wanasinghe",
   publisher: "Dumindu Dulara Wanasinghe",
   manifest: "/manifest.json",
@@ -80,7 +80,7 @@ export const metadata: Metadata = {
     description: "Your personalized coding journey. 630 lessons, 30 languages, AI tutor. Free. Private. Open-source.",
     type: "website",
     siteName: APP_NAME,
-    url: "https://launchpad--dev.vercel.app",
+    url: "https://launchpadedu.vercel.app",
     images: [
       {
         url: "/og-image.png",
@@ -111,7 +111,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://launchpad--dev.vercel.app",
+    canonical: "https://launchpadedu.vercel.app",
   },
   category: "education",
 };
@@ -133,9 +133,9 @@ const structuredData = {
   "@type": "EducationalOrganization",
   name: APP_NAME,
   description: APP_DESCRIPTION,
-  url: "https://launchpad--dev.vercel.app/",
-  logo: "https://launchpad--dev.vercel.app/icons/logo-1024.png",
-  sameAs: ["https://launchpad--dev.vercel.app/"],
+  url: "https://launchpadedu.vercel.app/",
+  logo: "https://launchpadedu.vercel.app/icons/logo-1024.png",
+  sameAs: ["https://launchpadedu.vercel.app/"],
   knowsAbout: [
     "Python", "JavaScript", "TypeScript", "React", "Next.js",
     "Web Development", "Data Science", "AI/ML", "Cybersecurity",

@@ -444,7 +444,7 @@ function AboutDeveloperCard() {
               More about developer
             </button>
             <a
-              href="https://duminduwanasinghe-dev.vercel.app/"
+              href="https://dumindu.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-[11px] px-2.5 py-1 rounded-md border border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors"
@@ -455,7 +455,7 @@ function AboutDeveloperCard() {
         </div>
         {/* Social links row */}
         <div className="flex flex-wrap items-center gap-2 mt-2.5 pt-2.5 border-t border-border/30">
-          <a href="https://duminduwanasinghe-dev.vercel.app/" target="_blank" rel="noopener noreferrer"
+          <a href="https://dumindu.vercel.app/" target="_blank" rel="noopener noreferrer"
              className="text-[10px] text-muted-foreground hover:text-foreground transition-colors">Portfolio</a>
           <span className="text-[10px] text-muted-foreground/40">·</span>
           <a href="https://github.com/dumzvybez" target="_blank" rel="noopener noreferrer"

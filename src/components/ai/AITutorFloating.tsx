@@ -60,14 +60,15 @@ export function AITutorFloating() {
 
   return (
     <>
-      {/* Floating bubble — v5.936: positioned just above the mobile bottom nav
-          (bottom-20 = 80px, clears the ~64px nav bar without being too high).
-          Desktop stays at bottom-6. */}
+      {/* Floating bubble — v6.009: positioned just above the mobile bottom nav
+          (bottom-20 = 80px, clears the ~64px nav bar). Desktop stays at bottom-6.
+          Added safe-area padding for iOS devices with home indicators. */}
       {showBubble && (
         <button
           data-ai-bubble
           onClick={handleBubbleClick}
-          className="fixed bottom-20 lg:bottom-6 right-6 z-[60] h-14 w-14 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-2xl flex items-center justify-center hover:scale-110 transition-transform"
+          className="fixed bottom-20 lg:bottom-6 right-4 lg:right-6 z-[60] h-12 w-12 lg:h-14 lg:w-14 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-2xl flex items-center justify-center hover:scale-110 transition-transform"
+          style={{ bottom: "calc(80px + env(safe-area-inset-bottom, 0px))" }}
           aria-label={onAiTutorTab ? "Minimize AI Tutor to floating window" : "Open AI Tutor"}
           title={onAiTutorTab ? "Minimize AI Tutor" : "Ask the AI Tutor"}
         >
@@ -75,11 +76,11 @@ export function AITutorFloating() {
         </button>
       )}
 
-      {/* Floating chat window — v5.936: positioned just above the mobile bottom nav */}
+      {/* Floating chat window — v6.009: full-screen on mobile, anchored panel on desktop */}
       {showFloatingWindow && (
         <div
           ref={containerRef}
-          className="fixed bottom-20 lg:bottom-6 right-6 z-[60] w-[380px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-5rem)] lg:max-h-[calc(100vh-3rem)] rounded-2xl border border-border bg-popover shadow-2xl flex flex-col overflow-hidden"
+          className="fixed inset-x-0 bottom-0 top-16 z-[60] lg:inset-x-auto lg:bottom-6 lg:top-auto lg:right-6 lg:w-[380px] lg:h-[560px] lg:max-h-[calc(100vh-3rem)] rounded-t-2xl lg:rounded-2xl border border-border bg-popover shadow-2xl flex flex-col overflow-hidden"
           style={{
             backdropFilter: "blur(40px) saturate(200%)",
             WebkitBackdropFilter: "blur(40px) saturate(200%)",

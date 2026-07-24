@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import {
   GraduationCap,
@@ -16,6 +17,7 @@ import {
   BookOpen,
   Award,
   Play,
+  PlayCircle,
   Code2,
   Target,
   Youtube,
@@ -27,6 +29,8 @@ import {
   MessageCircleQuestion,
   RefreshCw,
   RotateCcw,
+  List,
+  X,
 } from "lucide-react";
 import { useStore, selectCertificateEligible, selectTrackQuizAverage, selectWeakAreas } from "@/lib/store";
 import { GlassCard, GlassButton, ProgressBar } from "@/components/glass/GlassPrimitives";
@@ -80,6 +84,8 @@ export function LearnView() {
   const [filterLang, setFilterLang] = useState<string | null>(null); // null = show all
   const [lessonFilter, setLessonFilter] = useState<"all" | "bookmarked" | "in-progress" | "completed">("all");
   const [showExploreMore, setShowExploreMore] = useState(false);
+  // v6.009: mobile course outline drawer state
+  const [mobileOutlineOpen, setMobileOutlineOpen] = useState(false);
   // v5.924: certificate detail popup (opened by the "Certified" badge on a track card).
   const [certPopup, setCertPopup] = useState<ReturnType<typeof useEarnedCertificates>[number] | null>(null);
   const earnedCerts = useEarnedCertificates();
@@ -519,14 +525,16 @@ export function LearnView() {
 
     return (
       <>
-      {/* v6.007 UX: Two-column layout on desktop — sticky lesson sidebar +
-          constrained reading column. On tablet/mobile the sidebar is hidden
-          (the breadcrumb + prev/next buttons serve navigation there). */}
+      {/* v6.008 UX: Two-column layout on desktop — collapsible lesson sidebar +
+          constrained reading column. The sidebar manages its own collapsed
+          state (persisted in localStorage). When collapsed it renders a 48px
+          rail; when expanded it fills the 300px column. */}
       <div className="lg:grid lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-6 xl:gap-8">
-        {/* Lesson sidebar — sticky on desktop, hidden on smaller screens */}
+        {/* Lesson sidebar — sticky on desktop, hidden on smaller screens.
+            The sidebar component handles its own collapse/expand internally. */}
         <aside className="hidden lg:block no-print">
-          <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pr-1 -mr-1 scrollbar-thin">
-            <div className="glass rounded-2xl p-3">
+          <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-hidden">
+            <div className="glass rounded-2xl p-3 h-[calc(100vh-6rem)] flex">
               <LessonSidebar
                 lessons={trackLessons}
                 currentLessonId={selectedLesson.id}
@@ -547,78 +555,90 @@ export function LearnView() {
           </div>
         </aside>
 
-        {/* Lesson content — constrained reading width for comfort */}
-      <div className="space-y-4 lesson-content max-w-3xl">
-        {/* Breadcrumb + nav */}
+        {/* Lesson content — constrained reading width for comfort.
+            v6.008: Increased spacing (space-y-6) for documentation-style flow. */}
+      <div className="space-y-6 lesson-content max-w-3xl">
+        {/* Breadcrumb + nav — v6.009: adds mobile course outline button */}
         <div className="flex items-center justify-between gap-3 flex-wrap no-print">
           <button
             onClick={() => { setSelectedLessonId(null); setTab("tracks"); setSelectedTrack(null); }}
-            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronLeft className="h-4 w-4" /> All tracks
           </button>
-          <div className="text-[10px] text-muted-foreground font-mono">
-            {track.toUpperCase()} · Lesson {idx + 1} of {trackLessons.length}
+          <div className="flex items-center gap-2">
+            {/* Mobile course outline button */}
+            <button
+              onClick={() => setMobileOutlineOpen(true)}
+              className="lg:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg glass-flat text-xs font-medium hover:bg-foreground/8 transition-colors"
+              aria-label="Open course outline"
+            >
+              <List className="h-3.5 w-3.5" /> Outline
+            </button>
+            <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wide">
+              {track} · Lesson {idx + 1} of {trackLessons.length}
+            </div>
           </div>
         </div>
 
-        {/* Lesson header */}
-        <GlassCard className="p-5">
-          <div className="flex items-start justify-between gap-3 mb-2">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl font-bold">{selectedLesson.title}</h1>
-                {/* Section 3 — Bookmark button */}
-                <button
-                  onClick={() => toggleLessonBookmark(selectedLesson.id)}
-                  className="p-1 rounded hover:bg-foreground/10 transition-colors no-print"
-                  aria-label={bookmarkedLessons.includes(resolveRef(selectedLesson.id)) ? "Remove bookmark" : "Bookmark lesson"}
-                  title={bookmarkedLessons.includes(resolveRef(selectedLesson.id)) ? "Bookmarked — click to remove" : "Bookmark this lesson"}
-                >
-                  <Bookmark
-                    className={cn(
-                      "h-4 w-4",
-                      bookmarkedLessons.includes(resolveRef(selectedLesson.id))
-                        ? "fill-primary text-primary"
-                        : "text-muted-foreground",
-                    )}
-                  />
-                </button>
-                {/* Section 5 — Print button */}
-                <button
-                  onClick={() => window.print()}
-                  className="p-1 rounded hover:bg-foreground/10 transition-colors no-print"
-                  aria-label="Print lesson"
-                  title="Print lesson — opens print dialog (choose 'Save as PDF' for a digital copy)"
-                >
-                  <Printer className="h-4 w-4 text-muted-foreground" />
-                </button>
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">{selectedLesson.description}</p>
-            </div>
-            <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono shrink-0">
-              {/* Section 4 — Read time estimate alongside official estMinutes */}
-              <span className="flex items-center gap-1" title={`Official estimate: ${selectedLesson.estMinutes}m · Calculated read time: ${estimateReadTime(selectedLesson.blocks)}m`}>
-                <Clock className="h-3 w-3" /> {selectedLesson.estMinutes}m · est. {estimateReadTime(selectedLesson.blocks)}m read
+        {/* v6.008: Clean lesson header — no card wrapper, pure typography.
+            Metadata row uses subtle pills, not a glass box. */}
+        <header className="border-b border-border/30 pb-5">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground mb-2">{selectedLesson.title}</h1>
+          <p className="text-[15px] text-muted-foreground leading-relaxed mb-3">{selectedLesson.description}</p>
+          <div className="flex items-center gap-3 flex-wrap text-xs">
+            {/* Difficulty pill */}
+            <span className={cn(
+              "px-2 py-0.5 rounded-full font-medium capitalize",
+              selectedLesson.difficulty === "beginner" && "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400",
+              selectedLesson.difficulty === "intermediate" && "bg-amber-500/12 text-amber-600 dark:text-amber-400",
+              selectedLesson.difficulty === "advanced" && "bg-rose-500/12 text-rose-600 dark:text-rose-400",
+            )}>
+              {selectedLesson.difficulty}
+            </span>
+            {/* Read time */}
+            <span className="flex items-center gap-1 text-muted-foreground font-mono tabular-nums" title={`Official estimate: ${selectedLesson.estMinutes}m · Calculated read time: ${estimateReadTime(selectedLesson.blocks)}m`}>
+              <Clock className="h-3 w-3" /> {selectedLesson.estMinutes}m
+            </span>
+            {/* Completion status */}
+            {progress?.status === "complete" && (
+              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                <Check className="h-3 w-3" /> Completed · {progress.bestQuizScore ?? 0}%
               </span>
-              <span className={cn(
-                "px-1.5 py-0.5 rounded",
-                selectedLesson.difficulty === "beginner" && "bg-emerald-500/15 text-emerald-600",
-                selectedLesson.difficulty === "intermediate" && "bg-amber-500/15 text-amber-600",
-                selectedLesson.difficulty === "advanced" && "bg-rose-500/15 text-rose-600",
-              )}>
-                {selectedLesson.difficulty}
+            )}
+            {progress?.status === "in-progress" && (
+              <span className="flex items-center gap-1 text-primary font-medium">
+                <PlayCircle className="h-3 w-3" /> In progress
               </span>
+            )}
+            {/* Action buttons — bookmark + print */}
+            <div className="flex items-center gap-1 ml-auto no-print">
+              <button
+                onClick={() => toggleLessonBookmark(selectedLesson.id)}
+                className="p-1.5 rounded-md hover:bg-foreground/8 transition-colors"
+                aria-label={bookmarkedLessons.includes(resolveRef(selectedLesson.id)) ? "Remove bookmark" : "Bookmark lesson"}
+                title={bookmarkedLessons.includes(resolveRef(selectedLesson.id)) ? "Bookmarked — click to remove" : "Bookmark this lesson"}
+              >
+                <Bookmark
+                  className={cn(
+                    "h-4 w-4",
+                    bookmarkedLessons.includes(resolveRef(selectedLesson.id))
+                      ? "fill-primary text-primary"
+                      : "text-muted-foreground",
+                  )}
+                />
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="p-1.5 rounded-md hover:bg-foreground/8 transition-colors"
+                aria-label="Print lesson"
+                title="Print lesson — opens print dialog (choose 'Save as PDF' for a digital copy)"
+              >
+                <Printer className="h-4 w-4 text-muted-foreground" />
+              </button>
             </div>
           </div>
-
-          {/* Lesson status */}
-          {progress?.status === "complete" && (
-            <div className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-              <Check className="h-3 w-3" /> Completed · Best quiz: {progress.bestQuizScore ?? 0}%
-            </div>
-          )}
-        </GlassCard>
+        </header>
 
         {/* YouTube tutorial video embed (Section 17.5) */}
         <div className="no-print">
@@ -724,6 +744,51 @@ export function LearnView() {
         />
       </div>
       </div>
+
+      {/* v6.009: Mobile course outline drawer — bottom sheet with the track's
+          lesson list. Replaces the desktop sidebar which is hidden on mobile. */}
+      {mobileOutlineOpen && typeof document !== "undefined" && createPortal(
+        <>
+          <div
+            className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            onClick={() => setMobileOutlineOpen(false)}
+          />
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] flex flex-col rounded-t-2xl glass-elevated border border-border/60 shadow-2xl overflow-hidden">
+            <div className="flex justify-center pt-2 pb-1 shrink-0">
+              <div className="h-1 w-10 rounded-full bg-foreground/20" />
+            </div>
+            <div className="flex items-center justify-between px-4 py-2 border-b border-border/30 shrink-0">
+              <span className="text-sm font-semibold">Course Outline</span>
+              <button
+                onClick={() => setMobileOutlineOpen(false)}
+                className="h-7 w-7 rounded-md hover:bg-foreground/10 flex items-center justify-center text-muted-foreground"
+                aria-label="Close outline"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="overflow-y-auto p-3 scrollbar-thin">
+              <LessonSidebar
+                lessons={trackLessons}
+                currentLessonId={selectedLesson.id}
+                lessonProgress={lessonProgress}
+                onSelectLesson={(lessonId) => {
+                  const targetProgress = lessonProgress[resolveRef(lessonId)];
+                  setMobileOutlineOpen(false);
+                  if (targetProgress?.status === "complete") {
+                    const tl = getLessonsForTrack(selectedLesson.track);
+                    setCompletedPopup({ lessonId, trackLessons: tl });
+                  } else {
+                    setSelectedLessonId(lessonId);
+                    setLessonProgress(selectedLesson.id, "in-progress");
+                    window.scrollTo(0, 0);
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </>, document.body
+      )}
       </>
     );
   }
@@ -1169,46 +1234,43 @@ function LessonBlockView({
   block: Lesson["blocks"][number];
   onTryInPlayground: (code: string, language?: string) => void;
 }) {
+  // v6.008: Documentation-style lesson content. No box-heavy layout.
+  // Sections use typography + spacing for hierarchy. Only callouts
+  // (warnings, tips, mini projects) use a subtle left accent border.
+
   if (block.kind === "heading") {
-    return <h2 className="text-lg font-bold mt-4 first:mt-0">{block.content}</h2>;
+    return (
+      <h2 className="text-xl font-bold tracking-tight mt-8 first:mt-0 mb-1 text-foreground">
+        {block.content}
+      </h2>
+    );
   }
   if (block.kind === "text") {
-    // v5.933: improved readability — text-[15px] (slightly larger), leading-7
-    // (more generous line spacing), and whitespace-pre-line preserves paragraph
-    // breaks. Splits content on double-newlines into separate <p> tags for
-    // better visual paragraph separation.
     const paragraphs = block.content.split(/\n\n+/);
     return (
-      <div className="space-y-2">
+      <div className="space-y-3">
         {paragraphs.map((para, i) => (
-          <p key={i} className="text-[15px] leading-7 text-foreground/90 whitespace-pre-line">{para}</p>
+          <p key={i} className="text-[15px] leading-7 text-foreground/85 whitespace-pre-line">{para}</p>
         ))}
       </div>
     );
   }
   if (block.kind === "whyItMatters") {
-    // v5.934: unified glass panel — accent only on icon/label, not the whole box
     return (
-      <div className="glass-flat rounded-xl p-3 flex items-start gap-2">
-        <Target className="h-4 w-4 text-teal-500 shrink-0 mt-0.5" />
-        <div>
-          <div className="text-[10px] font-semibold uppercase text-teal-600 dark:text-teal-400 mb-0.5">Why this matters</div>
-          <p className="text-[15px] leading-7">{block.content}</p>
-        </div>
+      <div className="border-l-2 border-teal-500/40 pl-4 py-1">
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-teal-600 dark:text-teal-400 mb-1">Why this matters</div>
+        <p className="text-[15px] leading-7 text-foreground/80">{block.content}</p>
       </div>
     );
   }
   if (block.kind === "prerequisites") {
     return (
-      <div className="glass-flat rounded-xl p-3">
-        <div className="flex items-center gap-2 mb-2">
-          <BookOpen className="h-4 w-4 text-sky-500" />
-          <div className="text-[10px] font-semibold uppercase text-sky-600 dark:text-sky-400">Before you start</div>
-        </div>
-        <ul className="space-y-1">
+      <div>
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">Before you start</div>
+        <ul className="space-y-1.5">
           {block.items.map((it, i) => (
-            <li key={i} className="text-xs text-foreground/80 flex gap-2">
-              <span className="text-sky-500 shrink-0">•</span>
+            <li key={i} className="text-sm text-foreground/80 flex gap-2.5 leading-relaxed">
+              <span className="text-sky-500 shrink-0 mt-0.5">→</span>
               <span>{it}</span>
             </li>
           ))}
@@ -1219,11 +1281,11 @@ function LessonBlockView({
   if (block.kind === "topics") {
     return (
       <div>
-        <div className="text-[10px] font-semibold uppercase text-muted-foreground mb-2">Topics covered</div>
-        <ul className="space-y-1">
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">Topics covered</div>
+        <ul className="space-y-1.5">
           {block.items.map((it, i) => (
-            <li key={i} className="text-sm text-foreground/90 flex gap-2">
-              <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+            <li key={i} className="text-sm text-foreground/85 flex gap-2.5 leading-relaxed">
+              <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-1" />
               <span>{it}</span>
             </li>
           ))}
@@ -1233,12 +1295,12 @@ function LessonBlockView({
   }
   if (block.kind === "keyConcepts") {
     return (
-      <div className="glass-flat rounded-xl p-3">
-        <div className="text-[10px] font-semibold uppercase text-violet-600 dark:text-violet-400 mb-2">Key concepts</div>
-        <ul className="space-y-1">
+      <div>
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-violet-600 dark:text-violet-400 mb-2">Key concepts</div>
+        <ul className="space-y-2">
           {block.items.map((it, i) => (
-            <li key={i} className="text-xs text-foreground/80 flex gap-2">
-              <span className="text-violet-500 shrink-0">◆</span>
+            <li key={i} className="text-sm text-foreground/85 flex gap-2.5 leading-relaxed">
+              <span className="text-violet-500 shrink-0 mt-1 text-xs">◆</span>
               <span>{it}</span>
             </li>
           ))}
@@ -1257,15 +1319,12 @@ function LessonBlockView({
   }
   if (block.kind === "pitfalls") {
     return (
-      <div className="glass-flat rounded-xl p-3">
-        <div className="flex items-center gap-2 mb-2">
-          <AlertTriangle className="h-4 w-4 text-rose-500" />
-          <div className="text-[10px] font-semibold uppercase text-rose-600 dark:text-rose-400">Common pitfalls</div>
-        </div>
-        <ol className="space-y-1.5">
+      <div className="border-l-2 border-rose-500/40 pl-4 py-1">
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-rose-600 dark:text-rose-400 mb-2">Common pitfalls</div>
+        <ol className="space-y-2">
           {block.items.map((it, i) => (
-            <li key={i} className="text-xs text-foreground/80 flex gap-2">
-              <span className="text-rose-500 font-mono shrink-0">{i + 1}.</span>
+            <li key={i} className="text-sm text-foreground/80 flex gap-2.5 leading-relaxed">
+              <span className="text-rose-500 font-mono shrink-0 mt-0.5 text-xs tabular-nums">{i + 1}.</span>
               <span>{it}</span>
             </li>
           ))}
@@ -1275,15 +1334,12 @@ function LessonBlockView({
   }
   if (block.kind === "realWorldApps") {
     return (
-      <div className="glass-flat rounded-xl p-3">
-        <div className="flex items-center gap-2 mb-2">
-          <Trophy className="h-4 w-4 text-amber-500" />
-          <div className="text-[10px] font-semibold uppercase text-amber-600 dark:text-amber-400">In the wild</div>
-        </div>
-        <ul className="space-y-1">
+      <div>
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400 mb-2">In the wild</div>
+        <ul className="space-y-2">
           {block.items.map((it, i) => (
-            <li key={i} className="text-xs text-foreground/80 flex gap-2">
-              <span className="text-amber-500 shrink-0">★</span>
+            <li key={i} className="text-sm text-foreground/80 flex gap-2.5 leading-relaxed">
+              <span className="text-amber-500 shrink-0 mt-1 text-xs">★</span>
               <span>{it}</span>
             </li>
           ))}
@@ -1293,15 +1349,16 @@ function LessonBlockView({
   }
   if (block.kind === "interviewQuestions") {
     return (
-      <details className="glass-flat rounded-xl p-3 group">
-        <summary className="cursor-pointer flex items-center gap-2 text-xs font-semibold">
-          <ChevronRight className="h-3.5 w-3.5 group-open:rotate-90 transition-transform" />
-          Interview prep ({block.items.length} questions)
+      <details className="group">
+        <summary className="cursor-pointer flex items-center gap-2 text-sm font-semibold text-foreground/90 hover:text-foreground transition-colors select-none">
+          <ChevronRight className="h-4 w-4 text-muted-foreground group-open:rotate-90 transition-transform" />
+          Interview prep
+          <span className="text-xs font-normal text-muted-foreground">({block.items.length} questions)</span>
         </summary>
-        <ul className="mt-2 space-y-1.5">
+        <ul className="mt-3 space-y-2 pl-6">
           {block.items.map((it, i) => (
-            <li key={i} className="text-xs text-foreground/80 flex gap-2">
-              <span className="text-primary font-mono shrink-0">Q{i + 1}.</span>
+            <li key={i} className="text-sm text-foreground/80 flex gap-2.5 leading-relaxed">
+              <span className="text-primary font-mono shrink-0 mt-0.5 text-xs tabular-nums">Q{i + 1}.</span>
               <span>{it}</span>
             </li>
           ))}
@@ -1311,12 +1368,12 @@ function LessonBlockView({
   }
   if (block.kind === "miniProject") {
     return (
-      <div className="glass-flat rounded-xl p-4 border-l-4 border-l-emerald-500/50">
-        <div className="flex items-center gap-2 mb-2">
-          <Play className="h-4 w-4 text-emerald-500" />
-          <div className="text-[10px] font-semibold uppercase text-emerald-600 dark:text-emerald-400">Try it yourself</div>
+      <div className="border-l-2 border-emerald-500/50 pl-4 py-1">
+        <div className="flex items-center gap-2 mb-1.5">
+          <Play className="h-3.5 w-3.5 text-emerald-500" />
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">Try it yourself</div>
         </div>
-        <p className="text-sm leading-relaxed">{block.content}</p>
+        <p className="text-[15px] leading-7 text-foreground/85">{block.content}</p>
       </div>
     );
   }
@@ -1337,11 +1394,11 @@ function LessonBlockView({
     if (cleanedItems.length === 0) return null;
     return (
       <div>
-        <div className="text-[10px] font-semibold uppercase text-muted-foreground mb-2">Exercises</div>
-        <ol className="space-y-1.5">
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">Exercises</div>
+        <ol className="space-y-2">
           {cleanedItems.map((it, i) => (
-            <li key={i} className="text-xs text-foreground/80 flex gap-2">
-              <span className="h-4 w-4 rounded-full border border-muted-foreground/40 flex items-center justify-center text-[9px] font-mono shrink-0 mt-0.5">{i + 1}</span>
+            <li key={i} className="text-sm text-foreground/80 flex gap-2.5 leading-relaxed">
+              <span className="h-5 w-5 rounded-full border border-muted-foreground/30 flex items-center justify-center text-[10px] font-mono shrink-0 mt-0.5 tabular-nums">{i + 1}</span>
               <span>{it}</span>
             </li>
           ))}
@@ -1351,36 +1408,29 @@ function LessonBlockView({
   }
   if (block.kind === "tip") {
     return (
-      <div className="glass-flat rounded-xl p-3 flex items-start gap-2">
-        <Lightbulb className="h-4 w-4 text-sky-500 shrink-0 mt-0.5" />
-        <div>
-          <div className="text-[10px] font-semibold uppercase text-sky-600 dark:text-sky-400 mb-0.5">Tip</div>
-          <p className="text-sm">{block.content}</p>
-        </div>
+      <div className="border-l-2 border-sky-500/40 pl-4 py-1">
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-sky-600 dark:text-sky-400 mb-1">Tip</div>
+        <p className="text-[15px] leading-7 text-foreground/85">{block.content}</p>
       </div>
     );
   }
   if (block.kind === "warning") {
     return (
-      <div className="glass-flat rounded-xl p-3 flex items-start gap-2 border-l-4 border-l-amber-500/50">
-        <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-        <div>
-          <div className="text-[10px] font-semibold uppercase text-amber-600 dark:text-amber-400 mb-0.5">Warning</div>
-          <p className="text-sm">{block.content}</p>
-        </div>
+      <div className="border-l-2 border-amber-500/50 pl-4 py-1">
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400 mb-1">Warning</div>
+        <p className="text-[15px] leading-7 text-foreground/85">{block.content}</p>
       </div>
     );
   }
   if (block.kind === "callout") {
-    // v5.934: unified glass panel — accent only via left border color
     const accentMap = {
-      info: "border-l-sky-500/50",
-      success: "border-l-emerald-500/50",
+      info: "border-l-sky-500/40",
+      success: "border-l-emerald-500/40",
       warning: "border-l-amber-500/50",
     };
     return (
-      <div className={`glass-flat rounded-xl p-3 border-l-4 ${accentMap[block.variant]}`}>
-        <p className="text-sm">{block.content}</p>
+      <div className={`border-l-2 ${accentMap[block.variant]} pl-4 py-1`}>
+        <p className="text-[15px] leading-7 text-foreground/85">{block.content}</p>
       </div>
     );
   }
@@ -1388,8 +1438,8 @@ function LessonBlockView({
     return (
       <div className="space-y-1">
         {block.links.map((l, i) => (
-          <a key={i} href={l.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-primary hover:underline">
-            <ExternalLink className="h-3 w-3" /> {l.label}
+          <a key={i} href={l.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
+            <ExternalLink className="h-3.5 w-3.5" /> {l.label}
           </a>
         ))}
       </div>

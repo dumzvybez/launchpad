@@ -133,10 +133,11 @@ export function FirstVisitHints() {
         </div>
       )}
 
-      {/* Persistent Command Palette tip — dismissible, bottom-right */}
+      {/* Persistent Command Palette tip — dismissible, bottom-right.
+          v6.009: hidden on mobile (no keyboard) — only show on lg+ desktop. */}
       {showCmdkTip && (
         <div
-          className="fixed bottom-20 right-4 z-[90] w-72 max-w-[90vw] rounded-xl glass-elevated border border-primary/30 shadow-xl p-3 flex items-start gap-2.5"
+          className="hidden lg:flex fixed bottom-20 right-4 z-[90] w-72 max-w-[90vw] rounded-xl glass-elevated border border-primary/30 shadow-xl p-3 items-start gap-2.5"
           style={{ animation: "lp-hint-slide-in 0.4s ease-out" }}
         >
           <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-teal-400 to-fuchsia-400 flex items-center justify-center shrink-0">

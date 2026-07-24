@@ -98,7 +98,7 @@ export function BadgeToastContainer() {
   if (visibleToasts.length === 0) return null;
 
   return (
-    <div aria-live="polite" role="status" className="fixed top-20 right-4 z-[90] flex flex-col gap-2 pointer-events-none">
+    <div aria-live="polite" role="status" className="fixed top-20 right-4 left-4 sm:left-auto z-[90] flex flex-col gap-2 pointer-events-none items-end">
       {visibleToasts.map((badgeId) => {
         const badge = ACHIEVEMENT_MAP[badgeId];
         if (!badge) return null;
@@ -107,7 +107,7 @@ export function BadgeToastContainer() {
           <div
             key={badgeId}
             className={cn(
-              "pointer-events-auto rounded-2xl border-2 p-4 min-w-[280px] max-w-[360px] bg-popover shadow-2xl flex items-center gap-3",
+              "pointer-events-auto rounded-2xl border-2 p-3 sm:p-4 w-full sm:min-w-[280px] sm:max-w-[360px] bg-popover shadow-2xl flex items-center gap-3",
               dismissing.has(badgeId) && "lp-toast-dismissing",
             )}
             style={{
@@ -117,7 +117,7 @@ export function BadgeToastContainer() {
             }}
           >
             <div
-              className="h-12 w-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
+              className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center text-xl sm:text-2xl shrink-0"
               style={{
                 background: `linear-gradient(135deg, ${rarity.color}40, ${rarity.color}20)`,
                 boxShadow: `0 0 20px ${rarity.glow}`,

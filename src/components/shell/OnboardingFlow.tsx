@@ -352,7 +352,7 @@ function PrivacyIntroStep() {
           <p className="text-sm text-muted-foreground">Your private coding education platform</p>
         </div>
       </div>
-      <div className="rounded-xl border border-border/60 bg-card/30 p-5 space-y-3">
+      <div className="rounded-xl border border-border/60 bg-card/70 p-5 space-y-3">
         <p className="text-sm leading-relaxed">
           Launchpad is a free, open-source platform that builds you a personalized coding
           roadmap based on your career, languages, and availability. It tracks your progress,
@@ -394,7 +394,7 @@ function DeveloperMessageStep() {
           <p className="text-sm text-muted-foreground">Founder & Developer · Dumindu Dulara Wanasinghe</p>
         </div>
       </div>
-      <div className="rounded-xl border border-border/60 bg-card/30 p-5 space-y-3">
+      <div className="rounded-xl border border-border/60 bg-card/70 p-5 space-y-3">
         <p className="text-sm leading-relaxed">
           Hey, I&apos;m Dumindu. I built Launchpad because I believe everyone interested in
           coding — no matter their age, background, or budget — deserves a clear,
@@ -414,7 +414,7 @@ function DeveloperMessageStep() {
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-mono">Connect</span>
-        <a href="https://duminduwanasinghe-dev.vercel.app/" target="_blank" rel="noopener noreferrer"
+        <a href="https://dumindu.vercel.app/" target="_blank" rel="noopener noreferrer"
            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/60 hover:border-primary/40 hover:bg-primary/5 text-xs transition-colors">
           <Globe className="h-3.5 w-3.5" /> Portfolio
         </a>
@@ -530,7 +530,7 @@ function NameGoalStep({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Alex"
-          className="w-full px-4 py-3 rounded-lg bg-card/60 border border-border/60 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+          className="w-full px-4 py-3 rounded-lg bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
           autoFocus
         />
       </div>
@@ -542,7 +542,7 @@ function NameGoalStep({
         <div className="relative">
           <button
             onClick={() => setOpen(!open)}
-            className="w-full px-4 py-3 rounded-lg bg-card/60 border border-border/60 text-sm text-left flex items-center justify-between hover:bg-card/80 transition-colors"
+            className="w-full px-4 py-3 rounded-lg bg-card border border-border text-sm text-left flex items-center justify-between hover:bg-card/80 transition-colors"
           >
             <span className={cn(!careerId && "text-muted-foreground")}>
               {careerId ? CAREER_MAP[careerId]?.label : "Select a career..."}
@@ -550,8 +550,8 @@ function NameGoalStep({
             <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
           </button>
           {open && (
-            <div className="absolute z-20 mt-1 w-full max-h-72 overflow-y-auto rounded-lg border border-border bg-popover shadow-xl">
-              <div className="sticky top-0 bg-popover p-2 border-b border-border/60">
+            <div className="absolute z-20 mt-1 w-full max-h-72 overflow-y-auto rounded-lg border border-border bg-popover shadow-xl backdrop-blur-xl">
+              <div className="sticky top-0 bg-popover p-2 border-b border-border/60 backdrop-blur-xl">
                 <div className="relative">
                   <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                   <input
@@ -559,7 +559,7 @@ function NameGoalStep({
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search careers..."
-                    className="w-full pl-7 pr-3 py-1.5 text-sm bg-card/60 rounded border border-border/60 focus:outline-none"
+                    className="w-full pl-7 pr-3 py-1.5 text-sm bg-card rounded border border-border focus:outline-none"
                     autoFocus
                   />
                 </div>
@@ -627,7 +627,7 @@ function OccupationCareerStep({
         <div className="relative">
           <button
             onClick={() => setOccOpen(!occOpen)}
-            className="w-full px-4 py-3 rounded-lg bg-card/60 border border-border/60 text-sm text-left flex items-center justify-between hover:bg-card/80"
+            className="w-full px-4 py-3 rounded-lg bg-card border border-border text-sm text-left flex items-center justify-between hover:bg-card/80"
           >
             <span className={cn(!occupationId && "text-muted-foreground")}>
               {occupationId ? OCCUPATIONS.find((o) => o.id === occupationId)?.label : "Select your occupation..."}
@@ -644,7 +644,7 @@ function OccupationCareerStep({
                     value={occSearch}
                     onChange={(e) => setOccSearch(e.target.value)}
                     placeholder="Search occupations..."
-                    className="w-full pl-7 pr-3 py-1.5 text-sm bg-card/60 rounded border border-border/60 focus:outline-none"
+                    className="w-full pl-7 pr-3 py-1.5 text-sm bg-card rounded border border-border focus:outline-none"
                     autoFocus
                   />
                 </div>
@@ -673,7 +673,7 @@ function OccupationCareerStep({
 
       {/* Career detail panel */}
       {career && (
-        <div className="rounded-xl border border-border/60 bg-card/50 p-4 space-y-3">
+        <div className="rounded-xl border border-border/60 bg-card/80 p-4 space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div>
               <h3 className="font-semibold text-base">{career.label}</h3>
@@ -852,7 +852,7 @@ function LanguageSelectionStep({
               ? "border-primary bg-primary/10 text-primary"
               : companionHintActive
                 ? "border-dashed border-amber-500/50 hover:border-amber-500 bg-amber-500/5"
-                : "border-border/60 hover:border-border bg-card/40",
+                : "border-border/60 hover:border-border bg-card/70",
           )}
           onClick={() => toggle(lang.id)}
           title={companionHintActive ? `Recommended companion to ${lang.name}` : undefined}
@@ -1204,7 +1204,7 @@ function SkillLevelStep({
               "rounded-xl border-2 p-4 text-left transition-all",
               skillLevel === opt.id
                 ? "border-primary bg-primary/10"
-                : "border-border/60 hover:border-border bg-card/40",
+                : "border-border/60 hover:border-border bg-card/70",
             )}
           >
             <div className="h-10 w-10 mb-3 flex items-center justify-center rounded-lg bg-foreground/5">
@@ -1453,7 +1453,7 @@ function PlanPreviewStep({
           {roadmap.phases.map((p) => {
             const totalTasks = p.modules.flatMap((m) => m.tasks).length;
             return (
-              <div key={p.id} className="rounded-xl border border-border/60 bg-card/40 p-3">
+              <div key={p.id} className="rounded-xl border border-border/60 bg-card/70 p-3">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-xl">{p.icon}</span>
                   <div>
@@ -1499,7 +1499,7 @@ function PlanPreviewStep({
 
 function StatBox({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-border/60 bg-card/40 p-3 text-center">
+    <div className="rounded-lg border border-border/60 bg-card/70 p-3 text-center">
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
       <div className="text-xl font-mono font-bold mt-1">{value}</div>
     </div>

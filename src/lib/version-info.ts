@@ -11,7 +11,7 @@
 // `lastSeenReleaseVersion` preference differs from APP_VERSION.
 // ============================================================
 
-export const APP_VERSION = "6.007.0";
+export const APP_VERSION = "6.009.0";
 
 export type ReleaseHighlightType = "new" | "improved" | "removed" | "fixed";
 
@@ -43,6 +43,35 @@ export type ReleaseInfo = {
 //   To ship a new release: bump APP_VERSION, add a ReleaseInfo here (user-
 //   facing), AND add a technical entry to CHANGELOG.md. Both are required.
 export const RELEASES: ReleaseInfo[] = [
+  {
+    version: "6.009.0",
+    date: "2026-07-24",
+    title: "Mobile UX redesign — bottom sheets, course outline drawer, no horizontal overflow",
+    summary:
+      "A complete mobile-first pass: the notification center is now a bottom sheet, lessons have a mobile course outline drawer, the top bar is decluttered, keyboard hints are hidden on mobile, and all 5 standard phone widths (320–430px) have zero horizontal overflow. No lesson content changed.",
+    highlights: [
+      { type: "fixed", text: "Notification center now opens as a full-width bottom sheet on mobile (was clipped off-screen). Rendered via portal to escape the sticky header's backdrop-filter containing block." },
+      { type: "new", text: "Lessons on mobile now have an 'Outline' button that opens a bottom sheet with the full track lesson list — same info as the desktop sidebar, optimized for touch." },
+      { type: "fixed", text: "Zero horizontal overflow at 320px, 375px, 390px, 414px, and 430px — the top bar buttons are decluttered (fullscreen and theme toggles hidden on mobile, accessible via Settings)." },
+      { type: "fixed", text: "Keyboard shortcut hints (⌘K, Ctrl+K) are now hidden on mobile — the Command Palette tip only shows on desktop. The search button still opens the palette on mobile." },
+      { type: "improved", text: "AI Tutor floating chat is now full-screen on mobile (was a cramped 380px panel). The bubble is smaller (48px) and respects iOS safe-area insets." },
+      { type: "improved", text: "Version update toast and achievement badge toasts are now full-width on mobile with smaller icons and padding — readable without blocking the screen." },
+    ],
+  },
+  {
+    version: "6.008.0",
+    date: "2026-07-23",
+    title: "Professional UI redesign — documentation-style lessons, collapsible sidebar, glass fixes",
+    summary:
+      "A complete UI/UX refinement pass: lessons now read like professional documentation with clean typography instead of box-heavy cards, the course outline sidebar is collapsible with a proper compact rail, glass surfaces are more readable, and the dashboard is tighter so key info fits in the first viewport. No lesson content changed.",
+    highlights: [
+      { type: "improved", text: "Lessons now use a documentation-style layout — clean section headers, left accent borders for callouts, and comfortable spacing instead of many small glass boxes. It reads like a professional course now." },
+      { type: "new", text: "The course outline sidebar is now collapsible — click the collapse button for a compact icon rail with a vertical progress indicator, or expand it for the full lesson list. Your preference is remembered across sessions." },
+      { type: "fixed", text: "Glass surfaces are more readable: onboarding dropdowns, notification center, and selection menus now use stronger backgrounds so text is always clear." },
+      { type: "improved", text: "The dashboard is tighter — the hero, stats, and continue-learning cards now fit in the first viewport on desktop without scrolling." },
+      { type: "fixed", text: "Updated all project links to the new website (launchpadedu.vercel.app) and portfolio (dumindu.vercel.app)." },
+    ],
+  },
   {
     version: "6.007.0",
     date: "2026-07-23",

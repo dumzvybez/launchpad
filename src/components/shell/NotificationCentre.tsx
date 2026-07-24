@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Bell,
   BellOff,
@@ -152,14 +153,28 @@ export function NotificationCentre() {
         )}
       </button>
 
-      {/* Panel */}
-      {open && (
-        <div
-          ref={panelRef}
-          className="absolute right-0 mt-2 w-[min(92vw,400px)] max-h-[80vh] flex flex-col rounded-2xl glass-elevated border border-border/60 shadow-2xl z-50 overflow-hidden"
-          role="dialog"
-          aria-label="Notification Centre"
-        >
+      {/* Panel — v6.009: rendered via portal to document.body to escape the
+          sticky header's backdrop-filter containing block. Mobile uses a
+          full-screen overlay with bottom sheet; desktop keeps the anchored
+          dropdown. */}
+      {open && typeof document !== "undefined" && createPortal(
+        <>
+          {/* Mobile overlay */}
+          <div
+            className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            onClick={() => setOpen(false)}
+          />
+          <div
+            ref={panelRef}
+            className="fixed left-0 right-0 bottom-0 top-auto z-50 flex flex-col rounded-t-2xl glass-elevated border border-border/60 shadow-2xl overflow-hidden lg:absolute lg:left-auto lg:right-0 lg:bottom-auto lg:top-auto lg:mt-2 lg:w-[min(92vw,400px)] lg:max-h-[80vh] lg:rounded-2xl"
+            style={{ maxHeight: "85vh" }}
+            role="dialog"
+            aria-label="Notification Centre"
+          >
+          {/* Mobile drag handle */}
+          <div className="lg:hidden flex justify-center pt-2 pb-1 shrink-0">
+            <div className="h-1 w-10 rounded-full bg-foreground/20" />
+          </div>
           {/* Header */}
           <div className="flex items-center justify-between gap-2 p-3 border-b border-border/40 shrink-0">
             <div className="flex items-center gap-2 min-w-0">
@@ -261,6 +276,7 @@ export function NotificationCentre() {
             )}
           </div>
         </div>
+        </>, document.body
       )}
 
       {/* v5.933: themed confirmation modal for Clear All (replaces native window.confirm) */}

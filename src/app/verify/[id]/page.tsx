@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-const DEV_PORTFOLIO_URL = "https://duminduwanasinghe-dev.vercel.app/";
+const DEV_PORTFOLIO_URL = "https://dumindu.vercel.app/";
 
 /**
  * Public certificate verification page (v5.77).
@@ -352,7 +352,7 @@ export default async function VerifyCertificatePage({
               rel="noopener noreferrer"
               className="text-sm font-medium text-teal-600 dark:text-teal-400 hover:underline"
             >
-              duminduwanasinghe-dev.vercel.app →
+              dumindu.vercel.app →
             </a>
           </div>
         </div>

@@ -138,10 +138,11 @@ export function VersionUpdateDialog({ forceOpen = false, onForceClose }: { force
 
   return (
     <>
-      {/* Toast banner — small, unobtrusive, top-right */}
+      {/* Toast banner — small, unobtrusive, top-right.
+          v6.009: mobile uses left-4 right-4 (full width with margins) instead of max-w-sm. */}
       {showToast && !showFullPopup && (
         <div
-          className="fixed top-16 right-4 z-[95] max-w-sm view-enter"
+          className="fixed top-16 right-4 left-4 sm:left-auto z-[95] sm:max-w-sm view-enter"
           style={{ animation: "lp-hint-slide-in 0.3s ease-out" }}
         >
           <div className="glass-elevated rounded-2xl p-3 pr-8 shadow-2xl border border-primary/20 relative">
