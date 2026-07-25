@@ -79,18 +79,18 @@ export function TopBar() {
             "0 2px 8px -2px oklch(0 0 0 / 0.08)",
         }}
       >
-        {/* Hamburger — mobile/tablet only */}
+        {/* Hamburger — mobile/tablet only. ≥44px touch target. */}
         <button
           onClick={() => setMobileNavOpen(true)}
-          className="lg:hidden p-2 rounded-lg hover:bg-foreground/5 transition-colors shrink-0"
+          className="lg:hidden p-2.5 -ml-1 rounded-lg hover:bg-foreground/5 transition-colors shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
           aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
         </button>
 
-        {/* Page title — v6.009: hide hint on mobile to save space */}
+        {/* Page title — v6.010: clear, prominent, truncates on small screens. */}
         <div className="flex flex-col min-w-0">
-          <h1 className="text-sm font-semibold tracking-tight truncate">
+          <h1 className="text-sm sm:text-base font-semibold tracking-tight truncate">
             {currentNav?.label || "Dashboard"}
           </h1>
           <p className="text-[10px] text-muted-foreground truncate hidden sm:block">
@@ -98,26 +98,28 @@ export function TopBar() {
           </p>
         </div>
 
-        {/* Search trigger — center (desktop only) */}
+        {/* Search trigger — center (desktop only). v6.010: shorter placeholder
+            ("Search…") so the ⌘K badge never overlaps it on narrow desktops. */}
         <button
           onClick={() => setCommandOpen(true)}
           className="hidden md:flex items-center gap-2 mx-auto h-9 w-full max-w-md rounded-xl bg-foreground/4 hover:bg-foreground/8 border border-border/60 px-3 text-sm text-muted-foreground transition-colors"
         >
-          <Search className="h-3.5 w-3.5" />
-          <span className="flex-1 text-left">Search tasks, notes, jump to view…</span>
-          <kbd className="hidden lg:inline-flex font-mono text-[10px] px-1.5 py-0.5 rounded bg-foreground/10 border border-border/40 items-center gap-0.5">
+          <Search className="h-3.5 w-3.5 shrink-0" />
+          <span className="flex-1 text-left truncate">Search…</span>
+          <kbd className="hidden lg:inline-flex font-mono text-[10px] px-1.5 py-0.5 rounded bg-foreground/10 border border-border/40 items-center gap-0.5 shrink-0">
             <Command className="h-2.5 w-2.5" />K
           </kbd>
         </button>
 
-        {/* v6.009: Mobile-optimized right side — only essential buttons.
-            Fullscreen and theme toggles hidden on mobile (accessible via Settings). */}
+        {/* v6.010: Mobile-optimized right side — only essential buttons.
+            Fullscreen and theme toggles hidden on mobile (accessible via Settings).
+            All icon buttons use min-w/min-h-[44px] for safe touch targets. */}
         <div className="flex items-center gap-1 ml-auto md:ml-0 shrink-0">
-          {/* Mobile search */}
+          {/* Mobile search — icon only on small screens */}
           <GlassButton
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="md:hidden min-h-[44px] min-w-[44px]"
             onClick={() => setCommandOpen(true)}
             aria-label="Search"
           >
@@ -125,12 +127,12 @@ export function TopBar() {
           </GlassButton>
 
           {/* Group 1: utility toggles — fullscreen hidden on mobile */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 sm:gap-1.5">
             {/* Fullscreen toggle — desktop only */}
             <GlassButton
               variant="ghost"
               size="icon"
-              className="hidden sm:flex"
+              className="hidden sm:flex min-h-[40px] min-w-[40px]"
               onClick={toggleFullscreen}
               aria-label="Toggle fullscreen"
               title="Toggle fullscreen"
@@ -147,13 +149,13 @@ export function TopBar() {
             </div>
           </div>
 
-          {/* Group 2: profile — separated by a divider */}
+          {/* Group 2: profile — separated by a divider. ≥44px touch area. */}
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
               aria-expanded={showProfileMenu}
               aria-haspopup="menu"
-              className="flex items-center gap-2 ml-1 pl-3 border-l border-border/60 hover:bg-foreground/4 rounded-lg transition-colors"
+              className="flex items-center gap-2 ml-1 pl-2 sm:pl-3 pr-1 py-1.5 border-l border-border/60 hover:bg-foreground/4 rounded-lg transition-colors min-h-[44px]"
               title="Profile menu"
             >
               <div className="hidden sm:flex flex-col items-end leading-tight">
@@ -162,10 +164,10 @@ export function TopBar() {
                   {profile.careerId ? "Learner" : "Setup"}
                 </span>
               </div>
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-teal-400 via-fuchsia-400 to-amber-300 flex items-center justify-center text-xs font-bold text-white">
+              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-teal-400 via-fuchsia-400 to-amber-300 flex items-center justify-center text-xs font-bold text-white shrink-0">
                 {profile.name?.[0]?.toUpperCase() || "?"}
               </div>
-              <ChevronDown className="h-3 w-3 text-muted-foreground hidden sm:block" />
+              <ChevronDown className="h-3 w-3 text-muted-foreground hidden sm:block shrink-0" />
             </button>
             {showProfileMenu && (
               <div className="absolute right-0 mt-2 w-48 rounded-xl border border-border bg-popover shadow-2xl py-2 z-50">

@@ -222,6 +222,20 @@ export function AppShell() {
     try { window.sessionStorage.setItem("launchpad:splash-done", "1"); } catch { /* ignore */ }
   }, []);
 
+  const showOnboarding = (!onboardingCompleted || forceOnboarding) && !onboardingDismissed;
+
+  // v5.927 (#7): ensure the URL consistently shows /onboarding throughout
+  // the entire onboarding flow (not just whatever the user landed on).
+  // v6.010 fix: moved into useEffect — calling history.replaceState during
+  // render triggered a "Cannot update a component while rendering" warning
+  // from the Next.js App Router. MUST be called before any early return to
+  // satisfy the Rules of Hooks (hook count must be stable across renders).
+  useEffect(() => {
+    if (showOnboarding && typeof window !== "undefined" && window.location.pathname !== "/onboarding") {
+      window.history.replaceState(null, "", "/onboarding");
+    }
+  }, [showOnboarding]);
+
   if (hydrated && showSplash && !splashDone) {
     return <SplashScreen onDone={onSplashDone} />;
   }
@@ -237,12 +251,7 @@ export function AppShell() {
     );
   }
 
-  if ((!onboardingCompleted || forceOnboarding) && !onboardingDismissed) {
-    // v5.927 (#7): ensure the URL consistently shows /onboarding throughout
-    // the entire onboarding flow (not just whatever the user landed on).
-    if (typeof window !== "undefined" && window.location.pathname !== "/onboarding") {
-      window.history.replaceState(null, "", "/onboarding");
-    }
+  if (showOnboarding) {
     return <OnboardingFlow onDone={() => { setOnboardingDismissed(true); clearForceOnboarding(); }} />;
   }
 

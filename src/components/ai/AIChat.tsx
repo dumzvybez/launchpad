@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, type KeyboardEvent, type ChangeEvent } from "react";
 import { toast } from "sonner";
 import {
   Send,
@@ -424,7 +424,7 @@ export function AIChat({ fullTab = false, onMaximize, onClose }: AIChatProps) {
     })();
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -1235,7 +1235,7 @@ function CodeReviewSetupScreen({
 
   const canSubmit = code.trim().length > 0 && hasUserKey;
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const uploaded = e.target.files;
     if (!uploaded) return;
     for (const file of Array.from(uploaded)) {

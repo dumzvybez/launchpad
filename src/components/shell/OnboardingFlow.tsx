@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ArrowRight,
   ArrowLeft,
@@ -201,28 +201,34 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative">
+    <div className="min-h-screen flex items-stretch sm:items-center justify-center p-0 sm:p-4 relative safe-top safe-bottom">
       <div className="absolute inset-0 pointer-events-none opacity-60" style={{
         background: `radial-gradient(at 20% 20%, rgba(45,212,191,0.12) 0px, transparent 50%), radial-gradient(at 80% 30%, rgba(232,121,249,0.10) 0px, transparent 50%)`,
       }} />
-      <div className="glass-elevated rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative z-10">
-        {/* Header */}
-        <div className="p-6 sm:p-8 border-b border-border/40">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10"><LogoMark size={40} /></div>
-              <div>
-                <h1 className="text-lg font-semibold">Launchpad Onboarding</h1>
+      {/* v6.010 (UI-B): mobile-first card. On phones the card IS the screen —
+          no rounded corners, no max-height (avoids nested scroll). Desktop
+          keeps the elevated glass card with max-w-3xl + 90vh cap. */}
+      <div className="glass-elevated rounded-none sm:rounded-3xl w-full sm:max-w-3xl min-h-screen sm:min-h-0 sm:max-h-[90vh] overflow-y-auto relative z-10 flex flex-col">
+        {/* Header — v6.010 (UI-B): tighter padding on mobile (p-4),
+            progress dots larger and easier to see on small screens. */}
+        <div className="p-4 sm:p-8 border-b border-border/40 shrink-0">
+          <div className="flex items-center justify-between mb-4 gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="h-10 w-10 shrink-0"><LogoMark size={40} /></div>
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-lg font-semibold truncate">Launchpad Onboarding</h1>
                 <p className="text-xs text-muted-foreground font-mono">Step {step + 1} of {TOTAL_STEPS}</p>
               </div>
             </div>
-            <div className="flex gap-1">
+            {/* Progress dots — v6.010 (UI-B): on mobile the dots wrap and are
+                larger so the user can see progress at a glance. */}
+            <div className="flex flex-wrap gap-1 justify-end max-w-[40%] sm:max-w-none">
               {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
                 <div
                   key={i}
                   className={cn(
                     "h-1.5 rounded-full transition-all",
-                    i === step ? "w-8 bg-primary" : i < step ? "w-4 bg-primary/60" : "w-4 bg-foreground/10",
+                    i === step ? "w-6 sm:w-8 bg-primary" : i < step ? "w-3 sm:w-4 bg-primary/60" : "w-3 sm:w-4 bg-foreground/10",
                   )}
                 />
               ))}
@@ -230,8 +236,9 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
           </div>
         </div>
 
-        {/* Body */}
-        <div className="p-6 sm:p-8">
+        {/* Body — v6.010 (UI-B): tighter padding on mobile (p-4),
+            flex-1 so the footer stays anchored to the bottom. */}
+        <div className="p-4 sm:p-8 flex-1">
           {step === 0 && <PrivacyIntroStep />}
           {step === 1 && <DeveloperMessageStep />}
           {step === 2 && (
@@ -295,13 +302,15 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
           )}
         </div>
 
-        {/* Footer */}
-        <div className="p-6 sm:p-8 border-t border-border/40 flex items-center justify-between gap-3">
+        {/* Footer — v6.010 (UI-B): Back button is ≥44px touch target on
+            mobile. Primary CTA already uses size=lg (48px). */}
+        <div className="p-4 sm:p-8 border-t border-border/40 flex items-center justify-between gap-3 shrink-0">
           <button
             onClick={handleBack}
             disabled={step === 0 || isGenerating}
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm transition-colors",
+              "min-h-[44px]",
               step === 0 || isGenerating
                 ? "opacity-40 cursor-not-allowed"
                 : "hover:bg-foreground/5 text-muted-foreground hover:text-foreground",
@@ -530,7 +539,7 @@ function NameGoalStep({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Alex"
-          className="w-full px-4 py-3 rounded-lg bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+          className="w-full px-4 py-3 rounded-lg bg-card border border-border text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-[48px]"
           autoFocus
         />
       </div>
@@ -542,24 +551,24 @@ function NameGoalStep({
         <div className="relative">
           <button
             onClick={() => setOpen(!open)}
-            className="w-full px-4 py-3 rounded-lg bg-card border border-border text-sm text-left flex items-center justify-between hover:bg-card/80 transition-colors"
+            className="w-full px-4 py-3 rounded-lg bg-card border border-border text-base sm:text-sm text-left flex items-center justify-between hover:bg-card/80 transition-colors min-h-[48px]"
           >
             <span className={cn(!careerId && "text-muted-foreground")}>
               {careerId ? CAREER_MAP[careerId]?.label : "Select a career..."}
             </span>
-            <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
+            <ChevronDown className={cn("h-4 w-4 transition-transform shrink-0", open && "rotate-180")} />
           </button>
           {open && (
             <div className="absolute z-20 mt-1 w-full max-h-72 overflow-y-auto rounded-lg border border-border bg-popover shadow-xl backdrop-blur-xl">
               <div className="sticky top-0 bg-popover p-2 border-b border-border/60 backdrop-blur-xl">
                 <div className="relative">
-                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input
                     type="text"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search careers..."
-                    className="w-full pl-7 pr-3 py-1.5 text-sm bg-card rounded border border-border focus:outline-none"
+                    className="w-full pl-8 pr-3 py-2.5 text-base sm:text-sm bg-card rounded border border-border focus:outline-none min-h-[44px]"
                     autoFocus
                   />
                 </div>
@@ -573,7 +582,7 @@ function NameGoalStep({
                     setSearch("");
                   }}
                   className={cn(
-                    "w-full px-3 py-2.5 text-left hover:bg-foreground/5 transition-colors border-b border-border/40 last:border-b-0",
+                    "w-full px-3 py-3 text-left hover:bg-foreground/5 transition-colors border-b border-border/40 last:border-b-0 min-h-[44px]",
                     careerId === c.id && "bg-primary/10",
                   )}
                 >
@@ -627,24 +636,24 @@ function OccupationCareerStep({
         <div className="relative">
           <button
             onClick={() => setOccOpen(!occOpen)}
-            className="w-full px-4 py-3 rounded-lg bg-card border border-border text-sm text-left flex items-center justify-between hover:bg-card/80"
+            className="w-full px-4 py-3 rounded-lg bg-card border border-border text-base sm:text-sm text-left flex items-center justify-between hover:bg-card/80 min-h-[48px]"
           >
             <span className={cn(!occupationId && "text-muted-foreground")}>
               {occupationId ? OCCUPATIONS.find((o) => o.id === occupationId)?.label : "Select your occupation..."}
             </span>
-            <ChevronDown className={cn("h-4 w-4 transition-transform", occOpen && "rotate-180")} />
+            <ChevronDown className={cn("h-4 w-4 transition-transform shrink-0", occOpen && "rotate-180")} />
           </button>
           {occOpen && (
             <div className="absolute z-20 mt-1 w-full max-h-72 overflow-y-auto rounded-lg border border-border bg-popover shadow-xl">
               <div className="sticky top-0 bg-popover p-2 border-b border-border/60">
                 <div className="relative">
-                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input
                     type="text"
                     value={occSearch}
                     onChange={(e) => setOccSearch(e.target.value)}
                     placeholder="Search occupations..."
-                    className="w-full pl-7 pr-3 py-1.5 text-sm bg-card rounded border border-border focus:outline-none"
+                    className="w-full pl-8 pr-3 py-2.5 text-base sm:text-sm bg-card rounded border border-border focus:outline-none min-h-[44px]"
                     autoFocus
                   />
                 </div>
@@ -658,7 +667,7 @@ function OccupationCareerStep({
                     setOccSearch("");
                   }}
                   className={cn(
-                    "w-full px-3 py-2.5 text-left hover:bg-foreground/5 border-b border-border/40 last:border-b-0",
+                    "w-full px-3 py-3 text-left hover:bg-foreground/5 border-b border-border/40 last:border-b-0 min-h-[44px]",
                     occupationId === o.id && "bg-primary/10",
                   )}
                 >
@@ -847,7 +856,7 @@ function LanguageSelectionStep({
       <div key={lang.id} className="relative">
         <div
           className={cn(
-            "flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all cursor-pointer",
+            "flex items-center gap-2 px-3 py-3 sm:py-2.5 rounded-lg border text-sm transition-all cursor-pointer min-h-[48px]",
             isSelected
               ? "border-primary bg-primary/10 text-primary"
               : companionHintActive
@@ -881,7 +890,7 @@ function LanguageSelectionStep({
               e.stopPropagation();
               setPopoverOpen(popoverOpen === lang.id ? null : lang.id);
             }}
-            className="ml-1 p-1 rounded hover:bg-foreground/10 transition-colors"
+            className="ml-1 p-1.5 rounded hover:bg-foreground/10 transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
             aria-label={`More info about ${lang.name}`}
           >
             <Info className="h-3.5 w-3.5" />
@@ -904,7 +913,7 @@ function LanguageSelectionStep({
               </div>
               <button
                 onClick={() => setPopoverOpen(null)}
-                className="p-1 rounded hover:bg-foreground/10"
+                className="p-1.5 rounded hover:bg-foreground/10 min-h-[36px] min-w-[36px] flex items-center justify-center"
                 aria-label="Close"
               >
                 <X className="h-3.5 w-3.5" />
@@ -971,7 +980,7 @@ function LanguageSelectionStep({
                 setPopoverOpen(null);
               }}
               className={cn(
-                "mt-3 w-full py-1.5 rounded-lg text-xs font-medium transition-colors",
+                "mt-3 w-full py-2.5 rounded-lg text-xs font-medium transition-colors min-h-[44px]",
                 isSelected ? "bg-rose-500/20 text-rose-500 hover:bg-rose-500/30" : "bg-primary/20 text-primary hover:bg-primary/30",
               )}
             >
@@ -1183,7 +1192,7 @@ function SkillLevelStep({
   skillLevel: SkillLevel;
   setSkillLevel: (s: SkillLevel) => void;
 }) {
-  const options: { id: SkillLevel; label: string; desc: string; icon: React.ReactNode }[] = [
+  const options: { id: SkillLevel; label: string; desc: string; icon: ReactNode }[] = [
     { id: "beginner", label: "Beginner", desc: "New to programming — start from absolute basics", icon: <Seedling /> },
     { id: "intermediate", label: "Intermediate", desc: "Some experience — skip basics, dive into projects", icon: <Sprout /> },
     { id: "advanced", label: "Advanced", desc: "Comfortable coder — focus on specialization and depth", icon: <Tree /> },
@@ -1201,7 +1210,7 @@ function SkillLevelStep({
             key={opt.id}
             onClick={() => setSkillLevel(opt.id)}
             className={cn(
-              "rounded-xl border-2 p-4 text-left transition-all",
+              "rounded-xl border-2 p-4 text-left transition-all min-h-[44px]",
               skillLevel === opt.id
                 ? "border-primary bg-primary/10"
                 : "border-border/60 hover:border-border bg-card/70",
@@ -1271,7 +1280,7 @@ function AvailabilityStep({
           step="0.5"
           value={hoursPerDay}
           onChange={(e) => setHoursPerDay(parseFloat(e.target.value))}
-          className="w-full accent-primary"
+          className="w-full accent-primary h-6 sm:h-auto cursor-pointer"
         />
         <div className="flex justify-between text-[10px] text-muted-foreground mt-1 font-mono">
           <span>0.5h</span><span>4h</span><span>8h</span>
@@ -1292,7 +1301,7 @@ function AvailabilityStep({
           step="1"
           value={daysPerWeek}
           onChange={(e) => setDaysPerWeek(parseInt(e.target.value))}
-          className="w-full accent-primary"
+          className="w-full accent-primary h-6 sm:h-auto cursor-pointer"
         />
         <div className="flex justify-between text-[10px] text-muted-foreground mt-1 font-mono">
           <span>1d</span><span>4d</span><span>7d</span>

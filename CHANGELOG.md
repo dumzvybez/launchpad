@@ -3,6 +3,75 @@
 All notable changes to Launchpad are documented here. User-facing summaries
 live in `src/lib/version-info.ts`; this file holds the technical record.
 
+## [6.010.0] — 2026-07-25 — SEO, Visual Audit & UI/UX Refinement
+
+A comprehensive refinement pass driven by a real visual audit (Agent Browser +
+VLM at 1440px, 1024px, 768px, 390px, and 320px). No lesson content was modified.
+
+### Fixed — SEO & Social Previews
+- **OG image dimensions**: The OpenGraph image was 1734×907 but metadata declared
+  1200×630, causing social platforms to mis-render or reject the preview card.
+  Resized to the standard 1200×630 and optimized from 1.5 MB → 265 KB.
+- **Inaccurate lesson counts**: All "630 lessons / 30 languages" references
+  updated to the verified values (797 lessons / 38 languages & frameworks) in
+  `layout.tsx`, `manifest.json`, and `CommandPalette.tsx`.
+- Enriched JSON-LD `knowsAbout` with the full technology catalog.
+
+### Changed — Reading-First Lesson Redesign (Part 4)
+- Course outline is now **hidden by default**. A clear "Open course outline"
+  toggle (PanelLeft icon) in the lesson header reveals a slide-in overlay panel
+  (desktop) or bottom-sheet drawer (mobile) via `framer-motion` AnimatePresence.
+- Removed the duplicate lesson title block (the first heading is now skipped
+  when it matches the lesson title — UI-only dedup, no data change).
+- Wider, centered reading column (`max-w-3xl xl:max-w-4xl`) — Apple/Stripe docs
+  quality. Dedicated `LessonNavigation` prev/next component at the article end.
+- Replaced low-contrast teal labels with emerald/foreground accents.
+
+### Changed — Liquid Glass Readability (Part 5)
+- Light mode: `--card` 0.55→0.72, `--popover` 0.75→0.94, `--glass-tint`
+  0.68→0.78, `--glass-tint-strong` 0.82→0.93, `--muted-foreground` 0.40→0.44.
+- Dark mode: `--card` 0.55→0.68, `--popover` 0.75→0.92, `--glass-tint`
+  0.72→0.78, `--glass-tint-strong` 0.85→0.92.
+- Result: dropdowns, tooltips, and modals are now near-opaque for WCAG-AA text
+  contrast. Background no longer bleeds through content-bearing surfaces.
+
+### Changed — Mobile UX (Part 7)
+- `MobileBottomNav`: fixed, high-contrast glass bar with safe-area-inset-bottom
+  support, ≥48px touch targets, solid active pill.
+- `AITutorFloating`: repositioned to `bottom-[calc(env(safe-area-inset-bottom)+5.25rem)]`
+  on mobile so the FAB clears the bottom nav. 56px FAB with pulse ring.
+- `NotificationCentre`: bell button ≥44px on mobile; panel renders as a
+  bottom sheet respecting safe-area. Dismiss buttons always visible on touch.
+- `FirstVisitHints`: keyboard shortcut hints (`⌘K`) wrapped in `hidden sm:inline-flex`.
+- `VersionUpdateDialog`: bottom-sheet positioning on mobile, ≥44px close button.
+- `OnboardingFlow`: full-screen card on mobile, `text-base` inputs (prevents iOS
+  auto-zoom), ≥44px touch targets, wrapping progress dots.
+- `CommandPalette`: full-screen sheet on mobile, ≥48px command rows.
+
+### Changed — Dashboard & Shell Polish (Part 6)
+- `DashboardView`: welcome header hierarchy (name primary, streak secondary),
+  stats row `grid-cols-2 lg:grid-cols-4` with baseline-aligned cards,
+  `line-clamp-2`/`truncate` on all descriptions, `min-w-0` flex children.
+- `CareerReadinessCard`: 0% / empty state uses `text-muted-foreground` instead
+  of alarming pink. More breathing room between the percentage and sub-metrics.
+- `TopBar`: search placeholder shortened to "Search…", ≥44px touch targets.
+- `Sidebar`: removed redundant active-state dot (kept background highlight),
+  nav item padding `py-1.5→py-2`.
+- `Footer`: iOS safe-area bottom padding, ≥36px mobile touch targets.
+- `ProjectsView`: visual polish (borders, spacing, responsive inputs).
+
+### Fixed — React Warning
+- `AppShell.tsx`: moved `window.history.replaceState("/onboarding")` from the
+  render body into a `useEffect` (placed before all early returns to satisfy
+  the Rules of Hooks). Eliminates "Cannot update a component while rendering
+  a different component" console warning.
+
+### Added — Documentation
+- README.md: corrected statistics (232 interview questions, 7,221 quiz
+  questions), added a Preview section with 4 optimized screenshots, added
+  v6.010 changelog entry, bumped version badge to 6.010.0.
+- `docs/screenshots/`: dashboard, lesson-view, lesson-outline, mobile-dashboard.
+
 ## [6.009.0] — 2026-07-24 — Mobile UX Redesign
 
 A complete mobile-first UI/UX pass. All 5 standard phone viewport widths

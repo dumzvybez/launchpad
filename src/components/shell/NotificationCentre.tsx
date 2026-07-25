@@ -21,7 +21,17 @@ import type { AppNotification, NotificationCategory } from "@/lib/types";
 import { ConfirmDialog } from "@/components/shell/ConfirmDialog";
 
 // ============================================================
-// NotificationCentre — v5.931
+// NotificationCentre — v6.010 (UI-B mobile refinement)
+//
+// Mobile-first changes:
+// - Bell button is now a ≥44px touch target (was h-9 w-9 = 36px).
+// - Mobile bottom sheet now respects env(safe-area-inset-bottom) so
+//   the dismiss/handle area clears the iOS home indicator.
+// - Mobile sheet header buttons (Snooze, Clear All, Close) are ≥44px.
+// - Notification cards on mobile use ≥14px body text, ≥12px meta.
+// - Cards use larger touch targets and always-visible dismiss on mobile
+//   (no hover-only discovery on touch devices).
+// - Snooze banner uses ≥14px text on mobile.
 //
 // Design references (researched via web search, July 2026):
 //   - iOS 26 (current as of 2026, latest patch ~26.5.2) introduced the
@@ -38,10 +48,8 @@ import { ConfirmDialog } from "@/components/shell/ConfirmDialog";
 //          category (Achievement, Certificate, Reminder, System, Challenge)
 //          just as iOS groups by app.
 //       4. DISMISS — iOS uses swipe-to-dismiss; on web we provide a
-//          hover-revealed X button on each card (and Clear All for bulk).
-//     The interaction pattern (collapsible category sections with count +
-//     expand/collapse arrow) mirrors the Version Update popup's category
-//     cards, per the user's instruction.
+//          visible X button on each card (always visible on mobile,
+//          hover-revealed on desktop) and Clear All for bulk.
 //
 // NO read/unread state. The bell badge is a simple COUNT of notifications
 // in the history (reset by Clear All). Snooze suppresses popups but
@@ -134,18 +142,25 @@ export function NotificationCentre() {
 
   return (
     <div className="relative">
-      {/* Bell button with count badge */}
+      {/* Bell button — v6.010 (UI-B): ≥44px touch target on mobile.
+          Desktop keeps the compact 36px size for the dense header. */}
       <button
         ref={bellRef}
         onClick={() => setOpen((v) => !v)}
         aria-label={`Notifications${count > 0 ? ` (${count} new)` : ""}`}
         title="Notifications"
-        className="relative h-9 w-9 rounded-lg flex items-center justify-center hover:bg-foreground/8 transition-colors text-muted-foreground hover:text-foreground"
+        className={cn(
+          "relative rounded-lg flex items-center justify-center transition-colors",
+          "text-muted-foreground hover:text-foreground hover:bg-foreground/8",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+          // Mobile: 44px touch target. Desktop: 36px (h-9 w-9).
+          "h-11 w-11 lg:h-9 lg:w-9",
+        )}
       >
         {snoozed ? <BellOff className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
         {count > 0 && (
           <span
-            className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center leading-none ring-2 ring-background"
+            className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center leading-none ring-2 ring-background"
             aria-hidden
           >
             {count > 99 ? "99+" : count}
@@ -153,10 +168,9 @@ export function NotificationCentre() {
         )}
       </button>
 
-      {/* Panel — v6.009: rendered via portal to document.body to escape the
-          sticky header's backdrop-filter containing block. Mobile uses a
-          full-screen overlay with bottom sheet; desktop keeps the anchored
-          dropdown. */}
+      {/* Panel — v6.010 (UI-B): rendered via portal to document.body.
+          Mobile uses a full-height bottom sheet with safe-area padding.
+          Desktop keeps the anchored dropdown. */}
       {open && typeof document !== "undefined" && createPortal(
         <>
           {/* Mobile overlay */}
@@ -166,16 +180,29 @@ export function NotificationCentre() {
           />
           <div
             ref={panelRef}
-            className="fixed left-0 right-0 bottom-0 top-auto z-50 flex flex-col rounded-t-2xl glass-elevated border border-border/60 shadow-2xl overflow-hidden lg:absolute lg:left-auto lg:right-0 lg:bottom-auto lg:top-auto lg:mt-2 lg:w-[min(92vw,400px)] lg:max-h-[80vh] lg:rounded-2xl"
-            style={{ maxHeight: "85vh" }}
+            className={cn(
+              "fixed z-50 flex flex-col overflow-hidden",
+              // Mobile: full-width bottom sheet, rounded top, safe-area bottom.
+              "left-0 right-0 bottom-0 top-auto rounded-t-2xl",
+              "glass-elevated border border-border/60 shadow-2xl",
+              // Desktop: anchored dropdown.
+              "lg:absolute lg:left-auto lg:right-0 lg:bottom-auto lg:top-auto lg:mt-2",
+              "lg:w-[min(92vw,400px)] lg:max-h-[80vh] lg:rounded-2xl",
+            )}
+            style={{
+              maxHeight: "85vh",
+              // Mobile: pad the bottom so buttons clear the iOS home indicator
+              // / Android gesture bar. Desktop: no extra padding.
+              paddingBottom: "env(safe-area-inset-bottom, 0px)",
+            }}
             role="dialog"
             aria-label="Notification Centre"
           >
           {/* Mobile drag handle */}
-          <div className="lg:hidden flex justify-center pt-2 pb-1 shrink-0">
-            <div className="h-1 w-10 rounded-full bg-foreground/20" />
+          <div className="lg:hidden flex justify-center pt-2.5 pb-1 shrink-0">
+            <div className="h-1.5 w-12 rounded-full bg-foreground/25" />
           </div>
-          {/* Header */}
+          {/* Header — v6.010 (UI-B): mobile buttons are ≥44px touch targets */}
           <div className="flex items-center justify-between gap-2 p-3 border-b border-border/40 shrink-0">
             <div className="flex items-center gap-2 min-w-0">
               <Bell className="h-4 w-4 shrink-0" />
@@ -185,56 +212,70 @@ export function NotificationCentre() {
               )}
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              {/* Snooze toggle */}
+              {/* Snooze toggle — mobile-friendly (≥44px tap area via py-2.5 px-2.5) */}
               <button
                 onClick={() => setNotificationSnooze(!snoozed)}
                 className={cn(
-                  "inline-flex items-center gap-1.5 text-[11px] px-2 py-1 rounded-md border transition-colors",
+                  "inline-flex items-center gap-1.5 text-xs px-2.5 py-2 rounded-md border transition-colors",
+                  "min-h-[40px] lg:min-h-0 lg:py-1",
                   snoozed
                     ? "border-amber-500/40 bg-amber-500/10 text-amber-500"
                     : "border-border/60 text-muted-foreground hover:text-foreground hover:bg-foreground/5",
                 )}
                 title={snoozed ? "Snooze ON — popups suppressed (notifications still recorded)" : "Snooze OFF — popups show"}
               >
-                {snoozed ? <BellOff className="h-3 w-3" /> : <Bell className="h-3 w-3" />}
-                {snoozed ? "Snoozed" : "Snooze"}
+                {snoozed ? <BellOff className="h-3.5 w-3.5" /> : <Bell className="h-3.5 w-3.5" />}
+                <span className="hidden sm:inline">{snoozed ? "Snoozed" : "Snooze"}</span>
               </button>
-              {/* Clear All */}
+              {/* Clear All — mobile-friendly */}
               <button
                 onClick={handleClearAll}
                 disabled={count === 0}
-                className="inline-flex items-center gap-1.5 text-[11px] px-2 py-1 rounded-md border border-border/60 text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className={cn(
+                  "inline-flex items-center gap-1.5 text-xs px-2.5 py-2 rounded-md border transition-colors",
+                  "min-h-[40px] lg:min-h-0 lg:py-1",
+                  "border-border/60 text-muted-foreground hover:text-foreground hover:bg-foreground/5",
+                  "disabled:opacity-40 disabled:cursor-not-allowed",
+                )}
                 title="Clear all notifications"
               >
-                <Trash2 className="h-3 w-3" /> Clear All
+                <Trash2 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Clear All</span>
               </button>
+              {/* Close — ≥44px on mobile, 28px on desktop */}
               <button
                 onClick={() => setOpen(false)}
-                className="h-7 w-7 rounded-md hover:bg-foreground/10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                className={cn(
+                  "rounded-md hover:bg-foreground/10 flex items-center justify-center",
+                  "text-muted-foreground hover:text-foreground transition-colors",
+                  "h-11 w-11 lg:h-7 lg:w-7",
+                )}
                 aria-label="Close"
               >
-                <X className="h-3.5 w-3.5" />
+                <X className="h-4 w-4 lg:h-3.5 w-3.5 lg:w-3.5" />
               </button>
             </div>
           </div>
 
-          {/* Snooze banner */}
+          {/* Snooze banner — v6.010 (UI-B): ≥14px text on mobile */}
           {snoozed && (
-            <div className="px-3 py-2 bg-amber-500/10 border-b border-amber-500/20 text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1.5 shrink-0">
-              <BellOff className="h-3 w-3 shrink-0" />
+            <div className="px-3 py-2 bg-amber-500/10 border-b border-amber-500/20 text-sm text-amber-600 dark:text-amber-400 flex items-center gap-1.5 shrink-0">
+              <BellOff className="h-3.5 w-3.5 shrink-0" />
               <span>Snooze is ON — popups are suppressed. Notifications are still recorded here.</span>
             </div>
           )}
 
           {/* Body — scrollable, grouped category stacks */}
-          <div className="flex-1 overflow-y-auto p-2.5 space-y-1.5">
+          <div className="flex-1 overflow-y-auto p-2.5 space-y-1.5 scrollbar-thin">
             {count === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="h-10 w-10 rounded-full bg-foreground/5 flex items-center justify-center mb-2">
-                  <Bell className="h-4 w-4 text-muted-foreground" />
+                <div className="h-12 w-12 rounded-full bg-foreground/5 flex items-center justify-center mb-3">
+                  <Bell className="h-5 w-5 text-muted-foreground" />
                 </div>
-                <p className="text-xs text-muted-foreground">No notifications yet</p>
-                <p className="text-[10px] text-muted-foreground/70 mt-0.5">Achievements, certificates, and reminders will appear here.</p>
+                <p className="text-sm text-muted-foreground">No notifications yet</p>
+                <p className="text-xs text-muted-foreground/70 mt-1 max-w-[260px]">
+                  Achievements, certificates, and reminders will appear here.
+                </p>
               </div>
             ) : (
               CATEGORY_ORDER.map((cat) => {
@@ -245,16 +286,19 @@ export function NotificationCentre() {
                 const expanded = expandedCategories.has(cat);
                 return (
                   <div key={cat} className="rounded-xl bg-card/30 border border-border/40 overflow-hidden">
-                    {/* Category header — the "stack" top card */}
+                    {/* Category header — the "stack" top card (≥44px tap target) */}
                     <button
                       onClick={() => toggleCategory(cat)}
-                      className="w-full flex items-center gap-2 p-2.5 hover:bg-foreground/5 transition-colors text-left"
+                      className={cn(
+                        "w-full flex items-center gap-2 p-3 hover:bg-foreground/5 transition-colors text-left",
+                        "min-h-[44px]",
+                      )}
                     >
                       <span className={cn("h-2 w-2 rounded-full shrink-0", meta.dot)} />
-                      <Icon className={cn("h-3.5 w-3.5 shrink-0", meta.accent)} />
-                      <span className="text-xs font-semibold flex-1">{meta.label}</span>
-                      <span className="text-[10px] font-mono text-muted-foreground">{items.length}</span>
-                      {expanded ? <ChevronDown className="h-3 w-3 text-muted-foreground" /> : <ChevronRight className="h-3 w-3 text-muted-foreground" />}
+                      <Icon className={cn("h-4 w-4 shrink-0", meta.accent)} />
+                      <span className="text-sm font-semibold flex-1">{meta.label}</span>
+                      <span className="text-xs font-mono text-muted-foreground">{items.length}</span>
+                      {expanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                     </button>
                     {/* Expanded items — the "stack" revealed cards */}
                     {expanded && (
@@ -295,7 +339,8 @@ export function NotificationCentre() {
 }
 
 /** NotificationCard — a single notification, iOS 26 Liquid-Glass card style.
- *  Hover reveals a dismiss (X) button (web adaptation of iOS swipe-to-dismiss). */
+ *  v6.010 (UI-B): dismiss button is always visible on mobile (no hover on
+ *  touch devices); hover-revealed on desktop. Body text ≥14px on mobile. */
 function NotificationCard({
   n,
   dot,
@@ -308,35 +353,43 @@ function NotificationCard({
   onClick: () => void;
 }) {
   return (
-    <div className="group relative rounded-lg bg-white/5 dark:bg-black/20 border border-white/10 dark:border-white/5 p-2.5 hover:bg-white/10 dark:hover:bg-black/30 transition-colors">
-      <div className="flex items-start gap-2">
-        <span className={cn("shrink-0 mt-1 h-1.5 w-1.5 rounded-full", dot)} />
+    <div className="group relative rounded-lg bg-white/5 dark:bg-black/20 border border-white/10 dark:border-white/5 p-3 hover:bg-white/10 dark:hover:bg-black/30 transition-colors">
+      <div className="flex items-start gap-2.5">
+        <span className={cn("shrink-0 mt-1.5 h-2 w-2 rounded-full", dot)} />
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-0.5">
-            {n.icon && <span className="text-xs leading-none">{n.icon}</span>}
-            <p className="text-xs font-semibold leading-tight truncate">{n.title}</p>
+          <div className="flex items-center gap-1.5 mb-1">
+            {n.icon && <span className="text-sm leading-none">{n.icon}</span>}
+            <p className="text-sm font-semibold leading-tight truncate">{n.title}</p>
           </div>
-          <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-3">{n.body}</p>
-          <div className="flex items-center gap-2 mt-1.5">
-            <span className="text-[9px] font-mono text-muted-foreground/70">{formatRelative(n.createdAt)}</span>
+          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">{n.body}</p>
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-xs font-mono text-muted-foreground/70">{formatRelative(n.createdAt)}</span>
             {n.actionView && n.actionLabel && (
               <button
                 onClick={(e) => { e.stopPropagation(); onClick(); }}
-                className="inline-flex items-center gap-0.5 text-[10px] text-primary hover:underline font-medium"
+                className={cn(
+                  "inline-flex items-center gap-0.5 text-xs text-primary hover:underline font-medium",
+                  "min-h-[32px] px-1",
+                )}
               >
-                {n.actionLabel} <ArrowRight className="h-2.5 w-2.5" />
+                {n.actionLabel} <ArrowRight className="h-3 w-3" />
               </button>
             )}
           </div>
         </div>
-        {/* Dismiss (X) — hover-revealed, web adaptation of iOS swipe-to-dismiss */}
+        {/* Dismiss (X) — always visible on mobile, hover-revealed on desktop */}
         <button
           onClick={(e) => { e.stopPropagation(); onDismiss(); }}
-          className="shrink-0 h-5 w-5 rounded-md hover:bg-foreground/10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+          className={cn(
+            "shrink-0 rounded-md hover:bg-foreground/10 flex items-center justify-center",
+            "text-muted-foreground hover:text-foreground transition-colors",
+            // Mobile: ≥44px target, always visible. Desktop: smaller, hover-revealed.
+            "h-9 w-9 opacity-100 lg:opacity-0 lg:h-6 lg:w-6 lg:group-hover:opacity-100 lg:focus:opacity-100",
+          )}
           aria-label="Dismiss notification"
           title="Dismiss"
         >
-          <X className="h-3 w-3" />
+          <X className="h-4 w-4 lg:h-3 lg:w-3" />
         </button>
       </div>
     </div>

@@ -70,7 +70,11 @@ export function Footer() {
 
   return (
     <>
-      <footer className="px-4 sm:px-6 py-3 mt-auto border-t border-border/40">
+      {/* v6.010: footer uses mt-auto so it sticks to the bottom of the flex
+          column (AppShell root is min-h-screen flex; main is flex-1; footer
+          is the last child and uses mt-auto to push down). Touch-friendly
+          link spacing on mobile; safe-area padding for iOS notch. */}
+      <footer className="px-4 sm:px-6 py-3 mt-auto border-t border-border/40 pb-[calc(env(safe-area-inset-bottom,0px)+12px)]">
         {/* v5.927 (#6): removed "Built by Dumindu..." + link. Centered remaining items. */}
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-2 text-[10px] text-muted-foreground font-mono">
           {/* Copyright — centered */}
@@ -81,43 +85,60 @@ export function Footer() {
             <span>Launchpad © {year}</span>
           </div>
 
-          {/* Links — desktop */}
+          {/* Links — desktop. v6.010: link padding for touch (min-h-[28px]). */}
           <div className="hidden sm:flex items-center gap-3">
-            <span>·</span>
+            <span aria-hidden="true">·</span>
             <button
               onClick={() => setPrivacyOpen(true)}
-              className="hover:text-foreground transition-colors"
+              className="hover:text-foreground transition-colors min-h-[28px] inline-flex items-center"
             >
               Privacy Policy
             </button>
-            <span>·</span>
+            <span aria-hidden="true">·</span>
             <button
               onClick={() => setHelpOpen(true)}
-              className="hover:text-foreground transition-colors"
+              className="hover:text-foreground transition-colors min-h-[28px] inline-flex items-center"
             >
               Help Centre
             </button>
-            <span>·</span>
+            <span aria-hidden="true">·</span>
             <a
               href="https://github.com/dumzvybez/Launchpad"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-foreground transition-colors"
+              className="hover:text-foreground transition-colors min-h-[28px] inline-flex items-center"
             >
               GitHub Repo
             </a>
-            <span>·</span>
+            <span aria-hidden="true">·</span>
             <kbd className="px-1.5 py-0.5 rounded bg-foreground/8 border border-border/40">⌘K</kbd>
             <span>command palette</span>
           </div>
 
-          {/* Mobile links — condensed */}
-          <div className="sm:hidden flex items-center gap-3">
-            <button onClick={() => setPrivacyOpen(true)} className="hover:text-foreground transition-colors">Privacy</button>
-            <span>·</span>
-            <button onClick={() => setHelpOpen(true)} className="hover:text-foreground transition-colors">Help</button>
-            <span>·</span>
-            <a href="https://github.com/dumzvybez/Launchpad" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">GitHub</a>
+          {/* Mobile links — condensed. v6.010: larger touch targets. */}
+          <div className="sm:hidden flex items-center gap-3 mt-1">
+            <button
+              onClick={() => setPrivacyOpen(true)}
+              className="hover:text-foreground transition-colors min-h-[36px] px-1 inline-flex items-center"
+            >
+              Privacy
+            </button>
+            <span aria-hidden="true">·</span>
+            <button
+              onClick={() => setHelpOpen(true)}
+              className="hover:text-foreground transition-colors min-h-[36px] px-1 inline-flex items-center"
+            >
+              Help
+            </button>
+            <span aria-hidden="true">·</span>
+            <a
+              href="https://github.com/dumzvybez/Launchpad"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground transition-colors min-h-[36px] px-1 inline-flex items-center"
+            >
+              GitHub
+            </a>
           </div>
         </div>
       </footer>

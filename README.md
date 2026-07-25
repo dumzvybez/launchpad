@@ -7,7 +7,7 @@
 ### Free. Private. Personalized. Coding education the way it should be.
 
 [![Status](https://img.shields.io/badge/status-actively%20developing-orange?style=for-the-badge)](https://github.com/dumzvybez/launchpad/discussions)
-[![Version](https://img.shields.io/badge/version-6.008.0-9cf?style=for-the-badge)](#-changelog)
+[![Version](https://img.shields.io/badge/version-6.010.0-9cf?style=for-the-badge)](#-changelog)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](#-license)
 [![Live App](https://img.shields.io/badge/demo-live-success?style=for-the-badge)](https://launchpadedu.vercel.app)
 [![Privacy](https://img.shields.io/badge/privacy-100%25%20on--device-9cf?style=for-the-badge)](#-100-on-device-privacy)
@@ -30,8 +30,35 @@ Tell it your career goal, and Launchpad generates a custom learning roadmap pull
 
 | | | | |
 |:---:|:---:|:---:|:---:|
-| **38** Tracks | **797** Lessons | **7,220** Quiz Questions | **207** Projects |
-| **1,980** Daily Challenges | **43** Achievements | **233** Interview Questions | **0** Accounts Required |
+| **38** Tracks | **797** Lessons | **7,221** Quiz Questions | **207** Projects |
+| **1,980** Daily Challenges | **43** Achievements | **232** Interview Questions | **0** Accounts Required |
+
+</div>
+
+---
+
+## 🖼️ Preview
+
+<div align="center">
+
+<table>
+  <tr>
+    <td width="50%" align="center"><b>Dashboard</b><br/><sub>Personalized overview with stats, career readiness, and one-click lesson re-entry</sub></td>
+    <td width="50%" align="center"><b>Lesson View (Reading-First)</b><br/><sub>Documentation-style layout with hidden outline and focused reading column</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/dashboard.jpg" alt="Launchpad Dashboard" /></td>
+    <td width="50%"><img src="docs/screenshots/lesson-view.jpg" alt="Launchpad Lesson View" /></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><b>Course Outline (Toggle)</b><br/><sub>Slides in as an overlay when you need navigation; stays hidden while reading</sub></td>
+    <td width="50%" align="center"><b>Mobile Dashboard</b><br/><sub>Touch-friendly bottom nav, adaptive cards, safe-area aware FAB</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/lesson-outline.jpg" alt="Course Outline Panel" /></td>
+    <td width="50%"><img src="docs/screenshots/mobile-dashboard.jpg" alt="Mobile Dashboard" /></td>
+  </tr>
+</table>
 
 </div>
 
@@ -333,11 +360,10 @@ launchpad/
 ## 🗺️ Roadmap
 
 - ✅ **v6.000–v6.006:** Stable identity system, per-track lazy loading, dead code removal, TypeScript hardening, test suite
-- ✅ **v6.007:** Desktop/tablet UX pass — lesson sidebar, reading width, glass clarity
-- ✅ **v6.008:** Professional UI redesign — documentation-style lessons, collapsible sidebar, glass fixes, dashboard optimization
+- ✅ **v6.010:** SEO & social preview fixes, reading-first lesson redesign, liquid glass readability pass, mobile UX overhaul, verified-statistics README
 - 🔄 **Next:** Populate forward-looking curriculum fields (aiContext, learningObjectives, skillsTaught, practiceChallenges) on lessons
 - 🔄 **Next:** Wire the v6.004 graduated assessment ladder (module quizzes, checkpoint exams, certificate exams)
-- 📋 **Future:** RAG/vector search for AI tutor, leaderboards, mobile responsive pass
+- 📋 **Future:** RAG/vector search for AI tutor, leaderboards
 
 ---
 
@@ -353,6 +379,15 @@ Pull requests, issues, and ideas are all welcome.
 ---
 
 ## 📜 Changelog
+
+### v6.010.0 — SEO, Visual Audit & UI/UX Refinement
+- **SEO & social previews:** Fixed OG image dimensions (1734×907 → 1200×630), optimized file size (1.5 MB → 265 KB), corrected lesson counts in metadata (630 → 797), enriched JSON-LD structured data
+- **Reading-first lesson redesign:** Course outline hidden by default; opens as a smooth slide-in overlay via a clear “Open course outline” toggle. Removed duplicate lesson title. Added dedicated prev/next lesson navigation. Wider, centered reading column (max-w-3xl/4xl) — Apple/Stripe docs quality
+- **Liquid glass readability:** Increased glass tint and popover opacity (light & dark) so dropdowns, tooltips, and modals are near-opaque for WCAG-AA text contrast. Darkened muted-foreground for secondary text
+- **Mobile UX overhaul:** Fixed high-contrast bottom nav with safe-area support, repositioned AI Tutor FAB to clear the nav bar, ≥44px touch targets, bottom-sheet patterns for notifications/version dialog/command palette, hidden desktop-only keyboard hints on touch devices
+- **Dashboard & shell polish:** Cleaned welcome-header hierarchy, neutralized the 0% career-readiness color, aligned stats row, fixed text overflow with line-clamp, shortened top-bar search placeholder, reduced redundant sidebar active-state highlighting
+- **Fixed React warning:** Moved `history.replaceState` out of render body into `useEffect` (Rules of Hooks compliance)
+- **Verified statistics:** README counts read directly from the codebase (797 lessons, 7,221 quiz questions, 207 projects, 1,980 challenges, 43 achievements, 232 interview questions)
 
 ### v6.008.0 — Professional UI Redesign
 - Documentation-style lesson reading (no box-heavy layout, clean typography hierarchy)

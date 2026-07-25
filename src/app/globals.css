@@ -70,9 +70,9 @@
   --background-3: oklch(0.95 0.02 300);
   --foreground: oklch(0.16 0.02 260);
 
-  --card: oklch(1 0 0 / 0.55);
+  --card: oklch(1 0 0 / 0.72);
   --card-foreground: oklch(0.16 0.02 260);
-  --popover: oklch(1 0 0 / 0.75);
+  --popover: oklch(1 0 0 / 0.94);
   --popover-foreground: oklch(0.16 0.02 260);
 
   /* Brand: aurora teal — vivid */
@@ -83,7 +83,7 @@
   --secondary-foreground: oklch(0.20 0.02 260);
 
   --muted: oklch(1 0 0 / 0.35);
-  --muted-foreground: oklch(0.40 0.02 260);
+  --muted-foreground: oklch(0.44 0.02 260);
 
   --accent: oklch(0.62 0.20 195);
   --accent-foreground: oklch(0.99 0 0);
@@ -103,10 +103,13 @@
   /* v5.934 Liquid Glass material tokens — light mode
    * Translucent white glass over vivid background. Strong specular highlight,
    * soft separating shadow. Refraction simulated via backdrop-blur + saturate.
-   * v6.007 UX: increased tint 0.55→0.68 for better text contrast in light mode. */
-  --glass-tint: oklch(1 0 0 / 0.68);
-  --glass-tint-strong: oklch(1 0 0 / 0.82);
-  --glass-tint-subtle: oklch(1 0 0 / 0.42);
+   * v6.007 UX: increased tint 0.55→0.68 for better text contrast in light mode.
+   * v6.010 UX: further increased tint 0.68→0.78 and strong 0.82→0.93 so
+   *   dropdowns, tooltips, and modals are near-opaque for WCAG-AA text
+   *   contrast. Cards (--card) bumped to 0.72 so content reads clearly. */
+  --glass-tint: oklch(1 0 0 / 0.78);
+  --glass-tint-strong: oklch(1 0 0 / 0.93);
+  --glass-tint-subtle: oklch(1 0 0 / 0.50);
   --glass-border: oklch(1 0 0 / 0.65);
   --glass-border-subtle: oklch(1 0 0 / 0.35);
   --glass-highlight: oklch(1 0 0 / 0.9);
@@ -144,9 +147,9 @@
   --background-3: oklch(0.14 0.02 280);
   --foreground: oklch(0.97 0.005 240);
 
-  --card: oklch(0.20 0.02 260 / 0.55);
+  --card: oklch(0.20 0.02 260 / 0.68);
   --card-foreground: oklch(0.97 0.005 240);
-  --popover: oklch(0.18 0.02 260 / 0.75);
+  --popover: oklch(0.18 0.02 260 / 0.92);
   --popover-foreground: oklch(0.97 0.005 240);
 
   --primary: oklch(0.78 0.18 195);
@@ -176,10 +179,12 @@
    * v6.007 UX: increased tint opacity for stronger text contrast against
    *   the aurora background. 0.55→0.72 lets less background bleed through
    *   while still feeling like glass. Borders strengthened 0.16→0.22 for
-   *   clearer surface edges. */
-  --glass-tint: oklch(0.20 0.02 260 / 0.72);
-  --glass-tint-strong: oklch(0.24 0.02 260 / 0.85);
-  --glass-tint-subtle: oklch(0.20 0.02 260 / 0.45);
+   *   clearer surface edges.
+   * v6.010 UX: tint 0.72→0.78, strong 0.85→0.92, card 0.55→0.68, popover
+   *   0.75→0.92 — near-opaque elevated surfaces for readable dropdowns/modals. */
+  --glass-tint: oklch(0.20 0.02 260 / 0.78);
+  --glass-tint-strong: oklch(0.24 0.02 260 / 0.92);
+  --glass-tint-subtle: oklch(0.20 0.02 260 / 0.50);
   --glass-border: oklch(1 0 0 / 0.22);
   --glass-border-subtle: oklch(1 0 0 / 0.12);
   --glass-highlight: oklch(1 0 0 / 0.24);

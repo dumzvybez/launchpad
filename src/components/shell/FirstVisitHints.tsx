@@ -8,6 +8,16 @@
  * Also shows ONE persistent (dismissible, not auto-hiding) tip about the
  * Command Palette (Ctrl+K).
  *
+ * v6.010 (UI-B mobile refinement):
+ * - View hint now uses ≥14px text on mobile and respects the iOS safe-area
+ *   top inset so it never sits under the notch / Dynamic Island.
+ * - View hint is repositioned to sit just below the TopBar on mobile
+ *   (top-14 + safe-area) instead of overlapping it.
+ * - Command Palette tip remains desktop-only (hidden on mobile — no
+ *   physical keyboard). The Ctrl+K kbd hint is also wrapped in a
+ *   `hidden sm:inline-flex` so it never shows on touch devices.
+ * - Close button is ≥44px on mobile.
+ *
  * v5.932: New-user notification pacing — staggered delays so first-time users
  * aren't overwhelmed by multiple notifications stacking on top of each other:
  *   - View hints: show immediately (as designed), consistent 3.5s auto-hide
@@ -116,25 +126,41 @@ export function FirstVisitHints() {
 
   return (
     <>
-      {/* Ephemeral view hint — auto-dismissing, top-center, with fade-out */}
+      {/* Ephemeral view hint — auto-dismissing, top-center, with fade-out.
+          v6.010 (UI-B): sits below the TopBar (top-14) + safe-area top inset
+          so it never overlaps the notch / Dynamic Island on iOS. Text is
+          ≥14px on mobile for readability. Width is capped so long hints wrap
+          gracefully on small screens. */}
       {hint && (
         <div
           className={cn(
-            "fixed top-16 left-1/2 -translate-x-1/2 z-[90] px-4 py-2 rounded-xl glass-elevated border border-primary/30 shadow-lg flex items-center gap-2 text-xs text-foreground max-w-[90vw] transition-opacity",
+            "fixed left-1/2 -translate-x-1/2 z-[90]",
+            "flex items-center gap-2 text-foreground max-w-[92vw]",
+            "rounded-xl glass-elevated border border-primary/30 shadow-lg",
+            "px-4 py-3 sm:py-2 text-sm sm:text-xs",
+            // Mobile: sit just below the TopBar (56px) + safe-area top.
+            // Desktop: original top-16 (64px).
+            "top-[calc(env(safe-area-inset-top,0px)+3.5rem)] sm:top-16",
+            "transition-opacity",
             hintFadingOut ? "opacity-0" : "opacity-100",
           )}
           style={{
             animation: hintFadingOut ? undefined : "lp-hint-slide-in 0.3s ease-out",
             transitionDuration: `${HINT_FADE_OUT_MS}ms`,
           }}
+          role="status"
+          aria-live="polite"
         >
-          <Sparkles className="h-3.5 w-3.5 text-primary shrink-0" />
-          <span className="truncate">{hint}</span>
+          <Sparkles className="h-4 w-4 text-primary shrink-0" />
+          <span className="line-clamp-2 sm:truncate">{hint}</span>
         </div>
       )}
 
       {/* Persistent Command Palette tip — dismissible, bottom-right.
-          v6.009: hidden on mobile (no keyboard) — only show on lg+ desktop. */}
+          v6.009: hidden on mobile (no keyboard) — only show on lg+ desktop.
+          v6.010 (UI-B): Ctrl+K kbd hints wrapped in `hidden sm:inline-flex`
+          so they never appear on touch devices, even if the tip somehow
+          renders. Close button is ≥44px on mobile. */}
       {showCmdkTip && (
         <div
           className="hidden lg:flex fixed bottom-20 right-4 z-[90] w-72 max-w-[90vw] rounded-xl glass-elevated border border-primary/30 shadow-xl p-3 items-start gap-2.5"
@@ -146,15 +172,16 @@ export function FirstVisitHints() {
           <div className="flex-1 min-w-0">
             <div className="text-xs font-semibold">Tip: Jump anywhere fast</div>
             <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
-              Press <kbd className="px-1 py-0.5 rounded bg-foreground/10 text-[10px] font-mono">Ctrl</kbd>
-              <span className="mx-0.5">+</span>
-              <kbd className="px-1 py-0.5 rounded bg-foreground/10 text-[10px] font-mono">K</kbd>
+              Press{" "}
+              <kbd className="hidden sm:inline-flex px-1 py-0.5 rounded bg-foreground/10 text-[10px] font-mono items-center">Ctrl</kbd>
+              <span className="hidden sm:inline mx-0.5">+</span>
+              <kbd className="hidden sm:inline-flex px-1 py-0.5 rounded bg-foreground/10 text-[10px] font-mono items-center">K</kbd>
               {" "}to open the Command Palette — search lessons, jump to tabs, run commands.
             </p>
           </div>
           <button
             onClick={dismissCmdkTip}
-            className="p-1 rounded hover:bg-foreground/10 text-muted-foreground hover:text-foreground shrink-0"
+            className="p-1.5 rounded hover:bg-foreground/10 text-muted-foreground hover:text-foreground shrink-0 min-h-[36px] min-w-[36px] flex items-center justify-center"
             aria-label="Dismiss tip"
           >
             <X className="h-3.5 w-3.5" />

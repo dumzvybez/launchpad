@@ -18,7 +18,7 @@ import {
   BookOpen,
   ChevronRight,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useStore, selectLevel, selectEarnedXP, selectOverallProgress, selectPhaseProgress, selectCareerProgress, selectCareerReadinessScore } from "@/lib/store";
 import { GlassCard, GlassButton, ProgressBar, ProgressRing } from "@/components/glass/GlassPrimitives";
 import { cn } from "@/lib/utils";
@@ -135,29 +135,35 @@ export function DashboardView() {
     streak >= 30 ? 5 : streak >= 14 ? 12 : streak >= 7 ? 22 : streak >= 3 ? 40 : 75;
 
   return (
-    <div className="space-y-4">
-      {/* Header + Share button — v6.008: tightened for first-viewport fit */}
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight">
-            {profile.name ? `Welcome back, ${profile.name.split(" ")[0]}! 🔥 ${streak}-day streak` : "Welcome to Launchpad"}
+    <div className="space-y-5 sm:space-y-6">
+      {/* Header + actions — v6.010: clear visual hierarchy.
+          Name is primary (text-2xl/3xl font-bold), career/subtitle is
+          secondary (text-sm muted), streak is moved to the stats row so it
+          no longer competes with the welcome message. */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight truncate">
+            {profile.name ? `Welcome back, ${profile.name.split(" ")[0]}` : "Welcome to Launchpad"}
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {career ? `Training for: ${career.label}${profile.subPath ? ` (${profile.subPath})` : ""}` : "Set up your profile to get personalized content"}
+          <p className="text-sm text-muted-foreground mt-1 truncate">
+            {career
+              ? `Training for: ${career.label}${profile.subPath ? ` · ${profile.subPath}` : ""}`
+              : "Set up your profile to get personalized content"}
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <GlassButton variant="ghost" size="sm" onClick={() => setShowJourney(true)}>
-            <MapIcon className="h-3.5 w-3.5" /> My Journey
+          <GlassButton variant="ghost" size="sm" onClick={() => setShowJourney(true)} className="min-h-[36px]">
+            <MapIcon className="h-3.5 w-3.5" /> <span className="hidden sm:inline">My Journey</span><span className="sm:hidden">Journey</span>
           </GlassButton>
-          <GlassButton variant="ghost" size="sm" onClick={() => setShowShareCard(true)}>
+          <GlassButton variant="ghost" size="sm" onClick={() => setShowShareCard(true)} className="min-h-[36px]">
             <Share2 className="h-3.5 w-3.5" /> Share
           </GlassButton>
         </div>
       </div>
 
-      {/* Top stats row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {/* Top stats row — v6.010: responsive (1-col mobile, 2-col sm, 4-col lg),
+          strict grid for baseline-aligned values, tightened padding. */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
           icon={<Trophy className="h-4 w-4" />}
           label="Level"
@@ -194,14 +200,15 @@ export function DashboardView() {
 
       {/* Continue learning */}
       {nextTask && (
-        <GlassCard className="p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold flex items-center gap-2">
-              <ArrowRight className="h-4 w-4 text-primary" /> Continue where you left off
+        <GlassCard className="p-4 sm:p-5 border border-border/40">
+          <div className="flex items-center justify-between mb-3 gap-2">
+            <h2 className="text-sm font-semibold flex items-center gap-2 min-w-0">
+              <ArrowRight className="h-4 w-4 text-primary shrink-0" />
+              <span className="truncate">Continue where you left off</span>
             </h2>
             <button
               onClick={() => { selectPhase(nextTask.phase.id); setView("roadmap"); }}
-              className="text-xs text-primary hover:underline"
+              className="text-xs text-primary hover:underline shrink-0"
             >
               View roadmap →
             </button>
@@ -211,11 +218,11 @@ export function DashboardView() {
               {nextTask.phase.icon}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[10px] font-mono text-muted-foreground uppercase">
+              <div className="text-[10px] font-mono text-muted-foreground uppercase truncate">
                 Phase {nextTask.phase.number} · {nextTask.module.title}
               </div>
-              <h3 className="font-semibold text-sm mt-0.5">{nextTask.task.title}</h3>
-              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{nextTask.task.brief}</p>
+              <h3 className="font-semibold text-sm mt-0.5 truncate">{nextTask.task.title}</h3>
+              <p className="text-xs text-muted-foreground mt-1 line-clamp-2 break-words">{nextTask.task.brief}</p>
               <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground font-mono">
                 <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {nextTask.task.estMinutes}m</span>
                 <span className="flex items-center gap-1"><Trophy className="h-3 w-3" /> {nextTask.task.xp} XP</span>
@@ -225,6 +232,7 @@ export function DashboardView() {
               variant="primary"
               size="sm"
               onClick={() => { selectPhase(nextTask.phase.id); setView("roadmap"); }}
+              className="shrink-0 self-center"
             >
               Continue
             </GlassButton>
@@ -236,10 +244,11 @@ export function DashboardView() {
           point to their most recent in-progress (or next-up) lesson. Shown when
           the user has lesson progress but may not have roadmap tasks. */}
       {continueLesson && (
-        <GlassCard className="p-5 border-primary/20">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold flex items-center gap-2">
-              <BookOpen className="h-4 w-4 text-primary" /> Continue your lesson
+        <GlassCard className="p-4 sm:p-5 border border-primary/20">
+          <div className="flex items-center justify-between mb-3 gap-2">
+            <h2 className="text-sm font-semibold flex items-center gap-2 min-w-0">
+              <BookOpen className="h-4 w-4 text-primary shrink-0" />
+              <span className="truncate">Continue your lesson</span>
             </h2>
             <button
               onClick={() => {
@@ -250,7 +259,7 @@ export function DashboardView() {
                 });
                 setView("learn");
               }}
-              className="text-xs text-primary hover:underline"
+              className="text-xs text-primary hover:underline shrink-0"
             >
               All lessons →
             </button>
@@ -260,13 +269,13 @@ export function DashboardView() {
               {ALL_LANGUAGE_INFO[continueLesson.lesson.track]?.icon ?? "📘"}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[10px] font-mono text-muted-foreground uppercase">
+              <div className="text-[10px] font-mono text-muted-foreground uppercase truncate">
                 {ALL_LANGUAGE_INFO[continueLesson.lesson.track]?.name ?? continueLesson.lesson.track}
                 {continueLesson.progress?.status === "in-progress" && " · In progress"}
               </div>
-              <h3 className="font-semibold text-sm mt-0.5">{continueLesson.lesson.title}</h3>
-              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{continueLesson.lesson.description}</p>
-              <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground font-mono">
+              <h3 className="font-semibold text-sm mt-0.5 truncate">{continueLesson.lesson.title}</h3>
+              <p className="text-xs text-muted-foreground mt-1 line-clamp-2 break-words">{continueLesson.lesson.description}</p>
+              <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground font-mono flex-wrap">
                 <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {continueLesson.lesson.estMinutes}m</span>
                 <span className={cn(
                   "px-1.5 py-0.5 rounded capitalize",
@@ -292,6 +301,7 @@ export function DashboardView() {
                 });
                 setView("learn");
               }}
+              className="shrink-0 self-center"
             >
               Resume <ChevronRight className="h-3.5 w-3.5" />
             </GlassButton>
@@ -299,10 +309,10 @@ export function DashboardView() {
         </GlassCard>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
         {/* Current phase progress */}
         {currentPhase && (
-          <GlassCard className="p-5">
+          <GlassCard className="p-4 sm:p-5 border border-border/40">
             <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
               <Target className="h-4 w-4" /> Current phase
             </h2>
@@ -312,8 +322,8 @@ export function DashboardView() {
               </ProgressRing>
               <div className="flex-1 min-w-0">
                 <div className="text-[10px] font-mono text-muted-foreground">Phase {currentPhase.number}</div>
-                <h3 className="font-bold text-base">{currentPhase.title}</h3>
-                <p className="text-xs text-muted-foreground">{currentPhase.subtitle}</p>
+                <h3 className="font-bold text-base truncate">{currentPhase.title}</h3>
+                <p className="text-xs text-muted-foreground line-clamp-1">{currentPhase.subtitle}</p>
                 <div className="mt-2">
                   <ProgressBar value={selectPhaseProgress(state, currentPhase.id).pct} className="h-1.5" />
                 </div>
@@ -323,7 +333,7 @@ export function DashboardView() {
         )}
 
         {/* Daily challenge */}
-        <GlassCard className="p-5">
+        <GlassCard className="p-4 sm:p-5 border border-border/40">
           <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
             <Calendar className="h-4 w-4" /> Daily challenge
           </h2>
@@ -332,8 +342,8 @@ export function DashboardView() {
               <Flame className="h-5 w-5 text-amber-500" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-sm">{todayChallenge.title}</h3>
-              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{todayChallenge.prompt}</p>
+              <h3 className="font-semibold text-sm truncate">{todayChallenge.title}</h3>
+              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 break-words">{todayChallenge.prompt}</p>
               <div className="flex items-center gap-2 mt-2">
                 <span className="text-[10px] text-muted-foreground font-mono">
                   Streak: {state.dailyChallenge.currentStreak}d
@@ -349,7 +359,7 @@ export function DashboardView() {
 
       {/* Languages */}
       {roadmap && roadmap.languageIds.length > 0 && (
-        <GlassCard className="p-5">
+        <GlassCard className="p-4 sm:p-5 border border-border/40">
           <h2 className="text-sm font-semibold mb-3">Languages in your plan</h2>
           <div className="flex flex-wrap gap-2">
             {roadmap.languageIds.map((id) => {
@@ -359,12 +369,12 @@ export function DashboardView() {
                 <button
                   key={id}
                   onClick={() => setView("learn")}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-foreground/5 border border-border/60 hover:border-primary/40 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-foreground/5 border border-border/60 hover:border-primary/40 hover:bg-foreground/8 transition-colors min-h-[44px]"
                 >
                   <span className="text-lg">{lang.icon}</span>
                   <div className="text-left">
                     <div className="text-xs font-medium">{lang.name}</div>
-                    <div className="text-[10px] text-muted-foreground">{lang.tagline}</div>
+                    <div className="text-[10px] text-muted-foreground truncate max-w-[120px]">{lang.tagline}</div>
                   </div>
                 </button>
               );
@@ -374,7 +384,7 @@ export function DashboardView() {
       )}
 
       {/* Recent activity */}
-      <GlassCard className="p-5">
+      <GlassCard className="p-4 sm:p-5 border border-border/40">
         <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
           <TrendingUp className="h-4 w-4" /> Last 7 days
         </h2>
@@ -383,7 +393,7 @@ export function DashboardView() {
             const max = Math.max(...recentDays.map((d) => d.count), 1);
             const height = (day.count / max) * 100;
             return (
-              <div key={day.key} className="flex-1 flex flex-col items-center gap-1">
+              <div key={day.key} className="flex-1 flex flex-col items-center gap-1 min-w-0">
                 <div className="text-[10px] font-mono text-muted-foreground">{day.count || ""}</div>
                 <div className="w-full bg-foreground/10 rounded-t-md flex items-end" style={{ height: "60px" }}>
                   <div
@@ -402,19 +412,19 @@ export function DashboardView() {
       <CertificateHub />
 
       {/* AI Tutor CTA */}
-      <GlassCard className="p-5 bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 border-violet-500/30">
-        <div className="flex items-center gap-4">
+      <GlassCard className="p-4 sm:p-5 bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 border-violet-500/30">
+        <div className="flex items-center gap-3 sm:gap-4">
           <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shrink-0">
             <Bot className="h-6 w-6 text-white" />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-sm">Need help? Ask the AI Tutor</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 break-words">
               Stuck on a concept? Want code reviewed? The AI Tutor is one click away.
             </p>
           </div>
-          <GlassButton variant="primary" size="sm" onClick={() => setAiTutorOpen(true)}>
-            <Bot className="h-4 w-4" /> Ask now
+          <GlassButton variant="primary" size="sm" onClick={() => setAiTutorOpen(true)} className="shrink-0">
+            <Bot className="h-4 w-4" /> <span className="hidden sm:inline">Ask now</span><span className="sm:hidden">Ask</span>
           </GlassButton>
         </div>
       </GlassCard>
@@ -916,21 +926,24 @@ function StatCard({
   sub,
   color,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   value: string;
   sub?: string;
   color?: string;
 }) {
-  // v6.008: Tightened padding (p-4 → p-3.5) and spacing for first-viewport fit.
+  // v6.010: Strict baseline alignment — label and value are anchored in a
+  // consistent flex column so all four cards align row-by-row across the grid.
+  // Padding bumped slightly (p-3.5 → p-4) for breathing room; min-h ensures
+  // cards with/without sub-text share the same height.
   return (
-    <GlassCard className="p-3.5">
+    <GlassCard className="p-4 border border-border/40 min-h-[88px] flex flex-col">
       <div className="flex items-center gap-2 mb-1.5">
         <div className={color}>{icon}</div>
         <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-mono">{label}</span>
       </div>
-      <div className="text-xl font-bold font-mono tabular-nums">{value}</div>
-      {sub && <div className="text-[10px] text-muted-foreground mt-0.5">{sub}</div>}
+      <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums leading-none">{value}</div>
+      {sub && <div className="text-[10px] text-muted-foreground mt-1.5 truncate">{sub}</div>}
     </GlassCard>
   );
 }

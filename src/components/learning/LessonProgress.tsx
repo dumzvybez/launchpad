@@ -1,11 +1,15 @@
 "use client";
 
-// LessonProgress — v6.005 within-lesson progress indicator.
-// Shows how far through the lesson's blocks the learner has scrolled.
-// Lightweight: uses scroll position, no content parsing.
+// LessonProgress — v6.010 within-lesson scroll-progress indicator.
+//
+// A thin, fixed progress bar at the very top of the viewport that fills as
+// the learner scrolls through the lesson. Lightweight: uses scroll position,
+// no content parsing. Hidden at 0% and 100% to avoid visual noise.
+//
+// v6.010: The bar now uses a foreground-based accent (not faint teal) so it
+// remains visible on light and dark glass backgrounds.
 
 import { useEffect, useState, type RefObject } from "react";
-import { Progress } from "@/components/ui/progress";
 
 type Props = {
   /** The scrollable lesson container ref (defaults to window). */
@@ -19,8 +23,11 @@ export function LessonProgress({ containerRef }: Props) {
     const onScroll = () => {
       const el = containerRef?.current;
       const scrollTop = el ? el.scrollTop : window.scrollY;
-      const scrollHeight = el ? el.scrollHeight - el.clientHeight : document.documentElement.scrollHeight - window.innerHeight;
-      const p = scrollHeight > 0 ? Math.min(100, Math.round((scrollTop / scrollHeight) * 100)) : 0;
+      const scrollHeight = el
+        ? el.scrollHeight - el.clientHeight
+        : document.documentElement.scrollHeight - window.innerHeight;
+      const p =
+        scrollHeight > 0 ? Math.min(100, Math.round((scrollTop / scrollHeight) * 100)) : 0;
       setPct(p);
     };
     onScroll();
@@ -35,11 +42,14 @@ export function LessonProgress({ containerRef }: Props) {
 
   if (pct === 0 || pct === 100) return null;
   return (
-    <div className="fixed top-0 left-0 right-0 z-[60] h-0.5 bg-transparent pointer-events-none">
-      <div className="h-full bg-primary transition-[width] duration-150" style={{ width: `${pct}%` }} />
+    <div
+      className="fixed top-0 left-0 right-0 z-[60] h-0.5 bg-transparent pointer-events-none"
+      aria-hidden
+    >
+      <div
+        className="h-full bg-foreground/70 dark:bg-foreground/80 transition-[width] duration-150"
+        style={{ width: `${pct}%` }}
+      />
     </div>
   );
 }
-
-// Silence unused-import warning for Progress (kept for future variant).
-void Progress;

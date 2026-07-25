@@ -5,7 +5,6 @@ import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import {
   GraduationCap,
-  Clock,
   Trophy,
   ChevronLeft,
   ChevronRight,
@@ -22,14 +21,12 @@ import {
   Target,
   Youtube,
   Lock,
-  Star,
   CheckCircle2,
   Bookmark,
   Printer,
   MessageCircleQuestion,
   RefreshCw,
   RotateCcw,
-  List,
   X,
 } from "lucide-react";
 import { useStore, selectCertificateEligible, selectTrackQuizAverage, selectWeakAreas } from "@/lib/store";
@@ -46,7 +43,8 @@ import { getVideoLink, getPlaylist } from "@/data/youtube-links";
 import { InlineCodeEditor } from "@/components/lesson/InlineCodeEditor";
 import { openLanguageCertificatePdf } from "@/lib/certificate-pdf";
 import { CertificateDetailDialog, useEarnedCertificates } from "@/components/views/CertificateHub";
-import { NextLessonCard, LessonSidebar } from "@/components/learning";
+import { NextLessonCard, LessonSidebar, LessonHeader, LessonNavigation } from "@/components/learning";
+import { AnimatePresence, motion } from "framer-motion";
 import { isDueForReview } from "@/lib/sm2";
 import type { Lesson, QuizQuestion } from "@/lib/types";
 // v6.0: stable identity helpers
@@ -84,7 +82,10 @@ export function LearnView() {
   const [filterLang, setFilterLang] = useState<string | null>(null); // null = show all
   const [lessonFilter, setLessonFilter] = useState<"all" | "bookmarked" | "in-progress" | "completed">("all");
   const [showExploreMore, setShowExploreMore] = useState(false);
-  // v6.009: mobile course outline drawer state
+  // v6.010: course outline panel state — single source of truth for both the
+  // desktop slide-in panel and the mobile bottom-sheet drawer. The lesson
+  // view defaults to HIDDEN so the reading column is the focus.
+  const [outlineOpen, setOutlineOpen] = useState(false);
   const [mobileOutlineOpen, setMobileOutlineOpen] = useState(false);
   // v5.924: certificate detail popup (opened by the "Certified" badge on a track card).
   const [certPopup, setCertPopup] = useState<ReturnType<typeof useEarnedCertificates>[number] | null>(null);
@@ -523,237 +524,227 @@ export function LearnView() {
     const prev = idx > 0 ? trackLessons[idx - 1] : null;
     const next = idx < trackLessons.length - 1 ? trackLessons[idx + 1] : null;
 
+    // v6.010: Shared handler for selecting a lesson from the outline or the
+    // prev/next nav. Preserves the v5.92 "already completed" popup logic.
+    const handleSelectLesson = (lessonId: string) => {
+      const targetProgress = lessonProgress[resolveRef(lessonId)];
+      setOutlineOpen(false);
+      setMobileOutlineOpen(false);
+      if (targetProgress?.status === "complete") {
+        const tl = getLessonsForTrack(selectedLesson.track);
+        setCompletedPopup({ lessonId, trackLessons: tl });
+      } else {
+        setSelectedLessonId(lessonId);
+        setLessonProgress(selectedLesson.id, "in-progress");
+        window.scrollTo(0, 0);
+      }
+    };
+
+    // v5.92 (Part 6): "Next" navigation handler — same as handleSelectLesson
+    // but never auto-closes the desktop outline (the user might be reading
+    // inline). Kept explicit for clarity.
+    const handleNext = () => {
+      if (!next) return;
+      const nextProgress = lessonProgress[resolveRef(next.id)];
+      if (nextProgress?.status === "complete") {
+        const tl = getLessonsForTrack(selectedLesson.track);
+        setCompletedPopup({ lessonId: next.id, trackLessons: tl });
+      } else {
+        setSelectedLessonId(next.id);
+        setLessonProgress(selectedLesson.id, "in-progress");
+        window.scrollTo(0, 0);
+      }
+    };
+    const handlePrev = () => {
+      if (!prev) return;
+      setSelectedLessonId(prev.id);
+      window.scrollTo(0, 0);
+    };
+
+    // v6.010: Suppress the FIRST heading block when it duplicates the lesson
+    // title. The page <h1> in LessonHeader is already the canonical title;
+    // rendering the same string as an <h2> immediately below was flagged by
+    // the VLM audit as a redundant title block. This is a pure UI
+    // deduplication — the underlying block data is unchanged.
+    const lessonTitleNorm = selectedLesson.title.trim().toLowerCase();
+    const isDuplicateTitleBlock = (block: Lesson["blocks"][number], idx: number) =>
+      idx === 0 &&
+      block.kind === "heading" &&
+      block.content.trim().toLowerCase() === lessonTitleNorm;
+
     return (
       <>
-      {/* v6.008 UX: Two-column layout on desktop — collapsible lesson sidebar +
-          constrained reading column. The sidebar manages its own collapsed
-          state (persisted in localStorage). When collapsed it renders a 48px
-          rail; when expanded it fills the 300px column. */}
-      <div className="lg:grid lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-6 xl:gap-8">
-        {/* Lesson sidebar — sticky on desktop, hidden on smaller screens.
-            The sidebar component handles its own collapse/expand internally. */}
-        <aside className="hidden lg:block no-print">
-          <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-hidden">
-            <div className="glass rounded-2xl p-3 h-[calc(100vh-6rem)] flex">
-              <LessonSidebar
-                lessons={trackLessons}
-                currentLessonId={selectedLesson.id}
-                lessonProgress={lessonProgress}
-                onSelectLesson={(lessonId) => {
-                  const targetProgress = lessonProgress[resolveRef(lessonId)];
-                  if (targetProgress?.status === "complete") {
-                    const tl = getLessonsForTrack(selectedLesson.track);
-                    setCompletedPopup({ lessonId, trackLessons: tl });
-                  } else {
-                    setSelectedLessonId(lessonId);
-                    setLessonProgress(selectedLesson.id, "in-progress");
-                    window.scrollTo(0, 0);
-                  }
-                }}
+      {/* v6.010: Reading-first layout. The lesson content is the focus — a
+          single centered column (max-w-3xl, slightly wider on xl). The
+          course outline is HIDDEN by default and revealed via a toggle in
+          LessonHeader. The outline slides in as an OVERLAY (desktop) or a
+          bottom-sheet drawer (mobile) so the reading column never shifts. */}
+      <div className="relative">
+        {/* ─── Desktop slide-in outline panel (overlay) ─────────────────── */}
+        <AnimatePresence>
+          {outlineOpen && (
+            <>
+              {/* Backdrop — click to close. Desktop only. */}
+              <motion.div
+                key="outline-backdrop"
+                className="hidden lg:block fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                onClick={() => setOutlineOpen(false)}
+                aria-hidden
               />
-            </div>
-          </div>
-        </aside>
-
-        {/* Lesson content — constrained reading width for comfort.
-            v6.008: Increased spacing (space-y-6) for documentation-style flow. */}
-      <div className="space-y-6 lesson-content max-w-3xl">
-        {/* Breadcrumb + nav — v6.009: adds mobile course outline button */}
-        <div className="flex items-center justify-between gap-3 flex-wrap no-print">
-          <button
-            onClick={() => { setSelectedLessonId(null); setTab("tracks"); setSelectedTrack(null); }}
-            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ChevronLeft className="h-4 w-4" /> All tracks
-          </button>
-          <div className="flex items-center gap-2">
-            {/* Mobile course outline button */}
-            <button
-              onClick={() => setMobileOutlineOpen(true)}
-              className="lg:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg glass-flat text-xs font-medium hover:bg-foreground/8 transition-colors"
-              aria-label="Open course outline"
-            >
-              <List className="h-3.5 w-3.5" /> Outline
-            </button>
-            <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wide">
-              {track} · Lesson {idx + 1} of {trackLessons.length}
-            </div>
-          </div>
-        </div>
-
-        {/* v6.008: Clean lesson header — no card wrapper, pure typography.
-            Metadata row uses subtle pills, not a glass box. */}
-        <header className="border-b border-border/30 pb-5">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground mb-2">{selectedLesson.title}</h1>
-          <p className="text-[15px] text-muted-foreground leading-relaxed mb-3">{selectedLesson.description}</p>
-          <div className="flex items-center gap-3 flex-wrap text-xs">
-            {/* Difficulty pill */}
-            <span className={cn(
-              "px-2 py-0.5 rounded-full font-medium capitalize",
-              selectedLesson.difficulty === "beginner" && "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400",
-              selectedLesson.difficulty === "intermediate" && "bg-amber-500/12 text-amber-600 dark:text-amber-400",
-              selectedLesson.difficulty === "advanced" && "bg-rose-500/12 text-rose-600 dark:text-rose-400",
-            )}>
-              {selectedLesson.difficulty}
-            </span>
-            {/* Read time */}
-            <span className="flex items-center gap-1 text-muted-foreground font-mono tabular-nums" title={`Official estimate: ${selectedLesson.estMinutes}m · Calculated read time: ${estimateReadTime(selectedLesson.blocks)}m`}>
-              <Clock className="h-3 w-3" /> {selectedLesson.estMinutes}m
-            </span>
-            {/* Completion status */}
-            {progress?.status === "complete" && (
-              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-                <Check className="h-3 w-3" /> Completed · {progress.bestQuizScore ?? 0}%
-              </span>
-            )}
-            {progress?.status === "in-progress" && (
-              <span className="flex items-center gap-1 text-primary font-medium">
-                <PlayCircle className="h-3 w-3" /> In progress
-              </span>
-            )}
-            {/* Action buttons — bookmark + print */}
-            <div className="flex items-center gap-1 ml-auto no-print">
-              <button
-                onClick={() => toggleLessonBookmark(selectedLesson.id)}
-                className="p-1.5 rounded-md hover:bg-foreground/8 transition-colors"
-                aria-label={bookmarkedLessons.includes(resolveRef(selectedLesson.id)) ? "Remove bookmark" : "Bookmark lesson"}
-                title={bookmarkedLessons.includes(resolveRef(selectedLesson.id)) ? "Bookmarked — click to remove" : "Bookmark this lesson"}
+              {/* Slide-in panel — anchored left, fills viewport height. */}
+              <motion.aside
+                key="outline-panel"
+                className="hidden lg:flex fixed top-0 left-0 bottom-0 z-50 w-[340px] max-w-[85vw] flex-col glass-elevated border-r border-border/60 shadow-2xl overflow-hidden"
+                initial={{ x: "-100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "-100%" }}
+                transition={{ type: "spring", stiffness: 320, damping: 34 }}
+                aria-label="Course outline"
               >
-                <Bookmark
-                  className={cn(
-                    "h-4 w-4",
-                    bookmarkedLessons.includes(resolveRef(selectedLesson.id))
-                      ? "fill-primary text-primary"
-                      : "text-muted-foreground",
-                  )}
-                />
-              </button>
-              <button
-                onClick={() => window.print()}
-                className="p-1.5 rounded-md hover:bg-foreground/8 transition-colors"
-                aria-label="Print lesson"
-                title="Print lesson — opens print dialog (choose 'Save as PDF' for a digital copy)"
-              >
-                <Printer className="h-4 w-4 text-muted-foreground" />
-              </button>
-            </div>
-          </div>
-        </header>
+                <div className="p-3 flex-1 min-h-0 flex">
+                  <LessonSidebar
+                    lessons={trackLessons}
+                    currentLessonId={selectedLesson.id}
+                    lessonProgress={lessonProgress}
+                    onSelectLesson={handleSelectLesson}
+                  />
+                </div>
+              </motion.aside>
+            </>
+          )}
+        </AnimatePresence>
 
-        {/* YouTube tutorial video embed (Section 17.5) */}
-        <div className="no-print">
-          <YouTubeEmbed lessonId={selectedLesson.id} trackId={track} />
-        </div>
-
-        {/* v5.937: Lesson content — all lessons use the same LessonBlockView
-            rendering (capstone-in-Learn-tab removed; every lesson is a normal
-            topic lesson now). */}
-        <div className="space-y-4">
-          {selectedLesson.blocks.map((block, i) => (
-            <LessonBlockView key={`${selectedLesson.id}:${i}`} block={block} onTryInPlayground={(code, language) => {
-              setPlaygroundCode(code, toPlaygroundLanguage(language));
-              setView("playground");
-            }} />
-          ))}
-        </div>
-
-        {/* Deep dive resources */}
-        {selectedLesson.deepDiveResources && selectedLesson.deepDiveResources.length > 0 && (
-          <GlassCard className="p-4">
-            <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
-              <BookOpen className="h-4 w-4" /> Deep dive resources
-            </h3>
-            <div className="space-y-1">
-              {selectedLesson.deepDiveResources.map((r, i) => (
-                <a
-                  key={i}
-                  href={r.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-xs text-primary hover:underline py-1"
-                >
-                  <ExternalLink className="h-3 w-3" /> {r.label}
-                </a>
-              ))}
-            </div>
-          </GlassCard>
-        )}
-
-        {/* Action: mark in-progress + start quiz */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 no-print">
-          <div className="flex gap-2">
-            {prev && (
-              <GlassButton variant="ghost" size="sm" onClick={() => { setSelectedLessonId(prev.id); window.scrollTo(0, 0); }}>
-                <ChevronLeft className="h-4 w-4" /> {prev.title}
-              </GlassButton>
-            )}
-            {next && (
-              <GlassButton variant="ghost" size="sm" onClick={() => {
-                // v5.92 (Part 6): If the next lesson was already completed
-                // (e.g. from a roadmap deep-link jump-ahead), show the
-                // "already completed — retry or skip?" popup instead of
-                // navigating directly.
-                const nextProgress = lessonProgress[resolveRef(next.id)];
-                if (nextProgress?.status === "complete") {
-                  const trackLessons = getLessonsForTrack(selectedLesson.track);
-                  setCompletedPopup({ lessonId: next.id, trackLessons });
-                } else {
-                  setSelectedLessonId(next.id);
-                  setLessonProgress(selectedLesson.id, "in-progress");
-                  window.scrollTo(0, 0);
-                }
-              }}>
-                {next.title} <ChevronRight className="h-4 w-4" />
-              </GlassButton>
-            )}
-          </div>
-          {/* v5.937: All lessons now use the standard "Take the quiz" button.
-              Capstone-in-Learn-tab removed — project verification lives in the
-              Projects tab exclusively. */}
-          <GlassButton
-            variant="primary"
-            onClick={() => {
-              setLessonProgress(selectedLesson.id, "in-progress");
-              setTab("quiz");
-              window.scrollTo(0, 0);
+        {/* ─── Lesson content — centered reading column ────────────────── */}
+        <div className="mx-auto w-full max-w-3xl xl:max-w-4xl space-y-8">
+          <LessonHeader
+            lesson={selectedLesson}
+            completed={progress?.status === "complete"}
+            inProgress={progress?.status === "in-progress"}
+            index={idx}
+            total={trackLessons.length}
+            outlineOpen={outlineOpen}
+            onToggleOutline={() => {
+              // Desktop uses the slide-in panel; mobile uses the bottom sheet.
+              // Toggle the appropriate one based on viewport.
+              if (window.matchMedia("(min-width: 1024px)").matches) {
+                setOutlineOpen((v) => !v);
+              } else {
+                setMobileOutlineOpen(true);
+              }
             }}
-          >
-            <Trophy className="h-4 w-4" /> Take the quiz
-          </GlassButton>
+            onBackToTracks={() => {
+              setSelectedLessonId(null);
+              setTab("tracks");
+              setSelectedTrack(null);
+            }}
+            bookmarked={bookmarkedLessons.includes(resolveRef(selectedLesson.id))}
+            onToggleBookmark={() => toggleLessonBookmark(selectedLesson.id)}
+            onPrint={() => window.print()}
+            calculatedReadMinutes={estimateReadTime(selectedLesson.blocks)}
+          />
+
+          {/* YouTube tutorial video embed (Section 17.5) */}
+          <div className="no-print">
+            <YouTubeEmbed lessonId={selectedLesson.id} trackId={track} />
+          </div>
+
+          {/* v5.937 / v6.010: Lesson content blocks — all lessons use the same
+              LessonBlockView rendering. The first block is skipped if it's a
+              heading that duplicates the lesson title (handled by
+              isDuplicateTitleBlock above). */}
+          <article className="space-y-4 lesson-content">
+            {selectedLesson.blocks.map((block, i) => (
+              isDuplicateTitleBlock(block, i) ? null : (
+                <LessonBlockView
+                  key={`${selectedLesson.id}:${i}`}
+                  block={block}
+                  onTryInPlayground={(code, language) => {
+                    setPlaygroundCode(code, toPlaygroundLanguage(language));
+                    setView("playground");
+                  }}
+                />
+              )
+            ))}
+          </article>
+
+          {/* Deep dive resources */}
+          {selectedLesson.deepDiveResources && selectedLesson.deepDiveResources.length > 0 && (
+            <GlassCard className="p-4">
+              <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                <BookOpen className="h-4 w-4" /> Deep dive resources
+              </h3>
+              <div className="space-y-1">
+                {selectedLesson.deepDiveResources.map((r, i) => (
+                  <a
+                    key={i}
+                    href={r.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-xs text-primary hover:underline py-1"
+                  >
+                    <ExternalLink className="h-3 w-3" /> {r.label}
+                  </a>
+                ))}
+              </div>
+            </GlassCard>
+          )}
+
+          {/* v6.010: Quiz CTA — centered, calm. The bottom prev/next nav lives
+              below it so the reader can choose: take the quiz OR continue to
+              the next lesson. */}
+          <div className="flex flex-col items-center gap-3 pt-2 no-print">
+            <GlassButton
+              variant="primary"
+              size="md"
+              onClick={() => {
+                setLessonProgress(selectedLesson.id, "in-progress");
+                setTab("quiz");
+                window.scrollTo(0, 0);
+              }}
+            >
+              <Trophy className="h-4 w-4" /> Take the quiz
+            </GlassButton>
+            <p className="text-[11px] text-muted-foreground text-center">
+              Test your understanding · Pass with 70% to mark this lesson complete
+            </p>
+          </div>
+
+          {/* v6.010: Bottom prev/next navigation — clear, docs-style. */}
+          <div className="pt-6 border-t border-border/30 no-print">
+            <LessonNavigation
+              prev={prev}
+              next={next}
+              onPrev={handlePrev}
+              onNext={handleNext}
+            />
+          </div>
+
+          {/* v6.006: Next-lesson recommendation card — emerald CTA after the
+              reader finishes reading. Uses handleSelectLesson to maintain
+              behavioral parity with the prev/next nav. */}
+          <NextLessonCard
+            currentLesson={selectedLesson}
+            lessonProgress={lessonProgress}
+            onSelectLesson={handleSelectLesson}
+          />
         </div>
-
-        {/* v6.006: Next-lesson recommendation card (from v6.005 learning
-            experience architecture). Purely additive — shows the recommended
-            next lesson after the learner finishes reading. Uses the same
-            navigation logic as the inline prev/next buttons above (including
-            the "already completed" popup) to maintain behavioral parity. */}
-        <NextLessonCard
-          currentLesson={selectedLesson}
-          lessonProgress={lessonProgress}
-          onSelectLesson={(lessonId) => {
-            const targetProgress = lessonProgress[resolveRef(lessonId)];
-            if (targetProgress?.status === "complete") {
-              const trackLessons = getLessonsForTrack(selectedLesson.track);
-              setCompletedPopup({ lessonId, trackLessons });
-            } else {
-              setSelectedLessonId(lessonId);
-              setLessonProgress(selectedLesson.id, "in-progress");
-              window.scrollTo(0, 0);
-            }
-          }}
-        />
-      </div>
       </div>
 
-      {/* v6.009: Mobile course outline drawer — bottom sheet with the track's
-          lesson list. Replaces the desktop sidebar which is hidden on mobile. */}
+      {/* v6.010: Mobile course outline drawer — bottom sheet with the track's
+          lesson list. Triggered by the Outline button in LessonHeader on
+          screens below the lg breakpoint. The desktop slide-in panel above
+          handles lg+ screens. */}
       {mobileOutlineOpen && typeof document !== "undefined" && createPortal(
         <>
           <div
             className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
             onClick={() => setMobileOutlineOpen(false)}
           />
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] flex flex-col rounded-t-2xl glass-elevated border border-border/60 shadow-2xl overflow-hidden">
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 max-h-[82vh] flex flex-col rounded-t-2xl glass-elevated border border-border/60 shadow-2xl overflow-hidden">
             <div className="flex justify-center pt-2 pb-1 shrink-0">
               <div className="h-1 w-10 rounded-full bg-foreground/20" />
             </div>
@@ -772,18 +763,8 @@ export function LearnView() {
                 lessons={trackLessons}
                 currentLessonId={selectedLesson.id}
                 lessonProgress={lessonProgress}
-                onSelectLesson={(lessonId) => {
-                  const targetProgress = lessonProgress[resolveRef(lessonId)];
-                  setMobileOutlineOpen(false);
-                  if (targetProgress?.status === "complete") {
-                    const tl = getLessonsForTrack(selectedLesson.track);
-                    setCompletedPopup({ lessonId, trackLessons: tl });
-                  } else {
-                    setSelectedLessonId(lessonId);
-                    setLessonProgress(selectedLesson.id, "in-progress");
-                    window.scrollTo(0, 0);
-                  }
-                }}
+                onSelectLesson={handleSelectLesson}
+                onClose={() => setMobileOutlineOpen(false)}
               />
             </div>
           </div>

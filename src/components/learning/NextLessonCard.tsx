@@ -1,9 +1,17 @@
 "use client";
 
-// NextLessonCard — v6.005 guided "what's next" recommendation.
-// Shows the recommended next lesson (from lesson.recommendedNextLessons, or
-// falls back to the next lesson by order). Includes module transition
+// NextLessonCard — v6.010 guided "what's next" recommendation.
+//
+// Renders a clear, emerald-accented CTA card that recommends the next lesson
+// after the learner finishes reading. Falls back to the next lesson in track
+// order if `recommendedNextLessons` is empty. Includes module-transition
 // feedback ("Module 3 complete → Module 4 starts") when applicable.
+//
+// Contrast fixes (v6.010):
+//   - All teal text replaced with foreground / emerald accents for sufficient
+//     contrast on glass backgrounds.
+//   - The "Module complete" + "Next lesson" labels use emerald + foreground
+//     instead of low-contrast teal.
 
 import { ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
 import { GlassCard } from "@/components/glass/GlassPrimitives";
@@ -20,9 +28,6 @@ type Props = {
 };
 
 export function NextLessonCard({ currentLesson, lessonProgress, onSelectLesson }: Props) {
-  // Determine the next lesson.
-  // 1. If recommendedNextLessons is populated, use the first that isn't complete.
-  // 2. Else, find the next lesson by order in the same track.
   const trackLessons = getTrackLessons(currentLesson.track);
   const currentIdx = trackLessons.findIndex((l) => l.id === currentLesson.id);
   let nextLesson: Lesson | undefined;
@@ -49,22 +54,28 @@ export function NextLessonCard({ currentLesson, lessonProgress, onSelectLesson }
   let moduleComplete = false;
   if (currentModule) {
     const moduleLessons = trackLessons.filter((l) => l.moduleId === currentModule.slug);
-    moduleComplete = moduleLessons.length > 0 && moduleLessons.every((l) => lessonProgress[resolveRef(l.id)]?.status === "complete");
+    moduleComplete =
+      moduleLessons.length > 0 &&
+      moduleLessons.every((l) => lessonProgress[resolveRef(l.id)]?.status === "complete");
   }
 
   if (!nextLesson && !moduleComplete) return null;
 
   return (
-    <GlassCard className="p-4 border-emerald-500/20 bg-emerald-500/[0.03]">
+    <GlassCard className="p-5 border-emerald-500/25 bg-emerald-500/[0.04]">
       {moduleComplete && currentModule && (
-        <div className="flex items-center gap-2 mb-3 pb-3 border-b border-border/30">
-          <div className="h-8 w-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+        <div className="flex items-center gap-3 mb-4 pb-4 border-b border-border/30">
+          <div className="h-10 w-10 rounded-full bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
           </div>
-          <div>
-            <div className="text-sm font-semibold">Module complete!</div>
+          <div className="min-w-0">
+            <div className="text-sm font-semibold text-foreground">Module complete!</div>
             <div className="text-[11px] text-muted-foreground">
-              {currentModule.icon} {currentModule.title} — {currentModule.skillsUnlocked.length} skill{currentModule.skillsUnlocked.length !== 1 ? "s" : ""} unlocked
+              {currentModule.icon} {currentModule.title} —{" "}
+              <span className="text-emerald-700 dark:text-emerald-400 font-medium">
+                {currentModule.skillsUnlocked.length} skill
+                {currentModule.skillsUnlocked.length !== 1 ? "s" : ""} unlocked
+              </span>
             </div>
           </div>
         </div>
@@ -72,21 +83,27 @@ export function NextLessonCard({ currentLesson, lessonProgress, onSelectLesson }
       {nextLesson && (
         <button
           onClick={() => onSelectLesson(nextLesson.id)}
-          className="w-full flex items-center gap-3 text-left hover:bg-foreground/5 -m-2 p-2 rounded-lg transition-colors"
+          className="w-full flex items-center gap-3 text-left hover:bg-foreground/5 -m-2 p-2 rounded-lg transition-colors group"
         >
-          <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            <Sparkles className="h-4 w-4 text-primary" />
+          <div className="h-10 w-10 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <Sparkles className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-mono">
-              {moduleTransition && nextModule ? `Next: ${nextModule.icon} ${nextModule.title}` : "Next lesson"}
+              {moduleTransition && nextModule
+                ? `Next module: ${nextModule.icon} ${nextModule.title}`
+                : "Recommended next"}
             </div>
-            <div className="text-sm font-medium truncate">{nextLesson.title}</div>
+            <div className="text-sm font-semibold text-foreground truncate group-hover:text-foreground">
+              {nextLesson.title}
+            </div>
             {nextLesson.lessonSummary && (
-              <div className="text-[11px] text-muted-foreground truncate">{nextLesson.lessonSummary}</div>
+              <div className="text-[11px] text-muted-foreground truncate">
+                {nextLesson.lessonSummary}
+              </div>
             )}
           </div>
-          <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+          <ArrowRight className="h-4 w-4 text-foreground/70 group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0" />
         </button>
       )}
     </GlassCard>

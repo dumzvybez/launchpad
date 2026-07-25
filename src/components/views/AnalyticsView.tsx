@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import {
   BarChart3,
   TrendingUp,
@@ -394,7 +394,7 @@ function TimeOfDayChart({ hourlyActivity }: { hourlyActivity: Record<number, num
   );
 }
 
-function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string; color?: string }) {
+function StatCard({ icon, label, value, color }: { icon: ReactNode; label: string; value: string; color?: string }) {
   return (
     <GlassCard className="p-4">
       <div className="flex items-center gap-2 mb-2">

@@ -45,6 +45,7 @@ import {
 import { useStore } from "@/lib/store";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import type { ViewId } from "@/lib/types";
 import { ConfirmDialog } from "@/components/shell/ConfirmDialog";
 import { getLessons } from "@/lib/lessons-data";
@@ -101,7 +102,7 @@ const HELP_TOPICS: { q: string; a: string }[] = [
   { q: "How does spaced repetition work?", a: "SM-2 algorithm tracks missed quiz questions and flashcards." },
   { q: "Is my data private?", a: "Yes — 100% on-device. Only AI chat leaves your browser (to your provider)." },
   { q: "How do I reset my progress?", a: "Settings → Data & Backup → Reset all progress." },
-  { q: "How many lessons are there?", a: "630 lessons across 30 languages (21 per track)." },
+  { q: "How many lessons are there?", a: "797 lessons across 38 languages & frameworks, with 7,200+ quiz questions." },
   { q: "How do I install the PWA?", a: "Install prompt appears after 18s, or use your browser's Install option." },
 ];
 
@@ -203,7 +204,7 @@ export function CommandPalette() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, state.roadmap]);
 
-  // v5.931: Lessons — search all 630 lessons (title + description + track name).
+  // v5.931: Lessons — search all 797 lessons (title + description + track name).
   // Uses getLessons() which returns the cached array (or [] if not yet loaded).
   const filteredLessons = React.useMemo(() => {
     if (!hasQuery) return [];
@@ -305,13 +306,36 @@ export function CommandPalette() {
   };
 
   return (
-    <CommandDialog open={open} onOpenChange={setOpen}>
+    <CommandDialog
+      open={open}
+      onOpenChange={setOpen}
+      // v6.010 (UI-B): mobile-first presentation. On phones the palette
+      // becomes a full-screen sheet (top-0 left-0 right-0 bottom-0, no
+      // transform, no max-width). Desktop keeps the centered 512px modal.
+      className={cn(
+        // Mobile: full-screen sheet, no rounded corners, no transform.
+        "top-0 left-0 right-0 bottom-0 translate-x-0 translate-y-0",
+        "w-full max-w-none h-full sm:h-auto sm:max-h-[85vh]",
+        "rounded-none sm:rounded-lg",
+        // Restore desktop centered modal at sm: breakpoint.
+        "sm:top-[50%] sm:left-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%]",
+        "sm:w-full sm:max-w-lg",
+        // Pad the top for the iOS notch / Dynamic Island on mobile.
+        "pt-[env(safe-area-inset-top,0px)] sm:pt-0",
+        // Pad the bottom for the iOS home indicator on mobile.
+        "pb-[env(safe-area-inset-bottom,0px)] sm:pb-0",
+      )}
+    >
       <CommandInput
         placeholder="Search lessons, projects, tasks, notes, help…"
         value={search}
         onValueChange={setSearch}
       />
-      <CommandList>
+      <CommandList
+        // v6.010 (UI-B): on mobile use the full available screen height
+        // (minus the input + safe-area). Desktop keeps the compact 300px.
+        className="max-h-[calc(100vh-12rem)] sm:max-h-[300px]"
+      >
         <CommandEmpty>No results found.</CommandEmpty>
 
         {/* Navigation — v5.931: now shown both when empty AND when filtered by query */}
@@ -320,7 +344,7 @@ export function CommandPalette() {
             {filteredViews.map((v) => {
               const Icon = VIEW_ICONS[v.id];
               return (
-                <CommandItem key={v.id} onSelect={() => goToView(v.id)} className="group">
+                <CommandItem key={v.id} onSelect={() => goToView(v.id)} className="group min-h-[48px] sm:min-h-0">
                   <Icon className="mr-2 h-4 w-4 text-muted-foreground group-hover:text-foreground" />
                   <span>{v.label}</span>
                 </CommandItem>
@@ -335,7 +359,7 @@ export function CommandPalette() {
             {filteredTasks.map((t) => {
               const isDone = !!state.tasks[t.id]?.completedAt;
               return (
-                <CommandItem key={t.id} onSelect={() => handleTaskNavigate(t.id, t.phaseId, t.moduleId)} className="group">
+                <CommandItem key={t.id} onSelect={() => handleTaskNavigate(t.id, t.phaseId, t.moduleId)} className="group min-h-[48px] sm:min-h-0">
                   {isDone ? (
                     <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-400" />
                   ) : (
@@ -354,7 +378,7 @@ export function CommandPalette() {
           </CommandGroup>
         )}
 
-        {/* v5.931: Lessons — all 630 lessons across 30 tracks */}
+        {/* v5.931: Lessons — all 797 lessons across 38 tracks */}
         {filteredLessons.length > 0 && (
           <>
             <CommandSeparator />
@@ -362,7 +386,7 @@ export function CommandPalette() {
               {filteredLessons.map((l) => {
                 const trackName = ALL_LANGUAGE_INFO[l.track]?.name ?? l.track;
                 return (
-                  <CommandItem key={l.id} onSelect={() => handleLessonNavigate(l.id, l.track)} className="group">
+                  <CommandItem key={l.id} onSelect={() => handleLessonNavigate(l.id, l.track)} className="group min-h-[48px] sm:min-h-0">
                     <BookOpen className="mr-2 h-4 w-4 text-violet-500 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="truncate text-sm">{l.title}</div>
@@ -383,7 +407,7 @@ export function CommandPalette() {
             <CommandSeparator />
             <CommandGroup heading={`Projects (${filteredProjects.length})`}>
               {filteredProjects.map((p) => (
-                <CommandItem key={p.id} onSelect={() => handleProjectNavigate(p.id)}>
+                <CommandItem key={p.id} onSelect={() => handleProjectNavigate(p.id)} className="min-h-[48px] sm:min-h-0">
                   <FolderGit2 className="mr-2 h-4 w-4 text-amber-500 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="truncate text-sm">{p.title}</div>
@@ -404,7 +428,7 @@ export function CommandPalette() {
             <CommandSeparator />
             <CommandGroup heading={`Notes (${filteredNotes.length})`}>
               {filteredNotes.map((n) => (
-                <CommandItem key={n.id} onSelect={() => goToView("notes")}>
+                <CommandItem key={n.id} onSelect={() => goToView("notes")} className="min-h-[48px] sm:min-h-0">
                   <StickyNote className="mr-2 h-4 w-4 text-teal-500 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="truncate text-sm">{n.title || "Untitled"}</div>
@@ -424,7 +448,7 @@ export function CommandPalette() {
             <CommandSeparator />
             <CommandGroup heading={`Help (${filteredHelp.length})`}>
               {filteredHelp.map((h, i) => (
-                <CommandItem key={i} onSelect={handleHelpOpen}>
+                <CommandItem key={i} onSelect={handleHelpOpen} className="min-h-[48px] sm:min-h-0">
                   <HelpCircle className="mr-2 h-4 w-4 text-sky-500 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="truncate text-sm">{h.q}</div>
@@ -444,7 +468,7 @@ export function CommandPalette() {
               <CommandItem onSelect={() => {
                 setTheme(resolvedTheme === "dark" ? "light" : "dark");
                 handleClose();
-              }}>
+              }} className="min-h-[48px] sm:min-h-0">
                 {resolvedTheme === "dark" ? (
                   <Sun className="mr-2 h-4 w-4" />
                 ) : (
@@ -452,15 +476,15 @@ export function CommandPalette() {
                 )}
                 Toggle theme
               </CommandItem>
-              <CommandItem onSelect={handleExport}>
+              <CommandItem onSelect={handleExport} className="min-h-[48px] sm:min-h-0">
                 <Download className="mr-2 h-4 w-4" />
                 Export backup
               </CommandItem>
-              <CommandItem onSelect={handleImport}>
+              <CommandItem onSelect={handleImport} className="min-h-[48px] sm:min-h-0">
                 <Upload className="mr-2 h-4 w-4" />
                 Import backup
               </CommandItem>
-              <CommandItem onSelect={handleReset} className="text-rose-500">
+              <CommandItem onSelect={handleReset} className="text-rose-500 min-h-[48px] sm:min-h-0">
                 <RotateCcw className="mr-2 h-4 w-4" />
                 Reset all progress
               </CommandItem>

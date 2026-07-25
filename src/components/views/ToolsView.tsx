@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { Calendar, StickyNote, Timer, Sparkles, ChevronDown, ChevronUp, Plus, Flame, BookOpen, Clock, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
@@ -252,7 +252,7 @@ function StatCard({
   bg,
   onClick,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   value: number | string;
   accent: string;
@@ -289,13 +289,13 @@ function ToolCard({
   preview,
   children,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   color: "teal" | "fuchsia" | "amber";
   expanded: boolean;
   onToggle: () => void;
-  preview: React.ReactNode;
-  children: React.ReactNode;
+  preview: ReactNode;
+  children: ReactNode;
 }) {
   const colorClasses = {
     teal: { text: "text-teal-500", bg: "bg-teal-500/10", border: "border-teal-500/20" },

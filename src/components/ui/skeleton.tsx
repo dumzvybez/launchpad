@@ -1,7 +1,9 @@
+import type { ComponentProps } from "react"
+
 // v5.84: v5.84: Add aria-hidden for decorative loading state.
 import { cn } from "@/lib/utils"
 
-function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
+function Skeleton({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
       data-slot="skeleton"

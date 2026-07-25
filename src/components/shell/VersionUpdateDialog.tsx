@@ -139,36 +139,46 @@ export function VersionUpdateDialog({ forceOpen = false, onForceClose }: { force
   return (
     <>
       {/* Toast banner — small, unobtrusive, top-right.
-          v6.009: mobile uses left-4 right-4 (full width with margins) instead of max-w-sm. */}
+          v6.009: mobile uses left-4 right-4 (full width with margins) instead of max-w-sm.
+          v6.010 (UI-B): mobile close button is ≥44px, text is ≥14px for
+          readability, "More details" link is a ≥44px tap target. */}
       {showToast && !showFullPopup && (
         <div
           className="fixed top-16 right-4 left-4 sm:left-auto z-[95] sm:max-w-sm view-enter"
           style={{ animation: "lp-hint-slide-in 0.3s ease-out" }}
         >
-          <div className="glass-elevated rounded-2xl p-3 pr-8 shadow-2xl border border-primary/20 relative">
+          <div className="glass-elevated rounded-2xl p-3 sm:pr-8 shadow-2xl border border-primary/20 relative">
             <button
               onClick={dismissToast}
-              className="absolute top-1.5 right-1.5 h-6 w-6 rounded-md hover:bg-foreground/10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+              className={cn(
+                "absolute rounded-md hover:bg-foreground/10 flex items-center justify-center",
+                "text-muted-foreground hover:text-foreground transition-colors",
+                // Mobile: ≥44px tap target. Desktop: 24px corner button.
+                "top-1 right-1 h-11 w-11 sm:top-1.5 sm:right-1.5 sm:h-6 sm:w-6",
+              )}
               aria-label="Dismiss"
             >
-              <X className="h-3 w-3" />
+              <X className="h-4 w-4 sm:h-3 sm:w-3" />
             </button>
             <div className="flex items-start gap-2.5">
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-teal-400 via-fuchsia-400 to-amber-300 flex items-center justify-center shrink-0">
                 <Sparkles className="h-3.5 w-3.5 text-white" />
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 pr-8 sm:pr-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-xs font-semibold">Updated to v{LATEST_RELEASE.version}</span>
+                  <span className="text-sm font-semibold">Updated to v{LATEST_RELEASE.version}</span>
                 </div>
-                <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
+                <p className="text-sm sm:text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
                   {LATEST_RELEASE.title}
                 </p>
                 <button
                   onClick={openFullPopup}
-                  className="mt-1.5 text-[11px] text-primary hover:underline font-medium"
+                  className={cn(
+                    "mt-2 inline-flex items-center gap-1 text-sm sm:text-[11px] text-primary hover:underline font-medium",
+                    "min-h-[36px] sm:min-h-0",
+                  )}
                 >
-                  More details →
+                  More details <ArrowUpRight className="h-3.5 w-3.5 sm:h-3 sm:w-3" />
                 </button>
               </div>
             </div>
@@ -176,10 +186,22 @@ export function VersionUpdateDialog({ forceOpen = false, onForceClose }: { force
         </div>
       )}
 
-      {/* Full popup — opened from toast "More details" or Settings "What's New" */}
+      {/* Full popup — opened from toast "More details" or Settings "What's New".
+          v6.010 (UI-B): mobile uses bottom-sheet-style positioning (top-auto,
+          bottom-0, full-width, rounded top) so it doesn't feel cramped;
+          desktop keeps the centered modal. */}
       <Dialog open={showFullPopup || forceOpen} onOpenChange={(v) => { if (!v) dismissFullPopup(); }}>
         <DialogContent
-          className="sm:max-w-lg max-h-[88vh] overflow-y-auto overflow-x-hidden break-words !flex !flex-col"
+          className={cn(
+            "max-h-[88vh] overflow-y-auto overflow-x-hidden break-words !flex !flex-col",
+            // Mobile: bottom sheet (full-width, rounded top, sits above the
+            // bottom nav + safe-area). Desktop: centered modal.
+            "top-auto bottom-0 left-0 right-0 translate-x-0 translate-y-0",
+            "rounded-t-2xl sm:rounded-lg",
+            "w-full max-w-none sm:max-w-lg sm:top-[50%] sm:left-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%]",
+            // Mobile: more vertical padding so content breathes.
+            "p-5 sm:p-6",
+          )}
           showCloseButton
         >
           {/* v5.931 header redesign: "What's New" is now the main heading
@@ -197,11 +219,11 @@ export function VersionUpdateDialog({ forceOpen = false, onForceClose }: { force
               What&apos;s New
             </DialogTitle>
             <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20">
-                <GitBranch className="h-3 w-3" />
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs sm:text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                <GitBranch className="h-3.5 w-3.5 sm:h-3 sm:w-3" />
                 v{LATEST_RELEASE.version}
               </span>
-              <span className="text-[10px] text-muted-foreground font-mono">
+              <span className="text-xs sm:text-[10px] text-muted-foreground font-mono">
                 {formatDate(LATEST_RELEASE.date)}
               </span>
             </div>
@@ -287,20 +309,20 @@ function CategorySection({ type, items, defaultExpanded, compact = false }: { ty
       "rounded-xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/15 dark:border-white/10 overflow-hidden",
       compact && "rounded-lg",
     )}>
-      {/* Always-visible header */}
+      {/* Always-visible header — v6.010 (UI-B): ≥44px tap target on mobile */}
       <button
         onClick={() => setExpanded(!expanded)}
         className={cn(
           "w-full flex items-center gap-2 hover:bg-white/5 dark:hover:bg-white/5 transition-colors",
-          compact ? "px-2.5 py-1.5" : "p-3",
+          compact ? "px-2.5 py-1.5" : "p-3 min-h-[44px]",
         )}
       >
         <span className={cn("rounded-full shrink-0", dot, compact ? "h-1.5 w-1.5" : "h-2 w-2")} />
-        <span className={cn("font-semibold", compact ? "text-[11px]" : "text-xs")}>{CATEGORY_ICON[type]} {HIGHLIGHT_LABELS[type]}</span>
-        <span className="text-[10px] text-muted-foreground ml-auto">{items.length}</span>
-        {expanded ? <ChevronDown className="h-3 w-3 text-muted-foreground" /> : <ChevronRight className="h-3 w-3 text-muted-foreground" />}
+        <span className={cn("font-semibold", compact ? "text-[11px]" : "text-sm sm:text-xs")}>{CATEGORY_ICON[type]} {HIGHLIGHT_LABELS[type]}</span>
+        <span className="text-xs sm:text-[10px] text-muted-foreground ml-auto">{items.length}</span>
+        {expanded ? <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 sm:h-3 sm:w-3 text-muted-foreground" />}
       </button>
-      {/* Collapsible items */}
+      {/* Collapsible items — v6.010 (UI-B): ≥14px body text on mobile */}
       {expanded && (
         <div className={cn(compact ? "px-2.5 pb-2 space-y-1" : "px-3 pb-3 space-y-1.5")}>
           {items.map((h, i) => (
@@ -308,11 +330,11 @@ function CategorySection({ type, items, defaultExpanded, compact = false }: { ty
               key={i}
               className={cn(
                 "flex items-start gap-2 rounded-lg bg-white/5 dark:bg-black/20 border border-white/10 dark:border-white/5",
-                compact ? "p-1.5" : "p-2",
+                compact ? "p-1.5" : "p-2.5",
               )}
             >
               <span className={cn("shrink-0 mt-0.5 rounded-full", dot, compact ? "h-1 w-1" : "h-1.5 w-1.5")} />
-              <p className={cn("leading-relaxed text-foreground/90 break-words [overflow-wrap:anywhere]", compact ? "text-[11px]" : "text-xs")}>{h.text}</p>
+              <p className={cn("leading-relaxed text-foreground/90 break-words [overflow-wrap:anywhere]", compact ? "text-[11px]" : "text-sm sm:text-xs")}>{h.text}</p>
             </div>
           ))}
         </div>

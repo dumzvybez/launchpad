@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import type { ReactNode } from "react";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
@@ -23,7 +24,7 @@ const jetbrains = JetBrains_Mono({
 
 const APP_NAME = "Launchpad";
 const APP_DESCRIPTION =
-  "Build a personalized coding roadmap based on your career, skill level, and availability. 630 built-in lessons across 30 languages, AI tutor, daily challenges, and certificates — 100% free and private.";
+  "Build a personalized coding roadmap based on your career, skill level, and availability. 797 lessons across 38 languages & frameworks, 7,200+ quiz questions, AI tutor, daily challenges, and certificates — 100% free and private.";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://launchpadedu.vercel.app"),
@@ -77,7 +78,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: `${APP_NAME} — Free Personalized Coding Education Platform`,
-    description: "Your personalized coding journey. 630 lessons, 30 languages, AI tutor. Free. Private. Open-source.",
+    description: "Your personalized coding journey. 797 lessons across 38 languages, 7,200+ quiz questions, AI tutor. Free. Private. Open-source.",
     type: "website",
     siteName: APP_NAME,
     url: "https://launchpadedu.vercel.app",
@@ -137,9 +138,10 @@ const structuredData = {
   logo: "https://launchpadedu.vercel.app/icons/logo-1024.png",
   sameAs: ["https://launchpadedu.vercel.app/"],
   knowsAbout: [
-    "Python", "JavaScript", "TypeScript", "React", "Next.js",
+    "Python", "JavaScript", "TypeScript", "React", "Next.js", "HTML", "CSS",
     "Web Development", "Data Science", "AI/ML", "Cybersecurity",
-    "Cloud/DevOps", "Mobile Development", "Game Development",
+    "Cloud/DevOps", "Mobile Development", "Game Development", "Rust", "Go",
+    "Java", "C", "C++", "C#", "Swift", "Kotlin", "Django", "FastAPI", "Flask",
   ],
   offers: {
     "@type": "Offer",
@@ -152,7 +154,7 @@ const structuredData = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>

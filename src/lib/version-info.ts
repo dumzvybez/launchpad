@@ -11,7 +11,7 @@
 // `lastSeenReleaseVersion` preference differs from APP_VERSION.
 // ============================================================
 
-export const APP_VERSION = "6.009.0";
+export const APP_VERSION = "6.010.0";
 
 export type ReleaseHighlightType = "new" | "improved" | "removed" | "fixed";
 
@@ -43,6 +43,21 @@ export type ReleaseInfo = {
 //   To ship a new release: bump APP_VERSION, add a ReleaseInfo here (user-
 //   facing), AND add a technical entry to CHANGELOG.md. Both are required.
 export const RELEASES: ReleaseInfo[] = [
+  {
+    version: "6.010.0",
+    date: "2026-07-25",
+    title: "SEO, visual audit & UI/UX refinement — reading-first lessons, glass readability, mobile polish",
+    summary:
+      "A comprehensive refinement pass based on a real visual audit: lesson reading is now the focus with the course outline hidden by default, glass surfaces are near-opaque for readable dropdowns and tooltips, the mobile bottom nav and AI Tutor button are touch-friendly, and social-sharing previews now show the correct image and accurate lesson counts. No lesson content changed.",
+    highlights: [
+      { type: "improved", text: "Lessons now prioritize reading — the course outline is hidden by default and opens as a smooth slide-in overlay when you need it. The reading column is wider and centered, like Apple or Stripe documentation." },
+      { type: "fixed", text: "Glass surfaces are more readable: dropdowns, tooltips, and modals now use near-opaque backgrounds so text always meets WCAG contrast standards — no more background bleeding through." },
+      { type: "improved", text: "Mobile bottom navigation is now a clear, high-contrast bar with safe-area support. The AI Tutor button is repositioned so it never overlaps the nav or system gestures. All touch targets are at least 44px." },
+      { type: "fixed", text: "Social media previews now show the correct Launchpad image at the right size (1200×630), with accurate lesson counts (797 lessons across 38 languages) in the title and description." },
+      { type: "improved", text: "Dashboard hierarchy is cleaner — your name is the clear focal point, the career-readiness empty state uses a calm neutral color instead of alarming pink, and stat cards align consistently." },
+      { type: "fixed", text: "Resolved a React warning ('Cannot update a component while rendering') by moving URL synchronization into an effect — the console is now clean." },
+    ],
+  },
   {
     version: "6.009.0",
     date: "2026-07-24",

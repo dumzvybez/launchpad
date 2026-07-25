@@ -133,19 +133,21 @@ export function Sidebar({
         )}
       </div>
 
-      {/* v5.936: nav centered when collapsed, with proper spacing */}
-      <nav className={cn("flex flex-col gap-2.5 mt-1 flex-1 min-h-0 overflow-y-auto no-scrollbar", collapsed ? "items-center" : "pr-1")}>
+      {/* v5.936: nav centered when collapsed, with proper spacing.
+          v6.010: increased gap (2.5 → 3) for clearer group separation. */}
+      <nav className={cn("flex flex-col gap-3 mt-1 flex-1 min-h-0 overflow-y-auto no-scrollbar", collapsed ? "items-center" : "pr-1")}>
         {Object.entries(grouped).map(([group, items]) => (
           <div
             key={group}
-            className={cn("flex flex-col gap-0.5 relative", collapsed && "w-full")}
+            className={cn("flex flex-col gap-1 relative", collapsed && "w-full")}
             onMouseEnter={() => collapsed && setHoveredGroup(group)}
             onMouseLeave={() => collapsed && setHoveredGroup(null)}
           >
             {!collapsed && (
-              <span className="text-eyebrow px-3 mb-0.5">{GROUP_LABELS[group]}</span>
+              <span className="text-eyebrow px-3 mb-0.5 mt-1">{GROUP_LABELS[group]}</span>
             )}
-            {/* Collapsed: show group icon (clickable → first item) with flyout on hover */}
+            {/* Collapsed: show group icon (clickable → first item) with flyout on hover.
+                v6.010: bumped py-1.5 → py-2 for safe 32px+ touch target. */}
             {collapsed && (() => {
               const GroupIcon = groupIcons[group] ?? LayoutDashboard;
               const firstItem = items[0];
@@ -155,7 +157,7 @@ export function Sidebar({
                   onClick={() => firstItem && setView(firstItem.id)}
                   aria-label={GROUP_LABELS[group]}
                   className={cn(
-                    "flex items-center justify-center py-1.5 rounded-lg transition-colors w-full",
+                    "flex items-center justify-center py-2 rounded-lg transition-colors w-full min-h-[36px]",
                     anyActive ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-foreground/5",
                   )}
                   title={GROUP_LABELS[group]}
@@ -187,7 +189,11 @@ export function Sidebar({
                 })}
               </div>
             )}
-            {/* Expanded: show full nav items */}
+            {/* Expanded: show full nav items.
+                v6.010: removed the redundant active "dot" indicator — the
+                background highlight + primary-colored icon is enough. Keeping
+                the dot too was triple-confirmation (dot + bg + header title).
+                Padding bumped from py-1.5 → py-2 for breathing room. */}
             {!collapsed && items.map((item) => {
               const Icon = item.icon;
               const active = currentView === item.id;
@@ -204,7 +210,7 @@ export function Sidebar({
                   onClick={() => setView(item.id)}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "group flex items-center gap-3 rounded-lg px-3 py-1.5 text-[13px] transition-all duration-200",
+                    "group flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] transition-all duration-200",
                     "border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                     active
                       ? "nav-item-active"
@@ -220,9 +226,6 @@ export function Sidebar({
                     )}
                   />
                   {!collapsed && <span className="font-medium">{item.label}</span>}
-                  {!collapsed && active && (
-                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary pulse-dot" />
-                  )}
                 </button>
               );
             })}

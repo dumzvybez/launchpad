@@ -131,25 +131,26 @@ export function ProjectsView() {
   }
 
   return (
-    <div className="view-enter space-y-4">
-      <GlassCard variant="flat" className="p-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h2 className="text-base font-semibold flex items-center gap-2">
-              <Rocket className="h-4 w-4 text-primary" /> Your Project Track
+    <div className="view-enter space-y-5">
+      <GlassCard variant="flat" className="p-4 sm:p-5 border border-border/40">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="min-w-0">
+            <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2 tracking-tight">
+              <Rocket className="h-4 w-4 text-primary shrink-0" /> Your Project Track
             </h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-xs text-muted-foreground mt-1">
               {selectedProjects.length} projects selected for your {state.roadmap.careerLabel} path · {shippedCount} shipped · {inProgressCount} in progress
             </p>
           </div>
-          <div className="flex items-center gap-1 p-1 rounded-xl bg-foreground/5 overflow-x-auto">
+          {/* Filter pill group — v6.010: scrollable on mobile, touch-friendly */}
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-foreground/5 overflow-x-auto no-scrollbar max-w-full">
             {(["all", "planned", "in_progress", "shipped"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
                 className={cn(
-                  "px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap",
-                  filter === f ? "bg-background text-foreground shadow-sm" : "text-muted-foreground",
+                  "px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap min-h-[32px]",
+                  filter === f ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {f === "all" ? "All" : STATUS_CONFIG[f].label}
@@ -160,11 +161,11 @@ export function ProjectsView() {
       </GlassCard>
 
       {selectedProjects.length === 0 ? (
-        <GlassCard className="p-8 text-center">
+        <GlassCard className="p-8 text-center border border-border/40">
           <p className="text-sm text-muted-foreground">No projects match your roadmap. Try a different career or language selection.</p>
         </GlassCard>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map((proj) => {
             const tracker = projectTrackers[proj.id];
             const status = tracker?.status ?? "planned";
@@ -177,33 +178,33 @@ export function ProjectsView() {
             const pct = Math.round((completedDeliverables / totalDeliverables) * 100);
 
             return (
-              <GlassCard key={proj.id} hover className="overflow-hidden">
+              <GlassCard key={proj.id} hover className="overflow-hidden border border-border/40">
                 <div className={cn("h-1 bg-gradient-to-r", tierGradient)} />
 
-                <div className="p-5 space-y-3">
+                <div className="p-4 sm:p-5 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1.5">
                         <GlassPill className="bg-gradient-to-r text-white border-transparent">
                           <span className={cn("bg-gradient-to-r bg-clip-text text-transparent font-semibold capitalize", tierGradient)}>
                             {proj.tier}
                           </span>
                         </GlassPill>
-                        <span className={cn("text-[10px] font-mono uppercase", diffConfig.color)}>
+                        <span className={cn("text-[10px] font-mono uppercase tracking-wide", diffConfig.color)}>
                           {diffConfig.label}
                         </span>
                         <span className="text-[10px] font-mono text-muted-foreground flex items-center gap-0.5">
                           <Clock className="h-3 w-3" /> {proj.estHours}h
                         </span>
                       </div>
-                      <h3 className="text-base font-semibold tracking-tight">{proj.title}</h3>
+                      <h3 className="text-base sm:text-lg font-semibold tracking-tight leading-snug">{proj.title}</h3>
                     </div>
                     <div className={cn("shrink-0 text-[10px] font-mono uppercase tracking-wide px-2 py-1 rounded-md", STATUS_CONFIG[status].color)}>
                       {STATUS_CONFIG[status].label}
                     </div>
                   </div>
 
-                  <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{proj.description}</p>
+                  <p className="text-xs sm:text-[13px] text-muted-foreground leading-relaxed line-clamp-2 break-words">{proj.description}</p>
 
                   {/* Match reason */}
                   {proj.matchReason && (
@@ -234,10 +235,10 @@ export function ProjectsView() {
                   </div>
 
                   {/* Deliverables */}
-                  <div className="space-y-1">
+                  <div className="space-y-1.5 pt-1">
                     <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
                       <span>Deliverables</span>
-                      <span>{completedDeliverables}/{totalDeliverables}</span>
+                      <span className="tabular-nums">{completedDeliverables}/{totalDeliverables}</span>
                     </div>
                     <ProgressBar value={pct} size="sm" />
                     <ul className="space-y-0.5 pt-1">
@@ -248,20 +249,20 @@ export function ProjectsView() {
                           ) : (
                             <Circle className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
                           )}
-                          <span className={cn("text-foreground/80", i < completedDeliverables && "line-through text-muted-foreground")}>
+                          <span className={cn("text-foreground/80 line-clamp-1", i < completedDeliverables && "line-through text-muted-foreground")}>
                             {d}
                           </span>
                         </li>
                       ))}
                     </ul>
                     {proj.stretchGoals && proj.stretchGoals.length > 0 && (
-                      <div className="pt-2 mt-2 border-t border-border/30">
+                      <div className="pt-2 mt-1 border-t border-border/30">
                         <div className="text-[9px] uppercase tracking-wide text-amber-500 font-semibold mb-1">Stretch goals</div>
                         <ul className="space-y-0.5">
                           {proj.stretchGoals.slice(0, 2).map((s, i) => (
                             <li key={i} className="flex gap-1.5 text-[10px] text-muted-foreground">
                               <span className="text-amber-500 shrink-0">★</span>
-                              <span>{s}</span>
+                              <span className="line-clamp-1">{s}</span>
                             </li>
                           ))}
                         </ul>
@@ -269,13 +270,13 @@ export function ProjectsView() {
                     )}
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 pt-2 border-t border-border/40">
+                  {/* Actions — v6.010: cleaner touch-friendly layout */}
+                  <div className="flex items-center gap-2 pt-2 border-t border-border/40 flex-wrap">
                     <GlassButton
                       size="sm"
                       variant="ghost"
                       onClick={() => setInstructionsProjectId(proj.id)}
-                      className="shrink-0"
+                      className="shrink-0 min-h-[32px]"
                     >
                       <BookOpen className="h-3.5 w-3.5" /> Instructions
                     </GlassButton>
@@ -284,11 +285,11 @@ export function ProjectsView() {
                       placeholder="GitHub repo URL"
                       defaultValue={tracker?.repoUrl ?? ""}
                       onBlur={(e) => updateProjectTracker(proj.id, { repoUrl: e.target.value })}
-                      className="flex-1 bg-foreground/4 rounded-lg px-2 py-1 text-[11px] outline-none focus:ring-2 focus:ring-primary/30"
+                      className="flex-1 min-w-[120px] bg-foreground/4 rounded-lg px-2.5 py-1.5 text-[11px] outline-none focus:ring-2 focus:ring-primary/30 border border-transparent focus:border-primary/30"
                     />
                     {tracker?.repoUrl && (
-                      <a href={tracker.repoUrl} target="_blank" rel="noopener noreferrer">
-                        <GlassButton size="icon" variant="ghost" className="h-7 w-7">
+                      <a href={tracker.repoUrl} target="_blank" rel="noopener noreferrer" aria-label="Open GitHub repo">
+                        <GlassButton size="icon" variant="ghost" className="h-8 w-8">
                           <Github className="h-3.5 w-3.5" />
                         </GlassButton>
                       </a>
@@ -298,11 +299,11 @@ export function ProjectsView() {
                       placeholder="Live URL"
                       defaultValue={tracker?.liveUrl ?? ""}
                       onBlur={(e) => updateProjectTracker(proj.id, { liveUrl: e.target.value })}
-                      className="flex-1 bg-foreground/4 rounded-lg px-2 py-1 text-[11px] outline-none focus:ring-2 focus:ring-primary/30"
+                      className="flex-1 min-w-[100px] bg-foreground/4 rounded-lg px-2.5 py-1.5 text-[11px] outline-none focus:ring-2 focus:ring-primary/30 border border-transparent focus:border-primary/30"
                     />
                     {tracker?.liveUrl && (
-                      <a href={tracker.liveUrl} target="_blank" rel="noopener noreferrer">
-                        <GlassButton size="icon" variant="ghost" className="h-7 w-7">
+                      <a href={tracker.liveUrl} target="_blank" rel="noopener noreferrer" aria-label="Open live URL">
+                        <GlassButton size="icon" variant="ghost" className="h-8 w-8">
                           <ExternalLink className="h-3.5 w-3.5" />
                         </GlassButton>
                       </a>
@@ -314,7 +315,7 @@ export function ProjectsView() {
                       status is a successful AI-Verify pass (which sets status
                       + shippedAt + verifiedAt). Users can move between
                       Planned → In Progress → Abandoned manually. */}
-                  <div className="flex items-center gap-1 pt-1">
+                  <div className="flex items-center gap-1.5 pt-1 flex-wrap">
                     <select
                       value={tracker?.verifiedAt ? "shipped" : status}
                       onChange={(e) => {
@@ -327,7 +328,7 @@ export function ProjectsView() {
                           startedAt: newStatus === "in_progress" ? new Date().toISOString() : tracker?.startedAt,
                         });
                       }}
-                      className="text-[11px] bg-foreground/4 rounded-lg px-2 py-1 outline-none border border-border/40"
+                      className="text-[11px] bg-foreground/4 rounded-lg px-2 py-1.5 outline-none border border-border/40 min-h-[30px]"
                     >
                       <option value="planned">Planned</option>
                       <option value="in_progress">In Progress</option>
@@ -348,21 +349,21 @@ export function ProjectsView() {
                       verified result auto-marks the project shipped + verifiedAt
                       (counts toward Career Readiness). Not-verified shows feedback. */}
                   {status === "shipped" && tracker?.verifiedAt && (
-                    <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/30 p-2.5 text-[10px] text-emerald-600 dark:text-emerald-400 leading-relaxed flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                    <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/30 p-2.5 text-[10px] text-emerald-600 dark:text-emerald-400 leading-relaxed flex items-start gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0 mt-0.5" />
                       <span><strong>AI-Verified.</strong> Counts toward Career Readiness. Resubmit to re-verify.</span>
                     </div>
                   )}
                   {status === "shipped" && !tracker?.verifiedAt && (
-                    <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-2.5 text-[10px] text-amber-600 dark:text-amber-400 leading-relaxed flex items-center gap-1.5">
-                      <Award className="h-3.5 w-3.5 shrink-0" />
+                    <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-2.5 text-[10px] text-amber-600 dark:text-amber-400 leading-relaxed flex items-start gap-1.5">
+                      <Award className="h-3.5 w-3.5 shrink-0 mt-0.5" />
                       <span>Marked shipped — <strong>not yet AI-verified.</strong> Verify to count toward Career Readiness.</span>
                     </div>
                   )}
 
                   <button
                     onClick={() => setVerifyTarget({ mode: "project", project: proj })}
-                    className="w-full px-3 py-2.5 rounded-lg bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white text-xs font-semibold hover:brightness-110 transition-all flex items-center justify-center gap-1.5 shadow-md shadow-violet-500/20"
+                    className="w-full px-3 py-2.5 rounded-lg bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white text-xs font-semibold hover:brightness-110 transition-all flex items-center justify-center gap-1.5 shadow-md shadow-violet-500/20 min-h-[40px]"
                   >
                     <Target className="h-3.5 w-3.5" />
                     {tracker?.verifiedAt ? "Re-verify Project" : "Verify Project"}
@@ -389,19 +390,19 @@ export function ProjectsView() {
       })()}
 
       {/* Hint about how projects are selected + Explore More button */}
-      <GlassCard className="p-4">
+      <GlassCard className="p-4 sm:p-5 border border-border/40">
         <div className="flex items-start gap-2 text-xs text-muted-foreground">
           <Star className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <strong>How projects are selected:</strong> These projects are chosen from our database of 207 projects based on your career ({state.roadmap.careerLabel}) and selected languages. They scale in complexity: 2-3 beginner projects early, 2-3 intermediate midway, and 1-2 advanced capstone projects.
+          <div className="flex-1 leading-relaxed">
+            <strong className="text-foreground">How projects are selected:</strong> These projects are chosen from our database of 207 projects based on your career ({state.roadmap.careerLabel}) and selected languages. They scale in complexity: 2-3 beginner projects early, 2-3 intermediate midway, and 1-2 advanced capstone projects.
           </div>
         </div>
 
-        {/* Explore More Projects — toggle button */}
+        {/* Explore More Projects — toggle button. v6.010: touch-friendly. */}
         <div className="mt-3 pt-3 border-t border-border/30">
           <button
             onClick={() => setShowExploreMore(!showExploreMore)}
-            className="w-full inline-flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-2 rounded-md border border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors"
+            className="w-full inline-flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-2.5 rounded-md border border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors min-h-[40px]"
           >
             {showExploreMore ? (
               <>Hide extra projects ▲</>
@@ -465,24 +466,24 @@ function ProjectInstructionsView({
   const steps = generateProjectSteps(project);
 
   return (
-    <div className="view-enter space-y-4">
-      {/* Back arrow */}
+    <div className="view-enter space-y-5">
+      {/* Back arrow — v6.010: touch-friendly */}
       <button
         onClick={onBack}
-        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground min-h-[36px] -ml-1 px-1"
       >
         <ChevronLeft className="h-4 w-4" /> Back to Projects
       </button>
 
       {/* Project header */}
-      <GlassCard className="p-5">
-        <div className="flex items-start gap-3">
+      <GlassCard className="p-4 sm:p-5 border border-border/40">
+        <div className="flex items-start gap-3 sm:gap-4">
           <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-teal-500 to-violet-500 flex items-center justify-center shrink-0">
             <Target className="h-6 w-6 text-white" />
           </div>
-          <div className="flex-1">
-            <h1 className="text-lg font-bold">{project.title}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{project.description}</p>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight">{project.title}</h1>
+            <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{project.description}</p>
             <div className="flex items-center gap-2 mt-2 flex-wrap">
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-foreground/5 capitalize">{project.difficulty}</span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-foreground/5 capitalize">{project.tier}</span>
@@ -495,7 +496,7 @@ function ProjectInstructionsView({
       </GlassCard>
 
       {/* What you will build */}
-      <GlassCard className="p-5">
+      <GlassCard className="p-4 sm:p-5 border border-border/40">
         <h2 className="text-sm font-semibold mb-2 flex items-center gap-2">
           <Target className="h-4 w-4 text-primary" /> What you will build
         </h2>
@@ -505,7 +506,7 @@ function ProjectInstructionsView({
       </GlassCard>
 
       {/* Languages / tools required */}
-      <GlassCard className="p-5">
+      <GlassCard className="p-4 sm:p-5 border border-border/40">
         <h2 className="text-sm font-semibold mb-2">Languages / tools required</h2>
         <div className="flex flex-wrap gap-1.5">
           {project.languages.map((langId) => {
@@ -521,7 +522,7 @@ function ProjectInstructionsView({
       </GlassCard>
 
       {/* Step-by-step instructions */}
-      <GlassCard className="p-5">
+      <GlassCard className="p-4 sm:p-5 border border-border/40">
         <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
           <ListChecks className="h-4 w-4 text-primary" /> Step-by-step instructions
         </h2>
@@ -531,7 +532,7 @@ function ProjectInstructionsView({
               <span className="h-6 w-6 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
                 {i + 1}
               </span>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium">{step.title}</div>
                 <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{step.detail}</p>
               </div>
@@ -541,7 +542,7 @@ function ProjectInstructionsView({
       </GlassCard>
 
       {/* Deliverables */}
-      <GlassCard className="p-5">
+      <GlassCard className="p-4 sm:p-5 border border-border/40">
         <h2 className="text-sm font-semibold mb-3">Deliverables</h2>
         <ul className="space-y-1.5">
           {project.deliverables.map((d, i) => (
@@ -555,7 +556,7 @@ function ProjectInstructionsView({
 
       {/* Stretch goals */}
       {project.stretchGoals && project.stretchGoals.length > 0 && (
-        <GlassCard className="p-5">
+        <GlassCard className="p-4 sm:p-5 border border-border/40">
           <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
             <Star className="h-4 w-4 text-amber-500" /> Stretch goals (optional)
           </h2>
@@ -571,7 +572,7 @@ function ProjectInstructionsView({
       )}
 
       {/* Submit project (Section 3.4 / 4.1) */}
-      <GlassCard className="p-5">
+      <GlassCard className="p-4 sm:p-5 border border-border/40">
         <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
           <Upload className="h-4 w-4 text-primary" /> Submit your project
         </h2>
@@ -592,14 +593,14 @@ function ProjectInstructionsView({
               value={repoUrl}
               onChange={(e) => setRepoUrl(e.target.value)}
               placeholder="https://github.com/yourusername/your-project"
-              className="w-full bg-foreground/4 rounded-lg px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-primary/30"
+              className="w-full bg-foreground/4 rounded-lg px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-primary/30 border border-transparent focus:border-primary/30"
             />
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Notes about your implementation (optional)…"
               rows={2}
-              className="w-full bg-foreground/4 rounded-lg px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+              className="w-full bg-foreground/4 rounded-lg px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-primary/30 resize-none border border-transparent focus:border-primary/30"
             />
             <GlassButton
               variant="primary"

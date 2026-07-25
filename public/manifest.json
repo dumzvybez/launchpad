@@ -1,7 +1,7 @@
 {
   "name": "Launchpad — Free Personalized Coding Education Platform",
   "short_name": "Launchpad",
-  "description": "A free, privacy-first coding education platform. 630 lessons across 30 languages, personalized roadmap, BYOK AI tutor, code playground, daily challenges, and certificates. 100% on-device.",
+  "description": "A free, privacy-first coding education platform. 797 lessons across 38 languages & frameworks, 7,200+ quiz questions, personalized roadmap, BYOK AI tutor, code playground, daily challenges, and certificates. 100% on-device.",
   "id": "launchpad",
   "start_url": "/",
   "scope": "/",

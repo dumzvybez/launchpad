@@ -1,36 +1,35 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import {
   CheckCircle2,
   Circle,
-  Clock,
   PlayCircle,
-  PanelLeftClose,
-  PanelLeftOpen,
   ChevronRight,
+  Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ProgressBar } from "@/components/glass/GlassPrimitives";
 import { ALL_LANGUAGE_INFO } from "@/lib/lessons-meta";
 import { resolveRef } from "@/lib/identity";
+import { getModule } from "@/lib/curriculum";
 import type { Lesson, LessonProgress as LessonProgressEntry } from "@/lib/types";
 
 /**
- * LessonSidebar — v6.008 professional redesign.
+ * LessonSidebar — v6.010 reading-first course outline.
  *
- * Design principles:
- *   - Expanded: clean course outline with grouped sections, clear progress,
- *     scannable lesson rows. No visual clutter.
- *   - Collapsed: a deliberate compact rail (48px) with icon + tooltip,
- *     not a broken hidden menu. Click to expand.
- *   - The collapse state persists in localStorage so the user's preference
- *     is remembered across sessions.
- *   - A "focus mode" toggle lets the user hide the sidebar entirely for
- *     distraction-free reading.
+ * Design principles (Apple/Stripe docs):
+ *   - Controlled component: parent (LearnView) decides whether the outline is
+ *     visible. This sidebar just renders the outline content cleanly.
+ *   - Module-grouped, scannable lesson rows with clear completion state.
+ *   - The current lesson is highlighted with a subtle accent and a small
+ *     "Current" badge — using foreground/muted colors with strong contrast
+ *     (no low-contrast teal text).
+ *   - The track header shows aggregate progress + a clean progress bar.
  *
- * The collapsed rail shows a vertical progress indicator + current lesson
- * number, so the user still has context without the full list.
+ * This component is rendered in three places:
+ *   - Desktop inline slide-in panel (controlled by LearnView).
+ *   - Mobile bottom-sheet drawer (controlled by LearnView).
+ *   - Standalone — anywhere a course outline is useful.
  */
 
 type Props = {
@@ -38,38 +37,23 @@ type Props = {
   currentLessonId: string;
   lessonProgress: Record<string, LessonProgressEntry>;
   onSelectLesson: (lessonId: string) => void;
+  /** Optional close handler — shown as a small X in the header (for mobile drawer). */
+  onClose?: () => void;
 };
 
 const DIFFICULTY_DOT: Record<string, string> = {
-  beginner: "bg-emerald-400",
-  intermediate: "bg-amber-400",
-  advanced: "bg-rose-400",
+  beginner: "bg-emerald-500",
+  intermediate: "bg-amber-500",
+  advanced: "bg-rose-500",
 };
-
-const STORAGE_KEY = "launchpad:lesson-sidebar-collapsed";
 
 export function LessonSidebar({
   lessons,
   currentLessonId,
   lessonProgress,
   onSelectLesson,
+  onClose,
 }: Props) {
-  // Collapsed state persists across sessions. Default: expanded.
-  const [collapsed, setCollapsed] = useState(false);
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved === "true") setCollapsed(true);
-    } catch { /* ignore */ }
-  }, []);
-
-  const toggleCollapsed = () => {
-    const next = !collapsed;
-    setCollapsed(next);
-    try { localStorage.setItem(STORAGE_KEY, String(next)); } catch { /* ignore */ }
-  };
-
   const trackId = lessons[0]?.track ?? "";
   const trackInfo = ALL_LANGUAGE_INFO[trackId];
   const completedCount = lessons.filter(
@@ -78,145 +62,162 @@ export function LessonSidebar({
   const pct = lessons.length ? Math.round((completedCount / lessons.length) * 100) : 0;
   const currentIdx = lessons.findIndex((l) => l.id === currentLessonId);
 
-  // ---- Collapsed rail (48px wide) ----
-  if (collapsed) {
-    return (
-      <div className="flex flex-col items-center gap-3 py-2 px-1 h-full">
-        {/* Expand button */}
-        <button
-          onClick={toggleCollapsed}
-          className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-foreground/8 transition-colors"
-          aria-label="Show course outline"
-          title="Show course outline"
-        >
-          <PanelLeftOpen className="h-4 w-4" />
-        </button>
-
-        {/* Track icon */}
-        <div className="text-xl" title={trackInfo?.name ?? trackId}>
-          {trackInfo?.icon ?? "📘"}
-        </div>
-
-        {/* Vertical progress indicator */}
-        <div
-          className="flex-1 w-1.5 rounded-full bg-foreground/8 overflow-hidden relative min-h-[80px]"
-          title={`${completedCount}/${lessons.length} lessons · ${pct}%`}
-        >
-          <div
-            className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-teal-400 to-emerald-400 transition-all duration-500"
-            style={{ height: `${pct}%` }}
-          />
-        </div>
-
-        {/* Current lesson number */}
-        <div
-          className="text-[10px] font-mono text-muted-foreground tabular-nums"
-          title={`Lesson ${currentIdx + 1} of ${lessons.length}`}
-        >
-          {currentIdx + 1}/{lessons.length}
-        </div>
-      </div>
-    );
+  // Group lessons by module for a documentation-style outline.
+  const groups = new Map<
+    string,
+    { moduleSlug: string; moduleName: string; moduleIcon: string; lessons: Lesson[] }
+  >();
+  for (const l of lessons) {
+    const moduleSlug = l.moduleId ?? `legacy:${l.group ?? "Lessons"}`;
+    const moduleInfo = l.moduleId ? getModule(l.moduleId) : undefined;
+    const moduleName = moduleInfo?.title ?? l.group ?? "Lessons";
+    const moduleIcon = moduleInfo?.icon ?? "📚";
+    if (!groups.has(moduleSlug)) {
+      groups.set(moduleSlug, { moduleSlug, moduleName, moduleIcon, lessons: [] });
+    }
+    groups.get(moduleSlug)!.lessons.push(l);
   }
 
-  // ---- Expanded panel ----
   return (
-    <nav aria-label="Track lessons" className="flex flex-col h-full">
-      {/* Header: track info + collapse button */}
-      <div className="flex items-center justify-between gap-2 px-1 pb-3 border-b border-border/30 mb-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-lg shrink-0">{trackInfo?.icon ?? "📘"}</span>
-          <div className="min-w-0">
-            <div className="text-sm font-semibold truncate">{trackInfo?.name ?? trackId}</div>
-            <div className="text-[10px] text-muted-foreground font-mono tabular-nums">
-              {completedCount}/{lessons.length} · {pct}%
+    <nav aria-label="Course outline" className="flex flex-col h-full min-h-0">
+      {/* Track header */}
+      <div className="px-1 pb-3 border-b border-border/30 mb-3 shrink-0">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-lg shrink-0">{trackInfo?.icon ?? "📘"}</span>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold truncate">{trackInfo?.name ?? trackId}</div>
+              <div className="text-[10px] text-muted-foreground font-mono tabular-nums">
+                {completedCount}/{lessons.length} lessons · {pct}%
+              </div>
             </div>
           </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="lg:hidden shrink-0 h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-foreground/8 transition-colors"
+              aria-label="Close outline"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          )}
         </div>
-        <button
-          onClick={toggleCollapsed}
-          className="shrink-0 h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-foreground/8 transition-colors"
-          aria-label="Hide course outline"
-          title="Hide outline (focus mode)"
-        >
-          <PanelLeftClose className="h-3.5 w-3.5" />
-        </button>
+        {/* Progress bar */}
+        <div className="mt-2.5">
+          <ProgressBar value={pct} size="sm" />
+        </div>
       </div>
 
-      {/* Progress bar */}
-      <div className="px-1 pb-3">
-        <ProgressBar value={pct} size="sm" />
-      </div>
-
-      {/* Lesson list — clean, scannable, no boxes */}
-      <ol className="flex-1 space-y-0 overflow-y-auto scrollbar-thin -mr-1 pr-1">
-        {lessons.map((lesson, idx) => {
-          const slug = resolveRef(lesson.id);
-          const progress = lessonProgress[slug];
-          const isComplete = progress?.status === "complete";
-          const isInProgress = progress?.status === "in-progress";
-          const isCurrent = lesson.id === currentLessonId;
-
+      {/* Lesson list — module-grouped, scannable, no boxes */}
+      <ol className="flex-1 min-h-0 space-y-4 overflow-y-auto scrollbar-thin -mr-1 pr-1">
+        {[...groups.values()].map((g, gi) => {
+          const moduleCompleted = g.lessons.filter(
+            (l) => lessonProgress[resolveRef(l.id)]?.status === "complete",
+          ).length;
+          const containsCurrent = g.lessons.some((l) => l.id === currentLessonId);
           return (
-            <li key={lesson.id}>
-              <button
-                onClick={() => onSelectLesson(lesson.id)}
-                aria-current={isCurrent ? "page" : undefined}
-                className={cn(
-                  "w-full text-left flex items-start gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-150 group",
-                  isCurrent
-                    ? "bg-primary/10 ring-1 ring-primary/25"
-                    : "hover:bg-foreground/4",
-                )}
-              >
-                {/* Status indicator */}
-                <span className="shrink-0 mt-0.5">
-                  {isComplete ? (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  ) : isInProgress ? (
-                    <PlayCircle className="h-4 w-4 text-primary" />
-                  ) : isCurrent ? (
-                    <Circle className="h-4 w-4 text-primary fill-primary/20" />
-                  ) : (
-                    <Circle className="h-4 w-4 text-muted-foreground/40 group-hover:text-muted-foreground/70 transition-colors" />
-                  )}
+            <li key={g.moduleSlug}>
+              {/* Module header — documentation-style */}
+              <div className="flex items-center gap-1.5 px-1 mb-1.5">
+                <span className="text-xs">{g.moduleIcon}</span>
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-foreground/70">
+                  <span className="text-muted-foreground/80 font-mono mr-1">{gi + 1}.</span>
+                  {g.moduleName}
                 </span>
+                <span className="ml-auto text-[10px] text-muted-foreground font-mono tabular-nums">
+                  {moduleCompleted}/{g.lessons.length}
+                </span>
+              </div>
 
-                {/* Title + meta */}
-                <span className="flex-1 min-w-0">
-                  <span
-                    className={cn(
-                      "block text-xs leading-snug line-clamp-2 transition-colors",
-                      isCurrent
-                        ? "font-semibold text-foreground"
-                        : isComplete
-                          ? "text-muted-foreground group-hover:text-foreground/80"
-                          : "text-foreground/85 group-hover:text-foreground",
-                    )}
-                  >
-                    {lesson.title}
-                  </span>
-                  <span className="flex items-center gap-2 mt-1">
-                    <span
-                      className={cn("h-1.5 w-1.5 rounded-full", DIFFICULTY_DOT[lesson.difficulty] ?? "bg-muted-foreground")}
-                      title={lesson.difficulty}
-                    />
-                    <span className="text-[10px] text-muted-foreground font-mono tabular-nums">
-                      {lesson.estMinutes}m
-                    </span>
-                    {isComplete && progress?.bestQuizScore !== undefined && (
-                      <span className="text-[10px] text-emerald-500 font-mono font-semibold tabular-nums">
-                        {progress.bestQuizScore}%
-                      </span>
-                    )}
-                    {isCurrent && (
-                      <span className="text-[10px] text-primary font-mono font-medium ml-auto flex items-center gap-0.5">
-                        Current <ChevronRight className="h-2.5 w-2.5" />
-                      </span>
-                    )}
-                  </span>
-                </span>
-              </button>
+              {/* Lesson rows */}
+              <ul className="space-y-0.5 border-l border-border/30 ml-2 pl-1">
+                {g.lessons.map((lesson) => {
+                  const slug = resolveRef(lesson.id);
+                  const progress = lessonProgress[slug];
+                  const isComplete = progress?.status === "complete";
+                  const isInProgress = progress?.status === "in-progress";
+                  const isCurrent = lesson.id === currentLessonId;
+                  const lessonIdx = lessons.findIndex((l) => l.id === lesson.id);
+
+                  return (
+                    <li key={lesson.id}>
+                      <button
+                        onClick={() => onSelectLesson(lesson.id)}
+                        aria-current={isCurrent ? "page" : undefined}
+                        className={cn(
+                          "w-full text-left flex items-start gap-2.5 pl-2.5 -ml-px pr-2 py-1.5 rounded-r-md border-l-2 transition-all duration-150 group",
+                          isCurrent
+                            ? "border-primary bg-primary/8 "
+                            : "border-transparent hover:bg-foreground/4 hover:border-border/60",
+                          containsCurrent && !isCurrent && "opacity-90",
+                        )}
+                      >
+                        {/* Status indicator */}
+                        <span className="shrink-0 mt-0.5">
+                          {isComplete ? (
+                            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                          ) : isInProgress ? (
+                            <PlayCircle className="h-4 w-4 text-foreground/70" />
+                          ) : isCurrent ? (
+                            <Circle className="h-4 w-4 text-foreground fill-foreground/15" />
+                          ) : lesson.optional ? (
+                            <Circle className="h-4 w-4 text-muted-foreground/40 group-hover:text-muted-foreground/70 transition-colors" />
+                          ) : (
+                            <Circle className="h-4 w-4 text-muted-foreground/50 group-hover:text-muted-foreground/80 transition-colors" />
+                          )}
+                        </span>
+
+                        {/* Title + meta */}
+                        <span className="flex-1 min-w-0">
+                          <span className="flex items-center gap-1.5">
+                            <span className="text-[10px] text-muted-foreground/70 font-mono tabular-nums shrink-0">
+                              {String(lessonIdx + 1).padStart(2, "0")}
+                            </span>
+                            <span
+                              className={cn(
+                                "block text-[13px] leading-snug line-clamp-2 transition-colors",
+                                isCurrent
+                                  ? "font-semibold text-foreground"
+                                  : isComplete
+                                    ? "text-muted-foreground group-hover:text-foreground/80"
+                                    : "text-foreground/85 group-hover:text-foreground",
+                              )}
+                            >
+                              {lesson.title}
+                            </span>
+                          </span>
+                          <span className="flex items-center gap-2 mt-0.5 ml-5">
+                            <span
+                              className={cn(
+                                "h-1.5 w-1.5 rounded-full",
+                                DIFFICULTY_DOT[lesson.difficulty] ?? "bg-muted-foreground",
+                              )}
+                              title={lesson.difficulty}
+                            />
+                            <span className="text-[10px] text-muted-foreground font-mono tabular-nums">
+                              {lesson.estMinutes}m
+                            </span>
+                            {isComplete && progress?.bestQuizScore !== undefined && (
+                              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono font-semibold tabular-nums">
+                                {progress.bestQuizScore}%
+                              </span>
+                            )}
+                            {lesson.capstoneTier && (
+                              <Lock className="h-2.5 w-2.5 text-amber-600 dark:text-amber-500" />
+                            )}
+                            {isCurrent && (
+                              <span className="text-[10px] text-foreground font-medium ml-auto flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-foreground/8 border border-border/40">
+                                Current
+                                <ChevronRight className="h-2.5 w-2.5" />
+                              </span>
+                            )}
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
             </li>
           );
         })}

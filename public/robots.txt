@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://launchpad--dev.vercel.app/sitemap.xml
+Sitemap: https://launchpadedu.vercel.app/sitemap.xml
